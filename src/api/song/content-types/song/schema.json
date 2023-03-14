@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "songs",
+  "info": {
+    "singularName": "song",
+    "pluralName": "songs",
+    "displayName": "Song",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Title": {
+      "type": "string",
+      "required": true
+    },
+    "Source": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "Cover": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "Album": {
+      "type": "string"
+    }
+  }
+}
