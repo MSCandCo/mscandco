@@ -69,6 +69,20 @@
     },
     "lastName": {
       "type": "string"
+    },
+    "stripe": {
+      "type": "json"
+    },
+    "level": {
+      "type": "enumeration",
+      "enum": [
+        "free",
+        "basic",
+        "standard",
+        "premium"
+      ],
+      "default": "free",
+      "required": true
     }
   }
 }
