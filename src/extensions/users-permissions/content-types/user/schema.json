@@ -70,19 +70,17 @@
     "lastName": {
       "type": "string"
     },
-    "stripe": {
-      "type": "json"
+    "stripeCustomerId": {
+      "type": "string"
     },
-    "level": {
-      "type": "enumeration",
-      "enum": [
-        "free",
-        "basic",
-        "standard",
-        "premium"
-      ],
-      "default": "free",
-      "required": true
+    "planName": {
+      "type": "string"
+    },
+    "planId": {
+      "type": "string"
+    },
+    "planActive": {
+      "type": "boolean"
     }
   }
 }

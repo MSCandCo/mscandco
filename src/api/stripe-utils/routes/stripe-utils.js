@@ -9,5 +9,14 @@ module.exports = {
        middlewares: [],
      },
     },
+    {
+      method: 'POST',
+      path: '/stripe-utils/webhook',
+      handler: 'stripe-utils.webhook',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+     },
   ],
 };
