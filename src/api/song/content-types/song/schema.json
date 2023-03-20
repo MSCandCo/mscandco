@@ -12,11 +12,11 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "Title": {
+    "title": {
       "type": "string",
       "required": true
     },
-    "Source": {
+    "mediaPreview": {
       "type": "media",
       "multiple": false,
       "required": true,
@@ -24,7 +24,7 @@
         "audios"
       ]
     },
-    "Cover": {
+    "cover": {
       "type": "media",
       "multiple": false,
       "required": true,
@@ -32,8 +32,23 @@
         "images"
       ]
     },
-    "Album": {
-      "type": "string"
+    "genres": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "songs"
+    },
+    "playlists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::playlist.playlist",
+      "inversedBy": "songs"
+    },
+    "singer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "songs"
     }
   }
 }
