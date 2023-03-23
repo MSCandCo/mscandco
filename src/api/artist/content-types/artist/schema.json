@@ -24,9 +24,9 @@
     },
     "songs": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToMany",
       "target": "api::song.song",
-      "mappedBy": "singer"
+      "mappedBy": "singers"
     }
   }
 }

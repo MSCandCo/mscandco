@@ -44,11 +44,14 @@
       "target": "api::playlist.playlist",
       "inversedBy": "songs"
     },
-    "singer": {
+    "singers": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "manyToMany",
       "target": "api::artist.artist",
       "inversedBy": "songs"
+    },
+    "mediaPreviewPeaks": {
+      "type": "json"
     }
   }
 }
