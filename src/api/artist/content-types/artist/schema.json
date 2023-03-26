@@ -27,6 +27,12 @@
       "relation": "manyToMany",
       "target": "api::song.song",
       "mappedBy": "singers"
+    },
+    "lyrics": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::lyric.lyric",
+      "mappedBy": "writers"
     }
   }
 }
