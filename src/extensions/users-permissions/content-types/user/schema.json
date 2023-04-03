@@ -81,6 +81,9 @@
     },
     "planActive": {
       "type": "boolean"
+    },
+    "credit": {
+      "type": "integer"
     }
   }
 }
