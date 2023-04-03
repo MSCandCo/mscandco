@@ -8,6 +8,15 @@ const { createCoreController } = require("@strapi/strapi").factories;
 
 module.exports = createCoreController("api::song.song", ({ strapi }) => ({
   async download(ctx) {
+    const { user } = ctx.state;
+
+    if (!user || !user.credit) {
+      ctx.status = 403;
+      ctx.body = {
+        error: "no-credit",
+      };
+      return;
+    }
     ctx.query = { ...ctx.query, populate: "*" };
     const response = await super.findOne(ctx);
     const { title, mediaPreview } = response.data.attributes;
