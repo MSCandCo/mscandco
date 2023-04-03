@@ -27,6 +27,16 @@ module.exports = createCoreController("api::song.song", ({ strapi }) => ({
     ctx.response.attachment(`${title}${mediaPreview.data.attributes.ext}`);
     ctx.type = mediaPreview.data.attributes.mime;
     ctx.body = fs.readFileSync(`public/${mediaPreview.data.attributes.url}`);
-    return response;
+
+    await strapi.entityService.update(
+      "plugin::users-permissions.user",
+      user.id,
+      {
+        data: {
+          credit: user.credit - 1,
+        },
+      }
+    );
+    return;
   },
 }));
