@@ -38,6 +38,13 @@
     },
     "description": {
       "type": "text"
+    },
+    "coverBackground": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
     }
   }
 }
