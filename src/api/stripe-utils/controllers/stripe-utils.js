@@ -74,6 +74,7 @@ module.exports = {
     let plan;
     let product;
     let planName;
+    let productId;
     // Handle the event
     switch (event.type) {
       case "checkout.session.completed":
@@ -113,9 +114,10 @@ module.exports = {
         status = subscription.status;
         customerId = subscription.customer;
         plan = subscription.plan;
+        productId = plan.product;
 
         product = await stripe.products.retrieve(plan.product);
-        planName = product.name.toLowerCase().replace(/ /g, "_");
+        planName = product.name;
 
         user = await strapi.db.query("plugin::users-permissions.user").findOne({
           where: { stripeCustomerId: customerId },
@@ -126,7 +128,9 @@ module.exports = {
           user.id,
           {
             data: {
-              planName: planName,
+              // this determines the product/package
+              productId: productId,
+              // this determines the price
               planId: plan.id,
               // TODO: later move this to payment success hook event
               planActive: true,
