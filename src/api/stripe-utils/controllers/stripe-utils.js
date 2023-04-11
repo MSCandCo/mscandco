@@ -128,6 +128,7 @@ module.exports = {
           user.id,
           {
             data: {
+              subscriptionId: subscription.id,
               // this determines the product/package
               productId: productId,
               // this determines the price

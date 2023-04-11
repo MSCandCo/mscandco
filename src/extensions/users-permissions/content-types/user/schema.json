@@ -84,6 +84,9 @@
     },
     "credit": {
       "type": "integer"
+    },
+    "subscriptionId": {
+      "type": "string"
     }
   }
 }
