@@ -1,6 +1,7 @@
 const _exec = require("child_process").exec;
 const promisify = require("util").promisify;
 const fs = require("fs");
+const { getAudioDurationInSeconds } = require('get-audio-duration');
 
 const exec = promisify(_exec);
 
@@ -39,7 +40,21 @@ module.exports = {
       }
     }
   },
+  async beforeCreate(event) {
+    const { data } = event.params;
+    event.params.data.length = await getDurationOfMedia(data.mediaPreview);
+  },
+  async beforeUpdate(event) {
+    const { data } = event.params;
+    event.params.data.length = await getDurationOfMedia(data.mediaPreview);
+  },
 };
+
+const getDurationOfMedia = async (mediaId) => {
+  const mediaPreview = await strapi.entityService.findOne('plugin::upload.file', mediaId);
+  const duration = await getAudioDurationInSeconds(`public/${mediaPreview.url}`);
+  return Math.floor(duration);
+}
 
 const generatePeaks = async (data) => {
   const outputFilePath = `public/uploads/${data.mediaPreview.hash}.json`;

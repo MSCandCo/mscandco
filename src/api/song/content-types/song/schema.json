@@ -52,6 +52,9 @@
     },
     "mediaPreviewPeaks": {
       "type": "json"
+    },
+    "length": {
+      "type": "integer"
     }
   }
 }
