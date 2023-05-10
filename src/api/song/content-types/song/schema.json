@@ -94,6 +94,21 @@
     },
     "bpm": {
       "type": "integer"
+    },
+    "vocals": {
+      "type": "customField",
+      "options": [
+        "Ambient",
+        "Choir",
+        "Duet",
+        "Female",
+        "Group",
+        "Harmony",
+        "Male",
+        "Oohs & Ahhs",
+        "Shouts"
+      ],
+      "customField": "plugin::multi-select.multi-select"
     }
   }
 }
