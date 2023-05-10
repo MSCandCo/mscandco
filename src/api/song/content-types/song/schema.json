@@ -55,6 +55,42 @@
     },
     "length": {
       "type": "integer"
+    },
+    "majorKeys": {
+      "type": "customField",
+      "options": [
+        "A",
+        "Ab",
+        "B",
+        "Bb",
+        "C",
+        "D",
+        "Db",
+        "E",
+        "Eb",
+        "F",
+        "F#",
+        "G"
+      ],
+      "customField": "plugin::multi-select.multi-select"
+    },
+    "minorKeys": {
+      "type": "customField",
+      "options": [
+        "A",
+        "Ab",
+        "B",
+        "Bb",
+        "C",
+        "D",
+        "Db",
+        "E",
+        "Eb",
+        "F",
+        "F#",
+        "G"
+      ],
+      "customField": "plugin::multi-select.multi-select"
     }
   }
 }
