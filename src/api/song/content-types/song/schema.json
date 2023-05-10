@@ -91,6 +91,9 @@
         "G"
       ],
       "customField": "plugin::multi-select.multi-select"
+    },
+    "bpm": {
+      "type": "integer"
     }
   }
 }
