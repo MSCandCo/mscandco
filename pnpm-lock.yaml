@@ -23,11 +23,11 @@ dependencies:
     specifier: ^2.0.0
     version: 2.0.0
   strapi-stripe:
-    specifier: ^3.2.1
-    version: 3.2.1(react@18.2.0)
+    specifier: ^3.3.0
+    version: 3.3.0(react@18.2.0)
   stripe:
-    specifier: ^11.15.0
-    version: 11.15.0
+    specifier: ^11.18.0
+    version: 11.18.0
 
 packages:
 
@@ -9370,8 +9370,8 @@ packages:
     engines: {node: '>=14.19.1 <=18.x.x', npm: '>=6.0.0'}
     dev: false
 
-  /strapi-stripe@3.2.1(react@18.2.0):
-    resolution: {integrity: sha512-U1tZQUH3gEhNakDG2bsmqnucY5l/sp6AXcfGHLxoSY137ylzaB3cZcVLu2czuTqKarJKdKVBR2NWfzcZj7aQfA==}
+  /strapi-stripe@3.3.0(react@18.2.0):
+    resolution: {integrity: sha512-QD9KMt2oaXmbmeDzZzL773Ghb9rmoncUi6ETZb0cwKQBZvLbHFUEuf8pRgEQcrYWwq1Jhcm97VV7Keyy+ao6Ew==}
     engines: {node: '>=14.19.1 <=18.x.x', npm: '>=6.0.0'}
     dependencies:
       better-sqlite3: 7.6.2
@@ -9457,8 +9457,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /stripe@11.15.0:
-    resolution: {integrity: sha512-HkXz/o4hVvBLSSgTLo3iZQW19PV+DiOdwsj26jnrRcOgpZ+dpGgzpudL/yTWEho7lWcz3cRNov3d4REZ1Qtfbg==}
+  /stripe@11.18.0:
+    resolution: {integrity: sha512-OUA32uhNoSoM6wOodyFbV+3IBCoO140uzdXmBArQ0S88D4EbH91xl2v+Ml1sKalcFKUBadHLeHfU/p9AbsOfGw==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 20.2.5
