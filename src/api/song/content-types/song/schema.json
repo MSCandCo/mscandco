@@ -109,6 +109,10 @@
         "Shouts"
       ],
       "customField": "plugin::multi-select.multi-select"
+    },
+    "credit": {
+      "type": "integer",
+      "required": true
     }
   }
 }

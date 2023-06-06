@@ -19,7 +19,7 @@ module.exports = createCoreController("api::song.song", ({ strapi }) => ({
     }
     ctx.query = { ...ctx.query, populate: "*" };
     const response = await super.findOne(ctx);
-    const { title, mediaPreview } = response.data.attributes;
+    const { title, mediaPreview, credit } = response.data.attributes;
 
     // for allowing to access content-disposition on client side
     ctx.set("Access-Control-Expose-Headers", "Content-Disposition");
@@ -33,7 +33,7 @@ module.exports = createCoreController("api::song.song", ({ strapi }) => ({
       user.id,
       {
         data: {
-          credit: user.credit - 1,
+          credit: user.credit - credit,
         },
       }
     );
