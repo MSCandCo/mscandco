@@ -10,7 +10,7 @@ module.exports = createCoreController("api::song.song", ({ strapi }) => ({
   async download(ctx) {
     const { user } = ctx.state;
 
-    if (!user || !user.credit) {
+    if (!user || !user.credit || user.credit < 0) {
       ctx.status = 403;
       ctx.body = {
         error: "no-credit",
@@ -20,6 +20,14 @@ module.exports = createCoreController("api::song.song", ({ strapi }) => ({
     ctx.query = { ...ctx.query, populate: "*" };
     const response = await super.findOne(ctx);
     const { title, mediaPreview, credit } = response.data.attributes;
+
+    if (user.credit - credit < 0) {
+      ctx.status = 403;
+      ctx.body = {
+        error: "no-credit",
+      };
+      return;
+    }
 
     // for allowing to access content-disposition on client side
     ctx.set("Access-Control-Expose-Headers", "Content-Disposition");
