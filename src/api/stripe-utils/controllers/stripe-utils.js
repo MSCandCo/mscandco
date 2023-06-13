@@ -1,5 +1,7 @@
 "use strict";
 
+const { getCreditsCountFromPriceId } = require("../../../constants");
+
 /**
  * A set of functions called "actions" for `stripe-utils`
  */
@@ -17,7 +19,9 @@ module.exports = {
         return ctx.send({ error: "priceId not provided" }, 400);
 
       const session = await stripe.checkout.sessions.create({
+        customer: user.stripeCustomerId || undefined,
         mode: "subscription",
+        // TODO remove it
         client_reference_id: user.id,
         line_items: [
           {
@@ -31,6 +35,9 @@ module.exports = {
         // is redirected to the success page.
         success_url: `${process.env.CLIENT_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/subscription/canceled`,
+        metadata: {
+          userId: user.id
+        }
       });
       ctx.send(session);
     } catch (err) {
@@ -82,11 +89,11 @@ module.exports = {
         customerId = subscription.customer;
         user = await strapi.entityService.findOne(
           "plugin::users-permissions.user",
-          subscription.client_reference_id
+          parseInt(subscription.metadata.userId)
         );
         await strapi.entityService.update(
           "plugin::users-permissions.user",
-          subscription.client_reference_id,
+          parseInt(subscription.metadata.userId),
           {
             data: {
               stripeCustomerId: customerId,
@@ -95,29 +102,17 @@ module.exports = {
         );
         console.log(`${customerId} set to user: ${user.email}`);
         break;
-      case "customer.subscription.trial_will_end":
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription trial ending.
-        // handleSubscriptionTrialEnding(subscription);
-        break;
-      case "customer.subscription.deleted":
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription deleted.
-        // handleSubscriptionDeleted(subscriptionDeleted);
-        break;
       case "customer.subscription.created":
         subscription = event.data.object;
         status = subscription.status;
         customerId = subscription.customer;
-        plan = subscription.plan;
-        productId = plan.product;
+        plan = subscription.plan; // e.g. {id: "price_1Mn5KoFP1MiYzMK9aVsGNCSA" ...}
+        productId = plan.product; // e.g. prod_NYBiJqWIBiBgFf
 
-        product = await stripe.products.retrieve(plan.product);
+        product = await stripe.products.retrieve(productId);
         planName = product.name;
+
+        const creditCount = getCreditsCountFromPriceId(plan.id);
 
         user = await strapi.db.query("plugin::users-permissions.user").findOne({
           where: { stripeCustomerId: customerId },
@@ -128,29 +123,72 @@ module.exports = {
           user.id,
           {
             data: {
+              // useless, maybe remove?
               subscriptionId: subscription.id,
               // this determines the product/package
               productId: productId,
               // this determines the price
               planId: plan.id,
-              // TODO: later move this to payment success hook event
               planActive: true,
+              credit: creditCount
             },
           }
         );
 
         console.log(
-          `customer.subscription.created: Subscription user: ${user.email}. Plan: ${planName}.`
+          "customer.subscription.created",
+          `Subscription created for user ${user.email}. Plan/Interval/Credit: ${planName}/${plan.interval}/${creditCount}.`
         );
-        // Then define and call a method to handle the subscription created.
-        // handleSubscriptionCreated(subscription);
         break;
+      // TODO complete the credit system here!
       case "customer.subscription.updated":
         subscription = event.data.object;
         status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription update.
-        // handleSubscriptionUpdated(subscription);
+        customerId = subscription.customer;
+
+        user = await strapi.db.query("plugin::users-permissions.user").findOne({
+          where: { stripeCustomerId: customerId },
+        });
+
+        console.log(
+          "customer.subscription.updated",
+          `Subscription status for ${user.email} is ${status}.`
+        );
+
+        await strapi.entityService.update(
+          "plugin::users-permissions.user",
+          user.id,
+          {
+            data: {
+              planActive: status === "active",
+            },
+          }
+        );
+        break;
+      case "customer.subscription.deleted":
+        subscription = event.data.object;
+        status = subscription.status;
+        customerId = subscription.customer;
+
+        user = await strapi.db.query("plugin::users-permissions.user").findOne({
+          where: { stripeCustomerId: customerId },
+        });
+
+        console.log(
+          "customer.subscription.deleted",
+          `Subscription deleted/ended for ${user.email}. Status: ${status}.`
+        );
+
+        await strapi.entityService.update(
+          "plugin::users-permissions.user",
+          user.id,
+          {
+            data: {
+              planActive: false,
+              credit: 0
+            },
+          }
+        );
         break;
       default:
         // Unexpected event type
