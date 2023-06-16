@@ -45,6 +45,20 @@ module.exports = {
       ctx.send(err, 500);
     }
   },
+  createPortalSession: async (ctx, next) => {
+    const stripe = strapi.service(
+      "api::stripe-utils.stripe-utils"
+    ).stripeInstance;
+
+    const { user } = ctx.state;
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: process.env.CLIENT_URL,
+    });
+    
+    ctx.send(session.url);
+  },
   webhook: async (ctx, next) => {
     const stripe = strapi.service(
       "api::stripe-utils.stripe-utils"
@@ -82,6 +96,7 @@ module.exports = {
     let product;
     let planName;
     let productId;
+    let creditCount;
     // Handle the event
     switch (event.type) {
       case "checkout.session.completed":
@@ -112,7 +127,7 @@ module.exports = {
         product = await stripe.products.retrieve(productId);
         planName = product.name;
 
-        const creditCount = getCreditsCountFromPriceId(plan.id);
+        creditCount = getCreditsCountFromPriceId(plan.id);
 
         user = await strapi.db.query("plugin::users-permissions.user").findOne({
           where: { stripeCustomerId: customerId },
@@ -140,11 +155,17 @@ module.exports = {
           `Subscription created for user ${user.email}. Plan/Interval/Credit: ${planName}/${plan.interval}/${creditCount}.`
         );
         break;
-      // TODO complete the credit system here!
       case "customer.subscription.updated":
         subscription = event.data.object;
         status = subscription.status;
         customerId = subscription.customer;
+        plan = subscription.plan; // e.g. {id: "price_1Mn5KoFP1MiYzMK9aVsGNCSA" ...}
+        productId = plan.product; // e.g. prod_NYBiJqWIBiBgFf
+
+        product = await stripe.products.retrieve(productId);
+        planName = product.name;
+
+        creditCount = getCreditsCountFromPriceId(plan.id);
 
         user = await strapi.db.query("plugin::users-permissions.user").findOne({
           where: { stripeCustomerId: customerId },
@@ -152,7 +173,7 @@ module.exports = {
 
         console.log(
           "customer.subscription.updated",
-          `Subscription status for ${user.email} is ${status}.`
+          `Subscription updated for user ${user.email}. Plan/Interval/Credit/Status: ${planName}/${plan.interval}/${creditCount}/${status}.`
         );
 
         await strapi.entityService.update(
@@ -160,7 +181,14 @@ module.exports = {
           user.id,
           {
             data: {
+              // useless, maybe remove?
+              subscriptionId: subscription.id,
+              // this determines the product/package
+              productId: productId,
+              // this determines the price
+              planId: plan.id,
               planActive: status === "active",
+              credit: creditCount
             },
           }
         );

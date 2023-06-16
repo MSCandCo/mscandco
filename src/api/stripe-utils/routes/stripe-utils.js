@@ -10,6 +10,15 @@ module.exports = {
      },
     },
     {
+      method: 'GET',
+      path: '/stripe-utils/create-portal-session',
+      handler: 'stripe-utils.createPortalSession',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+     },
+    {
       method: 'POST',
       path: '/stripe-utils/webhook',
       handler: 'stripe-utils.webhook',
