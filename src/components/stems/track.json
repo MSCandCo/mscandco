@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_stems_tracks",
+  "info": {
+    "displayName": "Track",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "source": {
+      "allowedTypes": [
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false,
+      "required": true
+    }
+  }
+}
