@@ -707,6 +707,14 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    firstName: Attribute.String & Attribute.Required;
+    lastName: Attribute.String;
+    stripeCustomerId: Attribute.String;
+    productId: Attribute.String;
+    planId: Attribute.String;
+    planActive: Attribute.Boolean;
+    credit: Attribute.Integer;
+    subscriptionId: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -768,6 +776,271 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiArtistArtist extends Schema.CollectionType {
+  collectionName: 'artists';
+  info: {
+    singularName: 'artist';
+    pluralName: 'artists';
+    displayName: 'Artist';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    cover: Attribute.Media;
+    songs: Attribute.Relation<
+      'api::artist.artist',
+      'manyToMany',
+      'api::song.song'
+    >;
+    lyrics: Attribute.Relation<
+      'api::artist.artist',
+      'manyToMany',
+      'api::lyric.lyric'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::artist.artist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::artist.artist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiGenreGenre extends Schema.CollectionType {
+  collectionName: 'genres';
+  info: {
+    singularName: 'genre';
+    pluralName: 'genres';
+    displayName: 'Genre';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    playlists: Attribute.Relation<
+      'api::genre.genre',
+      'manyToMany',
+      'api::playlist.playlist'
+    >;
+    songs: Attribute.Relation<
+      'api::genre.genre',
+      'manyToMany',
+      'api::song.song'
+    >;
+    lyrics: Attribute.Relation<
+      'api::genre.genre',
+      'manyToMany',
+      'api::lyric.lyric'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::genre.genre',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::genre.genre',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLyricLyric extends Schema.CollectionType {
+  collectionName: 'lyrics';
+  info: {
+    singularName: 'lyric';
+    pluralName: 'lyrics';
+    displayName: 'Lyric';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    verses: Attribute.Component<'lyric.verse', true>;
+    genres: Attribute.Relation<
+      'api::lyric.lyric',
+      'manyToMany',
+      'api::genre.genre'
+    >;
+    writers: Attribute.Relation<
+      'api::lyric.lyric',
+      'manyToMany',
+      'api::artist.artist'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::lyric.lyric',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::lyric.lyric',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiPlaylistPlaylist extends Schema.CollectionType {
+  collectionName: 'playlists';
+  info: {
+    singularName: 'playlist';
+    pluralName: 'playlists';
+    displayName: 'Playlist';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    cover: Attribute.Media;
+    genres: Attribute.Relation<
+      'api::playlist.playlist',
+      'manyToMany',
+      'api::genre.genre'
+    >;
+    songs: Attribute.Relation<
+      'api::playlist.playlist',
+      'manyToMany',
+      'api::song.song'
+    >;
+    description: Attribute.Text;
+    coverBackground: Attribute.Media;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::playlist.playlist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::playlist.playlist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiSongSong extends Schema.CollectionType {
+  collectionName: 'songs';
+  info: {
+    singularName: 'song';
+    pluralName: 'songs';
+    displayName: 'Song';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    mediaPreview: Attribute.Media & Attribute.Required;
+    cover: Attribute.Media & Attribute.Required;
+    genres: Attribute.Relation<
+      'api::song.song',
+      'manyToMany',
+      'api::genre.genre'
+    >;
+    playlists: Attribute.Relation<
+      'api::song.song',
+      'manyToMany',
+      'api::playlist.playlist'
+    >;
+    singers: Attribute.Relation<
+      'api::song.song',
+      'manyToMany',
+      'api::artist.artist'
+    >;
+    mediaPreviewPeaks: Attribute.JSON;
+    length: Attribute.Integer;
+    majorKeys: Attribute.JSON &
+      Attribute.CustomField<
+        'plugin::multi-select.multi-select',
+        ['A', 'Ab', 'B', 'Bb', 'C', 'D', 'Db', 'E', 'Eb', 'F', 'F#', 'G']
+      >;
+    minorKeys: Attribute.JSON &
+      Attribute.CustomField<
+        'plugin::multi-select.multi-select',
+        ['A', 'Ab', 'B', 'Bb', 'C', 'D', 'Db', 'E', 'Eb', 'F', 'F#', 'G']
+      >;
+    bpm: Attribute.Integer;
+    vocals: Attribute.JSON &
+      Attribute.CustomField<
+        'plugin::multi-select.multi-select',
+        [
+          'Ambient',
+          'Choir',
+          'Duet',
+          'Female',
+          'Group',
+          'Harmony',
+          'Male',
+          'Oohs & Ahhs',
+          'Shouts'
+        ]
+      >;
+    credit: Attribute.Integer & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::song.song', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::song.song', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
+export interface ApiStemStem extends Schema.CollectionType {
+  collectionName: 'stems';
+  info: {
+    singularName: 'stem';
+    pluralName: 'stems';
+    displayName: 'Stem';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    tracks: Attribute.Component<'stems.track', true>;
+    cover: Attribute.Media & Attribute.Required;
+    title: Attribute.String & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::stem.stem', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::stem.stem', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -786,6 +1059,12 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::artist.artist': ApiArtistArtist;
+      'api::genre.genre': ApiGenreGenre;
+      'api::lyric.lyric': ApiLyricLyric;
+      'api::playlist.playlist': ApiPlaylistPlaylist;
+      'api::song.song': ApiSongSong;
+      'api::stem.stem': ApiStemStem;
     }
   }
 }
