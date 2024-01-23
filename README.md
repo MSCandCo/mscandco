@@ -19,3 +19,17 @@ docker compose up -d
 ```
 
 Note: if you want to access host machine's ports, use `host.docker.internal` instead of `localhost` or `127.0.0.1`
+
+## Tips
+
+## Attach container shell to your terminal
+
+```
+docker exec -it audiostems sh
+```
+
+## Copy file from container to host
+
+```
+docker cp audiostems:/opt/app/file ./
+```

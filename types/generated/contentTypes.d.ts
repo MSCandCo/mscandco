@@ -916,7 +916,7 @@ export interface ApiPlaylistPlaylist extends Schema.CollectionType {
   };
   attributes: {
     title: Attribute.String & Attribute.Required;
-    cover: Attribute.Media;
+    cover: Attribute.Media & Attribute.Required;
     genres: Attribute.Relation<
       'api::playlist.playlist',
       'manyToMany',
