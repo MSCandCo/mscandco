@@ -2,7 +2,8 @@ version: '3'
 services:
   audiostems:
     container_name: audiostems
-    build: .
+    build:
+      dockerfile: Dockerfile.prod
     image: audiostems:latest
     restart: unless-stopped
     env_file: .env
@@ -17,13 +18,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       NODE_ENV: ${NODE_ENV}
     volumes:
-      - ./config:/opt/app/config
-      - ./src:/opt/app/src
-      - ./package.json:/opt/package.json
-      - ./package-lock.json:/opt/package-lock.json
-
-      - ./.env:/opt/app/.env
-      - ./public/uploads:/opt/app/public/uploads
+      - uploads:/opt/app/public/uploads
     ports:
       - '1337:1337'
     networks:
@@ -65,6 +60,7 @@ services:
 
 volumes:
   audiostems-data:
+  uploads:
 
 networks:
   audiostems:
