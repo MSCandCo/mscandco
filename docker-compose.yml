@@ -20,7 +20,7 @@ services:
     volumes:
       - uploads:/opt/app/public/uploads
     ports:
-      - '1337:1337'
+      - '8080:1337'
     networks:
       - audiostems
     depends_on:
