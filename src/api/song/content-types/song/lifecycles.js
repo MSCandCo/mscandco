@@ -1,60 +1,38 @@
 const _exec = require("child_process").exec;
 const promisify = require("util").promisify;
 const fs = require("fs");
-const { getAudioDurationInSeconds } = require('get-audio-duration');
+const { getAudioDurationInSeconds } = require("get-audio-duration");
 
 const exec = promisify(_exec);
 
-module.exports = {
-  async afterCreate(event) {
-    const { result } = event;
-    if (result.mediaPreview) {
-      try {
-        const peaks = await generatePeaks(result);
-        await strapi.entityService.update("api::song.song", result.id, {
-          data: {
-            mediaPreviewPeaks: peaks,
-          },
-        });
-        console.log(`Peaks generated for ${result.title}`);
-      } catch (error) {
-        console.log(error.message);
-      }
+const beforeAndAfter = async (event) => {
+  const { data } = event.params;
+  if (data.mediaPreview) {
+    try {
+      event.params.data.length = await getDurationOfMedia(data.mediaPreview);
+      event.params.data.mediaPreviewPeaks = await generatePeaks(data);
+      console.log(`Peaks generated for ${data.title}`);
+    } catch (error) {
+      console.log("error while generating peaks / duration", error.message);
     }
-  },
-  async afterUpdate(event) {
-    const { result } = event;
+  }
+};
 
-    // update call below should not start the loop
-    if (result.mediaPreview) {
-      try {
-        const peaks = await generatePeaks(result);
-        await strapi.entityService.update("api::song.song", result.id, {
-          data: {
-            mediaPreviewPeaks: peaks,
-          },
-        });
-        console.log(`Peaks generated for ${result.title}`);
-      } catch (error) {
-        console.log(error.message);
-      }
-    }
-  },
-  async beforeCreate(event) {
-    const { data } = event.params;
-    event.params.data.length = await getDurationOfMedia(data.mediaPreview);
-  },
-  async beforeUpdate(event) {
-    const { data } = event.params;
-    event.params.data.length = await getDurationOfMedia(data.mediaPreview);
-  },
+module.exports = {
+  beforeCreate: beforeAndAfter,
+  beforeUpdate: beforeAndAfter,
 };
 
 const getDurationOfMedia = async (mediaId) => {
-  const mediaPreview = await strapi.entityService.findOne('plugin::upload.file', mediaId);
-  const duration = await getAudioDurationInSeconds(`public/${mediaPreview.url}`);
+  const mediaPreview = await strapi.entityService.findOne(
+    "plugin::upload.file",
+    mediaId
+  );
+  const duration = await getAudioDurationInSeconds(
+    `public/${mediaPreview.url}`
+  );
   return Math.floor(duration);
-}
+};
 
 const generatePeaks = async (data) => {
   const outputFilePath = `public/uploads/${data.mediaPreview.hash}.json`;
