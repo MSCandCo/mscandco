@@ -25,6 +25,7 @@ services:
       - audiostems
     depends_on:
       - audiostemsDB
+      - audiowaveform-server
       
   audiostemsDB:
     container_name: audiostemsDB
@@ -57,6 +58,14 @@ services:
       - audiostems
     depends_on:
       - audiostemsDB
+  audiowaveform-server:
+    container_name: audiowaveform-server
+    build:
+      context: audiowaveform-server
+    networks:
+      - audiostems
+    volumes:
+      - uploads:/uploads
 
 volumes:
   audiostems-data:

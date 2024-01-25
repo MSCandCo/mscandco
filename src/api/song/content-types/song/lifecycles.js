@@ -1,17 +1,16 @@
-const _exec = require("child_process").exec;
-const promisify = require("util").promisify;
-const fs = require("fs");
 const { getAudioDurationInSeconds } = require("get-audio-duration");
-
-const exec = promisify(_exec);
 
 const beforeAndAfter = async (event) => {
   const { data } = event.params;
   if (data.mediaPreview) {
+    const mediaPreview = await strapi.entityService.findOne(
+      "plugin::upload.file",
+      data.mediaPreview
+    );
     try {
-      event.params.data.length = await getDurationOfMedia(data.mediaPreview);
-      event.params.data.mediaPreviewPeaks = await generatePeaks(data);
-      console.log(`Peaks generated for ${data.title}`);
+      event.params.data.length = await getDurationOfMedia(mediaPreview);
+      event.params.data.mediaPreviewPeaks = await generatePeaks(mediaPreview);
+      console.log(`peaks and duration generated for ${data.title}`);
     } catch (error) {
       console.log("error while generating peaks / duration", error.message);
     }
@@ -23,27 +22,19 @@ module.exports = {
   beforeUpdate: beforeAndAfter,
 };
 
-const getDurationOfMedia = async (mediaId) => {
-  const mediaPreview = await strapi.entityService.findOne(
-    "plugin::upload.file",
-    mediaId
-  );
+const getDurationOfMedia = async (mediaPreview) => {
   const duration = await getAudioDurationInSeconds(
     `public/${mediaPreview.url}`
   );
   return Math.floor(duration);
 };
 
-const generatePeaks = async (data) => {
-  const outputFilePath = `public/uploads/${data.mediaPreview.hash}.json`;
-  const inputFilePath = `public/${data.mediaPreview.url}`;
-  const command = `audiowaveform -i ${inputFilePath} -o ${outputFilePath} --pixels-per-second 20 --bits 8`;
+const generatePeaks = async (mediaPreview) => {
+  const response = await fetch(
+    `http://audiowaveform-server:8888/?file=${mediaPreview.url}`
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error);
 
-  await exec(command);
-
-  const outputPeaks = fs.readFileSync(outputFilePath, {
-    encoding: "utf8",
-  });
-
-  return JSON.parse(outputPeaks);
+  return data;
 };
