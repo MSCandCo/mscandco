@@ -33,3 +33,17 @@ docker exec -it audiostems sh
 ```
 docker cp audiostems:/opt/app/file ./
 ```
+
+# Strapi
+
+## Tips
+
+Export/Import all the data from strapi project.
+
+```
+npx strapi export
+```
+
+```
+npx strapi import -f [file-name]
+```
