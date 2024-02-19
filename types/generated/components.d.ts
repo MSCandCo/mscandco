@@ -22,6 +22,7 @@ export interface StemsTrack extends Schema.Component {
   attributes: {
     name: Attribute.String;
     source: Attribute.Media & Attribute.Required;
+    sourcePeaks: Attribute.JSON;
   };
 }
 

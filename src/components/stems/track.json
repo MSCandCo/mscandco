@@ -10,12 +10,15 @@
       "type": "string"
     },
     "source": {
-      "allowedTypes": [
-        "audios"
-      ],
       "type": "media",
       "multiple": false,
-      "required": true
+      "required": true,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "sourcePeaks": {
+      "type": "json"
     }
   }
 }
