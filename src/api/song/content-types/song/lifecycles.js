@@ -1,4 +1,5 @@
 const { getAudioDurationInSeconds } = require("get-audio-duration");
+const { generatePeaks } = require("../../../../utils");
 
 const beforeAndAfter = async (event) => {
   const { data } = event.params;
@@ -27,14 +28,4 @@ const getDurationOfMedia = async (mediaPreview) => {
     `public/${mediaPreview.url}`
   );
   return Math.floor(duration);
-};
-
-const generatePeaks = async (mediaPreview) => {
-  const response = await fetch(
-    `http://audiowaveform-server:8888/?file=${mediaPreview.url}`
-  );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error);
-
-  return data;
 };
