@@ -1031,6 +1031,7 @@ export interface ApiStemStem extends Schema.CollectionType {
     tracks: Attribute.Component<'stems.track', true>;
     cover: Attribute.Media & Attribute.Required;
     title: Attribute.String & Attribute.Required;
+    image: Attribute.Media & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
