@@ -9,13 +9,13 @@ For development, a without-docker flow works best and uses less recourses thus i
 1. Build the images
 
 ```
-docker compose build
+docker compose build [service name]
 ```
 
 2. Create(?) and run the container
 
 ```
-docker compose up -d
+docker compose up --no-deps -d [service name]
 ```
 
 Note: if you want to access host machine's ports, use `host.docker.internal` instead of `localhost` or `127.0.0.1`
