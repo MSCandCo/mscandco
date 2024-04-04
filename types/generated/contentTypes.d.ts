@@ -799,6 +799,11 @@ export interface ApiArtistArtist extends Schema.CollectionType {
       'manyToMany',
       'api::lyric.lyric'
     >;
+    stems: Attribute.Relation<
+      'api::artist.artist',
+      'manyToMany',
+      'api::stem.stem'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1032,6 +1037,11 @@ export interface ApiStemStem extends Schema.CollectionType {
     cover: Attribute.Media & Attribute.Required;
     title: Attribute.String & Attribute.Required;
     image: Attribute.Media & Attribute.Required;
+    artists: Attribute.Relation<
+      'api::stem.stem',
+      'manyToMany',
+      'api::artist.artist'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

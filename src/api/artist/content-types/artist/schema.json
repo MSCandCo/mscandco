@@ -33,6 +33,12 @@
       "relation": "manyToMany",
       "target": "api::lyric.lyric",
       "mappedBy": "writers"
+    },
+    "stems": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::stem.stem",
+      "mappedBy": "artists"
     }
   }
 }
