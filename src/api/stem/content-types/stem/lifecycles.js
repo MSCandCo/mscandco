@@ -34,6 +34,6 @@ const beforeAndAfter = async (event) => {
 };
 
 module.exports = {
-  afterCreate: beforeAndAfter,
-  beforeUpdate: beforeAndAfter,
+  // afterCreate: beforeAndAfter,
+  // beforeUpdate: beforeAndAfter,
 };
