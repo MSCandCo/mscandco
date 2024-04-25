@@ -47,13 +47,13 @@
     "key": {
       "type": "string"
     },
-    "BPM": {
+    "bpm": {
       "type": "integer"
     },
-    "TimeSig": {
+    "timeSig": {
       "type": "string"
     },
-    "Length": {
+    "length": {
       "type": "integer"
     }
   }

@@ -1043,9 +1043,9 @@ export interface ApiStemStem extends Schema.CollectionType {
       'api::artist.artist'
     >;
     key: Attribute.String;
-    BPM: Attribute.Integer;
-    TimeSig: Attribute.String;
-    Length: Attribute.Integer;
+    bpm: Attribute.Integer;
+    timeSig: Attribute.String;
+    length: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
