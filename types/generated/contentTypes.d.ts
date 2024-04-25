@@ -1042,6 +1042,10 @@ export interface ApiStemStem extends Schema.CollectionType {
       'manyToMany',
       'api::artist.artist'
     >;
+    key: Attribute.String;
+    BPM: Attribute.Integer;
+    TimeSig: Attribute.String;
+    Length: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

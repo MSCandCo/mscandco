@@ -43,6 +43,18 @@
       "relation": "manyToMany",
       "target": "api::artist.artist",
       "inversedBy": "stems"
+    },
+    "key": {
+      "type": "string"
+    },
+    "BPM": {
+      "type": "integer"
+    },
+    "TimeSig": {
+      "type": "string"
+    },
+    "Length": {
+      "type": "integer"
     }
   }
 }
