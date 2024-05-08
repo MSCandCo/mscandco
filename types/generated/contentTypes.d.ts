@@ -1064,6 +1064,8 @@ export interface ApiStemStem extends Schema.CollectionType {
         'Shouts'
       ]
     >;
+    fullPreview: Attribute.Media & Attribute.Required;
+    fullPreviewPeaks: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
