@@ -30,7 +30,15 @@ module.exports = [
   "strapi::cors",
   "strapi::poweredBy",
   "strapi::query",
-  { name: "strapi::body", config: { includeUnparsed: true } },
+  {
+    name: "strapi::body",
+    config: {
+      includeUnparsed: true,
+      formLimit: "256mb",
+      jsonLimit: "256mb",
+      textLimit: "256mb",
+    },
+  },
   "strapi::session",
   "strapi::favicon",
   "strapi::public",
