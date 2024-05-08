@@ -33,6 +33,12 @@
       "relation": "manyToMany",
       "target": "api::lyric.lyric",
       "mappedBy": "genres"
+    },
+    "stem": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::stem.stem",
+      "inversedBy": "genres"
     }
   }
 }

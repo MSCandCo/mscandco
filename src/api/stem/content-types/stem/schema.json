@@ -50,11 +50,28 @@
     "bpm": {
       "type": "integer"
     },
-    "timeSig": {
-      "type": "string"
-    },
     "length": {
       "type": "integer"
+    },
+    "genres": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::genre.genre",
+      "mappedBy": "stem"
+    },
+    "vocals": {
+      "type": "enumeration",
+      "enum": [
+        "Ambient",
+        "Choir",
+        "Duet",
+        "Female",
+        "Group",
+        "Harmony",
+        "Male",
+        "Oohs & Ahhs",
+        "Shouts"
+      ]
     }
   }
 }

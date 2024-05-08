@@ -849,6 +849,7 @@ export interface ApiGenreGenre extends Schema.CollectionType {
       'manyToMany',
       'api::lyric.lyric'
     >;
+    stem: Attribute.Relation<'api::genre.genre', 'manyToOne', 'api::stem.stem'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1044,8 +1045,25 @@ export interface ApiStemStem extends Schema.CollectionType {
     >;
     key: Attribute.String;
     bpm: Attribute.Integer;
-    timeSig: Attribute.String;
     length: Attribute.Integer;
+    genres: Attribute.Relation<
+      'api::stem.stem',
+      'oneToMany',
+      'api::genre.genre'
+    >;
+    vocals: Attribute.Enumeration<
+      [
+        'Ambient',
+        'Choir',
+        'Duet',
+        'Female',
+        'Group',
+        'Harmony',
+        'Male',
+        'Oohs & Ahhs',
+        'Shouts'
+      ]
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
