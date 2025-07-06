@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "artists",
+  "info": {
+    "singularName": "artist",
+    "pluralName": "artists",
+    "displayName": "Artist"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "cover": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "songs": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::song.song",
+      "mappedBy": "singers"
+    },
+    "lyrics": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::lyric.lyric",
+      "mappedBy": "writers"
+    },
+    "stems": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::stem.stem",
+      "mappedBy": "artists"
+    }
+  }
+}

@@ -1,0 +1,239 @@
+groups:
+  - name: audiostems_alerts
+    rules:
+      # Service availability alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      # High response time alerts
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds{quantile="0.95"} > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time for {{ $labels.job }}"
+          description: "95th percentile response time is above 2 seconds for {{ $labels.job }}"
+
+      # High error rate alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate for {{ $labels.job }}"
+          description: "Error rate is above 5% for {{ $labels.job }}"
+
+      # Database connection alerts
+      - alert: DatabaseConnectionHigh
+        expr: pg_stat_database_numbackends > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections"
+          description: "Database has more than 80 active connections"
+
+      # Redis memory usage alerts
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is above 80%"
+
+      # CPU usage alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% on {{ $labels.instance }}"
+
+      # Memory usage alerts
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% on {{ $labels.instance }}"
+
+      # Disk usage alerts
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is above 85% on {{ $labels.instance }}"
+
+      # Audio processing alerts
+      - alert: AudioProcessingQueueHigh
+        expr: audio_processing_queue_size > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High audio processing queue"
+          description: "Audio processing queue has more than 100 items"
+
+      - alert: AudioProcessingFailed
+        expr: rate(audio_processing_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Audio processing failures detected"
+          description: "Audio processing is failing at {{ $value }} failures per second"
+
+      # AI service alerts
+      - alert: AIServiceHighLatency
+        expr: histogram_quantile(0.95, rate(ai_request_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High AI service latency"
+          description: "AI service 95th percentile latency is above 10 seconds"
+
+      - alert: AIServiceHighErrorRate
+        expr: rate(ai_request_errors_total[5m]) / rate(ai_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High AI service error rate"
+          description: "AI service error rate is above 10%"
+
+      # Elasticsearch alerts
+      - alert: ElasticsearchClusterRed
+        expr: elasticsearch_cluster_health_status > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch cluster is red"
+          description: "Elasticsearch cluster health status is red"
+
+      - alert: ElasticsearchHighDiskUsage
+        expr: elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elasticsearch disk usage high"
+          description: "Elasticsearch disk usage is above 90%"
+
+      # Nginx alerts
+      - alert: NginxHighErrorRate
+        expr: rate(nginx_http_requests_total{status=~"5.."}[5m]) / rate(nginx_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Nginx error rate"
+          description: "Nginx error rate is above 5%"
+
+      # SSL certificate alerts
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate will expire in less than 30 days"
+
+      # API rate limiting alerts
+      - alert: APIRateLimitExceeded
+        expr: rate(api_rate_limit_exceeded_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API rate limit exceeded"
+          description: "API rate limits are being exceeded"
+
+      # Payment processing alerts
+      - alert: PaymentProcessingFailed
+        expr: rate(payment_processing_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment processing failures"
+          description: "Payment processing is failing at {{ $value }} failures per second"
+
+      # User authentication alerts
+      - alert: HighAuthenticationFailures
+        expr: rate(authentication_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failures"
+          description: "Authentication failures are above 10 per second"
+
+      # File upload alerts
+      - alert: FileUploadFailed
+        expr: rate(file_upload_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "File upload failures detected"
+          description: "File uploads are failing at {{ $value }} failures per second"
+
+      # Search service alerts
+      - alert: SearchServiceHighLatency
+        expr: histogram_quantile(0.95, rate(search_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High search service latency"
+          description: "Search service 95th percentile latency is above 5 seconds"
+
+      # Recommendation service alerts
+      - alert: RecommendationServiceDown
+        expr: up{job="auditus-ai"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Recommendation service is down"
+          description: "Auditus AI recommendation service is not responding"
+
+      # Backup alerts
+      - alert: BackupFailed
+        expr: backup_last_success_timestamp < (time() - 86400)
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backup failed"
+          description: "No successful backup in the last 24 hours"
+
+      # License expiration alerts
+      - alert: LicenseExpiringSoon
+        expr: license_expiration_timestamp - time() < 86400 * 7
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "License expiring soon"
+          description: "AudioStems license will expire in less than 7 days" 

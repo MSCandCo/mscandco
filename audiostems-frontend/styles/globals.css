@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply text-gray-800 font-medium text-sm;
+}
+
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.no-scrollbar::-webkit-scrollbar {
+  /* WebKit */
+  width: 0;
+  height: 0;
+}
+
+.range-slider input {
+  @apply invisible;
+}
+.range-slider .range-slider__thumb {
+  height: 16px !important;
+  width: 16px !important;
+}
+
+/* flowbite is broken hack till they fix it */
+.indiana-scroll-container {
+  @apply !rounded-none;
+}
+
+[part="timeline-wrapper"] {
+  display: none !important;
+}
+.as-multiplayer > div {
+  overflow-x: auto !important;
+}
+
+.as-multiplayer > div > div > div {
+  height: 64px;
+  @apply py-3;
+}
+
+.as-multiplayer > div > div > div:nth-child(even) {
+  @apply bg-gray-50;
+}

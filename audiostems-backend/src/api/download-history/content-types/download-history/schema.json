@@ -1,0 +1,49 @@
+{
+  "kind": "collectionType",
+  "collectionName": "download_histories",
+  "info": {
+    "singularName": "download-history",
+    "pluralName": "download-histories",
+    "displayName": "Download History",
+    "description": "Track user downloads for analytics and history"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "downloadHistories"
+    },
+    "contentType": {
+      "type": "enumeration",
+      "enum": ["song", "stem", "lyric"],
+      "required": true
+    },
+    "contentId": {
+      "type": "integer",
+      "required": true
+    },
+    "contentTitle": {
+      "type": "string",
+      "required": true
+    },
+    "creditsSpent": {
+      "type": "integer",
+      "required": true
+    },
+    "downloadDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "userAgent": {
+      "type": "text"
+    }
+  }
+} 
