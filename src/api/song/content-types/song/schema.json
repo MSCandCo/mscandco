@@ -1,0 +1,118 @@
+{
+  "kind": "collectionType",
+  "collectionName": "songs",
+  "info": {
+    "singularName": "song",
+    "pluralName": "songs",
+    "displayName": "Song",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "mediaPreview": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "genres": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "songs"
+    },
+    "playlists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::playlist.playlist",
+      "inversedBy": "songs"
+    },
+    "singers": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist.artist",
+      "inversedBy": "songs"
+    },
+    "mediaPreviewPeaks": {
+      "type": "json"
+    },
+    "length": {
+      "type": "integer"
+    },
+    "majorKeys": {
+      "type": "customField",
+      "options": [
+        "A",
+        "Ab",
+        "B",
+        "Bb",
+        "C",
+        "D",
+        "Db",
+        "E",
+        "Eb",
+        "F",
+        "F#",
+        "G"
+      ],
+      "customField": "plugin::multi-select.multi-select"
+    },
+    "minorKeys": {
+      "type": "customField",
+      "options": [
+        "A",
+        "Ab",
+        "B",
+        "Bb",
+        "C",
+        "D",
+        "Db",
+        "E",
+        "Eb",
+        "F",
+        "F#",
+        "G"
+      ],
+      "customField": "plugin::multi-select.multi-select"
+    },
+    "bpm": {
+      "type": "integer"
+    },
+    "vocals": {
+      "type": "customField",
+      "options": [
+        "Ambient",
+        "Choir",
+        "Duet",
+        "Female",
+        "Group",
+        "Harmony",
+        "Male",
+        "Oohs & Ahhs",
+        "Shouts"
+      ],
+      "customField": "plugin::multi-select.multi-select"
+    },
+    "credit": {
+      "type": "integer",
+      "required": true
+    }
+  }
+}
