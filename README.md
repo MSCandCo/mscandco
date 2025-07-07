@@ -1,290 +1,177 @@
-# AudioStems 🎵
+# AudioStems Platform
 
-> **Enterprise-Grade Music Licensing Platform**  
-> The next-generation sync licensing platform designed to surpass industry leaders like Musicbed, Epidemic Sound, and Artlist.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js CI](https://github.com/Audiostems/audiostems-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Audiostems/audiostems-backend/actions/workflows/ci.yml)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-[![AWS](https://img.shields.io/badge/AWS-Infrastructure-orange.svg)](https://aws.amazon.com/)
-[![Strapi](https://img.shields.io/badge/Strapi-4.17.1-purple.svg)](https://strapi.io/)
-[![Next.js](https://img.shields.io/badge/Next.js-13.5.6-black.svg)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-
-## 🚀 Features
-
-### Core Platform
-- **Multi-Region AWS Infrastructure** - Enterprise-grade scalability
-- **Advanced Audio Processing** - FLAC, 320kbps MP3, waveform generation
-- **AI-Powered Recommendations** - Auditus Intelligence for smart music discovery
-- **Real-Time Analytics** - Comprehensive business insights
-- **Enterprise Authentication** - SSO, role-based access control
-- **Advanced Licensing** - Custom terms, automated royalty distribution
-
-### Technical Stack
-- **Backend**: Strapi CMS with PostgreSQL & Redis
-- **Frontend**: Next.js with Tailwind CSS
-- **AI Services**: Python FastAPI with PyTorch
-- **Infrastructure**: AWS EKS, Aurora, CloudFront, S3
-- **Monitoring**: Prometheus, Grafana, CloudWatch
-- **CI/CD**: GitHub Actions with automated testing
-
-## 📋 Table of Contents
-
-- [Quick Start](#quick-start)
-- [Architecture](#architecture)
-- [Development](#development)
-- [Deployment](#deployment)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+Enterprise-grade music licensing platform with advanced audio processing, AI-powered recommendations, and comprehensive AWS infrastructure.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+ 
-- Docker & Docker Compose
-- Python 3.9+
-- AWS CLI (for deployment)
+- npm or yarn
+- Docker (for containerized deployment)
+- AWS CLI (for infrastructure deployment)
 
-### Local Development
+### Development Setup
 
-1. **Clone the repository**
+1. **Install dependencies:**
    ```bash
-   git clone https://github.com/Audiostems/audiostems-backend.git
-   cd audiostems-backend
+   npm run setup
    ```
 
-2. **Start with Docker Compose**
+2. **Start development servers:**
    ```bash
-   docker-compose up -d
-   ```
-
-3. **Or run services individually**
-
-   **Backend (Strapi)**
-   ```bash
-   cd audiostems-backend
-   npm install
-   npm run develop
-   # Access admin panel: http://localhost:1337/admin
-   ```
-
-   **Frontend (Next.js)**
-   ```bash
-   cd audiostems-frontend
-   npm install
    npm run dev
-   # Access frontend: http://localhost:3000
    ```
 
-   **AI Services**
-   ```bash
-   cd auditus-ai
-   pip install -r requirements.txt
-   python src/api.py
-   # AI service: http://localhost:8000
-   ```
+This will start both services:
+- **Backend (Strapi):** http://localhost:1337/admin
+- **Frontend (Next.js):** http://localhost:3000
+
+### Individual Service Commands
+
+**Backend only:**
+```bash
+npm run dev:backend
+```
+
+**Frontend only:**
+```bash
+npm run dev:frontend
+```
 
 ## 🏗️ Architecture
 
-### System Overview
+### Backend (Strapi)
+- **Location:** `audiostems-backend/`
+- **Port:** 1337
+- **Database:** SQLite (dev) / PostgreSQL (prod)
+- **Features:**
+  - Content management for songs, stems, artists
+  - User authentication & permissions
+  - Stripe integration for payments
+  - S3 file uploads
+  - REST & GraphQL APIs
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   AI Services   │
-│   (Next.js)     │◄──►│   (Strapi)      │◄──►│   (FastAPI)     │
-│   Port: 3000    │    │   Port: 1337    │    │   Port: 8000    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   Infrastructure │
-                    │   (AWS)         │
-                    └─────────────────┘
-```
+### Frontend (Next.js)
+- **Location:** `audiostems-frontend/`
+- **Port:** 3000
+- **Features:**
+  - Modern React with TypeScript
+  - Tailwind CSS for styling
+  - Audio player with waveform visualization
+  - User dashboard & analytics
+  - Responsive design
 
-### AWS Infrastructure
+### Infrastructure (AWS)
+- **Location:** `infrastructure/aws/`
+- **Components:**
+  - Multi-AZ Aurora PostgreSQL cluster
+  - Redis caching layer
+  - CloudFront CDN
+  - Application Load Balancer
+  - EKS Kubernetes cluster
+  - CloudWatch monitoring
 
-- **EKS Cluster** - Container orchestration
-- **Aurora PostgreSQL** - Primary database with read replicas
-- **ElastiCache Redis** - Caching and session storage
-- **S3 + CloudFront** - Static assets and CDN
-- **ALB + WAF** - Load balancing and security
-- **CloudWatch** - Monitoring and alerting
+## 🎵 Audio Processing
 
 ### Microservices
+- **Audio Processing:** `audio-processing/`
+- **AI Intelligence:** `auditus-ai/`
 
-1. **Strapi Backend** - Content management and API
-2. **Next.js Frontend** - User interface and client-side logic
-3. **Auditus AI** - Music analysis and recommendations
-4. **Audio Processing** - File conversion and waveform generation
+### Features
+- High-quality audio stem separation
+- AI-powered music tagging
+- Real-time waveform generation
+- Automated metadata extraction
 
-## 🛠️ Development
-
-### Project Structure
-
-```
-audiostems-backend/
-├── audiostems-backend/     # Strapi CMS backend
-├── audiostems-frontend/    # Next.js frontend
-├── auditus-ai/            # AI recommendation service
-├── audio-processing/       # Audio processing pipeline
-├── infrastructure/         # AWS Terraform configs
-├── monitoring/            # Prometheus & Grafana
-├── docs/                 # Documentation
-└── docker-compose.yml    # Local development
-```
-
-### Environment Variables
-
-Create `.env.local` files in each service directory:
-
-**Backend (.env.development)**
-```env
-HOST=0.0.0.0
-PORT=1337
-APP_KEYS=your-app-keys
-API_TOKEN_SALT=your-api-token-salt
-ADMIN_JWT_SECRET=your-admin-jwt-secret
-JWT_SECRET=your-jwt-secret
-```
-
-**Frontend (.env.local)**
-```env
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-nextauth-secret
-STRAPI_API_URL=http://localhost:1337
-```
-
-### Database Setup
-
-The platform uses SQLite for local development and PostgreSQL for production:
+## 🔧 Development Commands
 
 ```bash
-# Local development (SQLite)
-npm run develop
+# Install all dependencies
+npm run setup
 
-# Production (PostgreSQL)
+# Start both services
+npm run dev
+
+# Build for production
 npm run build
+
+# Start production servers
 npm run start
+
+# Clean all node_modules
+npm run clean
 ```
 
-## 🚀 Deployment
+## 🌐 Production Deployment
 
-### AWS Deployment
-
-1. **Configure AWS credentials**
-   ```bash
-   aws configure
-   ```
-
-2. **Deploy infrastructure**
-   ```bash
-   cd infrastructure/aws
-   terraform init
-   terraform plan
-   terraform apply
-   ```
-
-3. **Deploy applications**
-   ```bash
-   ./deploy.sh
-   ```
+### AWS Infrastructure
+```bash
+cd infrastructure/aws/database
+terraform init
+terraform plan
+terraform apply
+```
 
 ### Docker Deployment
-
 ```bash
-# Build and push images
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml push
-
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose up -d
 ```
 
-## 📚 API Documentation
+## 📊 Monitoring & Analytics
 
-### Strapi API Endpoints
+- **CloudWatch:** Application metrics and logs
+- **Prometheus:** Custom metrics collection
+- **Grafana:** Visualization dashboards
 
-- **Content Types**: `/api/songs`, `/api/stems`, `/api/artists`
-- **Authentication**: `/api/auth/local`, `/api/auth/google`
-- **Users**: `/api/users`, `/api/users/me`
-- **Media**: `/api/upload`
+## 🔐 Security Features
 
-### AI Service Endpoints
+- JWT authentication
+- Role-based access control
+- API rate limiting
+- SSL/TLS encryption
+- AWS WAF protection
 
-- **Analysis**: `POST /api/analyze`
-- **Recommendations**: `GET /api/recommendations`
-- **Tagging**: `POST /api/tag`
+## 🎯 Business Features
 
-### Frontend API Routes
+- **Advanced Analytics:** Real-time revenue tracking
+- **Royalty Distribution:** Automated payment processing
+- **Enterprise Auth:** SSO integration
+- **API Integrations:** Third-party service connections
+- **Compliance:** GDPR, SOC 2, PCI DSS
 
-- **Authentication**: `/api/auth/[...nextauth]`
-- **Proxy**: `/api/req/[...path]`
+## 📁 Project Structure
 
-## 🤝 Contributing
+```
+├── audiostems-backend/     # Strapi CMS
+├── audiostems-frontend/    # Next.js frontend
+├── audio-processing/       # Audio processing service
+├── auditus-ai/           # AI intelligence service
+├── infrastructure/        # AWS Terraform configs
+├── monitoring/           # Prometheus & Grafana
+└── docs/                # Documentation
+```
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+## 🚦 Status
 
-### Development Workflow
+✅ **Development Environment:** Running successfully
+✅ **Backend API:** Strapi CMS operational
+✅ **Frontend:** Next.js application running
+✅ **AWS Database:** Aurora PostgreSQL deployed
+🔄 **Audio Processing:** In development
+🔄 **AI Services:** In development
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📞 Support
 
-### Code Standards
+For development issues or questions, check the logs:
+- Backend: `audiostems-backend/logs/`
+- Frontend: Browser developer tools
+- Infrastructure: AWS CloudWatch
 
-- **Backend**: ESLint + Prettier
-- **Frontend**: ESLint + Prettier + TypeScript
-- **Python**: Black + Flake8
-- **Testing**: Jest + Cypress
+## 🔄 Recent Updates
 
-## 📊 Monitoring
-
-### Health Checks
-
-- **Backend**: `http://localhost:1337/health`
-- **Frontend**: `http://localhost:3000/api/health`
-- **AI Service**: `http://localhost:8000/health`
-
-### Metrics
-
-- **Application**: Prometheus + Grafana
-- **Infrastructure**: CloudWatch
-- **Logs**: CloudWatch Logs
-
-## 🔒 Security
-
-- **Authentication**: JWT + OAuth2
-- **Authorization**: Role-based access control
-- **Data Protection**: Encryption at rest and in transit
-- **Compliance**: GDPR, SOC2 ready
-- **Security Headers**: CSP, HSTS, X-Frame-Options
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/Audiostems/audiostems-backend/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Audiostems/audiostems-backend/discussions)
-- **Email**: support@audiostems.com
-
-## 🙏 Acknowledgments
-
-- **Strapi** - Headless CMS
-- **Next.js** - React framework
-- **AWS** - Cloud infrastructure
-- **OpenAI** - AI capabilities
-- **FFmpeg** - Audio processing
-
----
-
-**AudioStems** - Revolutionizing music licensing for the digital age 🎵 
+- ✅ Fixed npm command issues from root directory
+- ✅ Resolved port conflicts (1337, 3000)
+- ✅ Updated Next.js to latest version
+- ✅ Created unified development scripts
+- ✅ Deployed production Aurora PostgreSQL cluster
+- ✅ Implemented concurrent service management 

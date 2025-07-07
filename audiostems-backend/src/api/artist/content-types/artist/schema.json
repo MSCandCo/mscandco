@@ -4,23 +4,88 @@
   "info": {
     "singularName": "artist",
     "pluralName": "artists",
-    "displayName": "Artist"
+    "displayName": "Artist",
+    "description": "Artist profiles for distribution and publishing"
   },
   "options": {
     "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "name": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "user"
+    },
+    "firstName": {
       "type": "string",
       "required": true
     },
-    "cover": {
-      "allowedTypes": [
-        "images"
+    "lastName": {
+      "type": "string",
+      "required": true
+    },
+    "stageName": {
+      "type": "string",
+      "required": true
+    },
+    "artistType": {
+      "type": "enumeration",
+      "enum": [
+        "solo_artist",
+        "band_group",
+        "dj",
+        "duo",
+        "orchestra",
+        "ensemble",
+        "collective"
       ],
+      "required": true
+    },
+    "profilePhoto": {
       "type": "media",
-      "multiple": false
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "artists"
+    },
+    "contractStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "signed",
+        "active",
+        "expired",
+        "renewal",
+        "inactive"
+      ],
+      "default": "pending"
+    },
+    "dateSigned": {
+      "type": "date"
+    },
+    "socialMediaHandles": {
+      "type": "json"
+    },
+    "manager": {
+      "type": "component",
+      "component": "artist.manager-info",
+      "required": false
+    },
+    "furtherInformation": {
+      "type": "text"
     },
     "songs": {
       "type": "relation",
@@ -39,6 +104,23 @@
       "relation": "manyToMany",
       "target": "api::stem.stem",
       "mappedBy": "artists"
+    },
+    "projects": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::project.project",
+      "mappedBy": "artist"
+    },
+    "cover": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "name": {
+      "type": "string",
+      "required": true
     }
   }
 }

@@ -1,0 +1,128 @@
+{
+  "kind": "collectionType",
+  "collectionName": "monthly_statements",
+  "info": {
+    "singularName": "monthly-statement",
+    "pluralName": "monthly-statements",
+    "displayName": "Monthly Statement",
+    "description": "Monthly earnings statements for artists"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "monthlyStatements"
+    },
+    "month": {
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 12
+    },
+    "year": {
+      "type": "integer",
+      "required": true
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "enumeration",
+      "enum": [
+        "GBP",
+        "USD",
+        "EUR",
+        "CAD",
+        "AUD"
+      ],
+      "default": "GBP"
+    },
+    "platformBreakdown": {
+      "type": "json",
+      "description": "Earnings breakdown by platform"
+    },
+    "trackBreakdown": {
+      "type": "json",
+      "description": "Earnings breakdown by track"
+    },
+    "streamingStats": {
+      "type": "json",
+      "description": "Detailed streaming statistics"
+    },
+    "downloadStats": {
+      "type": "json",
+      "description": "Download statistics"
+    },
+    "licensingRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "syncRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "performanceRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "mechanicalRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "publishingRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalStreams": {
+      "type": "bigInteger",
+      "default": 0
+    },
+    "totalDownloads": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalLicenses": {
+      "type": "integer",
+      "default": 0
+    },
+    "growthPercentage": {
+      "type": "decimal",
+      "description": "Growth compared to previous month"
+    },
+    "topPerformingTracks": {
+      "type": "json",
+      "description": "Top 10 performing tracks"
+    },
+    "topPlatforms": {
+      "type": "json",
+      "description": "Top performing platforms"
+    },
+    "geographicBreakdown": {
+      "type": "json",
+      "description": "Earnings by country/region"
+    },
+    "statementDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "sentDate": {
+      "type": "datetime"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+} 

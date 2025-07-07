@@ -3,12 +3,9 @@ import Header from "@/components/header";
 import React, { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import {
-  HiAdjustmentsHorizontal,
   HiCheck,
-  HiMagnifyingGlass,
-  HiNoSymbol,
-  HiXMark,
-} from "react-icons/hi2";
+  X,
+} from "lucide-react";
 import { apiRoute } from "@/lib/utils";
 import classNames from "classnames";
 import qs from "qs";
@@ -153,7 +150,6 @@ function LyricsPage() {
       <div>
         <div className="py-2 px-3 md:px-16 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <HiMagnifyingGlass className="h-5 w-5" />
             <input
               onChange={(e) => setSearchQuery(e.target.value)}
               value={searchQuery}
@@ -168,7 +164,7 @@ function LyricsPage() {
               className="px-2"
               onClick={() => setFiltersSlideOut(!filtersSlideOut)}
             >
-              <HiAdjustmentsHorizontal className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
             <Select
               sizing="sm"
@@ -303,7 +299,7 @@ function LyricsPage() {
                               );
                             }}
                           >
-                            <HiXMark />
+                            <X />
                           </button>
                         </div>
                       ))}
@@ -329,7 +325,7 @@ function LyricsPage() {
                               );
                             }}
                           >
-                            <HiXMark />
+                            <X />
                           </button>
                         </div>
                       ))}
@@ -444,7 +440,7 @@ const CheckButtons = ({ filter, i, onExclude }) => {
           onExclude(i);
         }}
       >
-        <HiNoSymbol
+        <HiCheck
           strokeWidth={2}
           className={classNames(
             "h-5 w-5 rounded-full",

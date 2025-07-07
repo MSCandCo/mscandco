@@ -5,7 +5,7 @@ import { apiRoute } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
 import { Card, Badge, Button } from "flowbite-react";
-import { HiDownload, HiMusicNote, HiDocumentText } from "react-icons/hi2";
+import { HiDownload, HiMusicNote, HiDocumentText } from "lucide-react";
 import useSWR from "swr";
 import moment from "moment";
 

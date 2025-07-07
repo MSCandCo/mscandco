@@ -7,12 +7,14 @@ import useSWR from "swr";
 import React, { useMemo, useState, useEffect, useContext } from "react";
 import {
   HiArrowLeftOnRectangle,
-  HiBars3,
-  HiCog6Tooth,
-  HiMagnifyingGlass,
   HiUser,
-  HiXMark,
-} from "react-icons/hi2";
+} from "lucide-react";
+import {
+  Bars3,
+  Cog6Tooth,
+  MagnifyingGlass,
+  XMark,
+} from "lucide-react";
 import { useMediaQuery } from "react-responsive";
 import { apiRoute, openCustomerPortal, resourceUrl } from "@/lib/utils";
 import { userContext } from "./contexts/userProvider";
@@ -142,7 +144,7 @@ function Header() {
         <>
           <div className="w-full max-h-full flex items-center justify-between">
             <button onClick={() => setSideMenu(true)}>
-              <HiBars3 className="w-6 h-6" />
+              <Bars3 className="w-6 h-6" />
             </button>
             <Link href="/" className="h-[47px]">
               <Image
@@ -153,7 +155,7 @@ function Header() {
               />
             </Link>
             <button>
-              <HiMagnifyingGlass className="w-6 h-6" />
+              <MagnifyingGlass className="w-6 h-6" />
             </button>
           </div>
           <div
@@ -164,7 +166,7 @@ function Header() {
           >
             <div className="px-3 py-1 h-[55px] flex">
               <button onClick={() => setSideMenu(false)}>
-                <HiXMark className="w-6 h-6" />
+                <XMark className="w-6 h-6" />
               </button>
             </div>
             <div className="px-8 py-6">

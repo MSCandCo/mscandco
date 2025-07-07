@@ -16,6 +16,12 @@
       "type": "string",
       "required": true
     },
+    "artists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist.artist",
+      "mappedBy": "genre"
+    },
     "playlists": {
       "type": "relation",
       "relation": "manyToMany",
@@ -39,6 +45,18 @@
       "relation": "manyToOne",
       "target": "api::stem.stem",
       "inversedBy": "genres"
+    },
+    "projects": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::project.project",
+      "mappedBy": "genre"
+    },
+    "creations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::creation.creation",
+      "mappedBy": "genre"
     }
   }
 }

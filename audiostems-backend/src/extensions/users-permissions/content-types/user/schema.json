@@ -93,6 +93,88 @@
       "relation": "oneToMany",
       "target": "api::download-history.download-history",
       "mappedBy": "user"
+    },
+    "artist": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::artist.artist",
+      "mappedBy": "user"
+    },
+    "emailVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "mobileVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "profileComplete": {
+      "type": "boolean",
+      "default": false
+    },
+    "emailVerificationCode": {
+      "type": "string",
+      "private": true
+    },
+    "emailVerificationExpires": {
+      "type": "datetime"
+    },
+    "mobileNumber": {
+      "type": "string"
+    },
+    "mobileVerificationCode": {
+      "type": "string",
+      "private": true
+    },
+    "mobileVerificationExpires": {
+      "type": "datetime"
+    },
+    "recoveryCodes": {
+      "type": "json",
+      "private": true
+    },
+    "company": {
+      "type": "string"
+    },
+    "jobTitle": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "profileImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "userRole": {
+      "type": "enumeration",
+      "enum": [
+        "artist",
+        "distribution_partner",
+        "company_admin",
+        "super_admin"
+      ],
+      "default": "artist"
+    },
+    "bankDetails": {
+      "type": "component",
+      "component": "shared.bank-details",
+      "private": true
+    },
+    "earnings": {
+      "type": "component",
+      "component": "shared.earnings",
+      "private": true
+    },
+    "monthlyStatements": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::monthly-statement.monthly-statement",
+      "mappedBy": "user"
     }
   }
 }

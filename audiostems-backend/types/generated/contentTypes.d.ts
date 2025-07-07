@@ -764,6 +764,25 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToMany',
       'api::download-history.download-history'
     >;
+    artist: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::artist.artist'
+    >;
+    emailVerified: Attribute.Boolean & Attribute.DefaultTo<false>;
+    mobileVerified: Attribute.Boolean & Attribute.DefaultTo<false>;
+    profileComplete: Attribute.Boolean & Attribute.DefaultTo<false>;
+    emailVerificationCode: Attribute.String & Attribute.Private;
+    emailVerificationExpires: Attribute.DateTime;
+    mobileNumber: Attribute.String;
+    mobileVerificationCode: Attribute.String & Attribute.Private;
+    mobileVerificationExpires: Attribute.DateTime;
+    recoveryCodes: Attribute.JSON & Attribute.Private;
+    company: Attribute.String;
+    jobTitle: Attribute.String;
+    website: Attribute.String;
+    bio: Attribute.Text;
+    profileImage: Attribute.Media;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -787,13 +806,48 @@ export interface ApiArtistArtist extends Schema.CollectionType {
     singularName: 'artist';
     pluralName: 'artists';
     displayName: 'Artist';
+    description: 'Artist profiles for distribution and publishing';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
-    name: Attribute.String & Attribute.Required;
-    cover: Attribute.Media;
+    user: Attribute.Relation<
+      'api::artist.artist',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    firstName: Attribute.String & Attribute.Required;
+    lastName: Attribute.String & Attribute.Required;
+    stageName: Attribute.String & Attribute.Required;
+    artistType: Attribute.Enumeration<
+      [
+        'solo_artist',
+        'band_group',
+        'dj',
+        'duo',
+        'orchestra',
+        'ensemble',
+        'collective'
+      ]
+    > &
+      Attribute.Required;
+    profilePhoto: Attribute.Media;
+    email: Attribute.Email & Attribute.Required;
+    phoneNumber: Attribute.String;
+    genre: Attribute.Relation<
+      'api::artist.artist',
+      'manyToMany',
+      'api::genre.genre'
+    >;
+    contractStatus: Attribute.Enumeration<
+      ['pending', 'signed', 'active', 'expired', 'renewal', 'inactive']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    dateSigned: Attribute.Date;
+    socialMediaHandles: Attribute.JSON;
+    manager: Attribute.Component<'artist.manager-info'>;
+    furtherInformation: Attribute.Text;
     songs: Attribute.Relation<
       'api::artist.artist',
       'manyToMany',
@@ -809,6 +863,8 @@ export interface ApiArtistArtist extends Schema.CollectionType {
       'manyToMany',
       'api::stem.stem'
     >;
+    cover: Attribute.Media;
+    name: Attribute.String & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -882,6 +938,11 @@ export interface ApiGenreGenre extends Schema.CollectionType {
   };
   attributes: {
     title: Attribute.String & Attribute.Required;
+    artists: Attribute.Relation<
+      'api::genre.genre',
+      'manyToMany',
+      'api::artist.artist'
+    >;
     playlists: Attribute.Relation<
       'api::genre.genre',
       'manyToMany',

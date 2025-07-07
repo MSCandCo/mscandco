@@ -20,7 +20,7 @@ import {
   HiOutlinePlay,
   HiPlay,
   HiStop,
-} from "react-icons/hi2";
+} from "lucide-react";
 import { cloneDeep } from "lodash";
 
 export const PlayerContext = createContext({

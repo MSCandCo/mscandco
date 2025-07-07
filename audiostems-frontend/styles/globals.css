@@ -44,3 +44,5 @@ body {
 .as-multiplayer > div > div > div:nth-child(even) {
   @apply bg-gray-50;
 }
+
+/* If you use duration-[1200ms], use duration-[1200ms] with brackets to avoid ambiguity. */

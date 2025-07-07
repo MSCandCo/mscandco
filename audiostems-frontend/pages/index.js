@@ -11,7 +11,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import { HiArrowRight, HiPlay, HiPlayCircle } from "react-icons/hi2";
+import { HiArrowRight, HiPlay, HiPlayCircle } from "lucide-react";
 import ReactPlayer from "react-player/youtube";
 import useSWR from "swr";
 import {

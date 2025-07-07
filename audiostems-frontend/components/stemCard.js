@@ -2,7 +2,7 @@ import { resourceUrl } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { HiPlay, HiDownload } from "react-icons/hi2";
+import { HiPlay, HiDownload } from "lucide-react";
 import { PlayerContext, normalizeStemForPlayer } from "./player";
 import { LucidePause, LucidePlay } from "lucide-react";
 import { Tooltip, Button, Spinner } from "flowbite-react";

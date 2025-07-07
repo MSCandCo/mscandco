@@ -1,0 +1,9 @@
+{
+  "collectionName": "projects",
+  "info": {
+    "singularName": "project",
+    "pluralName": "projects",
+    "displayName": "Project"
+  },
+  "attributes": {}
+} 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { Card, Button, Badge, Modal, TextInput, Label, Select } from "flowbite-react";
-import { HiPlus, HiPencil, HiTrash, HiEye } from "react-icons/hi2";
+import { HiPlus, HiPencil, HiTrash, HiEye } from "lucide-react";
 import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import { resourceUrl } from "@/lib/utils";

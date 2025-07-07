@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_artist_manager_info",
+  "info": {
+    "displayName": "Manager Info",
+    "description": "Manager contact information for artists"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    }
+  }
+} 

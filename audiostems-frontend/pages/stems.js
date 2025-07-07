@@ -2,10 +2,10 @@ import Header from "@/components/header";
 import React, { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import {
-  HiAdjustmentsHorizontal,
-  HiMagnifyingGlass,
-  HiXMark,
-} from "react-icons/hi2";
+  SlidersHorizontal,
+  Search,
+  X,
+} from "lucide-react";
 import { apiRoute } from "@/lib/utils";
 import classNames from "classnames";
 import qs from "qs";
@@ -248,7 +248,7 @@ function SongsPage() {
       <div>
         <div className="py-2 px-3 md:px-16 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <HiMagnifyingGlass className="h-5 w-5" />
+            <Search className="h-5 w-5" />
             <input
               onChange={(e) => setSearchQuery(e.target.value)}
               value={searchQuery}
@@ -263,7 +263,7 @@ function SongsPage() {
               className="px-2"
               onClick={() => setFiltersSlideOut(!filtersSlideOut)}
             >
-              <HiAdjustmentsHorizontal className="h-5 w-5" />
+              <SlidersHorizontal className="h-5 w-5" />
             </button>
             <Select
               sizing="sm"
@@ -311,7 +311,7 @@ function SongsPage() {
                   {checkedArtists?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => {
                         setFilterArtists(
                           filterArtists.map((_a) => {
@@ -332,7 +332,7 @@ function SongsPage() {
                   {checkedGenres?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => {
                         setFilterGenres(
                           filterGenres.map((_a) => {
@@ -353,7 +353,7 @@ function SongsPage() {
                   {checkedVocals?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => {
                         setVocalsFilter(
                           vocalsFilter.map((_a) => {
@@ -375,7 +375,7 @@ function SongsPage() {
                   {!isEqual(bpm, [0, 165]) && (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => setBpm([0, 165])}
                     >
                       <span className="font-semibold mr-1">BPM:</span>
@@ -385,7 +385,7 @@ function SongsPage() {
                   {isLengthFilterSet() && (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => setLength([...lengthLimits])}
                     >
                       <span className="font-semibold mr-1">Length:</span>
@@ -395,7 +395,7 @@ function SongsPage() {
                   {keyFilter.major?.map((k) => (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => {
                         setKeyFilter({
                           ...keyFilter,
@@ -410,7 +410,7 @@ function SongsPage() {
                   {keyFilter.minor?.map((k) => (
                     <Badge
                       color="gray"
-                      icon={HiXMark}
+                      icon={X}
                       onClick={() => {
                         setKeyFilter({
                           ...keyFilter,
