@@ -94,12 +94,6 @@
       "target": "api::download-history.download-history",
       "mappedBy": "user"
     },
-    "artist": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::artist.artist",
-      "mappedBy": "user"
-    },
     "emailVerified": {
       "type": "boolean",
       "default": false

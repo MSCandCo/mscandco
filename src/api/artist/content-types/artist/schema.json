@@ -4,41 +4,88 @@
   "info": {
     "singularName": "artist",
     "pluralName": "artists",
-    "displayName": "Artist"
+    "displayName": "Artist",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": false
+    "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "name": {
+    "firstName": {
       "type": "string",
       "required": true
     },
-    "cover": {
+    "lastName": {
+      "type": "string",
+      "required": true
+    },
+    "stageName": {
+      "type": "string"
+    },
+    "artistType": {
+      "type": "enumeration",
+      "enum": [
+        "solo",
+        "band",
+        "producer",
+        "composer"
+      ]
+    },
+    "profilePhoto": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images"
+      ]
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "artists"
+    },
+    "contractStatus": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "inactive",
+        "pending"
       ],
-      "type": "media",
-      "multiple": false
+      "default": "pending"
     },
-    "songs": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::song.song",
-      "mappedBy": "singers"
+    "dateSigned": {
+      "type": "date"
     },
-    "lyrics": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::lyric.lyric",
-      "mappedBy": "writers"
+    "socialMedia": {
+      "type": "json"
     },
-    "stems": {
+    "manager": {
+      "type": "component",
+      "component": "manager.manager-info"
+    },
+    "furtherInfo": {
+      "type": "text"
+    },
+    "creations": {
       "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::stem.stem",
-      "mappedBy": "artists"
+      "relation": "oneToMany",
+      "target": "api::creation.creation",
+      "mappedBy": "artist"
+    },
+    "projects": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::project.project",
+      "mappedBy": "artist"
     }
   }
 }

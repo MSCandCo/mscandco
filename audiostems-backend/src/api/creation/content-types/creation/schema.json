@@ -178,10 +178,10 @@
       "type": "enumeration",
       "enum": [
         "perpetual",
-        "one_year_duration",
-        "two_years_duration",
-        "five_years_duration",
-        "ten_years_duration",
+        "one_year",
+        "two_years",
+        "five_years",
+        "ten_years",
         "custom"
       ],
       "default": "perpetual"
