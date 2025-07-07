@@ -759,6 +759,25 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
     planActive: Attribute.Boolean;
     credit: Attribute.Integer;
     subscriptionId: Attribute.String;
+    emailVerified: Attribute.Boolean & Attribute.DefaultTo<false>;
+    mobileVerified: Attribute.Boolean & Attribute.DefaultTo<false>;
+    profileComplete: Attribute.Boolean & Attribute.DefaultTo<false>;
+    emailVerificationCode: Attribute.String;
+    emailVerificationExpires: Attribute.DateTime;
+    mobileNumber: Attribute.String;
+    mobileVerificationCode: Attribute.String;
+    mobileVerificationExpires: Attribute.DateTime;
+    recoveryCodes: Attribute.JSON;
+    company: Attribute.String;
+    jobTitle: Attribute.String;
+    website: Attribute.String;
+    bio: Attribute.Text;
+    profileImage: Attribute.Media;
+    artist: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::artist.artist'
+    >;
     downloadHistories: Attribute.Relation<
       'plugin::users-permissions.user',
       'oneToMany',
@@ -794,6 +813,11 @@ export interface ApiArtistArtist extends Schema.CollectionType {
   attributes: {
     name: Attribute.String & Attribute.Required;
     cover: Attribute.Media;
+    user: Attribute.Relation<
+      'api::artist.artist',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     songs: Attribute.Relation<
       'api::artist.artist',
       'manyToMany',

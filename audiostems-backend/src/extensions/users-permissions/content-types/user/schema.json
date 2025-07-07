@@ -88,6 +88,59 @@
     "subscriptionId": {
       "type": "string"
     },
+    "emailVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "mobileVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "profileComplete": {
+      "type": "boolean",
+      "default": false
+    },
+    "emailVerificationCode": {
+      "type": "string"
+    },
+    "emailVerificationExpires": {
+      "type": "datetime"
+    },
+    "mobileNumber": {
+      "type": "string"
+    },
+    "mobileVerificationCode": {
+      "type": "string"
+    },
+    "mobileVerificationExpires": {
+      "type": "datetime"
+    },
+    "recoveryCodes": {
+      "type": "json"
+    },
+    "company": {
+      "type": "string"
+    },
+    "jobTitle": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "profileImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "artist": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::artist.artist",
+      "mappedBy": "user"
+    },
     "downloadHistories": {
       "type": "relation",
       "relation": "oneToMany",

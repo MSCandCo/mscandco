@@ -22,6 +22,12 @@
       "type": "media",
       "multiple": false
     },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "artist"
+    },
     "songs": {
       "type": "relation",
       "relation": "manyToMany",
