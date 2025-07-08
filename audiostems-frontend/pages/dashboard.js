@@ -17,8 +17,13 @@ import {
   HiCog,
   HiOfficeBuilding,
   HiCube,
-  HiDocument
+  HiDocument,
+  HiCurrencyPound,
+  HiTrendingUp,
+  HiBanknotes
 } from 'react-icons/hi';
+import { Card } from '@/components/ui/card';
+import { useSession } from 'next-auth/react';
 
 export default function Dashboard() {
   const { user, isAuthenticated, loginWithRedirect, logout } = useAuth0();
@@ -26,6 +31,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { getUserRoleInfo } = useRolePermissions();
+  const { data: session } = useSession();
 
   const userBrand = getBrandByUser(user);
   const userRole = getUserRoleInfo();
@@ -221,6 +227,106 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Quick Actions for Artists */}
+                {session?.user?.userRole === "artist" && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Link href="/artist-earnings" className="block p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg text-white hover:from-blue-600 hover:to-blue-700 transition-all">
+                        <div className="flex items-center">
+                          <HiCurrencyPound className="h-8 w-8 mr-3" />
+                          <div>
+                            <h3 className="font-semibold">Earnings Dashboard</h3>
+                            <p className="text-sm opacity-90">View your revenue & analytics</p>
+                          </div>
+                        </div>
+                      </Link>
+                      
+                      <Link href="/artist-earnings/platform-analytics" className="block p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-lg text-white hover:from-green-600 hover:to-green-700 transition-all">
+                        <div className="flex items-center">
+                          <HiGlobe className="h-8 w-8 mr-3" />
+                          <div>
+                            <h3 className="font-semibold">Platform Analytics</h3>
+                            <p className="text-sm opacity-90">Track platform performance</p>
+                          </div>
+                        </div>
+                      </Link>
+                      
+                      <Link href="/artist-earnings/payments" className="block p-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg text-white hover:from-purple-600 hover:to-purple-700 transition-all">
+                        <div className="flex items-center">
+                          <HiBanknotes className="h-8 w-8 mr-3" />
+                          <div>
+                            <h3 className="font-semibold">Payments & Banking</h3>
+                            <p className="text-sm opacity-90">Manage your payments</p>
+                          </div>
+                        </div>
+                      </Link>
+                      
+                      <Link href="/artist-portal/releases" className="block p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg text-white hover:from-orange-600 hover:to-orange-700 transition-all">
+                        <div className="flex items-center">
+                          <HiMusicNote className="h-8 w-8 mr-3" />
+                          <div>
+                            <h3 className="font-semibold">Manage Releases</h3>
+                            <p className="text-sm opacity-90">Upload & manage music</p>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Earnings Stats for Artists */}
+                {session?.user?.userRole === "artist" && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Earnings Overview</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <Card className="border-l-4 border-l-blue-500">
+                        <div className="flex items-center">
+                          <HiCurrencyPound className="h-8 w-8 text-blue-600" />
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">This Month</p>
+                            <p className="text-2xl font-bold text-gray-900">£1,250.50</p>
+                            <p className="text-sm text-green-600">+12.5% vs last month</p>
+                          </div>
+                        </div>
+                      </Card>
+                      
+                      <Card className="border-l-4 border-l-green-500">
+                        <div className="flex items-center">
+                          <HiTrendingUp className="h-8 w-8 text-green-600" />
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Total Earnings</p>
+                            <p className="text-2xl font-bold text-gray-900">£8,450.75</p>
+                            <p className="text-sm text-gray-600">Lifetime revenue</p>
+                          </div>
+                        </div>
+                      </Card>
+                      
+                      <Card className="border-l-4 border-l-purple-500">
+                        <div className="flex items-center">
+                          <HiGlobe className="h-8 w-8 text-purple-600" />
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Top Platform</p>
+                            <p className="text-lg font-bold text-gray-900">Spotify</p>
+                            <p className="text-sm text-gray-600">45.2% of revenue</p>
+                          </div>
+                        </div>
+                      </Card>
+                      
+                      <Card className="border-l-4 border-l-orange-500">
+                        <div className="flex items-center">
+                          <HiMusicNote className="h-8 w-8 text-orange-600" />
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Active Tracks</p>
+                            <p className="text-2xl font-bold text-gray-900">12</p>
+                            <p className="text-sm text-gray-600">Generating revenue</p>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+                )}
 
                 {/* Role-specific dashboard content */}
                 {userRole?.id === 'artist' && (
