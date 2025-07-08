@@ -143,7 +143,7 @@ export default function ArtistPortalOverview() {
                   </li>
                   <li>
                     <Link href="/distribution/publishing/artist-portal/releases" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
-                      Releases
+                      Projects & Releases
                     </Link>
                   </li>
                   <li>
@@ -228,8 +228,8 @@ export default function ArtistPortalOverview() {
                           </svg>
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-900">Manage Releases</p>
-                          <p className="text-sm text-gray-500">View and update your releases</p>
+                          <p className="text-sm font-medium text-gray-900">Projects & Releases</p>
+                          <p className="text-sm text-gray-500">Manage your music projects</p>
                         </div>
                       </div>
                     </Link>
