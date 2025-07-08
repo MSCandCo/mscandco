@@ -98,7 +98,14 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
         }
       },
       artwork: true,
-      musicFiles: true
+      musicFiles: true,
+      trackListing: {
+        populate: {
+          creation: {
+            fields: ['id', 'title', 'duration', 'status']
+          }
+        }
+      }
     };
     
     // Call the default find method
@@ -129,7 +136,19 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
       },
       artwork: true,
       musicFiles: true,
-      trackListing: true
+      trackListing: {
+        populate: {
+          creation: {
+            fields: ['id', 'title', 'duration', 'bpm', 'key', 'status', 'trackNumber', 'isExplicit', 'isInstrumental', 'vocals', 'mood', 'tempo', 'lyrics', 'credits', 'notes', 'audioFile', 'waveformData'],
+            populate: {
+              genre: {
+                fields: ['id', 'title']
+              },
+              audioFile: true
+            }
+          }
+        }
+      }
     };
     
     const { data, meta } = await super.findOne(ctx);
@@ -137,9 +156,15 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
     return { data, meta };
   },
   
-  // Custom create method with automatic lastUpdated
+  // Custom create method with automatic lastUpdated and submissionDate
   async create(ctx) {
-    ctx.request.body.data.lastUpdated = new Date();
+    const now = new Date();
+    ctx.request.body.data.lastUpdated = now;
+    
+    // Auto-fill submission date if not provided
+    if (!ctx.request.body.data.submissionDate) {
+      ctx.request.body.data.submissionDate = now;
+    }
     
     const { data, meta } = await super.create(ctx);
     
@@ -157,11 +182,17 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
   
   // Get projects by status for status board
   async getStatusBoard(ctx) {
-    const { status } = ctx.query;
+    const { status, releaseType, artist } = ctx.query;
     
     const filters = {};
     if (status) {
       filters.status = status;
+    }
+    if (releaseType) {
+      filters.releaseType = releaseType;
+    }
+    if (artist) {
+      filters.artist = artist;
     }
     
     const projects = await strapi.entityService.findMany('api::project.project', {
@@ -172,7 +203,8 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
         },
         genre: {
           fields: ['id', 'title']
-        }
+        },
+        artwork: true
       },
       sort: { expectedReleaseDate: 'asc' }
     });
@@ -182,7 +214,7 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
   
   // Get release calendar data
   async getReleaseCalendar(ctx) {
-    const { startDate, endDate } = ctx.query;
+    const { startDate, endDate, releaseType, status, artist } = ctx.query;
     
     const filters = {
       expectedReleaseDate: {}
@@ -193,6 +225,15 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
     }
     if (endDate) {
       filters.expectedReleaseDate.$lte = endDate;
+    }
+    if (releaseType) {
+      filters.releaseType = releaseType;
+    }
+    if (status) {
+      filters.status = status;
+    }
+    if (artist) {
+      filters.artist = artist;
     }
     
     const projects = await strapi.entityService.findMany('api::project.project', {
@@ -223,7 +264,7 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
     
     const projects = await strapi.entityService.findMany('api::project.project', {
       filters,
-      fields: ['id', 'status', 'releaseType', 'expectedReleaseDate', 'actualReleaseDate']
+      fields: ['id', 'status', 'releaseType', 'expectedReleaseDate', 'actualReleaseDate', 'submissionDate']
     });
     
     const stats = {
@@ -232,10 +273,14 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
       byReleaseType: {},
       upcoming: 0,
       released: 0,
-      overdue: 0
+      overdue: 0,
+      thisMonth: 0,
+      thisYear: 0
     };
     
     const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
     
     projects.forEach(project => {
       // Count by status
@@ -255,8 +300,81 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
           stats.overdue++;
         }
       }
+      
+      // Count this month and year submissions
+      if (project.submissionDate) {
+        const submissionDate = new Date(project.submissionDate);
+        if (submissionDate.getMonth() === thisMonth && submissionDate.getFullYear() === thisYear) {
+          stats.thisMonth++;
+        }
+        if (submissionDate.getFullYear() === thisYear) {
+          stats.thisYear++;
+        }
+      }
     });
     
     return { data: stats };
+  },
+  
+  // Duplicate project
+  async duplicate(ctx) {
+    const { id } = ctx.params;
+    
+    // Get the original project
+    const originalProject = await strapi.entityService.findOne('api::project.project', id, {
+      populate: {
+        artist: true,
+        genre: true,
+        trackListing: true
+      }
+    });
+    
+    if (!originalProject) {
+      return ctx.notFound('Project not found');
+    }
+    
+    // Create new project data
+    const newProjectData = {
+      projectName: `${originalProject.projectName} (Copy)`,
+      artist: originalProject.artist?.id,
+      releaseType: originalProject.releaseType,
+      status: 'draft',
+      genre: originalProject.genre?.map(g => g.id),
+      submissionDate: new Date(),
+      expectedReleaseDate: null,
+      actualReleaseDate: null,
+      credits: originalProject.credits,
+      publishingNotes: originalProject.publishingNotes,
+      feedback: '',
+      marketingPlan: originalProject.marketingPlan,
+      priority: originalProject.priority,
+      tags: originalProject.tags,
+      budget: originalProject.budget,
+      currency: originalProject.currency,
+      mood: originalProject.mood,
+      tempo: originalProject.tempo,
+      language: originalProject.language,
+      isExplicit: originalProject.isExplicit,
+      publishingRights: originalProject.publishingRights,
+      performanceRights: originalProject.performanceRights,
+      mechanicalRights: originalProject.mechanicalRights,
+      syncRights: originalProject.syncRights,
+      territory: originalProject.territory,
+      exclusivity: originalProject.exclusivity,
+      licenseType: originalProject.licenseType,
+      licenseDuration: originalProject.licenseDuration,
+      licenseStartDate: originalProject.licenseStartDate,
+      licenseEndDate: originalProject.licenseEndDate,
+      restrictions: originalProject.restrictions,
+      usageNotes: originalProject.usageNotes,
+      lastUpdated: new Date()
+    };
+    
+    // Create the new project
+    const newProject = await strapi.entityService.create('api::project.project', {
+      data: newProjectData
+    });
+    
+    return { data: newProject };
   }
 })); 

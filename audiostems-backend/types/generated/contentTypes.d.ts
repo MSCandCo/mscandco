@@ -971,11 +971,14 @@ export interface ApiProjectProject extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
+    actualReleaseDate: Attribute.Date;
     artist: Attribute.Relation<
       'api::project.project',
       'manyToOne',
       'api::artist.artist'
     >;
+    artwork: Attribute.Media<'images'>;
+    budget: Attribute.Decimal;
     coverImage: Attribute.Media<'images'>;
     createdAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -989,11 +992,15 @@ export interface ApiProjectProject extends Schema.CollectionType {
       'oneToMany',
       'api::creation.creation'
     >;
-    description: Attribute.Text;
+    credits: Attribute.Text;
+    currency: Attribute.Enumeration<['GBP', 'USD', 'EUR', 'CAD', 'AUD']> &
+      Attribute.DefaultTo<'GBP'>;
     exclusivity: Attribute.Enumeration<
       ['exclusive', 'non_exclusive', 'limited']
     > &
       Attribute.DefaultTo<'exclusive'>;
+    expectedReleaseDate: Attribute.Date;
+    feedback: Attribute.Text;
     genre: Attribute.Relation<
       'api::project.project',
       'manyToMany',
@@ -1001,6 +1008,7 @@ export interface ApiProjectProject extends Schema.CollectionType {
     >;
     isExplicit: Attribute.Boolean & Attribute.DefaultTo<false>;
     language: Attribute.String;
+    lastUpdated: Attribute.DateTime;
     licenseDuration: Attribute.Enumeration<
       [
         'perpetual',
@@ -1024,6 +1032,7 @@ export interface ApiProjectProject extends Schema.CollectionType {
       ]
     > &
       Attribute.DefaultTo<'all_rights'>;
+    marketingPlan: Attribute.Text;
     mechanicalRights: Attribute.Text;
     mood: Attribute.Enumeration<
       [
@@ -1039,24 +1048,52 @@ export interface ApiProjectProject extends Schema.CollectionType {
         'joyful'
       ]
     >;
+    musicFiles: Attribute.Media<'audios', true>;
     performanceRights: Attribute.Text;
+    priority: Attribute.Enumeration<['low', 'medium', 'high', 'urgent']> &
+      Attribute.DefaultTo<'medium'>;
+    projectName: Attribute.String & Attribute.Required;
     publishedAt: Attribute.DateTime;
+    publishingNotes: Attribute.Text;
     publishingRights: Attribute.Text;
     releaseDate: Attribute.Date;
+    releaseType: Attribute.Enumeration<
+      [
+        'single',
+        'ep',
+        'album',
+        'mixtape',
+        'compilation',
+        'live_album',
+        'remix_album',
+        'soundtrack'
+      ]
+    > &
+      Attribute.Required;
     restrictions: Attribute.Text;
     status: Attribute.Enumeration<
-      ['draft', 'in_progress', 'completed', 'published', 'archived']
+      [
+        'draft',
+        'in_progress',
+        'under_review',
+        'approved',
+        'scheduled',
+        'released',
+        'cancelled'
+      ]
     > &
+      Attribute.Required &
       Attribute.DefaultTo<'draft'>;
+    submissionDate: Attribute.Date;
     syncRights: Attribute.Text;
     tags: Attribute.JSON;
     tempo: Attribute.Enumeration<
       ['very_slow', 'slow', 'medium', 'fast', 'very_fast']
     >;
     territory: Attribute.JSON;
-    title: Attribute.String & Attribute.Required;
     totalDuration: Attribute.Integer;
     trackCount: Attribute.Integer;
+    trackListing: Attribute.Component<'project.track-listing', true>;
     updatedAt: Attribute.DateTime;
     updatedBy: Attribute.Relation<
       'api::project.project',

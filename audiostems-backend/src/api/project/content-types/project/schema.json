@@ -12,18 +12,118 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "title": {
+    "projectName": {
       "type": "string",
-      "required": true
-    },
-    "description": {
-      "type": "text"
+      "required": true,
+      "description": "Name of the project/release"
     },
     "artist": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::artist.artist",
       "inversedBy": "projects"
+    },
+    "releaseType": {
+      "type": "enumeration",
+      "enum": [
+        "single",
+        "ep",
+        "album",
+        "mixtape",
+        "compilation",
+        "live_album",
+        "remix_album",
+        "soundtrack"
+      ],
+      "required": true
+    },
+    "genre": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "projects"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "in_progress",
+        "under_review",
+        "approved",
+        "scheduled",
+        "released",
+        "cancelled"
+      ],
+      "default": "draft",
+      "required": true
+    },
+    "submissionDate": {
+      "type": "date",
+      "description": "Date when project was submitted"
+    },
+    "expectedReleaseDate": {
+      "type": "date",
+      "description": "Expected release date"
+    },
+    "actualReleaseDate": {
+      "type": "date",
+      "description": "Actual release date"
+    },
+    "musicFiles": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["audios"],
+      "description": "Uploaded music files (.mp3, .wav, .flac)"
+    },
+    "artwork": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "description": "Project artwork (square format recommended)"
+    },
+    "trackListing": {
+      "type": "component",
+      "repeatable": true,
+      "component": "project.track-listing",
+      "description": "Dynamic track listing for albums/EPs"
+    },
+    "credits": {
+      "type": "text",
+      "description": "All contributors, producers, etc."
+    },
+    "publishingNotes": {
+      "type": "text",
+      "description": "Additional publishing information"
+    },
+    "lastUpdated": {
+      "type": "datetime",
+      "description": "Automatic last update timestamp"
+    },
+    "feedback": {
+      "type": "text",
+      "description": "Internal notes/feedback"
+    },
+    "marketingPlan": {
+      "type": "text",
+      "description": "Summarized marketing plan"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "medium", "high", "urgent"],
+      "default": "medium"
+    },
+    "tags": {
+      "type": "json",
+      "description": "Tags for categorization"
+    },
+    "budget": {
+      "type": "decimal",
+      "description": "Project budget"
+    },
+    "currency": {
+      "type": "enumeration",
+      "enum": ["GBP", "USD", "EUR", "CAD", "AUD"],
+      "default": "GBP"
     },
     "creations": {
       "type": "relation",
@@ -38,12 +138,6 @@
     },
     "releaseDate": {
       "type": "date"
-    },
-    "genre": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::genre.genre",
-      "inversedBy": "projects"
     },
     "mood": {
       "type": "enumeration",
@@ -76,9 +170,6 @@
     "isExplicit": {
       "type": "boolean",
       "default": false
-    },
-    "tags": {
-      "type": "json"
     },
     "publishingRights": {
       "type": "text"
@@ -134,11 +225,6 @@
     },
     "usageNotes": {
       "type": "text"
-    },
-    "status": {
-      "type": "enumeration",
-      "enum": ["draft", "in_progress", "completed", "published", "archived"],
-      "default": "draft"
     },
     "totalDuration": {
       "type": "integer",
