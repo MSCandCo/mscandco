@@ -8,6 +8,8 @@ import React, { useMemo, useState, useEffect, useContext } from "react";
 import {
   HiArrowLeftOnRectangle,
   HiUser,
+  HiDownload,
+  HiCog6Tooth,
 } from "lucide-react";
 import {
   Bars3,
@@ -19,6 +21,7 @@ import { useMediaQuery } from "react-responsive";
 import { apiRoute, openCustomerPortal, resourceUrl } from "@/lib/utils";
 import { userContext } from "./contexts/userProvider";
 import { getStripeProductById } from "@/lib/constants";
+import { getBrandByUser, COMPANY_INFO } from "@/lib/brand-config";
 import qs from "qs";
 import {
   NavigationMenu,
@@ -98,6 +101,7 @@ const menuItems = [
 
 function Header() {
   const dbUser = useContext(userContext);
+  const userBrand = getBrandByUser(dbUser);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -146,13 +150,13 @@ function Header() {
             <button onClick={() => setSideMenu(true)}>
               <Bars3 className="w-6 h-6" />
             </button>
-            <Link href="/" className="h-[47px]">
-              <Image
-                src="/AudioStemsLogo.png"
-                width={200}
-                height={53}
-                className="max-h-full"
-              />
+            <Link href="/" className="h-[47px] flex items-center">
+              <div className="flex flex-col items-center">
+                <span className="text-xl font-bold text-gray-900">{COMPANY_INFO.name}</span>
+                {dbUser && (
+                  <span className="text-xs text-gray-600">{userBrand.displayName}</span>
+                )}
+              </div>
             </Link>
             <button>
               <MagnifyingGlass className="w-6 h-6" />
@@ -216,13 +220,13 @@ function Header() {
               </NavigationMenuList>
             </NavigationMenu>
           </div>
-          <Link href="/" className="shrink-0 h-[47px]">
-            <Image
-              src="/AudioStemsLogo.png"
-              width={200}
-              height={53}
-              className="max-h-full"
-            />
+          <Link href="/" className="shrink-0 h-[47px] flex items-center">
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-gray-900">{COMPANY_INFO.name}</span>
+              {dbUser && (
+                <span className="text-xs text-gray-600">{userBrand.displayName}</span>
+              )}
+            </div>
           </Link>
           <div className="flex-1 flex justify-end items-center">
             <ul className="flex items-center">

@@ -2,11 +2,35 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { COMPANY_INFO, getBrandByUser } from '@/lib/brand-config';
 
 export default function Dashboard() {
-  const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
+  const { user, isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const userBrand = getBrandByUser(user);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/auth/get-profile', {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`
+        }
+      });
+      
+      if (response.ok) {
+        const profile = await response.json();
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -15,25 +39,6 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, [isAuthenticated, user]);
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch('/api/auth/get-profile', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserProfile(data.profile);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     logout({ returnTo: window.location.origin });
@@ -54,7 +59,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-center mb-6">Welcome to AudioStems</h1>
+          <h1 className="text-2xl font-bold text-center mb-6">Welcome to {COMPANY_INFO.name}</h1>
           <p className="text-gray-600 text-center mb-6">
             Please sign in to access your dashboard.
           </p>
@@ -72,7 +77,7 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard - AudioStems</title>
+        <title>Dashboard - {COMPANY_INFO.name}</title>
       </Head>
 
       <div className="min-h-screen bg-gray-50">
@@ -81,7 +86,12 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-gray-900">AudioStems</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{COMPANY_INFO.name}</h1>
+                {userBrand && (
+                  <span className="ml-3 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                    {userBrand.displayName}
+                  </span>
+                )}
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-600">
@@ -218,6 +228,11 @@ export default function Dashboard() {
                   </h3>
                   <p className="text-gray-600">
                     Manage your music distribution, track your releases, and monitor your earnings.
+                    {userBrand && (
+                      <span className="block mt-2 text-sm text-blue-600">
+                        Brand: {userBrand.displayName} - {userBrand.description}
+                      </span>
+                    )}
                   </p>
                 </div>
 
@@ -249,21 +264,13 @@ export default function Dashboard() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Link href="/distribution/publishing/artist-portal" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                      <div className="font-medium text-gray-900">Complete Artist Profile</div>
-                      <div className="text-sm text-gray-600">Set up your artist information</div>
+                    <Link href="/distribution/publishing/artist-portal/releases/create" className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors">
+                      <h4 className="font-semibold">Create New Release</h4>
+                      <p className="text-sm opacity-90">Upload your latest project</p>
                     </Link>
-                    <Link href="/music/tracks" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                      <div className="font-medium text-gray-900">Upload Music</div>
-                      <div className="text-sm text-gray-600">Add new tracks and albums</div>
-                    </Link>
-                    <Link href="/distribution/releases" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                      <div className="font-medium text-gray-900">Manage Releases</div>
-                      <div className="text-sm text-gray-600">View and edit your releases</div>
-                    </Link>
-                    <Link href="/account/profile" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                      <div className="font-medium text-gray-900">Update Profile</div>
-                      <div className="text-sm text-gray-600">Edit your account information</div>
+                    <Link href="/distribution/publishing/artist-portal/profile" className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors">
+                      <h4 className="font-semibold">Update Profile</h4>
+                      <p className="text-sm opacity-90">Manage your artist information</p>
                     </Link>
                   </div>
                 </div>

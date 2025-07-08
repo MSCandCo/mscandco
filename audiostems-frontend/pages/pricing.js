@@ -11,6 +11,7 @@ import SEO from "@/components/seo";
 import { userContext } from "@/components/contexts/userProvider";
 import MainLayout from "@/components/layouts/mainLayout";
 import { openCustomerPortal } from "@/lib/utils";
+import { COMPANY_INFO } from "@/lib/brand-config";
 
 const features = [
   "{}",
@@ -29,7 +30,7 @@ export const performancePricing = [
   {
     stripeId: "prod_NXu2gPbDeF7xH3",
     name: "Performance Basic",
-    features: ["1 Audiostems credit", true],
+    features: ["1 MSC credit", true],
     credits: 1,
     monthly: {
       price: 39.99,
@@ -43,7 +44,7 @@ export const performancePricing = [
   {
     stripeId: "prod_NXu5LW8r6jKbc1",
     name: "Performance Standard",
-    features: ["5 Audiostems credit", true, true, true, true],
+    features: ["5 MSC credit", true, true, true, true],
     credits: 5,
     monthly: {
       price: 99.99,
@@ -57,7 +58,7 @@ export const performancePricing = [
   {
     stripeId: "prod_NYBiJqWIBiBgFf",
     name: "Performance Premium",
-    features: ["10 Audiostems credit", true, true, true, true, true],
+    features: ["10 MSC credit", true, true, true, true, true],
     credits: 10,
     monthly: {
       price: 249.99,
@@ -72,7 +73,7 @@ export const performancePricing = [
     stripeId: "prod_NXu8v2s3IC9SXV",
     name: "Performance Ultimate",
     features: [
-      "15 Audiostems credit",
+      "15 MSC credit",
       true,
       true,
       true,
@@ -99,7 +100,7 @@ export const recordingPricing = [
   {
     stripeId: "prod_NXuFJe9T00wlh5",
     name: "Recording Basic",
-    features: ["1 Audiostems credit", true],
+    features: ["1 MSC credit", true],
     credits: 1,
     monthly: {
       price: 99.99,
@@ -113,7 +114,7 @@ export const recordingPricing = [
   {
     stripeId: "prod_NXuGg6rZXYGQCx",
     name: "Recording Standard",
-    features: ["5 Audiostems credit", true, true, true, true],
+    features: ["5 MSC credit", true, true, true, true],
     credits: 5,
     monthly: {
       price: 399.99,
@@ -127,7 +128,7 @@ export const recordingPricing = [
   {
     stripeId: "prod_NYBfptEnskUzCh",
     name: "Recording Premium",
-    features: ["10 Audiostems credit", true, true, true, true, true],
+    features: ["10 MSC credit", true, true, true, true, true],
     credits: 10,
     monthly: {
       price: 599.99,
@@ -142,7 +143,7 @@ export const recordingPricing = [
     stripeId: "prod_NXuJ091mOJ0zFL",
     name: "Recording Ultimate",
     features: [
-      "15 Audiostems credit",
+      "15 MSC credit",
       true,
       true,
       true,
@@ -175,7 +176,7 @@ function Pricing() {
       <SEO pageTitle="Pricing" />
       <Container>
         <div className="py-16">
-          <div className="text-4xl font-bold text-center">Pricing</div>
+          <div className="text-4xl font-bold text-center">{COMPANY_INFO.name} Pricing</div>
           <Button.Group className="mt-8 justify-center w-full">
             <Button
               color={chargingInterval === "monthly" ? "info" : "gray"}

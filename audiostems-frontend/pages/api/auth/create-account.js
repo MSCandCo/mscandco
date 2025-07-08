@@ -13,12 +13,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email, password, firstName, lastName, stageName } = req.body;
+    const { email, password, firstName, lastName, stageName, brand } = req.body;
 
     // Validate required fields
-    if (!email || !password || !firstName || !lastName || !stageName) {
+    if (!email || !password || !firstName || !lastName || !stageName || !brand) {
       return res.status(400).json({ 
-        error: 'Missing required fields: email, password, firstName, lastName, stageName' 
+        error: 'Missing required fields: email, password, firstName, lastName, stageName, brand' 
       });
     }
 
@@ -56,6 +56,7 @@ export default async function handler(req, res) {
         firstName,
         lastName,
         stageName,
+        brand, // Add brand selection
         registrationStep: 'basic_info_completed',
         emailVerified: false,
         mobileVerified: false,
@@ -63,7 +64,8 @@ export default async function handler(req, res) {
         backupCodesGenerated: false
       },
       app_metadata: { 
-        registrationStep: 'basic_info_completed' 
+        registrationStep: 'basic_info_completed',
+        brand // Add brand to app metadata as well
       }
     };
 

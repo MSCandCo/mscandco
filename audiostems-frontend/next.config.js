@@ -15,7 +15,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "dev-dashboard.audiostems.co.uk",
+        hostname: "dev-dashboard.mscandco.com",
+      },
+      {
+        protocol: "https",
+        hostname: "mscandco.com",
       },
     ],
   },

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import Head from 'next/head';
 import Link from 'next/link';
+import BrandSelection from '@/components/auth/BrandSelection';
 
 export default function RegisterAuth0() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -12,6 +13,7 @@ export default function RegisterAuth0() {
     email: '',
     password: '',
     confirmPassword: '',
+    brand: '', // Add brand selection
     phoneNumber: '',
     emailCode: '',
     smsCode: '',
@@ -61,6 +63,13 @@ export default function RegisterAuth0() {
     }
   };
 
+  const handleBrandChange = (brand) => {
+    setFormData(prev => ({
+      ...prev,
+      brand: brand
+    }));
+  };
+
   const handleFileChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -70,7 +79,7 @@ export default function RegisterAuth0() {
 
   const validateStep1 = () => {
     if (!formData.firstName || !formData.lastName || !formData.stageName || 
-        !formData.email || !formData.password || !formData.confirmPassword) {
+        !formData.email || !formData.password || !formData.confirmPassword || !formData.brand) {
       setError('All fields are required');
       return false;
     }
@@ -105,7 +114,8 @@ export default function RegisterAuth0() {
           lastName: formData.lastName,
           stageName: formData.stageName,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          brand: formData.brand
         }),
       });
 
@@ -400,6 +410,16 @@ export default function RegisterAuth0() {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Brand *
+          </label>
+          <BrandSelection
+            selectedBrand={formData.brand}
+            onBrandChange={handleBrandChange}
           />
         </div>
 

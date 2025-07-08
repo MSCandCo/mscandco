@@ -14,6 +14,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { HiArrowRight, HiPlay, HiPlayCircle } from "lucide-react";
 import ReactPlayer from "react-player/youtube";
 import useSWR from "swr";
+import { COMPANY_INFO, BRANDS } from "@/lib/brand-config";
 import {
   Carousel,
   CarouselContent,
@@ -129,11 +130,10 @@ export default function Home() {
             <div className="md:absolute md:inset-y-0 md:left-[10%] flex items-center">
               <div className="py-12 md:py-4 text-center md:text-left md:text-white md:max-w-md">
                 <h1 className="text-4xl font-bold mb-4">
-                  Find the Perfect Song for Your Project
+                  Multi-Brand Music Distribution & Publishing
                 </h1>
                 <h3 className="text-xl font-normal mb-8">
-                  Discover a highly curated roster of label-quality musicians
-                  and composers.
+                  {COMPANY_INFO.name} - Discover highly curated roster of label-quality musicians and composers across gospel, christian, and general music licensing.
                 </h3>
                 <Button
                   className="mx-auto md:ml-0"
@@ -143,29 +143,6 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-
-            {/* <h2 className="text-2xl lg:text-3xl font-semibold text-center lg:text-left">
-            Latest
-          </h2>
-          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {songs?.data?.map((song) => (
-              <div>
-                <button
-                  onClick={() => {
-                    playerContext.playSong(song);
-                  }}
-                >
-                  <img
-                    src={resourceUrl(song.attributes.cover.data.attributes.url)}
-                  />
-                </button>
-                <p className="text-base leading-5 font-semibold mt-2">
-                  {song.attributes.title}
-                </p>
-                <p className="font-gray-500">{song.attributes.Album}</p>
-              </div>
-            ))}
-          </div> */}
           </Container>
         )}
       </section>
@@ -198,16 +175,19 @@ export default function Home() {
                       <Transition
                         appear
                         as={Fragment}
-                        show={true}
-                        enter="transition duration-[1200ms]"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="transition duration-200 ease-in-out"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
+                        enter="transition ease-out duration-300"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="transition ease-in duration-200"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95"
                       >
-                        <div>
-                          <img src={s.image} />
+                        <div className="relative">
+                          <img
+                            className="w-full"
+                            src={s.image}
+                            alt={s.title}
+                          />
                         </div>
                       </Transition>
                     </Tab.Panel>
@@ -216,7 +196,7 @@ export default function Home() {
               </div>
               <div className="lg:mt-16 w-full lg:w-3/12">
                 <h2 className="text-5xl font-bold mb-8">
-                  Built for Filmmakers
+                  Built for Filmmakers & Artists
                 </h2>
                 <Button onClick={() => router.push("/register")}>
                   Create Free Account
@@ -267,43 +247,6 @@ export default function Home() {
         </Container>
       </section>
       <section className="py-16">
-        {/* <Container className="mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl lg:text-3xl font-bold">
-              Hear The Difference
-            </h2>
-            <Link
-              href="/playlists"
-              className="font-semibold text-gray-600 flex items-center gap-1"
-            >
-              Explore All <HiArrowRight />
-            </Link>
-          </div>
-        </Container> */}
-        {/* <Container fluid>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            {differentPlaylists?.map((p) => (
-              <Link href={`/playlist/${p.id}`}>
-                <div
-                  className="w-full aspect-video bg-top bg-cover rounded-md group relative transition-all hover:shadow-lg"
-                  style={{
-                    backgroundImage: `url(${resourceUrl(
-                      p.attributes.cover.data.attributes.url
-                    )})`,
-                  }}
-                >
-                  <div className="absolute bottom-[8%] left-[6%]">
-                    <HiPlayCircle className="opacity-0 group-hover:opacity-90 transition-all text-white h-12 w-12" />
-                    <h4 className="text-base font-bold text-white">
-                      {p.attributes.title}
-                    </h4>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Container> */}
-
         <div className="pt-16 flex flex-col justify-center items-center">
           <h4 className="mb-4 text-4xl font-bold text-center">
             Less Red Tape. More Creating.
@@ -345,8 +288,8 @@ export default function Home() {
           <div className="pb-16 grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="text-base border-t border-gray-400 flex flex-col">
               <p className="mt-3 flex-1">
-                “We had a lot of constraints, but working with Audiostems made
-                it really easy. They see the bigger picture, which is helpful.”
+                "We had a lot of constraints, but working with {COMPANY_INFO.name} made
+                it really easy. They see the bigger picture, which is helpful."
               </p>
               <div className="mt-8 flex gap-3 items-center">
                 <img className="w-[60px]" src="/people/omid.png" />
@@ -360,9 +303,9 @@ export default function Home() {
             </div>
             <div className="text-base border-t border-gray-400 flex flex-col">
               <p className="mt-3 flex-1">
-                “Audiostems has the best collection of music and scores
+                "{COMPANY_INFO.name} has the best collection of music and scores
                 available, hands-down. The quality and diversity are
-                overwhelmingly better than any other source.”
+                overwhelmingly better than any other source."
               </p>
               <div className="mt-8 flex gap-3 items-center">
                 <img className="w-[60px]" src="/people/joel.png" />
@@ -376,9 +319,9 @@ export default function Home() {
             </div>
             <div className="text-base border-t border-gray-400 flex flex-col">
               <p className="mt-3 flex-1">
-                “The Audiostems team has helped me find songs that match the
+                "The {COMPANY_INFO.name} team has helped me find songs that match the
                 vibe that I'm looking for perfectly. It has saved me hours on
-                projects.”
+                projects."
               </p>
               <div className="mt-8 flex gap-3 items-center">
                 <img className="w-[60px]" src="/people/ezra.png" />
@@ -390,8 +333,8 @@ export default function Home() {
             </div>
             <div className="text-base border-t border-gray-400 flex flex-col">
               <p className="mt-3 flex-1">
-                “Audiostems is constantly putting out awesome music that makes
-                our lives (and our job) so much easier.”
+                "{COMPANY_INFO.name} is constantly putting out awesome music that makes
+                our lives (and our job) so much easier."
               </p>
               <div className="mt-8 flex gap-3 items-center">
                 <img className="w-[60px]" src="/people/white-in-revery.png" />
