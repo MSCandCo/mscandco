@@ -136,7 +136,7 @@ export default function Dashboard() {
                         <div className="text-sm font-medium text-gray-700 mb-2">Publishing</div>
                         <ul className="space-y-1 ml-4">
                           <li>
-                            <Link href="/distribution/publishing/overview" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
+                            <Link href="/distribution/publishing" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
                               Overview
                             </Link>
                           </li>

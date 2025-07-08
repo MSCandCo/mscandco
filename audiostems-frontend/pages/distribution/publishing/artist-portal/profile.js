@@ -1,135 +1,37 @@
-import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
-import { Button, Label, TextInput, Textarea, Select, Alert, Card, Badge } from 'flowbite-react';
-import { 
-  HiUser, HiGlobe, HiMusic, HiInformationCircle, HiCamera, 
-  HiMail, HiPhone, HiCalendar, HiLink, HiSave, HiX,
-  HiInstagram, HiTwitter, HiFacebook, HiYoutube, HiSpotify
-} from 'react-icons/hi';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-// Validation Schema
-const validationSchema = Yup.object({
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is required'),
-  stageName: Yup.string().required('Stage name is required'),
-  email: Yup.string().email('Please enter a valid email').required('Email is required'),
-  phone: Yup.string(),
-  artistType: Yup.string().required('Artist type is required'),
-  genre: Yup.string().required('Genre is required'),
-  contractStatus: Yup.string().required('Contract status is required'),
-  dateSigned: Yup.date(),
-  socialMedia: Yup.object({
-    instagram: Yup.string().url('Please enter a valid Instagram URL'),
-    twitter: Yup.string().url('Please enter a valid Twitter URL'),
-    facebook: Yup.string().url('Please enter a valid Facebook URL'),
-    spotify: Yup.string().url('Please enter a valid Spotify URL'),
-    appleMusic: Yup.string().url('Please enter a valid Apple Music URL'),
-    soundcloud: Yup.string().url('Please enter a valid SoundCloud URL'),
-    youtube: Yup.string().url('Please enter a valid YouTube URL'),
-    tiktok: Yup.string().url('Please enter a valid TikTok URL')
-  }),
-  manager: Yup.string(),
-  furtherInformation: Yup.string().max(1000, 'Additional information must be less than 1000 characters')
-});
-
-// Data Constants
-const ARTIST_TYPES = [
-  'Solo Artist', 'Band', 'Group', 'DJ', 'Duo', 'Orchestra', 'Ensemble', 'Collective',
-  'Producer', 'Composer', 'Songwriter', 'Session Musician', 'Backing Vocalist',
-  'Instrumentalist', 'Vocalist', 'Multi-Instrumentalist', 'Arranger', 'Conductor'
-];
-
-const GENRES = [
-  'Pop', 'Rock', 'Hip Hop', 'R&B', 'Electronic', 'Country', 'Jazz', 'Classical',
-  'Blues', 'Folk', 'Reggae', 'Latin', 'Metal', 'Punk', 'Indie', 'Alternative',
-  'Dance', 'House', 'Techno', 'Trap', 'Dubstep', 'Ambient', 'World', 'Gospel',
-  'Soul', 'Funk', 'Disco', 'New Wave', 'Post-Punk', 'Grunge', 'Britpop', 'Trip Hop',
-  'Drum & Bass', 'Garage', 'UK Garage', 'Dub', 'Roots Reggae', 'Ska', 'Punk Rock',
-  'Hardcore Punk', 'Emo', 'Screamo', 'Metalcore', 'Death Metal', 'Black Metal',
-  'Thrash Metal', 'Progressive Metal', 'Power Metal', 'Folk Metal', 'Symphonic Metal',
-  'Industrial', 'Gothic', 'Darkwave', 'Synthwave', 'Vaporwave', 'Lo-Fi', 'Chillwave',
-  'Dream Pop', 'Shoegaze', 'Post-Rock', 'Math Rock', 'Progressive Rock', 'Psychedelic Rock',
-  'Blues Rock', 'Southern Rock', 'Country Rock', 'Folk Rock', 'Celtic', 'World Music',
-  'Afrobeat', 'Highlife', 'Juju', 'Mbalax', 'Kizomba', 'Semba', 'Kuduro', 'Batuque',
-  'Fado', 'Flamenco', 'Tango', 'Salsa', 'Merengue', 'Bachata', 'Cumbia', 'Vallenato',
-  'Bossa Nova', 'Samba', 'MPB', 'Tropicalia', 'Choro', 'Forro', 'Axé', 'Pagode',
-  'Funk Carioca', 'Baile Funk', 'Trap Latino', 'Reggaeton', 'Dembow', 'Bachatón',
-  'Urbano Latino', 'Latin Pop', 'Latin Rock', 'Latin Alternative', 'Nueva Trova',
-  'Nueva Canción', 'Trova', 'Son', 'Bolero', 'Ranchera', 'Mariachi', 'Norteño',
-  'Banda', 'Corrido', 'Narcocorrido', 'Duranguense', 'Quebradita', 'Cumbia Norteña',
-  'Tejano', 'Conjunto', 'Tex-Mex', 'Chicano Rock', 'Latin Jazz', 'Afro-Cuban Jazz',
-  'Cuban Son', 'Rumba', 'Guaguancó', 'Yoruba', 'Santería', 'Palo', 'Arará', 'Abakuá',
-  'Other'
-];
-
-const CONTRACT_STATUSES = [
-  'Pending', 'Signed', 'Active', 'Expired', 'Renewal', 'Inactive', 'Terminated'
-];
-
-export default function ArtistProfile() {
-  const { user, isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
-  const router = useRouter();
-  const [profile, setProfile] = useState(null);
+export default function ArtistPortalProfile() {
+  const { isAuthenticated, user, loginWithRedirect } = useAuth0();
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [alert, setAlert] = useState({ show: false, type: 'success', message: '' });
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      fetchProfile();
-    } else if (!isAuthenticated) {
-      loginWithRedirect();
+      fetchUserProfile();
+    } else {
+      setLoading(false);
     }
   }, [isAuthenticated, user]);
 
-  const fetchProfile = async () => {
+  const fetchUserProfile = async () => {
     try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`/api/artist/get-profile?user_id=${user.sub}`, {
+      const response = await fetch('/api/auth/get-profile', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setProfile(data.profile);
-        if (data.profile?.profileImage) {
-          setImagePreview(data.profile.profileImage);
-        }
-      } else {
-        // If no profile exists, create initial profile from Auth0 user data
-        setProfile({
-          firstName: user.given_name || '',
-          lastName: user.family_name || '',
-          stageName: user.user_metadata?.stageName || '',
-          email: user.email || '',
-          phone: user.phone_number || '',
-          artistType: '',
-          genre: '',
-          contractStatus: '',
-          dateSigned: '',
-          socialMedia: {
-            instagram: '',
-            twitter: '',
-            facebook: '',
-            spotify: '',
-            appleMusic: '',
-            soundcloud: '',
-            youtube: '',
-            tiktok: ''
-          },
-          manager: '',
-          furtherInformation: '',
-          profileImage: user.picture || '',
-          profileComplete: false
-        });
+        setUserProfile(data.profile);
+        setFormData(data.profile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -138,125 +40,49 @@ export default function ArtistProfile() {
     }
   };
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
-  const removeImage = () => {
-    setProfileImage(null);
-    setImagePreview('');
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
-    setSaving(true);
     try {
-      const formData = new FormData();
-      
-      // Add user ID
-      formData.append('user_id', user.sub);
-      
-      // Add profile image if selected
-      if (profileImage) {
-        formData.append('profileImage', profileImage);
-      }
-
-      // Add all form data
-      Object.keys(values).forEach(key => {
-        if (key === 'socialMedia') {
-          formData.append(key, JSON.stringify(values[key]));
-        } else {
-          formData.append(key, values[key]);
-        }
-      });
-
-      const token = await getAccessTokenSilently();
-      const response = await fetch('/api/artist/update-profile', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data.profile);
-        setAlert({
-          show: true,
-          type: 'success',
-          message: 'Profile updated successfully!'
-        });
-        
-        // Update Auth0 user if email/phone changed
-        if (values.email !== user.email || values.phone !== user.phone_number) {
-          await updateAuth0User(values);
-        }
-      } else {
-        throw new Error('Failed to update profile');
-      }
-    } catch (error) {
-      setErrors({ submit: error.message });
-      setAlert({
-        show: true,
-        type: 'failure',
-        message: 'Failed to update profile. Please try again.'
-      });
-    } finally {
-      setSaving(false);
-      setSubmitting(false);
-    }
-  };
-
-  const updateAuth0User = async (values) => {
-    try {
-      const token = await getAccessTokenSilently();
-      await fetch('/api/auth/update-user', {
+      const response = await fetch('/api/auth/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          user_id: user.sub,
-          email: values.email,
-          phone_number: values.phone
-        })
+        body: JSON.stringify(formData),
       });
-    } catch (error) {
-      console.error('Error updating Auth0 user:', error);
-    }
-  };
 
-  const initialValues = {
-    firstName: profile?.firstName || user?.given_name || '',
-    lastName: profile?.lastName || user?.family_name || '',
-    stageName: profile?.stageName || user?.user_metadata?.stageName || '',
-    email: profile?.email || user?.email || '',
-    phone: profile?.phone || user?.phone_number || '',
-    artistType: profile?.artistType || '',
-    genre: profile?.genre || '',
-    contractStatus: profile?.contractStatus || '',
-    dateSigned: profile?.dateSigned || '',
-    socialMedia: {
-      instagram: profile?.socialMedia?.instagram || '',
-      twitter: profile?.socialMedia?.twitter || '',
-      facebook: profile?.socialMedia?.facebook || '',
-      spotify: profile?.socialMedia?.spotify || '',
-      appleMusic: profile?.socialMedia?.appleMusic || '',
-      soundcloud: profile?.socialMedia?.soundcloud || '',
-      youtube: profile?.socialMedia?.youtube || '',
-      tiktok: profile?.socialMedia?.tiktok || ''
-    },
-    manager: profile?.manager || '',
-    furtherInformation: profile?.furtherInformation || ''
+      if (response.ok) {
+        setUserProfile(formData);
+        setEditing(false);
+      } else {
+        console.error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -264,7 +90,26 @@ export default function ArtistProfile() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold text-center mb-6">Artist Portal Profile</h1>
+          <p className="text-gray-600 text-center mb-6">
+            Please sign in to access your artist profile.
+          </p>
+          <button
+            onClick={() => loginWithRedirect()}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+          >
+            Sign In
+          </button>
         </div>
       </div>
     );
@@ -282,383 +127,483 @@ export default function ArtistProfile() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
+                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 mr-4">
+                  ← Back to Dashboard
+                </Link>
                 <h1 className="text-2xl font-bold text-gray-900">Artist Portal</h1>
-                <Badge color="blue" className="ml-3">Profile</Badge>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  Welcome, {user?.name || 'Artist'}
-                </span>
+                <div className="text-sm text-gray-600">
+                  {userProfile?.firstName || user?.name || 'User'}
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Alert */}
-          {alert.show && (
-            <Alert
-              color={alert.type}
-              className="mb-6"
-              onDismiss={() => setAlert({ show: false, type: 'success', message: '' })}
-            >
-              {alert.message}
-            </Alert>
-          )}
-
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-            enableReinitialize
-          >
-            {({ isSubmitting, errors, touched, values }) => (
-              <Form className="space-y-8">
-                {/* Profile Photo Section */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-6">
-                    <HiCamera className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-semibold text-gray-900">Profile Photo</h2>
-                  </div>
-                  
-                  <div className="flex items-center space-x-6">
-                    <div className="relative">
-                      <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                        {imagePreview ? (
-                          <img
-                            src={imagePreview}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <HiUser className="w-12 h-12 text-gray-400" />
-                        )}
-                      </div>
-                      {imagePreview && (
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <HiX className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <Label htmlFor="profileImage" value="Upload Profile Photo" />
-                      <input
-                        type="file"
-                        id="profileImage"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                      <p className="text-sm text-gray-500 mt-1">
-                        Recommended size: 400x400 pixels. Max file size: 5MB.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Personal Information */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-6">
-                    <HiUser className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="firstName" value="First Name" />
-                      <Field
-                        as={TextInput}
-                        id="firstName"
-                        name="firstName"
-                        placeholder="John"
-                        color={touched.firstName && errors.firstName ? "failure" : "gray"}
-                        helperText={touched.firstName && errors.firstName}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="lastName" value="Last Name" />
-                      <Field
-                        as={TextInput}
-                        id="lastName"
-                        name="lastName"
-                        placeholder="Doe"
-                        color={touched.lastName && errors.lastName ? "failure" : "gray"}
-                        helperText={touched.lastName && errors.lastName}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="stageName" value="Stage Name" />
-                      <Field
-                        as={TextInput}
-                        id="stageName"
-                        name="stageName"
-                        placeholder="Your Artist Name"
-                        color={touched.stageName && errors.stageName ? "failure" : "gray"}
-                        helperText={touched.stageName && errors.stageName}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="artistType" value="Artist Type" />
-                      <Field
-                        as={Select}
-                        id="artistType"
-                        name="artistType"
-                        color={touched.artistType && errors.artistType ? "failure" : "gray"}
-                        helperText={touched.artistType && errors.artistType}
-                      >
-                        <option value="">Select Artist Type</option>
-                        {ARTIST_TYPES.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </Field>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="email" value="Email" />
-                      <Field
-                        as={TextInput}
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="artist@example.com"
-                        color={touched.email && errors.email ? "failure" : "gray"}
-                        helperText={touched.email && errors.email}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="phone" value="Phone Number" />
-                      <Field
-                        as={TextInput}
-                        id="phone"
-                        name="phone"
-                        placeholder="+1 (555) 123-4567"
-                        color={touched.phone && errors.phone ? "failure" : "gray"}
-                        helperText={touched.phone && errors.phone}
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <Label htmlFor="genre" value="Primary Genre" />
-                      <Field
-                        as={Select}
-                        id="genre"
-                        name="genre"
-                        color={touched.genre && errors.genre ? "failure" : "gray"}
-                        helperText={touched.genre && errors.genre}
-                      >
-                        <option value="">Select Genre</option>
-                        {GENRES.map(genre => (
-                          <option key={genre} value={genre}>{genre}</option>
-                        ))}
-                      </Field>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Contract Information */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-6">
-                    <HiCalendar className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-semibold text-gray-900">Contract Information</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="contractStatus" value="Contract Status" />
-                      <Field
-                        as={Select}
-                        id="contractStatus"
-                        name="contractStatus"
-                        color={touched.contractStatus && errors.contractStatus ? "failure" : "gray"}
-                        helperText={touched.contractStatus && errors.contractStatus}
-                      >
-                        <option value="">Select Status</option>
-                        {CONTRACT_STATUSES.map(status => (
-                          <option key={status} value={status}>{status}</option>
-                        ))}
-                      </Field>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="dateSigned" value="Date Signed" />
-                      <Field
-                        as={TextInput}
-                        id="dateSigned"
-                        name="dateSigned"
-                        type="date"
-                        color={touched.dateSigned && errors.dateSigned ? "failure" : "gray"}
-                        helperText={touched.dateSigned && errors.dateSigned}
-                      />
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Social Media */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-6">
-                    <HiGlobe className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-semibold text-gray-900">Social Media</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="socialMedia.instagram" value="Instagram" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.instagram"
-                        name="socialMedia.instagram"
-                        placeholder="https://instagram.com/yourusername"
-                        color={touched.socialMedia?.instagram && errors.socialMedia?.instagram ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.instagram && errors.socialMedia?.instagram}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.twitter" value="Twitter" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.twitter"
-                        name="socialMedia.twitter"
-                        placeholder="https://twitter.com/yourusername"
-                        color={touched.socialMedia?.twitter && errors.socialMedia?.twitter ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.twitter && errors.socialMedia?.twitter}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.facebook" value="Facebook" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.facebook"
-                        name="socialMedia.facebook"
-                        placeholder="https://facebook.com/yourpage"
-                        color={touched.socialMedia?.facebook && errors.socialMedia?.facebook ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.facebook && errors.socialMedia?.facebook}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.spotify" value="Spotify" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.spotify"
-                        name="socialMedia.spotify"
-                        placeholder="https://open.spotify.com/artist/..."
-                        color={touched.socialMedia?.spotify && errors.socialMedia?.spotify ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.spotify && errors.socialMedia?.spotify}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.appleMusic" value="Apple Music" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.appleMusic"
-                        name="socialMedia.appleMusic"
-                        placeholder="https://music.apple.com/artist/..."
-                        color={touched.socialMedia?.appleMusic && errors.socialMedia?.appleMusic ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.appleMusic && errors.socialMedia?.appleMusic}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.soundcloud" value="SoundCloud" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.soundcloud"
-                        name="socialMedia.soundcloud"
-                        placeholder="https://soundcloud.com/yourusername"
-                        color={touched.socialMedia?.soundcloud && errors.socialMedia?.soundcloud ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.soundcloud && errors.socialMedia?.soundcloud}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.youtube" value="YouTube" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.youtube"
-                        name="socialMedia.youtube"
-                        placeholder="https://youtube.com/@yourchannel"
-                        color={touched.socialMedia?.youtube && errors.socialMedia?.youtube ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.youtube && errors.socialMedia?.youtube}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="socialMedia.tiktok" value="TikTok" />
-                      <Field
-                        as={TextInput}
-                        id="socialMedia.tiktok"
-                        name="socialMedia.tiktok"
-                        placeholder="https://tiktok.com/@yourusername"
-                        color={touched.socialMedia?.tiktok && errors.socialMedia?.tiktok ? "failure" : "gray"}
-                        helperText={touched.socialMedia?.tiktok && errors.socialMedia?.tiktok}
-                      />
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Additional Information */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-6">
-                    <HiInformationCircle className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-semibold text-gray-900">Additional Information</h2>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <Label htmlFor="manager" value="Manager (Optional)" />
-                      <Field
-                        as={TextInput}
-                        id="manager"
-                        name="manager"
-                        placeholder="Manager name or company"
-                        color={touched.manager && errors.manager ? "failure" : "gray"}
-                        helperText={touched.manager && errors.manager}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="furtherInformation" value="Additional Information" />
-                      <Field
-                        as={Textarea}
-                        id="furtherInformation"
-                        name="furtherInformation"
-                        placeholder="Tell us more about your music, achievements, or any additional information..."
-                        rows={4}
-                        color={touched.furtherInformation && errors.furtherInformation ? "failure" : "gray"}
-                        helperText={touched.furtherInformation && errors.furtherInformation}
-                      />
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Submit Button */}
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    color="blue"
-                    size="lg"
-                    disabled={isSubmitting || saving}
-                    className="flex items-center gap-2"
-                  >
-                    <HiSave className="w-5 h-5" />
-                    {saving ? 'Saving...' : 'Save Profile'}
-                  </Button>
+        {/* Breadcrumb */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <nav className="flex" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-4">
+              <li>
+                <Link href="/dashboard" className="text-gray-500 hover:text-gray-700">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <Link href="/distribution/publishing" className="ml-4 text-gray-500 hover:text-gray-700">
+                    Distribution & Publishing
+                  </Link>
                 </div>
-              </Form>
-            )}
-          </Formik>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <Link href="/distribution/publishing/artist-portal" className="ml-4 text-gray-500 hover:text-gray-700">
+                    Artist Portal
+                  </Link>
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="ml-4 text-gray-500">Profile</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-1">
+              <nav className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Artist Portal</h2>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/distribution/publishing/artist-portal" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
+                      Overview
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/distribution/publishing/artist-portal/profile" className="block px-3 py-2 text-blue-600 bg-blue-50 rounded-md">
+                      Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/distribution/publishing/artist-portal/releases" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
+                      Releases
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/distribution/publishing/artist-portal/analytics" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
+                      Analytics
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/distribution/publishing/artist-portal/royalties" className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">
+                      Royalties
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Artist Profile</h2>
+                  <button
+                    onClick={() => setEditing(!editing)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    {editing ? 'Cancel' : 'Edit Profile'}
+                  </button>
+                </div>
+
+                {editing ? (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Stage Name
+                        </label>
+                        <input
+                          type="text"
+                          name="stageName"
+                          value={formData.stageName || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Artist Type
+                        </label>
+                        <select
+                          name="artistType"
+                          value={formData.artistType || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Artist Type</option>
+                          <option value="solo artist">Solo Artist</option>
+                          <option value="band">Band</option>
+                          <option value="group">Group</option>
+                          <option value="dj">DJ</option>
+                          <option value="duo">Duo</option>
+                          <option value="orchestra">Orchestra</option>
+                          <option value="ensemble">Ensemble</option>
+                          <option value="collective">Collective</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="phoneNumber"
+                          value={formData.phoneNumber || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Genre
+                        </label>
+                        <select
+                          name="genre"
+                          value={formData.genre || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Genre</option>
+                          <option value="pop">Pop</option>
+                          <option value="rock">Rock</option>
+                          <option value="hip-hop">Hip-Hop</option>
+                          <option value="r&b">R&B</option>
+                          <option value="country">Country</option>
+                          <option value="electronic">Electronic</option>
+                          <option value="jazz">Jazz</option>
+                          <option value="classical">Classical</option>
+                          <option value="folk">Folk</option>
+                          <option value="blues">Blues</option>
+                          <option value="reggae">Reggae</option>
+                          <option value="punk">Punk</option>
+                          <option value="metal">Metal</option>
+                          <option value="indie">Indie</option>
+                          <option value="alternative">Alternative</option>
+                          <option value="world">World</option>
+                          <option value="gospel">Gospel</option>
+                          <option value="soul">Soul</option>
+                          <option value="funk">Funk</option>
+                          <option value="disco">Disco</option>
+                          <option value="house">House</option>
+                          <option value="techno">Techno</option>
+                          <option value="trance">Trance</option>
+                          <option value="dubstep">Dubstep</option>
+                          <option value="drum-and-bass">Drum & Bass</option>
+                          <option value="ambient">Ambient</option>
+                          <option value="experimental">Experimental</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Contract Status
+                        </label>
+                        <select
+                          name="contractStatus"
+                          value={formData.contractStatus || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="pending">Pending</option>
+                          <option value="signed">Signed</option>
+                          <option value="active">Active</option>
+                          <option value="expired">Expired</option>
+                          <option value="renewal">Renewal</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Date Signed
+                        </label>
+                        <input
+                          type="date"
+                          name="dateSigned"
+                          value={formData.dateSigned || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Social Media Handles
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="socialMedia.instagram"
+                          value={formData.socialMedia?.instagram || ''}
+                          onChange={handleInputChange}
+                          placeholder="Instagram"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="text"
+                          name="socialMedia.twitter"
+                          value={formData.socialMedia?.twitter || ''}
+                          onChange={handleInputChange}
+                          placeholder="Twitter"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="text"
+                          name="socialMedia.facebook"
+                          value={formData.socialMedia?.facebook || ''}
+                          onChange={handleInputChange}
+                          placeholder="Facebook"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="text"
+                          name="socialMedia.youtube"
+                          value={formData.socialMedia?.youtube || ''}
+                          onChange={handleInputChange}
+                          placeholder="YouTube"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="text"
+                          name="socialMedia.tiktok"
+                          value={formData.socialMedia?.tiktok || ''}
+                          onChange={handleInputChange}
+                          placeholder="TikTok"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Manager Information
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input
+                          type="text"
+                          name="managerInfo.name"
+                          value={formData.managerInfo?.name || ''}
+                          onChange={handleInputChange}
+                          placeholder="Manager Name"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="email"
+                          name="managerInfo.email"
+                          value={formData.managerInfo?.email || ''}
+                          onChange={handleInputChange}
+                          placeholder="Manager Email"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="tel"
+                          name="managerInfo.phone"
+                          value={formData.managerInfo?.phone || ''}
+                          onChange={handleInputChange}
+                          placeholder="Manager Phone"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Further Information
+                      </label>
+                      <textarea
+                        name="furtherInfo"
+                        value={formData.furtherInfo || ''}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Additional information about your music, achievements, or any other details..."
+                      />
+                    </div>
+
+                    <div className="flex justify-end space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(false)}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {loading ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <p className="text-gray-900">{userProfile?.firstName || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <p className="text-gray-900">{userProfile?.lastName || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name</label>
+                        <p className="text-gray-900">{userProfile?.stageName || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Artist Type</label>
+                        <p className="text-gray-900">{userProfile?.artistType || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <p className="text-gray-900">{userProfile?.email || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <p className="text-gray-900">{userProfile?.phoneNumber || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+                        <p className="text-gray-900">{userProfile?.genre || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Contract Status</label>
+                        <p className="text-gray-900">{userProfile?.contractStatus || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Signed</label>
+                        <p className="text-gray-900">
+                          {userProfile?.dateSigned ? new Date(userProfile.dateSigned).toLocaleDateString() : 'Not set'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {userProfile?.socialMedia && Object.values(userProfile.socialMedia).some(handle => handle) && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Social Media</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(userProfile.socialMedia).map(([platform, handle]) => (
+                            handle && (
+                              <div key={platform}>
+                                <span className="text-sm font-medium text-gray-600 capitalize">{platform}:</span>
+                                <p className="text-gray-900">{handle}</p>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {userProfile?.managerInfo && (userProfile.managerInfo.name || userProfile.managerInfo.email || userProfile.managerInfo.phone) && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Manager Information</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {userProfile.managerInfo.name && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Name:</span>
+                              <p className="text-gray-900">{userProfile.managerInfo.name}</p>
+                            </div>
+                          )}
+                          {userProfile.managerInfo.email && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Email:</span>
+                              <p className="text-gray-900">{userProfile.managerInfo.email}</p>
+                            </div>
+                          )}
+                          {userProfile.managerInfo.phone && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Phone:</span>
+                              <p className="text-gray-900">{userProfile.managerInfo.phone}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {userProfile?.furtherInfo && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Further Information</label>
+                        <p className="text-gray-900 whitespace-pre-wrap">{userProfile.furtherInfo}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>
