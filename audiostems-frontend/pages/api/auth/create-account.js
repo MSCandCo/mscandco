@@ -1,8 +1,4 @@
 import { ManagementClient } from 'auth0';
-import sgMail from '@sendgrid/mail';
-
-// Configure SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const management = new ManagementClient({
   domain: process.env.AUTH0_DOMAIN,
@@ -11,85 +7,42 @@ const management = new ManagementClient({
   scope: 'read:users create:users update:users delete:users read:roles assign:roles'
 });
 
-// Generate a 6-digit verification code
-function generateVerificationCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Send verification email via SendGrid
-async function sendVerificationEmail(email, code, firstName) {
-  const msg = {
-    to: email,
-    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@audiostems.com',
-    subject: 'Your AudioStems verification code',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-        <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #333; margin: 0; font-size: 28px;">AudioStems</h1>
-            <p style="color: #666; margin: 10px 0 0 0;">Your verification code</p>
-          </div>
-          
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-            <h2 style="color: #333; margin: 0; font-size: 32px; letter-spacing: 5px; font-family: 'Courier New', monospace;">${code}</h2>
-            <p style="color: #666; margin: 10px 0 0 0; font-size: 14px;">Enter this code to verify your email address</p>
-          </div>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px; margin: 0;">
-              This code will expire in 10 minutes.<br>
-              If you didn't request this code, please ignore this email.
-            </p>
-          </div>
-        </div>
-      </div>
-    `
-  };
-
-  try {
-    await sgMail.send(msg);
-    console.log(`✅ Verification email sent to ${email} with code: ${code}`);
-    return true;
-  } catch (error) {
-    console.error('SendGrid error:', error);
-    if (error.response) {
-      console.error('SendGrid response body:', error.response.body);
-    }
-    
-    // Fallback: Log the code to console for development
-    console.log(`📧 DEVELOPMENT MODE: Verification code for ${email}: ${code}`);
-    console.log(`📧 In production, this would be sent via SendGrid`);
-    return false;
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { firstName, lastName, stageName, email, password } = req.body;
+    const { email, password, firstName, lastName, stageName } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !stageName || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!email || !password || !firstName || !lastName || !stageName) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: email, password, firstName, lastName, stageName' 
+      });
     }
 
-    // Check SendGrid configuration
-    if (!process.env.SENDGRID_API_KEY) {
-      console.error('SENDGRID_API_KEY is not set');
-      return res.status(500).json({ error: 'Email service not configured' });
+    console.log('Auth0 Domain:', process.env.AUTH0_DOMAIN);
+    console.log('Auth0 MGMT Client ID:', process.env.AUTH0_MGMT_CLIENT_ID ? 'SET' : 'NOT SET');
+    console.log('Auth0 MGMT Client Secret:', process.env.AUTH0_MGMT_CLIENT_SECRET ? 'SET' : 'NOT SET');
+
+    // Check if user already exists
+    try {
+      const existingUsers = await management.users.getAll({
+        q: `email:"${email}"`,
+        search_engine: 'v3'
+      });
+      
+      if (existingUsers && existingUsers.length > 0) {
+        return res.status(409).json({ 
+          error: 'User with this email already exists' 
+        });
+      }
+    } catch (error) {
+      console.log('User check error (this is normal if user doesn\'t exist):', error.message);
     }
 
-    console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET');
-    console.log('SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL || 'NOT SET');
-
-    // Generate verification code
-    const verificationCode = generateVerificationCode();
-    const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-    // Create user data
+    // Create user data with Auth0's native email verification enabled
     const userData = {
       email,
       password,
@@ -97,6 +50,8 @@ export default async function handler(req, res) {
       name: `${firstName} ${lastName}`,
       given_name: firstName,
       family_name: lastName,
+      email_verified: false, // Will be verified when user enters the 6-digit code
+      verify_email: true, // Enable Auth0's native email verification
       user_metadata: {
         firstName,
         lastName,
@@ -105,12 +60,10 @@ export default async function handler(req, res) {
         emailVerified: false,
         mobileVerified: false,
         profileComplete: false,
-        backupCodesGenerated: false,
-        verificationCode,
-        codeExpiry: codeExpiry.toISOString()
+        backupCodesGenerated: false
       },
-      app_metadata: {
-        registrationStep: 'basic_info_completed'
+      app_metadata: { 
+        registrationStep: 'basic_info_completed' 
       }
     };
 
@@ -119,23 +72,15 @@ export default async function handler(req, res) {
     const user = await management.users.create(userData);
     console.log('User created successfully:', user.user_id);
 
-    // Send verification email via SendGrid
-    const emailSent = await sendVerificationEmail(email, verificationCode, firstName);
-    
-    if (emailSent) {
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Account created successfully. Please check your email for the 6-digit verification code.',
-        userId: user.user_id 
-      });
-    } else {
-      // User was created but email failed
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Account created successfully, but verification email failed to send. Please contact support.',
-        userId: user.user_id 
-      });
-    }
+    // Auth0 will automatically send the verification email with 6-digit code
+    console.log('Auth0 will send verification email with 6-digit code to:', email);
+
+    return res.status(200).json({
+      success: true,
+      message: 'User created successfully. Please check your email for the verification code.',
+      userId: user.user_id,
+      email: email
+    });
 
   } catch (error) {
     console.error('Error creating account:', error);
@@ -147,9 +92,14 @@ export default async function handler(req, res) {
     });
 
     if (error.statusCode === 409) {
-      return res.status(409).json({ error: 'User with this email already exists' });
+      return res.status(409).json({ 
+        error: 'User with this email already exists' 
+      });
     }
 
-    return res.status(500).json({ error: 'Failed to create account. Please try again.' });
+    return res.status(500).json({ 
+      error: 'Failed to create account',
+      details: error.message 
+    });
   }
 } 

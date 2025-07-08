@@ -13,11 +13,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { code, email } = req.body;
+    const { email } = req.body;
 
-    if (!code || !email) {
+    if (!email) {
       return res.status(400).json({ 
-        error: 'Missing required fields: code and email' 
+        error: 'Email is required' 
       });
     }
 
@@ -35,37 +35,32 @@ export default async function handler(req, res) {
 
     const user = users[0];
 
-    // Note: Auth0 handles the actual code verification internally
-    // This endpoint is for updating the user's verification status
-    // The actual code verification should be handled by Auth0's built-in system
+    // Check if user is already verified
+    if (user.email_verified) {
+      return res.status(400).json({ 
+        error: 'Email is already verified' 
+      });
+    }
 
-    // Update user to mark email as verified
+    // Trigger Auth0's built-in email verification
+    // This will send a new 6-digit verification code
     await management.users.update({ id: user.user_id }, {
-      email_verified: true,
-      user_metadata: {
-        ...user.user_metadata,
-        emailVerified: true,
-        registrationStep: 'email_verified'
-      },
-      app_metadata: {
-        ...user.app_metadata,
-        registrationStep: 'email_verified'
-      }
+      verify_email: true
     });
 
-    console.log(`✅ Email verified for user: ${user.user_id}`);
+    console.log(`✅ Verification email resent to: ${email}`);
 
     return res.status(200).json({
       success: true,
-      message: 'Email verified successfully',
+      message: 'Verification email sent successfully',
       userId: user.user_id
     });
 
   } catch (error) {
-    console.error('Error verifying email:', error);
+    console.error('Error resending verification email:', error);
     
     return res.status(500).json({ 
-      error: 'Failed to verify email',
+      error: 'Failed to resend verification email',
       details: error.message 
     });
   }
