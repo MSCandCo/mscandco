@@ -410,37 +410,49 @@ function DistributionPartnerDashboard({ userProfile }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-blue-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-blue-600">0</div>
-          <div className="text-sm text-blue-600">Pending Reviews</div>
+          <div className="text-2xl font-bold text-blue-600">1,247</div>
+          <div className="text-sm text-blue-600">Total Creations</div>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-green-600">0</div>
-          <div className="text-sm text-green-600">Active Releases</div>
+          <div className="text-2xl font-bold text-green-600">89</div>
+          <div className="text-sm text-green-600">Active Projects</div>
         </div>
         <div className="bg-purple-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-purple-600">0</div>
-          <div className="text-sm text-purple-600">Partners</div>
+          <div className="text-2xl font-bold text-purple-600">23</div>
+          <div className="text-sm text-purple-600">Pending Releases</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Distribution</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Distribution Management</h3>
           <div className="space-y-3">
-            <Link href="/distribution/content" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+            <Link href="/distribution/dashboard" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
               <HiGlobeAlt className="w-5 h-5 text-gray-400" />
-              <span>Content Management</span>
+              <span>Distribution Dashboard</span>
             </Link>
-            <Link href="/distribution/releases" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+            <Link href="/distribution/creations" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
               <HiMusicNote className="w-5 h-5 text-gray-400" />
-              <span>Releases</span>
+              <span>All Creations</span>
+            </Link>
+            <Link href="/distribution/projects" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+              <HiChartBar className="w-5 h-5 text-gray-400" />
+              <span>All Projects</span>
+            </Link>
+            <Link href="/distribution/sync-board" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+              <HiGlobeAlt className="w-5 h-5 text-gray-400" />
+              <span>Sync Board</span>
             </Link>
           </div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Partnerships</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
+            <Link href="/distribution/content" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+              <HiChartBar className="w-5 h-5 text-gray-400" />
+              <span>Content Review</span>
+            </Link>
             <Link href="/distribution/partners" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
               <HiUsers className="w-5 h-5 text-gray-400" />
               <span>Partners</span>
