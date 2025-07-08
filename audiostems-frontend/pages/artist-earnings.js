@@ -25,6 +25,8 @@ import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler } from 'chart.js';
 import { Bar, Pie, Line, Doughnut } from 'react-chartjs-2';
+import ExportButton from "@/components/export/ExportButton";
+import ExportSettingsModal from "@/components/export/ExportSettingsModal";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler);
 
@@ -38,6 +40,74 @@ function ArtistEarnings() {
   const [dateRange, setDateRange] = useState("12");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [minEarnings, setMinEarnings] = useState(0);
+
+  // Export functionality
+  const [exportSettings, setExportSettings] = useState({});
+
+  // Export columns configuration for earnings
+  const exportColumns = [
+    { header: 'Month', key: 'month', width: 15 },
+    { header: 'Total Earnings', key: 'totalEarnings', width: 20 },
+    { header: 'Streaming Revenue', key: 'streamingRevenue', width: 20 },
+    { header: 'Performance Revenue', key: 'performanceRevenue', width: 20 },
+    { header: 'Publishing Revenue', key: 'publishingRevenue', width: 20 },
+    { header: 'Mechanical Revenue', key: 'mechanicalRevenue', width: 20 },
+    { header: 'Licensing Revenue', key: 'licensingRevenue', width: 20 },
+    { header: 'Sync Revenue', key: 'syncRevenue', width: 20 },
+    { header: 'Total Streams', key: 'totalStreams', width: 15 },
+    { header: 'Total Downloads', key: 'totalDownloads', width: 15 },
+    { header: 'Growth %', key: 'growthPercentage', width: 15 }
+  ];
+
+  // Prepare earnings data for export
+  const exportData = statements?.data?.map(statement => ({
+    month: `${statement.attributes.month}/${statement.attributes.year}`,
+    totalEarnings: statement.attributes.totalEarnings,
+    streamingRevenue: statement.attributes.streamingRevenue || 0,
+    performanceRevenue: statement.attributes.performanceRevenue || 0,
+    publishingRevenue: statement.attributes.publishingRevenue || 0,
+    mechanicalRevenue: statement.attributes.mechanicalRevenue || 0,
+    licensingRevenue: statement.attributes.licensingRevenue || 0,
+    syncRevenue: statement.attributes.syncRevenue || 0,
+    totalStreams: statement.attributes.totalStreams || 0,
+    totalDownloads: statement.attributes.totalDownloads || 0,
+    growthPercentage: statement.attributes.growthPercentage || 0
+  })) || [];
+
+  const handleExport = async (settings) => {
+    try {
+      const response = await fetch('/api/export/earnings/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.accessToken}`
+        },
+        body: JSON.stringify({
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          format: settings.format || 'pdf',
+          detailLevel: settings.detailLevel || 'detailed'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${settings.filename || 'msc-earnings-statement'}.${settings.format || 'pdf'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Export failed: ' + error.message);
+    }
+  };
 
   // Check if user is artist
   useEffect(() => {
@@ -201,13 +271,17 @@ function ArtistEarnings() {
               <p className="text-gray-600">Track your revenue, performance, and financial insights</p>
             </div>
             <div className="flex items-center space-x-3">
-              <Dropdown label="Export" color="gray">
-                {exportOptions.map((option, index) => (
-                  <Dropdown.Item key={index} onClick={option.action} icon={option.icon}>
-                    {option.name}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown>
+              <ExportButton
+                userRole={session?.user?.userRole}
+                exportType="earnings"
+                data={exportData}
+                columns={exportColumns}
+                onExportStart={() => console.log('Export started')}
+                onExportComplete={() => console.log('Export completed')}
+                onExportError={(error) => alert('Export failed: ' + error)}
+                variant="blue"
+                size="sm"
+              />
               <Button color="blue" onClick={() => setShowBankModal(true)}>
                 <HiCog className="mr-2 h-4 w-4" />
                 Banking
@@ -721,6 +795,16 @@ function ArtistEarnings() {
             <Button color="blue">Save Banking Details</Button>
           </Modal.Footer>
         </Modal>
+
+        {/* Export Settings Modal */}
+        <ExportSettingsModal
+          show={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          exportType="earnings"
+          availableColumns={exportColumns}
+          onExport={handleExport}
+          userRole={session?.user?.userRole}
+        />
       </div>
     </MainLayout>
   );

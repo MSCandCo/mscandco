@@ -44,6 +44,42 @@ module.exports = createCoreRouter('api::monthly-statement.monthly-statement', {
       path: '/monthly-statements/summary',
       handler: 'monthly-statement.getEarningsSummary',
       config: {}
+    },
+    {
+      method: 'GET',
+      path: '/monthly-statements/track-earnings',
+      handler: 'monthly-statement.getTrackEarnings',
+      config: {}
+    },
+    {
+      method: 'GET',
+      path: '/monthly-statements/project-earnings',
+      handler: 'monthly-statement.getProjectEarnings',
+      config: {}
+    },
+    {
+      method: 'GET',
+      path: '/monthly-statements/platform-analytics',
+      handler: 'monthly-statement.getPlatformAnalytics',
+      config: {}
+    },
+    {
+      method: 'GET',
+      path: '/monthly-statements/generate-pdf',
+      handler: 'monthly-statement.generatePDFStatement',
+      config: {}
+    },
+    {
+      method: 'GET',
+      path: '/monthly-statements/payment-history',
+      handler: 'monthly-statement.getPaymentHistory',
+      config: {}
+    },
+    {
+      method: 'POST',
+      path: '/monthly-statements/update-bank-details',
+      handler: 'monthly-statement.updateBankDetails',
+      config: {}
     }
   ]
 }); 

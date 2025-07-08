@@ -9,6 +9,8 @@ import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
+import ExportButton from "@/components/export/ExportButton";
+import ExportSettingsModal from "@/components/export/ExportSettingsModal";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -20,6 +22,8 @@ function DistributionPartnerDashboard() {
   const [filters, setFilters] = useState({});
   const [selectedCreation, setSelectedCreation] = useState(null);
   const [showCreationModal, setShowCreationModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportSettings, setExportSettings] = useState({});
 
   // Check if user is distribution partner
   useEffect(() => {
@@ -121,6 +125,100 @@ function DistributionPartnerDashboard() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Export columns configuration
+  const exportColumns = [
+    { header: 'Song Title', key: 'title', width: 30 },
+    { header: 'Artist', key: 'artistName', width: 25 },
+    { header: 'ISRC', key: 'isrc', width: 15 },
+    { header: 'Duration', key: 'duration', width: 12 },
+    { header: 'BPM', key: 'bpm', width: 10 },
+    { header: 'Key', key: 'key', width: 10 },
+    { header: 'Genre', key: 'genre', width: 20 },
+    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Release Date', key: 'releaseDate', width: 15 },
+    { header: 'Explicit', key: 'isExplicit', width: 10 },
+    { header: 'Recording Studio', key: 'recordingStudio', width: 25 },
+    { header: 'Producer', key: 'producer', width: 25 },
+    { header: 'Mixer', key: 'mixer', width: 25 },
+    { header: 'Mastering Engineer', key: 'masteringEngineer', width: 25 },
+    { header: 'Publishing', key: 'publishing', width: 25 },
+    { header: 'Publishing Admin', key: 'publishingAdmin', width: 25 },
+    { header: 'Publisher IPI', key: 'publisherIpi', width: 15 },
+    { header: 'Publishing Type', key: 'publishingType', width: 20 },
+    { header: 'Vocals', key: 'vocals', width: 25 },
+    { header: 'Guitars', key: 'guitars', width: 25 },
+    { header: 'Bass', key: 'bass', width: 25 },
+    { header: 'Drums', key: 'drums', width: 25 },
+    { header: 'Keyboards', key: 'keyboards', width: 25 },
+    { header: 'Programming', key: 'programming', width: 25 },
+    { header: 'Featuring Artists', key: 'featuringArtists', width: 30 }
+  ];
+
+  // Prepare data for export
+  const exportData = filteredCreations.map(creation => ({
+    title: creation.attributes.title,
+    artistName: creation.attributes.artistName,
+    isrc: creation.attributes.isrc,
+    duration: creation.attributes.duration ? formatDuration(creation.attributes.duration) : '',
+    bpm: creation.attributes.bpm,
+    key: creation.attributes.key,
+    genre: creation.attributes.genre?.map(g => g.title).join(', ') || '',
+    status: creation.attributes.status,
+    releaseDate: creation.attributes.releaseDate,
+    isExplicit: creation.attributes.isExplicit ? 'Yes' : 'No',
+    recordingStudio: creation.attributes.recordingStudio,
+    producer: creation.attributes.producer,
+    mixer: creation.attributes.mixer,
+    masteringEngineer: creation.attributes.masteringEngineer,
+    publishing: creation.attributes.publishing,
+    publishingAdmin: creation.attributes.publishingAdmin,
+    publisherIpi: creation.attributes.publisherIpi,
+    publishingType: creation.attributes.publishingType,
+    vocals: creation.attributes.vocals,
+    guitars: creation.attributes.guitars,
+    bass: creation.attributes.bass,
+    drums: creation.attributes.drums,
+    keyboards: creation.attributes.keyboards,
+    programming: creation.attributes.programming,
+    featuringArtists: creation.attributes.featuringArtists
+  }));
+
+  const handleExport = async (settings) => {
+    try {
+      // Use the API export manager for server-side generation
+      const response = await fetch('/api/export/creations/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.accessToken}`
+        },
+        body: JSON.stringify({
+          filters,
+          columns: settings.selectedColumns || exportColumns.map(col => col.key),
+          format: settings.format || 'excel',
+          detailLevel: settings.detailLevel || 'detailed'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${settings.filename || 'msc-creations-export'}.${settings.format || 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Export failed: ' + error.message);
+    }
+  };
+
   return (
     <MainLayout>
       <SEO title="Distribution Partner Dashboard" />
@@ -178,13 +276,27 @@ function DistributionPartnerDashboard() {
         <Card className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Filters</h3>
-            <Button
-              color="gray"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <HiFilter className="mr-2 h-4 w-4" />
-              {showFilters ? 'Hide' : 'Show'} Filters
-            </Button>
+            <div className="flex gap-2">
+              <ExportButton
+                userRole={session?.user?.userRole}
+                exportType="creations"
+                data={exportData}
+                columns={exportColumns}
+                filters={filters}
+                onExportStart={() => console.log('Export started')}
+                onExportComplete={() => console.log('Export completed')}
+                onExportError={(error) => alert('Export failed: ' + error)}
+                variant="blue"
+                size="sm"
+              />
+              <Button
+                color="gray"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <HiFilter className="mr-2 h-4 w-4" />
+                {showFilters ? 'Hide' : 'Show'} Filters
+              </Button>
+            </div>
           </div>
           
           {showFilters && (
@@ -466,6 +578,17 @@ function DistributionPartnerDashboard() {
             </Button>
           </Modal.Footer>
         </Modal>
+
+        {/* Export Settings Modal */}
+        <ExportSettingsModal
+          show={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          exportType="creations"
+          availableColumns={exportColumns}
+          currentFilters={filters}
+          onExport={handleExport}
+          userRole={session?.user?.userRole}
+        />
       </div>
     </MainLayout>
   );
