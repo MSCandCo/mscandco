@@ -25,4 +25,16 @@ module.exports = ({ env }) => ({
       },
     },
   },
+  email: {
+    config: {
+      provider: '@strapi/provider-email-sendgrid',
+      providerOptions: {
+        apiKey: env('SENDGRID_API_KEY'),
+      },
+      settings: {
+        defaultFrom: env('DEFAULT_FROM_EMAIL', 'noreply@audiostems.com'),
+        defaultReplyTo: env('DEFAULT_REPLY_TO_EMAIL', 'support@audiostems.com'),
+      },
+    },
+  },
 });

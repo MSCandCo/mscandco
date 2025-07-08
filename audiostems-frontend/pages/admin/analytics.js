@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { Card, Badge } from "flowbite-react";
-import { HiUsers, HiDownload, HiMusicNote, HiCreditCard } from "react-icons/hi2";
+import { HiUsers, HiDownload, HiMusicNote, HiCreditCard } from "lucide-react";
 import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";

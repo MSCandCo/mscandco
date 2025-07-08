@@ -8,7 +8,7 @@ import { LucidePause, LucidePlay } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import React, { useContext, useEffect, useRef } from "react";
-import { HiArrowLeft, HiPlay, HiPlayCircle } from "react-icons/hi2";
+import { HiArrowLeft, HiPlay, HiPlayCircle } from "lucide-react";
 import { Tooltip } from "flowbite-react";
 
 function SinglePlaylist({ playlist }) {

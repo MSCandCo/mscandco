@@ -16,93 +16,63 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
 variable "availability_zones" {
-  description = "Availability zones"
+  description = "List of availability zones"
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
 
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-}
-
-variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets"
-  type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-}
-
 variable "database_instance_class" {
-  description = "RDS instance class"
+  description = "The instance class for the database"
   type        = string
-  default     = "db.t3.micro" # Start small, can be upgraded
-}
-
-variable "allocated_storage" {
-  description = "Allocated storage in GB"
-  type        = number
-  default     = 20
-}
-
-variable "max_allocated_storage" {
-  description = "Maximum allocated storage in GB"
-  type        = number
-  default     = 100
+  default     = "db.t3.micro"
 }
 
 variable "database_name" {
-  description = "Database name"
+  description = "The name of the database"
   type        = string
   default     = "audiostems"
 }
 
 variable "database_username" {
-  description = "Database master username"
+  description = "The master username for the database"
   type        = string
   default     = "audiostems_admin"
-  sensitive   = true
 }
 
 variable "database_password" {
-  description = "Database master password"
+  description = "The master password for the database"
   type        = string
+  default     = "Audiostems2024!SecureDB"
   sensitive   = true
 }
 
 variable "backup_retention_period" {
-  description = "Backup retention period in days"
+  description = "The number of days to retain backups"
   type        = number
   default     = 7
 }
 
 variable "deletion_protection" {
-  description = "Enable deletion protection"
+  description = "If the DB instance should have deletion protection enabled"
   type        = bool
   default     = true
 }
 
 variable "multi_az" {
-  description = "Enable Multi-AZ deployment"
+  description = "Specifies if the RDS instance is multi-AZ"
   type        = bool
-  default     = false # Start with single AZ, can be enabled later
+  default     = true
 }
 
 variable "alarm_actions" {
-  description = "List of ARNs for CloudWatch alarm actions"
+  description = "List of ARNs to notify when alarms are triggered"
   type        = list(string)
   default     = []
 }
 
 variable "tags" {
-  description = "Tags to apply to resources"
+  description = "A mapping of tags to assign to the resource"
   type        = map(string)
   default = {
     Project     = "audiostems"

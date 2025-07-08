@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import classNames from "classnames";
 import useSWR from "swr";
-import { HiCheck, HiMinus, HiNoSymbol, HiPlus } from "react-icons/hi2";
+import { HiCheck, HiMinus, HiPlus } from "lucide-react";
+import { X } from "lucide-react";
 import { apiRoute } from "@/lib/utils";
 import RangeSlider from "react-range-slider-input";
 import "react-range-slider-input/dist/style.css";
@@ -205,7 +206,7 @@ const CheckButtons = ({ filter, i, onExclude }) => {
           onExclude(i);
         }}
       >
-        <HiNoSymbol
+        <X
           strokeWidth={2}
           className={classNames(
             "h-5 w-5 rounded-full",

@@ -5,7 +5,7 @@ import {
   HiOutlineEllipsisHorizontalCircle,
   HiOutlinePlayCircle,
   HiOutlineStopCircle,
-} from "react-icons/hi2";
+} from "lucide-react";
 
 import { AudioLines, Volume, Volume2, VolumeX } from "lucide-react";
 import NextImage from "next/image";

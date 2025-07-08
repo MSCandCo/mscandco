@@ -1,0 +1,565 @@
+{
+  "kind": "collectionType",
+  "collectionName": "creations",
+  "info": {
+    "singularName": "creation",
+    "pluralName": "creations",
+    "displayName": "Creation",
+    "description": "Individual tracks/songs that make up a project"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "project": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::project.project",
+      "inversedBy": "creations"
+    },
+    "trackNumber": {
+      "type": "integer",
+      "min": 1
+    },
+    "duration": {
+      "type": "integer",
+      "description": "Duration in seconds"
+    },
+    "bpm": {
+      "type": "integer"
+    },
+    "key": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "creations"
+    },
+    "audioFile": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["audios"]
+    },
+    "waveformData": {
+      "type": "json"
+    },
+    "lyrics": {
+      "type": "text"
+    },
+    "credits": {
+      "type": "text"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "isExplicit": {
+      "type": "boolean",
+      "default": false
+    },
+    "isInstrumental": {
+      "type": "boolean",
+      "default": false
+    },
+    "vocals": {
+      "type": "enumeration",
+      "enum": [
+        "none",
+        "male",
+        "female",
+        "duet",
+        "group",
+        "choir",
+        "harmony",
+        "rap",
+        "spoken_word"
+      ]
+    },
+    "language": {
+      "type": "string"
+    },
+    "mood": {
+      "type": "enumeration",
+      "enum": [
+        "energetic",
+        "calm",
+        "melancholic",
+        "uplifting",
+        "dark",
+        "romantic",
+        "aggressive",
+        "peaceful",
+        "mysterious",
+        "joyful"
+      ]
+    },
+    "tempo": {
+      "type": "enumeration",
+      "enum": [
+        "very_slow",
+        "slow",
+        "medium",
+        "fast",
+        "very_fast"
+      ]
+    },
+    "tags": {
+      "type": "json"
+    },
+    "isrc": {
+      "type": "string",
+      "description": "International Standard Recording Code"
+    },
+    "composer": {
+      "type": "string"
+    },
+    "arranger": {
+      "type": "string"
+    },
+    "producer": {
+      "type": "string"
+    },
+    "mixer": {
+      "type": "string"
+    },
+    "masteringEngineer": {
+      "type": "string"
+    },
+    "recordingStudio": {
+      "type": "string"
+    },
+    "recordingDate": {
+      "type": "date"
+    },
+    "mixDate": {
+      "type": "date"
+    },
+    "masteringDate": {
+      "type": "date"
+    },
+    "publishingRights": {
+      "type": "text"
+    },
+    "performanceRights": {
+      "type": "text"
+    },
+    "mechanicalRights": {
+      "type": "text"
+    },
+    "syncRights": {
+      "type": "text"
+    },
+    "territory": {
+      "type": "json"
+    },
+    "exclusivity": {
+      "type": "enumeration",
+      "enum": ["exclusive", "non_exclusive", "limited"],
+      "default": "exclusive"
+    },
+    "licenseType": {
+      "type": "enumeration",
+      "enum": [
+        "all_rights",
+        "sync_only",
+        "performance_only",
+        "mechanical_only",
+        "custom"
+      ],
+      "default": "all_rights"
+    },
+    "licenseDuration": {
+      "type": "enumeration",
+      "enum": [
+        "perpetual",
+        "one_year_duration",
+        "two_years_duration",
+        "five_years_duration",
+        "ten_years_duration",
+        "custom"
+      ],
+      "default": "perpetual"
+    },
+    "licenseStartDate": {
+      "type": "date"
+    },
+    "licenseEndDate": {
+      "type": "date"
+    },
+    "restrictions": {
+      "type": "text"
+    },
+    "usageNotes": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "in_progress",
+        "completed",
+        "approved",
+        "rejected",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "medium", "high", "urgent"],
+      "default": "medium"
+    },
+    "internalNotes": {
+      "type": "text",
+      "private": true
+    },
+    "companyName": {
+      "type": "string"
+    },
+    "legalNames": {
+      "type": "text"
+    },
+    "artistName": {
+      "type": "string"
+    },
+    "phoneticPronunciation": {
+      "type": "string"
+    },
+    "stylised": {
+      "type": "string"
+    },
+    "akaFka": {
+      "type": "string"
+    },
+    "artistType": {
+      "type": "string"
+    },
+    "productTitle": {
+      "type": "string"
+    },
+    "altTitle": {
+      "type": "string"
+    },
+    "trackPosition": {
+      "type": "string"
+    },
+    "featuringArtists": {
+      "type": "text"
+    },
+    "backgroundVocalists": {
+      "type": "text"
+    },
+    "version": {
+      "type": "string"
+    },
+    "audioFileName": {
+      "type": "string"
+    },
+    "coverFileName": {
+      "type": "string"
+    },
+    "vocalType": {
+      "type": "enumeration",
+      "enum": [
+        "lead",
+        "backing",
+        "harmony",
+        "choir",
+        "none"
+      ]
+    },
+    "subGenre": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "catalogueNo": {
+      "type": "string"
+    },
+    "format": {
+      "type": "enumeration",
+      "enum": [
+        "digital",
+        "cd",
+        "vinyl",
+        "cassette",
+        "streaming"
+      ]
+    },
+    "productType": {
+      "type": "enumeration",
+      "enum": [
+        "single",
+        "ep",
+        "album",
+        "compilation",
+        "soundtrack"
+      ]
+    },
+    "barcode": {
+      "type": "string"
+    },
+    "tunecode": {
+      "type": "string"
+    },
+    "iceWorkKey": {
+      "type": "string"
+    },
+    "iswc": {
+      "type": "string"
+    },
+    "upc": {
+      "type": "string"
+    },
+    "bowi": {
+      "type": "string"
+    },
+    "previouslyReleased": {
+      "type": "boolean",
+      "default": false
+    },
+    "previousReleaseDate": {
+      "type": "date"
+    },
+    "recordingCountry": {
+      "type": "string"
+    },
+    "preReleaseDate": {
+      "type": "date"
+    },
+    "preReleaseUrl": {
+      "type": "string"
+    },
+    "releaseDate": {
+      "type": "date"
+    },
+    "releaseUrl": {
+      "type": "string"
+    },
+    "releaseLabel": {
+      "type": "string"
+    },
+    "distributionCompany": {
+      "type": "string"
+    },
+    "copyrightYear": {
+      "type": "integer"
+    },
+    "copyrightOwner": {
+      "type": "string"
+    },
+    "pLine": {
+      "type": "string"
+    },
+    "cLine": {
+      "type": "string"
+    },
+    "composerAuthor": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "pro": {
+      "type": "string"
+    },
+    "caeIpi": {
+      "type": "string"
+    },
+    "publishing": {
+      "type": "string"
+    },
+    "publisherIpi": {
+      "type": "string"
+    },
+    "publishingAdmin": {
+      "type": "string"
+    },
+    "publishingAdminIpi": {
+      "type": "string"
+    },
+    "mechanical": {
+      "type": "string"
+    },
+    "bmiWorkNumber": {
+      "type": "string"
+    },
+    "ascapWorkNumber": {
+      "type": "string"
+    },
+    "isni": {
+      "type": "string"
+    },
+    "subPublisher": {
+      "type": "string"
+    },
+    "publishingType": {
+      "type": "enumeration",
+      "enum": [
+        "exclusive",
+        "co_publishing",
+        "administration",
+        "sub_publishing"
+      ]
+    },
+    "territory": {
+      "type": "json"
+    },
+    "executiveProducer": {
+      "type": "string"
+    },
+    "coProducer": {
+      "type": "string"
+    },
+    "assistantProducer": {
+      "type": "string"
+    },
+    "engineer": {
+      "type": "string"
+    },
+    "editing": {
+      "type": "string"
+    },
+    "masteringStudio": {
+      "type": "string"
+    },
+    "additionalProduction": {
+      "type": "text"
+    },
+    "keyboards": {
+      "type": "string"
+    },
+    "programming": {
+      "type": "string"
+    },
+    "bass": {
+      "type": "string"
+    },
+    "drums": {
+      "type": "string"
+    },
+    "guitars": {
+      "type": "string"
+    },
+    "organ": {
+      "type": "string"
+    },
+    "percussion": {
+      "type": "string"
+    },
+    "strings": {
+      "type": "string"
+    },
+    "additionalInstrumentation": {
+      "type": "text"
+    },
+    "designArtDirection": {
+      "type": "string"
+    },
+    "management": {
+      "type": "string"
+    },
+    "bookingAgent": {
+      "type": "string"
+    },
+    "pressContact": {
+      "type": "string"
+    },
+    "primaryContactEmail": {
+      "type": "email"
+    },
+    "artistEmail": {
+      "type": "email"
+    },
+    "primaryContactNumber": {
+      "type": "string"
+    },
+    "secondaryContactNumber": {
+      "type": "string"
+    },
+    "wikipedia": {
+      "type": "string"
+    },
+    "socialMediaLink": {
+      "type": "string"
+    },
+    "shazam": {
+      "type": "string"
+    },
+    "tiktok": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "genius": {
+      "type": "string"
+    },
+    "allMusic": {
+      "type": "string"
+    },
+    "discogs": {
+      "type": "string"
+    },
+    "musicbrainz": {
+      "type": "string"
+    },
+    "imdb": {
+      "type": "string"
+    },
+    "jaxsta": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "youtube": {
+      "type": "string"
+    },
+    "youtubeMusic": {
+      "type": "string"
+    },
+    "knowledgePanel": {
+      "type": "string"
+    },
+    "tourDates": {
+      "type": "string"
+    },
+    "spotifyUri": {
+      "type": "string"
+    },
+    "appleId": {
+      "type": "string"
+    },
+    "digitalAssetsFolder": {
+      "type": "string"
+    },
+    "metadataApproved": {
+      "type": "boolean",
+      "default": false
+    },
+    "initials": {
+      "type": "string"
+    },
+    "submittedToStores": {
+      "type": "boolean",
+      "default": false
+    },
+    "luminate": {
+      "type": "string"
+    },
+    "mediabase": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+} 

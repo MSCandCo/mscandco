@@ -3,7 +3,7 @@ import Header from "@/components/header";
 import axios from "axios";
 import classNames from "classnames";
 import { Button, Spinner } from "flowbite-react";
-import { HiCheck, HiCheckCircle, HiXMark } from "react-icons/hi2";
+import { Check, X } from "lucide-react";
 import React, { useContext, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -268,12 +268,12 @@ const PackageListing = ({
             )}
           >
             {p.features[i] ? (
-              <HiCheck
+              <Check
                 className="text-emerald-700 shrink-0 h-4 w-4 rounded-full border-[1.5px] p-0.5 border-emerald-600"
                 strokeWidth={3}
               />
             ) : (
-              <HiXMark
+              <X
                 className="text-gray-600 shrink-0 h-4 w-4 rounded-full border-[1.5px] p-0.5 border-gray-300"
                 strokeWidth={1}
               />

@@ -7,8 +7,8 @@ module.exports = ({ env }) => ({
   },
   transfer: {
     token: {
-      salt: env('TRANSFER_TOKEN_SALT'),
-    },
+      salt: 'bXlTdXBlclNlY3JldFRva2VuU2FsdA=='
+    }
   },
   flags: {
     nps: env.bool('FLAG_NPS', true),

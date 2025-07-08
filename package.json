@@ -1,0 +1,12 @@
+{
+  "name": "audiostems-platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd audiostems-backend && npm run develop\" \"cd audiostems-frontend && npm run dev\"",
+    "dev:backend": "cd audiostems-backend && npm run develop",
+    "dev:frontend": "cd audiostems-frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

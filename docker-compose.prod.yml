@@ -1,0 +1,364 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: audiostems-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: audiostems
+      POSTGRES_USER: audiostems
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/aws/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audiostems"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: audiostems-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Strapi Backend
+  backend:
+    build:
+      context: ./audiostems-backend
+      dockerfile: Dockerfile.prod
+    container_name: audiostems-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: audiostems
+      DATABASE_USERNAME: audiostems
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      API_TOKEN_SALT: ${API_TOKEN_SALT}
+      APP_KEYS: ${APP_KEYS}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT}
+      AWS_S3_FORCE_PATH_STYLE: true
+    volumes:
+      - ./audiostems-backend/public/uploads:/opt/app/public/uploads
+    ports:
+      - "1337:1337"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1337/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./audiostems-frontend
+      dockerfile: Dockerfile.prod
+    container_name: audiostems-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:1337
+      NEXT_PUBLIC_AI_SERVICE_URL: http://auditus-ai:8000
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Auditus AI Service
+  auditus-ai:
+    build:
+      context: ./auditus-ai
+      dockerfile: Dockerfile
+    container_name: audiostems-ai
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      MODEL_PATH: /app/models
+      CACHE_PATH: /app/cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+    volumes:
+      - ai_models:/app/models
+      - ai_cache:/app/cache
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Audio Processing Service
+  audio-processor:
+    build:
+      context: ./audio-processing
+      dockerfile: Dockerfile
+    container_name: audiostems-audio-processor
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+    volumes:
+      - audio_uploads:/app/uploads
+      - audio_temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: audiostems-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+      - auditus-ai
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: audiostems-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: audiostems-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - audiostems-network
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: audiostems-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - audiostems-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: audiostems-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - audiostems-network
+
+  # MinIO (S3-compatible storage)
+  minio:
+    image: minio/minio:latest
+    container_name: audiostems-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - audiostems-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Commander (Redis management)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: audiostems-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - audiostems-network
+
+  # pgAdmin (Database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: audiostems-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - audiostems-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ai_models:
+    driver: local
+  ai_cache:
+    driver: local
+  audio_uploads:
+    driver: local
+  audio_temp:
+    driver: local
+  nginx_logs:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  minio_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  audiostems-network:
+    driver: bridge 

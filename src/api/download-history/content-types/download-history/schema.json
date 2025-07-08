@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "download_histories",
+  "info": {
+    "singularName": "download-history",
+    "pluralName": "download-histories",
+    "displayName": "Download History",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "contentTitle": {
+      "type": "string",
+      "required": true
+    },
+    "contentType": {
+      "type": "enumeration",
+      "enum": [
+        "song",
+        "stem",
+        "playlist"
+      ],
+      "required": true
+    },
+    "downloadDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "downloadCount": {
+      "type": "integer",
+      "default": 1,
+      "min": 1
+    },
+    "licenseType": {
+      "type": "enumeration",
+      "enum": [
+        "personal",
+        "commercial",
+        "exclusive"
+      ]
+    },
+    "licenseDuration": {
+      "type": "enumeration",
+      "enum": [
+        "one_year",
+        "two_years",
+        "five_years",
+        "perpetual"
+      ]
+    },
+    "price": {
+      "type": "decimal",
+      "min": 0
+    },
+    "currency": {
+      "type": "enumeration",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP"
+      ],
+      "default": "USD"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    }
+  }
+} 

@@ -1,0 +1,152 @@
+{
+  "kind": "collectionType",
+  "collectionName": "projects",
+  "info": {
+    "singularName": "project",
+    "pluralName": "projects",
+    "displayName": "Project",
+    "description": "Music projects containing multiple tracks/creations"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "artist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "projects"
+    },
+    "creations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::creation.creation",
+      "mappedBy": "project"
+    },
+    "coverImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "releaseDate": {
+      "type": "date"
+    },
+    "genre": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "inversedBy": "projects"
+    },
+    "mood": {
+      "type": "enumeration",
+      "enum": [
+        "energetic",
+        "calm",
+        "melancholic",
+        "uplifting",
+        "dark",
+        "romantic",
+        "aggressive",
+        "peaceful",
+        "mysterious",
+        "joyful"
+      ]
+    },
+    "tempo": {
+      "type": "enumeration",
+      "enum": [
+        "very_slow",
+        "slow",
+        "medium",
+        "fast",
+        "very_fast"
+      ]
+    },
+    "language": {
+      "type": "string"
+    },
+    "isExplicit": {
+      "type": "boolean",
+      "default": false
+    },
+    "tags": {
+      "type": "json"
+    },
+    "publishingRights": {
+      "type": "text"
+    },
+    "performanceRights": {
+      "type": "text"
+    },
+    "mechanicalRights": {
+      "type": "text"
+    },
+    "syncRights": {
+      "type": "text"
+    },
+    "territory": {
+      "type": "json"
+    },
+    "exclusivity": {
+      "type": "enumeration",
+      "enum": ["exclusive", "non_exclusive", "limited"],
+      "default": "exclusive"
+    },
+    "licenseType": {
+      "type": "enumeration",
+      "enum": [
+        "all_rights",
+        "sync_only",
+        "performance_only",
+        "mechanical_only",
+        "custom"
+      ],
+      "default": "all_rights"
+    },
+    "licenseDuration": {
+      "type": "enumeration",
+      "enum": [
+        "perpetual",
+        "one_year_duration",
+        "two_years_duration",
+        "five_years_duration",
+        "ten_years_duration",
+        "custom"
+      ],
+      "default": "perpetual"
+    },
+    "licenseStartDate": {
+      "type": "date"
+    },
+    "licenseEndDate": {
+      "type": "date"
+    },
+    "restrictions": {
+      "type": "text"
+    },
+    "usageNotes": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["draft", "in_progress", "completed", "published", "archived"],
+      "default": "draft"
+    },
+    "totalDuration": {
+      "type": "integer",
+      "description": "Total duration in seconds"
+    },
+    "trackCount": {
+      "type": "integer",
+      "description": "Number of tracks in the project"
+    }
+  }
+} 

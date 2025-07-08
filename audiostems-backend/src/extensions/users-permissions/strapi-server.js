@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = (plugin) => {
   // Override the registration controller
   if (plugin.controllers && plugin.controllers.auth) {
@@ -58,4 +60,4 @@ module.exports = (plugin) => {
   }
 
   return plugin;
-}; 
+};

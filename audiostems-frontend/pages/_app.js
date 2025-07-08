@@ -9,6 +9,7 @@ import { useState } from "react";
 import UserProvider from "../components/contexts/userProvider";
 import NextNProgress from "nextjs-progressbar";
 import Header from "@/components/header";
+import Auth0ProviderWrapper from "@/components/providers/Auth0Provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,25 +33,27 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <NextNProgress color="#0117df" />
-      <SessionProvider session={pageProps.session}>
-        <UserProvider>
-          <div className={inter.className}>
-            <Flowbite theme={{ theme }}>
-              <SWRConfig
-                value={{
-                  fetcher: (url) => axios.get(url).then((res) => res.data),
-                  onError: (error) => console.error(error),
-                }}
-              >
-                <Player>
-                  <Header />
-                  <Component {...pageProps} />
-                </Player>
-              </SWRConfig>
-            </Flowbite>
-          </div>
-        </UserProvider>
-      </SessionProvider>
+      <Auth0ProviderWrapper>
+        <SessionProvider session={pageProps.session}>
+          <UserProvider>
+            <div className={inter.className}>
+              <Flowbite theme={{ theme }}>
+                <SWRConfig
+                  value={{
+                    fetcher: (url) => axios.get(url).then((res) => res.data),
+                    onError: (error) => console.error(error),
+                  }}
+                >
+                  <Player>
+                    <Header />
+                    <Component {...pageProps} />
+                  </Player>
+                </SWRConfig>
+              </Flowbite>
+            </div>
+          </UserProvider>
+        </SessionProvider>
+      </Auth0ProviderWrapper>
     </>
   );
 }

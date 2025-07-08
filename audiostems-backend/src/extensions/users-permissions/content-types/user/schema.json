@@ -101,7 +101,8 @@
       "default": false
     },
     "emailVerificationCode": {
-      "type": "string"
+      "type": "string",
+      "private": true
     },
     "emailVerificationExpires": {
       "type": "datetime"
@@ -110,13 +111,15 @@
       "type": "string"
     },
     "mobileVerificationCode": {
-      "type": "string"
+      "type": "string",
+      "private": true
     },
     "mobileVerificationExpires": {
       "type": "datetime"
     },
     "recoveryCodes": {
-      "type": "json"
+      "type": "json",
+      "private": true
     },
     "company": {
       "type": "string"
@@ -139,12 +142,18 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::artist.artist",
-      "mappedBy": "user"
+      "inversedBy": "user"
     },
     "downloadHistories": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::download-history.download-history",
+      "mappedBy": "user"
+    },
+    "monthlyStatements": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::monthly-statement.monthly-statement",
       "mappedBy": "user"
     }
   }

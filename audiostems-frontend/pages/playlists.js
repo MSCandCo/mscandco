@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import useSWR from "swr";
 import qs from "qs";
-import { HiMagnifyingGlass } from "react-icons/hi2";
+import { Search } from "lucide-react";
 import SEO from "@/components/seo";
 import { Input } from "@/components/ui/input";
 import {
@@ -71,7 +71,7 @@ function PlaylistsPage() {
               </div>
               <div className="border-b border-gray-200 md:border-0 p-3 md:p-0 md:pr-3 flex items-center justify-between md:justify-start gap-6 relative">
                 <button onClick={() => setSearch(!search)}>
-                  <HiMagnifyingGlass className="h-5 w-5" />
+                  <Search className="h-5 w-5" />
                 </button>
                 {search || query.filters.title.$containsi ? (
                   <div className="absolute left-[40px] md:left-auto md:right-full top-1/2 -translate-y-1/2 z-20 md:mr-4 md:w-48">
