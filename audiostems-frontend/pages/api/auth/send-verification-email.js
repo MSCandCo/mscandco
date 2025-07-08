@@ -1,3 +1,12 @@
+import { ManagementClient } from 'auth0';
+
+const management = new ManagementClient({
+  domain: process.env.AUTH0_DOMAIN,
+  clientId: process.env.AUTH0_MGMT_CLIENT_ID,
+  clientSecret: process.env.AUTH0_MGMT_CLIENT_SECRET,
+  scope: 'read:users update:users'
+});
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -26,24 +35,11 @@ export default async function handler(req, res) {
     global.verificationCodes.set(email, verificationData);
 
     // Send email using Auth0's email service or your preferred email service
-    const emailResponse = await fetch(`https://${process.env.AUTH0_DOMAIN}/api/v2/jobs/verification-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.AUTH0_MANAGEMENT_TOKEN}`
-      },
-      body: JSON.stringify({
-        user_id: email, // This should be the Auth0 user ID
-        client_id: process.env.AUTH0_CLIENT_ID,
-        template: 'verification-email',
-        template_data: {
-          verification_code: verificationCode,
-          user_name: email.split('@')[0]
-        }
-      })
-    });
-
-    if (!emailResponse.ok) {
+    try {
+      // Try to send email using Auth0's email service
+      await sendVerificationEmail(email, verificationCode);
+    } catch (error) {
+      console.error('Failed to send email via Auth0:', error);
       // Fallback: Send email using your own email service
       await sendVerificationEmail(email, verificationCode);
     }
