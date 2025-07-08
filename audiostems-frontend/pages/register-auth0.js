@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import BrandSelection from '@/components/auth/BrandSelection';
+import RoleSelection from '@/components/auth/RoleSelection';
 
 export default function RegisterAuth0() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,6 +15,7 @@ export default function RegisterAuth0() {
     password: '',
     confirmPassword: '',
     brand: '', // Add brand selection
+    role: 'artist', // Add role selection with default
     phoneNumber: '',
     emailCode: '',
     smsCode: '',
@@ -70,6 +72,13 @@ export default function RegisterAuth0() {
     }));
   };
 
+  const handleRoleChange = (role) => {
+    setFormData(prev => ({
+      ...prev,
+      role: role
+    }));
+  };
+
   const handleFileChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -79,7 +88,7 @@ export default function RegisterAuth0() {
 
   const validateStep1 = () => {
     if (!formData.firstName || !formData.lastName || !formData.stageName || 
-        !formData.email || !formData.password || !formData.confirmPassword || !formData.brand) {
+        !formData.email || !formData.password || !formData.confirmPassword || !formData.brand || !formData.role) {
       setError('All fields are required');
       return false;
     }
@@ -115,7 +124,8 @@ export default function RegisterAuth0() {
           stageName: formData.stageName,
           email: formData.email,
           password: formData.password,
-          brand: formData.brand
+          brand: formData.brand,
+          role: formData.role
         }),
       });
 
@@ -420,6 +430,14 @@ export default function RegisterAuth0() {
           <BrandSelection
             selectedBrand={formData.brand}
             onBrandChange={handleBrandChange}
+          />
+        </div>
+
+        <div>
+          <RoleSelection
+            selectedRole={formData.role}
+            onRoleChange={handleRoleChange}
+            error={error}
           />
         </div>
 
