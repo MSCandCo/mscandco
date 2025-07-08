@@ -27,33 +27,53 @@ export default async function handler(req, res) {
     }
 
     const user = users[0];
+    const userMetadata = user.user_metadata || {};
 
-    // In a real implementation, you would verify the code against what was sent
-    // For now, we'll simulate verification by checking if the code is 6 digits
-    if (!/^\d{6}$/.test(code)) {
+    // Check if verification code exists and is valid
+    if (!userMetadata.verificationCode) {
+      return res.status(400).json({ error: 'No verification code found. Please request a new one.' });
+    }
+
+    // Check if code has expired
+    if (userMetadata.codeExpiry) {
+      const expiryTime = new Date(userMetadata.codeExpiry);
+      const currentTime = new Date();
+      
+      if (currentTime > expiryTime) {
+        return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+      }
+    }
+
+    // Verify the code
+    if (userMetadata.verificationCode !== code) {
       return res.status(400).json({ error: 'Invalid verification code' });
     }
 
-    // Update user metadata to mark email as verified
+    // Update user metadata to mark email as verified and clear the verification code
+    const updatedMetadata = {
+      ...userMetadata,
+      emailVerified: true,
+      registrationStep: 'email_verified',
+      verificationCode: null,
+      codeExpiry: null
+    };
+
     await management.users.update({ id: user.user_id }, {
-      user_metadata: {
-        ...user.user_metadata,
-        emailVerified: true,
-        registrationStep: 'email_verification_completed'
-      },
+      user_metadata: updatedMetadata,
       app_metadata: {
         ...user.app_metadata,
-        registrationStep: 'email_verification_completed'
+        registrationStep: 'email_verified'
       }
     });
 
-    res.status(200).json({ 
+    return res.status(200).json({ 
       success: true, 
-      message: 'Email verified successfully' 
+      message: 'Email verified successfully',
+      registrationStep: 'email_verified'
     });
 
   } catch (error) {
     console.error('Error verifying email:', error);
-    res.status(500).json({ error: 'Failed to verify email. Please try again.' });
+    return res.status(500).json({ error: 'Failed to verify email. Please try again.' });
   }
 } 
