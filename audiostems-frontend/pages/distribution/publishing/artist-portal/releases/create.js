@@ -6,11 +6,11 @@ import { useRouter } from 'next/router';
 import { 
   ArrowLeftIcon,
   PlusIcon,
-  XIcon,
-  CloudUploadIcon,
-  MusicNoteIcon,
+  XMarkIcon,
+  CloudArrowUpIcon,
+  MusicalNoteIcon,
   PhotoIcon
-} from '@heroicons/react/outline';
+} from '@heroicons/react/24/outline';
 
 export default function CreateProject() {
   const { isAuthenticated, user, loginWithRedirect } = useAuth0();
@@ -358,7 +358,7 @@ export default function CreateProject() {
                   Upload Music Files
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <CloudUploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="mt-4">
                     <input
                       type="file"
@@ -381,7 +381,7 @@ export default function CreateProject() {
                     {formData.musicFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                         <div className="flex items-center">
-                          <MusicNoteIcon className="h-5 w-5 text-gray-400 mr-2" />
+                          <MusicalNoteIcon className="h-5 w-5 text-gray-400 mr-2" />
                           <span className="text-sm text-gray-700">{file.name}</span>
                         </div>
                         <button
@@ -389,7 +389,7 @@ export default function CreateProject() {
                           onClick={() => removeFile('musicFiles', index)}
                           className="text-red-500 hover:text-red-700"
                         >
-                          <XIcon className="h-5 w-5" />
+                          <XMarkIcon className="h-5 w-5" />
                         </button>
                       </div>
                     ))}
@@ -431,7 +431,7 @@ export default function CreateProject() {
                       onClick={() => removeFile('artwork')}
                       className="text-red-500 hover:text-red-700"
                     >
-                      <XIcon className="h-5 w-5" />
+                      <XMarkIcon className="h-5 w-5" />
                     </button>
                   </div>
                 )}
@@ -504,7 +504,7 @@ export default function CreateProject() {
                         onClick={() => removeTrackListing(index)}
                         className="text-red-500 hover:text-red-700"
                       >
-                        <XIcon className="h-4 w-4" />
+                        <XMarkIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

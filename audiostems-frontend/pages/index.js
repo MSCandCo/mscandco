@@ -174,6 +174,7 @@ export default function Home() {
                     <Tab.Panel key={i}>
                       <Transition
                         appear
+                        show={true}
                         as={Fragment}
                         enter="transition ease-out duration-300"
                         enterFrom="opacity-0 scale-95"

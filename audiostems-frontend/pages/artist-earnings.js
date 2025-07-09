@@ -59,21 +59,6 @@ function ArtistEarnings() {
     { header: 'Growth %', key: 'growthPercentage', width: 15 }
   ];
 
-  // Prepare earnings data for export
-  const exportData = statements?.data?.map(statement => ({
-    month: `${statement.attributes.month}/${statement.attributes.year}`,
-    totalEarnings: statement.attributes.totalEarnings,
-    streamingRevenue: statement.attributes.streamingRevenue || 0,
-    performanceRevenue: statement.attributes.performanceRevenue || 0,
-    publishingRevenue: statement.attributes.publishingRevenue || 0,
-    mechanicalRevenue: statement.attributes.mechanicalRevenue || 0,
-    licensingRevenue: statement.attributes.licensingRevenue || 0,
-    syncRevenue: statement.attributes.syncRevenue || 0,
-    totalStreams: statement.attributes.totalStreams || 0,
-    totalDownloads: statement.attributes.totalDownloads || 0,
-    growthPercentage: statement.attributes.growthPercentage || 0
-  })) || [];
-
   const handleExport = async (settings) => {
     try {
       const response = await fetch('/api/export/earnings/pdf', {
@@ -124,6 +109,21 @@ function ArtistEarnings() {
   const { data: statements, mutate: mutateStatements } = useSWR(
     apiRoute("/monthly-statements/user")
   );
+
+  // Prepare earnings data for export
+  const exportData = statements?.data?.map(statement => ({
+    month: `${statement.attributes.month}/${statement.attributes.year}`,
+    totalEarnings: statement.attributes.totalEarnings,
+    streamingRevenue: statement.attributes.streamingRevenue || 0,
+    performanceRevenue: statement.attributes.performanceRevenue || 0,
+    publishingRevenue: statement.attributes.publishingRevenue || 0,
+    mechanicalRevenue: statement.attributes.mechanicalRevenue || 0,
+    licensingRevenue: statement.attributes.licensingRevenue || 0,
+    syncRevenue: statement.attributes.syncRevenue || 0,
+    totalStreams: statement.attributes.totalStreams || 0,
+    totalDownloads: statement.attributes.totalDownloads || 0,
+    growthPercentage: statement.attributes.growthPercentage || 0
+  })) || [];
 
   const { data: user } = useSWR(
     session ? apiRoute(`/users/me`) : null

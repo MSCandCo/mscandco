@@ -4,8 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import {
   HiCheck,
-  X,
-} from "lucide-react";
+  HiX,
+} from "react-icons/hi";
 import { apiRoute } from "@/lib/utils";
 import classNames from "classnames";
 import qs from "qs";
@@ -164,7 +164,7 @@ function LyricsPage() {
               className="px-2"
               onClick={() => setFiltersSlideOut(!filtersSlideOut)}
             >
-              <X className="h-5 w-5" />
+              <HiX className="h-5 w-5" />
             </button>
             <Select
               sizing="sm"
@@ -299,7 +299,7 @@ function LyricsPage() {
                               );
                             }}
                           >
-                            <X />
+                            <HiX />
                           </button>
                         </div>
                       ))}
@@ -325,7 +325,7 @@ function LyricsPage() {
                               );
                             }}
                           >
-                            <X />
+                            <HiX />
                           </button>
                         </div>
                       ))}

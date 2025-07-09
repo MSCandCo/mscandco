@@ -13,6 +13,7 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 
 function StemCard({ stem }) {
+  if (!stem || !stem.attributes) return null;
   const playerContext = useContext(PlayerContext);
   const { data: session } = useSession();
   const router = useRouter();
@@ -23,6 +24,7 @@ function StemCard({ stem }) {
   const [duration, setDuration] = React.useState("0:00");
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (waveSurfer.current) {
       waveSurfer.current.destroy();
     }
@@ -94,12 +96,15 @@ function StemCard({ stem }) {
       <div className="w-1/3 shrink-0 ">
         <div className="flex gap-3 items-center">
           <Link href={`/stems/${stem.id}`} className="shrink-0">
-            <Image
-              height={50}
-              width={50}
-              className="rounded-sm"
-              src={resourceUrl(stem.attributes.cover.data.attributes.url)}
-            />
+            {stem.attributes.cover?.data?.attributes?.url && (
+              <Image
+                height={50}
+                width={50}
+                className="rounded-sm"
+                src={resourceUrl(stem.attributes.cover.data.attributes.url)}
+                alt={stem.attributes.title}
+              />
+            )}
           </Link>
 
           <div className="truncate">
@@ -107,9 +112,11 @@ function StemCard({ stem }) {
               <p className="font-semibold truncate">{stem.attributes.title}</p>
             </Link>
             <p className="text-gray-500 truncate">
-              {stem.attributes.artists.data
-                .map((s) => s.attributes.name)
-                .join(" & ")}
+              {stem.attributes.artists?.data
+                ? stem.attributes.artists.data
+                    .map((s) => s.attributes.name)
+                    .join(" & ")
+                : ""}
             </p>
           </div>
         </div>

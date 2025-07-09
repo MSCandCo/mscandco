@@ -72,6 +72,7 @@ export const Player = ({ song }) => {
   const [duration, setDuration] = React.useState("0:00");
 
   useEffect(() => {
+    if (!song || !song.attributes) return;
     if (waveSurfer.current) {
       waveSurfer.current.destroy();
     }
@@ -111,6 +112,8 @@ export const Player = ({ song }) => {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  if (!song || !song.attributes) return null;
+
   return (
     <div className="w-full flex gap-3 items-center hover:bg-gray-200 p-4">
       <div className="w-1/3 shrink-0 ">
@@ -129,12 +132,15 @@ export const Player = ({ song }) => {
             className="shrink-0 h-[50px] w-[50px] relative group"
             onClick={() => playerContext.playSong(song)}
           >
-            <Image
-              height={50}
-              width={50}
-              className="rounded-sm"
-              src={resourceUrl(song.attributes.cover.data.attributes.url)}
-            />
+            {song.attributes.cover?.data?.attributes?.url && (
+              <Image
+                height={50}
+                width={50}
+                className="rounded-sm"
+                src={resourceUrl(song.attributes.cover.data.attributes.url)}
+                alt={song.attributes.title}
+              />
+            )}
             <div className="absolute z-10 inset-0 hidden group-hover:flex text-white items-center justify-center">
               <HiPlay className="h-8 w-8" />
             </div>
@@ -145,9 +151,11 @@ export const Player = ({ song }) => {
               <p className="font-semibold truncate">{song.attributes.title}</p>
             </Tooltip>
             <p className="text-gray-500 truncate">
-              {song.attributes.singers.data
-                .map((s) => s.attributes.name)
-                .join(" & ")}
+              {song.attributes.singers?.data
+                ? song.attributes.singers.data
+                    .map((s) => s.attributes.name)
+                    .join(" & ")
+                : ""}
             </p>
           </div>
         </div>

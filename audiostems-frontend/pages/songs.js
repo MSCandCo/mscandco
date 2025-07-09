@@ -2,10 +2,10 @@ import Header from "@/components/header";
 import React, { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import {
-  SlidersHorizontal,
-  Search,
-  X,
-} from "lucide-react";
+  HiAdjustments,
+  HiSearch,
+  HiX,
+} from "react-icons/hi";
 import { apiRoute } from "@/lib/utils";
 import classNames from "classnames";
 import qs from "qs";
@@ -13,11 +13,13 @@ import { DataLoader } from "./playlists";
 import { useMediaQuery } from "react-responsive";
 import { Badge, Button, Select } from "flowbite-react";
 import SEO from "@/components/seo";
-import { Player } from "./playlists/[id]";
+import dynamic from "next/dynamic";
 import { isEqual, max, min } from "lodash";
 import { minsFormatted, useFilters } from "@/components/filters";
 
-function SongsPage() {
+const Player = dynamic(() => import("./playlists/[id]").then(mod => mod.Player), { ssr: false });
+
+function SongsPageContent() {
   const {
     openFilter,
     setOpenFilter,
@@ -198,7 +200,7 @@ function SongsPage() {
     vocalsFilter,
   ]);
 
-  const { data: { data: songs } = {}, isLoading } = useSWR(
+  const { data: { data: songs = [] } = {}, isLoading } = useSWR(
     apiRoute(
       `/songs?populate=deep,3&${qs.stringify(filterQuery, {
         encodeValuesOnly: true,
@@ -246,7 +248,7 @@ function SongsPage() {
       <div>
         <div className="py-2 px-3 md:px-16 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+            <HiSearch className="h-5 w-5" />
             <input
               onChange={(e) => setSearchQuery(e.target.value)}
               value={searchQuery}
@@ -261,7 +263,7 @@ function SongsPage() {
               className="px-2"
               onClick={() => setFiltersSlideOut(!filtersSlideOut)}
             >
-              <SlidersHorizontal className="h-5 w-5" />
+              <HiAdjustments className="h-5 w-5" />
             </button>
             <Select
               sizing="sm"
@@ -283,7 +285,7 @@ function SongsPage() {
             setFiltersSlideOut={setFiltersSlideOut}
           >
             <div className="w-40 py-4 border-r border-gray-200">
-              {renderFilters()}
+              {renderFilters && renderFilters()}
             </div>
             <div
               className={classNames(
@@ -292,24 +294,24 @@ function SongsPage() {
               )}
             >
               <div className="p-4 divide-y divide-gray-200">
-                {renderActiveFilter()}
+                {renderActiveFilter && renderActiveFilter()}
               </div>
             </div>
           </ResponsiveFilters>
           <div className="transition-all flex-1 p-4 md:p-12 space-y-1">
-            {checkedArtists.length ||
-            checkedGenres.length ||
-            checkedVocals.length ||
-            !isEqual(bpm, [0, 165]) ||
-            isLengthFilterSet() ||
-            keyFilter.major.length ||
-            keyFilter.minor.length ? (
+            {(checkedArtists.length ||
+              checkedGenres.length ||
+              checkedVocals.length ||
+              !isEqual(bpm, [0, 165]) ||
+              isLengthFilterSet() ||
+              keyFilter.major.length ||
+              keyFilter.minor.length) && (
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center flex-wrap gap-2">
                   {checkedArtists?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => {
                         setFilterArtists(
                           filterArtists.map((_a) => {
@@ -320,17 +322,18 @@ function SongsPage() {
                           })
                         );
                       }}
+                      key={a.id}
                     >
                       {a.filter === "exclude" && (
                         <span className="font-semibold mr-0.5">Exclude:</span>
                       )}
-                      {a.attributes.name}
+                      {a.attributes?.name}
                     </Badge>
                   ))}
                   {checkedGenres?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => {
                         setFilterGenres(
                           filterGenres.map((_a) => {
@@ -341,17 +344,18 @@ function SongsPage() {
                           })
                         );
                       }}
+                      key={a.id}
                     >
                       {a.filter === "exclude" && (
                         <span className="font-semibold mr-0.5">Exclude:</span>
                       )}
-                      {a.attributes.title}
+                      {a.attributes?.title}
                     </Badge>
                   ))}
                   {checkedVocals?.map((a) => (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => {
                         setVocalsFilter(
                           vocalsFilter.map((_a) => {
@@ -362,6 +366,7 @@ function SongsPage() {
                           })
                         );
                       }}
+                      key={a.label}
                     >
                       {a.filter === "exclude" && (
                         <span className="font-semibold mr-0.5">Exclude:</span>
@@ -373,7 +378,7 @@ function SongsPage() {
                   {!isEqual(bpm, [0, 165]) && (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => setBpm([0, 165])}
                     >
                       <span className="font-semibold mr-1">BPM:</span>
@@ -383,7 +388,7 @@ function SongsPage() {
                   {isLengthFilterSet() && (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => setLength([...lengthLimits])}
                     >
                       <span className="font-semibold mr-1">Length:</span>
@@ -393,13 +398,14 @@ function SongsPage() {
                   {keyFilter.major?.map((k) => (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => {
                         setKeyFilter({
                           ...keyFilter,
                           major: keyFilter.major.filter((_k) => _k !== k),
                         });
                       }}
+                      key={k}
                     >
                       <span className="font-semibold mr-1">Major:</span>
                       {k}
@@ -408,13 +414,14 @@ function SongsPage() {
                   {keyFilter.minor?.map((k) => (
                     <Badge
                       color="gray"
-                      icon={X}
+                      icon={HiX}
                       onClick={() => {
                         setKeyFilter({
                           ...keyFilter,
                           minor: keyFilter.minor.filter((_k) => _k !== k),
                         });
                       }}
+                      key={k}
                     >
                       <span className="font-semibold mr-1">Minor:</span>
                       {k}
@@ -432,16 +439,16 @@ function SongsPage() {
                   </Button>
                 </div>
               </div>
-            ) : null}
+            )}
             {isLoading && <DataLoader />}
             <div className="flex flex-col divide-y divide-gray-200">
               {songs?.map((lyric, i) => (
-                <div>
+                <div key={lyric.id || i}>
                   <Player song={lyric} />
                 </div>
               ))}
             </div>
-            {songs?.length === 0 && (
+            {songs?.length === 0 && !isLoading && (
               <p className="text-center">Could not find any result.</p>
             )}
           </div>
@@ -451,7 +458,7 @@ function SongsPage() {
   );
 }
 
-export default SongsPage;
+export default dynamic(() => Promise.resolve(SongsPageContent), { ssr: false });
 
 const ResponsiveFilters = ({
   smallScreen,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import { Button, Card, Alert, Progress } from 'flowbite-react';
-import { HiUser, HiMusic, HiChartBar, HiCog, HiCheck } from 'react-icons/hi';
+import { HiUser, HiMusicNote, HiChartBar, HiCog, HiCheck } from 'react-icons/hi';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 
@@ -109,7 +109,7 @@ export default function ArtistPortal() {
             {/* Music Distribution */}
             <Card className="hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-4">
-                <HiMusic className="w-8 h-8 text-green-600 mr-3" />
+                <HiMusicNote className="w-8 h-8 text-green-600 mr-3" />
                 <h3 className="text-xl font-semibold text-gray-900">Music Distribution</h3>
               </div>
               <p className="text-gray-600 mb-4">

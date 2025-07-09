@@ -4,7 +4,7 @@ import MainLayout from "@/components/layouts/mainLayout";
 import { Button } from "flowbite-react";
 import Link from "next/link";
 import React from "react";
-import { HiCheckBadge, HiCheckCircle } from "lucide-react";
+import { HiCheckCircle } from "react-icons/hi";
 
 function SuccessPage() {
   return (

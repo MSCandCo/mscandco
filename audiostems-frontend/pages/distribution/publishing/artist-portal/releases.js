@@ -5,17 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { 
   PlusIcon, 
-  FilterIcon, 
-  SearchIcon, 
+  FunnelIcon, 
+  MagnifyingGlassIcon, 
   CalendarIcon, 
-  ViewBoardsIcon, 
-  ViewListIcon,
+  Squares2X2Icon, 
+  ListBulletIcon,
   EyeIcon,
   PencilIcon,
-  DuplicateIcon,
+  DocumentDuplicateIcon,
   TrashIcon,
   ChevronRightIcon
-} from '@heroicons/react/outline';
+} from '@heroicons/react/24/outline';
 
 export default function ProjectsReleases() {
   const { isAuthenticated, user, loginWithRedirect } = useAuth0();
@@ -322,7 +322,7 @@ export default function ProjectsReleases() {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <ViewListIcon className="h-5 w-5 mr-2" />
+                    <ListBulletIcon className="h-5 w-5 mr-2" />
                     All Projects
                   </button>
                   <button
@@ -333,7 +333,7 @@ export default function ProjectsReleases() {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <ViewBoardsIcon className="h-5 w-5 mr-2" />
+                    <Squares2X2Icon className="h-5 w-5 mr-2" />
                     Status Board
                   </button>
                   <button
@@ -366,7 +366,7 @@ export default function ProjectsReleases() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                       <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="text"
                           value={filters.search}
@@ -471,7 +471,7 @@ export default function ProjectsReleases() {
                                 className="p-2 text-gray-400 hover:text-gray-600"
                                 title="Duplicate"
                               >
-                                <DuplicateIcon className="h-5 w-5" />
+                                <DocumentDuplicateIcon className="h-5 w-5" />
                               </button>
                               <button
                                 onClick={() => {

@@ -19,8 +19,7 @@ import {
   HiCube,
   HiDocument,
   HiCurrencyPound,
-  HiTrendingUp,
-  HiBanknotes
+  HiTrendingUp
 } from 'react-icons/hi';
 import { Card } from '@/components/ui/card';
 import { useSession } from 'next-auth/react';
@@ -255,7 +254,7 @@ export default function Dashboard() {
                       
                       <Link href="/artist-earnings/payments" className="block p-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg text-white hover:from-purple-600 hover:to-purple-700 transition-all">
                         <div className="flex items-center">
-                          <HiBanknotes className="h-8 w-8 mr-3" />
+                          <HiCurrencyDollar className="h-8 w-8 mr-3" />
                           <div>
                             <h3 className="font-semibold">Payments & Banking</h3>
                             <p className="text-sm opacity-90">Manage your payments</p>
