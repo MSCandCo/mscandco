@@ -63,7 +63,7 @@ services:
   # Strapi Backend
   backend:
     build:
-      context: ./audiostems-backend
+      context: ../audiostems-backend
       dockerfile: Dockerfile
       target: development
     container_name: msc-co-backend
@@ -116,7 +116,7 @@ services:
       # NODE_ENV
       NODE_ENV: development
     volumes:
-      - ./audiostems-backend:/app
+      - ../audiostems-backend:/app:delegated
       - /app/node_modules
       - /app/.tmp
       - /app/build
