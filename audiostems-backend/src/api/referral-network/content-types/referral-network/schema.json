@@ -1,0 +1,107 @@
+{
+  "kind": "collectionType",
+  "collectionName": "referral_networks",
+  "info": {
+    "singularName": "referral-network",
+    "pluralName": "referral-networks",
+    "displayName": "Referral Network",
+    "description": "Referral and networking system foundation"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "referrer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "referrals"
+    },
+    "referredArtist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "referredBy"
+    },
+    "referralCode": {
+      "type": "string",
+      "required": true
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["direct", "social_media", "email", "website", "event", "partnership", "ai_discovery"],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "active", "completed", "expired", "cancelled"],
+      "default": "pending"
+    },
+    "referralDate": {
+      "type": "datetime"
+    },
+    "signupDate": {
+      "type": "datetime"
+    },
+    "onboardingCompleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "firstUploadDate": {
+      "type": "datetime"
+    },
+    "firstReleaseDate": {
+      "type": "datetime"
+    },
+    "firstEarningsDate": {
+      "type": "datetime"
+    },
+    "rewardStatus": {
+      "type": "enumeration",
+      "enum": ["pending", "earned", "paid", "expired"],
+      "default": "pending"
+    },
+    "rewardAmount": {
+      "type": "decimal",
+      "default": 0
+    },
+    "rewardType": {
+      "type": "enumeration",
+      "enum": ["commission", "bonus", "credit", "featured_placement", "mentorship"],
+      "default": "commission"
+    },
+    "networkLevel": {
+      "type": "enumeration",
+      "enum": ["direct", "second_degree", "third_degree"],
+      "default": "direct"
+    },
+    "networkPath": {
+      "type": "json"
+    },
+    "influenceScore": {
+      "type": "decimal",
+      "default": 0
+    },
+    "networkGrowth": {
+      "type": "decimal",
+      "default": 0
+    },
+    "collaborationOpportunities": {
+      "type": "integer",
+      "default": 0
+    },
+    "aiInsights": {
+      "type": "json"
+    },
+    "recommendations": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+} 

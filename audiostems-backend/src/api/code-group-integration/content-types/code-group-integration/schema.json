@@ -1,0 +1,88 @@
+{
+  "kind": "collectionType",
+  "collectionName": "code_group_integrations",
+  "info": {
+    "singularName": "code-group-integration",
+    "pluralName": "code-group-integrations",
+    "displayName": "Code Group Integration",
+    "description": "Code Group API integration framework"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "artist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "codeGroupIntegrations"
+    },
+    "integrationType": {
+      "type": "enumeration",
+      "enum": ["streaming", "sync_licensing", "publishing", "distribution", "analytics"],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "active", "error", "disconnected"],
+      "default": "pending"
+    },
+    "apiKey": {
+      "type": "string"
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "lastSync": {
+      "type": "datetime"
+    },
+    "syncFrequency": {
+      "type": "enumeration",
+      "enum": ["realtime", "hourly", "daily", "weekly", "monthly"],
+      "default": "daily"
+    },
+    "data": {
+      "type": "json"
+    },
+    "mockData": {
+      "type": "json"
+    },
+    "streamingMetrics": {
+      "type": "json"
+    },
+    "syncLicensingMetrics": {
+      "type": "json"
+    },
+    "publishingMetrics": {
+      "type": "json"
+    },
+    "distributionMetrics": {
+      "type": "json"
+    },
+    "analyticsMetrics": {
+      "type": "json"
+    },
+    "errorLog": {
+      "type": "json"
+    },
+    "performanceMetrics": {
+      "type": "json"
+    },
+    "aiInsights": {
+      "type": "json"
+    },
+    "recommendations": {
+      "type": "json"
+    },
+    "automatedActions": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+} 

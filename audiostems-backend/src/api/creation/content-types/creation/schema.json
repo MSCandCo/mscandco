@@ -16,6 +16,12 @@
       "type": "string",
       "required": true
     },
+    "artist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "creations"
+    },
     "project": {
       "type": "relation",
       "relation": "manyToOne",
@@ -40,7 +46,7 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::genre.genre",
-      "inversedBy": "creations"
+      "mappedBy": "creations"
     },
     "audioFile": {
       "type": "media",

@@ -1,0 +1,100 @@
+{
+  "kind": "collectionType",
+  "collectionName": "artist_journeys",
+  "info": {
+    "singularName": "artist-journey",
+    "pluralName": "artist-journeys",
+    "displayName": "Artist Journey",
+    "description": "Track artist journey from signup to success"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "artist": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "journey"
+    },
+    "currentStage": {
+      "type": "enumeration",
+      "enum": ["discovery", "signup", "onboarding", "first_upload", "first_release", "first_earnings", "growth", "breakthrough", "success", "legendary"]
+    },
+    "stageProgress": {
+      "type": "decimal",
+      "default": 0
+    },
+    "milestones": {
+      "type": "json"
+    },
+    "completedMilestones": {
+      "type": "json"
+    },
+    "nextMilestone": {
+      "type": "string"
+    },
+    "timeInCurrentStage": {
+      "type": "integer",
+      "default": 0
+    },
+    "stageHistory": {
+      "type": "json"
+    },
+    "onboardingProgress": {
+      "type": "decimal",
+      "default": 0
+    },
+    "profileCompletion": {
+      "type": "decimal",
+      "default": 0
+    },
+    "firstUploadDate": {
+      "type": "datetime"
+    },
+    "firstReleaseDate": {
+      "type": "datetime"
+    },
+    "firstEarningsDate": {
+      "type": "datetime"
+    },
+    "breakthroughDate": {
+      "type": "datetime"
+    },
+    "successMetrics": {
+      "type": "json"
+    },
+    "challenges": {
+      "type": "json"
+    },
+    "supportNeeded": {
+      "type": "json"
+    },
+    "recommendations": {
+      "type": "json"
+    },
+    "aiInsights": {
+      "type": "json"
+    },
+    "careerPath": {
+      "type": "enumeration",
+      "enum": ["independent", "label_partnership", "distribution_only", "full_service", "hybrid"]
+    },
+    "developmentGoals": {
+      "type": "json"
+    },
+    "achievementBadges": {
+      "type": "json"
+    },
+    "mentorshipStatus": {
+      "type": "enumeration",
+      "enum": ["none", "assigned", "active", "completed"]
+    },
+    "mentor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist"
+    }
+  }
+} 

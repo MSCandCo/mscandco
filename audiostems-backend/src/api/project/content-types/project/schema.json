@@ -39,7 +39,7 @@
     },
     "genre": {
       "type": "relation",
-      "relation": "manyToMany",
+      "relation": "manyToOne",
       "target": "api::genre.genre",
       "inversedBy": "projects"
     },

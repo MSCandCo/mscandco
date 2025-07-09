@@ -26,13 +26,13 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::genre.genre",
-      "inversedBy": "lyrics"
+      "mappedBy": "lyrics"
     },
     "writers": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::artist.artist",
-      "inversedBy": "lyrics"
+      "mappedBy": "lyrics"
     }
   }
 }

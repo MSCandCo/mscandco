@@ -36,19 +36,19 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::genre.genre",
-      "inversedBy": "songs"
+      "mappedBy": "songs"
     },
     "playlists": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::playlist.playlist",
-      "inversedBy": "songs"
+      "mappedBy": "songs"
     },
     "singers": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::artist.artist",
-      "inversedBy": "songs"
+      "mappedBy": "songs"
     },
     "mediaPreviewPeaks": {
       "type": "json"

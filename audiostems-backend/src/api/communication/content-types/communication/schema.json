@@ -1,0 +1,104 @@
+{
+  "kind": "collectionType",
+  "collectionName": "communications",
+  "info": {
+    "singularName": "communication",
+    "pluralName": "communications",
+    "displayName": "Communication",
+    "description": "Multi-channel communication infrastructure"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist"
+    },
+    "sender": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "channel": {
+      "type": "enumeration",
+      "enum": ["email", "sms", "push", "in_app", "social_media", "phone", "video_call"],
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["welcome", "onboarding", "milestone", "recommendation", "alert", "promotion", "support", "collaboration"],
+      "required": true
+    },
+    "subject": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "template": {
+      "type": "string"
+    },
+    "variables": {
+      "type": "json"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["draft", "scheduled", "sent", "delivered", "read", "failed"],
+      "default": "draft"
+    },
+    "scheduledAt": {
+      "type": "datetime"
+    },
+    "sentAt": {
+      "type": "datetime"
+    },
+    "deliveredAt": {
+      "type": "datetime"
+    },
+    "readAt": {
+      "type": "datetime"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "normal", "high", "urgent"],
+      "default": "normal"
+    },
+    "automated": {
+      "type": "boolean",
+      "default": false
+    },
+    "trigger": {
+      "type": "string"
+    },
+    "response": {
+      "type": "json"
+    },
+    "engagement": {
+      "type": "json"
+    },
+    "aiOptimized": {
+      "type": "boolean",
+      "default": false
+    },
+    "personalization": {
+      "type": "json"
+    },
+    "brand": {
+      "type": "enumeration",
+      "enum": ["msc_co", "yhwh_msc", "audio_msc"],
+      "default": "msc_co"
+    },
+    "whiteLabelBrand": {
+      "type": "string"
+    },
+    "tracking": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    }
+  }
+} 
