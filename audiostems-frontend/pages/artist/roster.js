@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fa';
 
 export default function ArtistRoster() {
+  console.log('ArtistRoster component rendering');
   const { user, isLoading: authLoading } = useUser();
   const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
@@ -56,11 +57,11 @@ export default function ArtistRoster() {
 
   useEffect(() => {
     console.log('Roster useEffect - authLoading:', authLoading, 'user:', user?.email, 'isLoading:', isLoading);
-    if (!authLoading && user) {
-      console.log('Roster useEffect - calling loadRoster');
+    if (!authLoading) {
+      console.log('Roster useEffect - calling loadRoster (authLoading is false)');
       loadRoster();
     } else {
-      console.log('Roster useEffect - not calling loadRoster because:', { authLoading, hasUser: !!user });
+      console.log('Roster useEffect - waiting for auth to load');
     }
   }, [user, authLoading]);
 
