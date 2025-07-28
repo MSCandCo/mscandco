@@ -4,7 +4,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/auth0-config';
 import RoleBasedDashboard from '@/components/dashboard/RoleBasedDashboard';
-import RoleBasedNavigation from '@/components/auth/RoleBasedNavigation';
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -40,7 +39,6 @@ export default function Dashboard() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        <RoleBasedNavigation />
         <RoleBasedDashboard />
       </div>
     </>

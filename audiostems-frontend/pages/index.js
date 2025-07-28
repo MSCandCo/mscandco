@@ -71,7 +71,30 @@ export default function Home() {
     apiRoute("/playlists?populate=*&sort=createdAt:desc&pagination[limit]=8")
   );
 
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, isLoading } = useAuth0();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Don't render homepage content for authenticated users (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <MainLayout>
