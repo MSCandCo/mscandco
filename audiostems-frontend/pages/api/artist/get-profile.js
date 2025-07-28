@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       firstName: session.user.name?.split(' ')[0] || '',
       lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
       artistName: session.user.name || '',
-      stageName: '',
+      artistType: '',
       email: session.user.email || '',
       phone: '',
       dateOfBirth: '',

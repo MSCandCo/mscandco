@@ -12,7 +12,7 @@ export default function ArtistProfile() {
     firstName: '',
     lastName: '',
     artistName: '',
-    stageName: '',
+    artistType: '',
     email: '',
     phone: '',
     dateOfBirth: '',
@@ -179,6 +179,23 @@ export default function ArtistProfile() {
     'Punk', 'Soul', 'Funk', 'Gospel', 'EDM', 'House', 'Techno', 'Trap', 'Dubstep'
   ];
 
+  const artistTypes = [
+    'Solo Artist',
+    'Band Group', 
+    'DJ',
+    'Duo',
+    'Orchestra',
+    'Ensemble',
+    'Collective',
+    'Producer',
+    'Composer',
+    'Singer-Songwriter',
+    'Rapper',
+    'Instrumentalist',
+    'Choir',
+    'Other'
+  ];
+
   const instruments = [
     'Vocals', 'Guitar', 'Bass', 'Drums', 'Piano', 'Keyboard', 'Synthesizer',
     'Saxophone', 'Trumpet', 'Violin', 'Cello', 'Flute', 'Clarinet', 'Harmonica',
@@ -267,14 +284,18 @@ export default function ArtistProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stage Name</label>
-                  <input
-                    type="text"
-                    value={formData.stageName}
-                    onChange={(e) => handleInputChange('stageName', e.target.value)}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Artist Type</label>
+                  <select
+                    value={formData.artistType}
+                    onChange={(e) => handleInputChange('artistType', e.target.value)}
                     disabled={!isEditing}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
+                  >
+                    <option value="">Select Artist Type</option>
+                    {artistTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>

@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const profileData = req.body;
 
     // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'artistName', 'email', 'primaryGenre'];
+    const requiredFields = ['firstName', 'lastName', 'artistName', 'email', 'primaryGenre', 'artistType'];
     const missingFields = requiredFields.filter(field => !profileData[field]);
     
     if (missingFields.length > 0) {
