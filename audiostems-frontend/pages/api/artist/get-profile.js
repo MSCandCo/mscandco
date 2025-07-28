@@ -52,7 +52,6 @@ export default async function handler(req, res) {
       youtube: '',
       tiktok: '',
       threads: '',
-      spotify: '',
       appleMusic: '',
       soundcloud: '',
       

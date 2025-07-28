@@ -39,7 +39,6 @@ export default function ArtistProfile() {
     youtube: '',
     tiktok: '',
     threads: '',
-    spotify: '',
     appleMusic: '',
     soundcloud: '',
     
@@ -579,16 +578,6 @@ export default function ArtistProfile() {
                     type="text"
                     value={formData.youtube}
                     onChange={(e) => handleInputChange('youtube', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Spotify</label>
-                  <input
-                    type="text"
-                    value={formData.spotify}
-                    onChange={(e) => handleInputChange('spotify', e.target.value)}
                     disabled={!isEditing}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
