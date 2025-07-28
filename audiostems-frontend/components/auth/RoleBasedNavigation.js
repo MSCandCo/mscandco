@@ -56,7 +56,7 @@ export default function RoleBasedNavigation() {
         return [
           { href: '/dashboard', label: 'Dashboard', icon: '📊' },
           { href: '/artist/earnings', label: 'Earnings', icon: '💰' },
-          { href: '/artist/projects', label: 'My Projects', icon: '🎵' },
+          { href: '/artist/releases', label: 'My Releases', icon: '🎵' },
           { href: '/artist/analytics', label: 'Analytics', icon: '📈' },
           { href: '/artist/profile', label: 'Profile', icon: '👤' }
         ];

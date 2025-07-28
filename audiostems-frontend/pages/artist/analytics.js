@@ -293,8 +293,6 @@ export default function ArtistAnalytics() {
               ))}
             </div>
           </div>
-        </div>
-
                 </div>
               </>
             )}

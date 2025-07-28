@@ -112,18 +112,18 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Your Music Journey`,
           description: 'Track your projects, earnings, and performance',
           stats: [
-            { label: 'My Projects', value: '12', change: '+2', changeType: 'positive' },
+            { label: 'My Releases', value: '12', change: '+2', changeType: 'positive' },
             { label: 'Total Earnings', value: '$8,456', change: '+15%', changeType: 'positive' },
             { label: 'Streams', value: '45,678', change: '+23%', changeType: 'positive' },
             { label: 'Social Footprint', value: '45,678', change: '+12%', changeType: 'positive' }
           ],
           cards: [
             {
-              title: 'My Projects',
-              description: 'Manage your music projects and releases',
+              title: 'My Releases',
+              description: 'Manage your music releases and track their performance',
               icon: '🎵',
-              href: '/artist/projects',
-              stats: { projects: 12, releases: 8 }
+              href: '/artist/releases',
+              stats: { releases: 12, assets: 8 }
             },
             {
               title: 'Earnings',
