@@ -1,65 +1,109 @@
-import { ManagementClient } from 'auth0';
-
-const management = new ManagementClient({
-  domain: process.env.AUTH0_DOMAIN,
-  clientId: process.env.AUTH0_MGMT_CLIENT_ID,
-  clientSecret: process.env.AUTH0_MGMT_CLIENT_SECRET,
-  scope: 'read:users'
-});
+import { getSession } from '@auth0/nextjs-auth0';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Get the user ID from the request (you might need to implement authentication)
-    const { user_id } = req.query;
+    const session = await getSession(req, res);
     
-    if (!user_id) {
-      return res.status(400).json({ error: 'User ID is required' });
+    if (!session || !session.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Fetch user data from Auth0
-    const user = await management.users.get({ id: user_id });
-    
-    // Extract profile information from Auth0 user data
-    const profile = {
-      firstName: user.given_name || user.user_metadata?.firstName || '',
-      lastName: user.family_name || user.user_metadata?.lastName || '',
-      stageName: user.user_metadata?.stageName || '',
-      email: user.email || '',
-      phone: user.phone_number || user.user_metadata?.phone || '',
-      artistType: user.user_metadata?.artistType || '',
-      genre: user.user_metadata?.genre || '',
-      contractStatus: user.user_metadata?.contractStatus || '',
-      dateSigned: user.user_metadata?.dateSigned || '',
-      socialMedia: user.user_metadata?.socialMedia || {
-        instagram: '',
-        twitter: '',
-        facebook: '',
-        spotify: '',
-        appleMusic: '',
-        soundcloud: '',
-        youtube: '',
-        tiktok: ''
+    // Check if user is an artist
+    const userRole = session.user['https://mscandco.com/role'];
+    if (userRole !== 'artist') {
+      return res.status(403).json({ message: 'Access denied. Artists only.' });
+    }
+
+    // Mock comprehensive artist profile data
+    // In production, this would come from your database
+    const artistProfile = {
+      // Personal Information
+      firstName: session.user.name?.split(' ')[0] || '',
+      lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
+      artistName: session.user.name || '',
+      stageName: '',
+      email: session.user.email || '',
+      phone: '',
+      dateOfBirth: '',
+      nationality: '',
+      country: '',
+      city: '',
+      address: '',
+      postalCode: '',
+      
+      // Music Information
+      primaryGenre: '',
+      secondaryGenres: [],
+      instruments: [],
+      vocalType: '',
+      yearsActive: '',
+      recordLabel: '',
+      publisher: '',
+      
+      // Social Media & Online Presence
+      website: '',
+      instagram: '',
+      facebook: '',
+      twitter: '',
+      youtube: '',
+      tiktok: '',
+      spotify: '',
+      appleMusic: '',
+      soundcloud: '',
+      
+      // Distribution Information
+      isrcPrefix: '',
+      upcPrefix: '',
+      distributorId: '',
+      royaltyRate: '',
+      paymentMethod: '',
+      taxId: '',
+      bankInfo: {
+        accountName: '',
+        accountNumber: '',
+        routingNumber: '',
+        bankName: '',
+        swiftCode: ''
       },
-      manager: user.user_metadata?.manager || '',
-      furtherInformation: user.user_metadata?.furtherInformation || '',
-      profileImage: user.picture || user.user_metadata?.profileImage || '',
-      profileComplete: user.user_metadata?.profileComplete || false
+      
+      // Legal & Rights
+      publishingRights: '',
+      mechanicalRights: '',
+      performanceRights: '',
+      syncRights: '',
+      
+      // Bio & Media
+      bio: '',
+      shortBio: '',
+      pressKit: '',
+      profileImage: '',
+      bannerImage: '',
+      
+      // Preferences
+      distributionPreferences: {
+        territories: [],
+        platforms: [],
+        releaseTypes: [],
+        pricingTier: ''
+      },
+      
+      // Metadata
+      tags: [],
+      influences: [],
+      collaborations: [],
+      
+      // Verification
+      isVerified: false,
+      verificationDocuments: []
     };
 
-    res.status(200).json({ 
-      success: true, 
-      profile 
-    });
-
+    res.status(200).json(artistProfile);
   } catch (error) {
     console.error('Error fetching artist profile:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch profile',
-      details: error.message 
-    });
+    res.status(500).json({ message: 'Internal server error' });
   }
 } 
