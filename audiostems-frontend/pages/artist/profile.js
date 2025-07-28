@@ -38,6 +38,7 @@ export default function ArtistProfile() {
     twitter: '',
     youtube: '',
     tiktok: '',
+    threads: '',
     spotify: '',
     appleMusic: '',
     soundcloud: '',
@@ -528,6 +529,56 @@ export default function ArtistProfile() {
                     type="text"
                     value={formData.instagram}
                     onChange={(e) => handleInputChange('instagram', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                  <input
+                    type="text"
+                    value={formData.facebook}
+                    onChange={(e) => handleInputChange('facebook', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">TikTok</label>
+                  <input
+                    type="text"
+                    value={formData.tiktok}
+                    onChange={(e) => handleInputChange('tiktok', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Threads</label>
+                  <input
+                    type="text"
+                    value={formData.threads}
+                    onChange={(e) => handleInputChange('threads', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">X (Twitter)</label>
+                  <input
+                    type="text"
+                    value={formData.twitter}
+                    onChange={(e) => handleInputChange('twitter', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">YouTube</label>
+                  <input
+                    type="text"
+                    value={formData.youtube}
+                    onChange={(e) => handleInputChange('youtube', e.target.value)}
                     disabled={!isEditing}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />

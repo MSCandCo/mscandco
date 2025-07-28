@@ -10,7 +10,10 @@ import {
   FaApple,
   FaSoundcloud,
   FaDeezer,
-  FaAmazon
+  FaAmazon,
+  FaShazam,
+  FaPandora,
+  FaAirplay
 } from 'react-icons/fa';
 
 export default function SocialFootprintIntegration() {
@@ -100,6 +103,30 @@ export default function SocialFootprintIntegration() {
       color: 'bg-orange-600',
       apiEndpoint: '/api/music/amazon/connect',
       description: 'Connect your Amazon Music profile to track plays and engagement'
+    },
+    {
+      id: 'shazam',
+      name: 'Shazam',
+      icon: FaShazam,
+      color: 'bg-red-500',
+      apiEndpoint: '/api/music/shazam/connect',
+      description: 'Connect your Shazam account to track song recognition'
+    },
+    {
+      id: 'pandora',
+      name: 'Pandora',
+      icon: FaPandora,
+      color: 'bg-purple-500',
+      apiEndpoint: '/api/music/pandora/connect',
+      description: 'Connect your Pandora account to track listeners'
+    },
+    {
+      id: 'airplay',
+      name: 'AirPlay',
+      icon: FaAirplay,
+      color: 'bg-blue-700',
+      apiEndpoint: '/api/music/airplay/connect',
+      description: 'Connect your AirPlay device to track playback'
     }
   ];
 
