@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Card, Button, Badge } from 'flowbite-react';
 import { 
   FaInstagram, 
   FaFacebook, 
@@ -12,7 +11,7 @@ import {
   FaDeezer,
   FaAmazon,
   FaMusic,
-  FaRadio,
+  FaHeadphones,
   FaPlay
 } from 'react-icons/fa';
 
@@ -115,7 +114,7 @@ export default function SocialFootprintIntegration() {
     {
       id: 'pandora',
       name: 'Pandora',
-      icon: FaRadio,
+      icon: FaHeadphones,
       color: 'bg-purple-500',
       apiEndpoint: '/api/music/pandora/connect',
       description: 'Connect your Pandora account to track listeners'
@@ -168,12 +167,12 @@ export default function SocialFootprintIntegration() {
   return (
     <div className="space-y-6">
       {/* Social Footprint Overview */}
-      <Card className="bg-white">
+      <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-gray-900">Social Footprint Overview</h3>
-          <Badge color="info" className="text-sm">
+          <span className="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">
             {connectedPlatforms.length} Platforms Connected
-          </Badge>
+          </span>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -201,10 +200,10 @@ export default function SocialFootprintIntegration() {
             <div className="text-lg text-gray-600">Total Social Footprint</div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Social Platforms */}
-      <Card className="bg-white">
+      <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Platforms</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {socialPlatforms.map((platform) => (
@@ -219,22 +218,20 @@ export default function SocialFootprintIntegration() {
                 </div>
               </div>
               
-              <Button
-                size="sm"
-                color={connectedPlatforms.includes(platform.id) ? 'success' : 'gray'}
-                disabled={isConnecting}
+              <button
                 onClick={() => handleConnectPlatform(platform)}
-                className="w-full"
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+                disabled={isConnecting}
               >
                 {connectedPlatforms.includes(platform.id) ? 'Connected' : 'Connect'}
-              </Button>
+              </button>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Music Platforms */}
-      <Card className="bg-white">
+      <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Music Platforms</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {musicPlatforms.map((platform) => (
@@ -249,19 +246,17 @@ export default function SocialFootprintIntegration() {
                 </div>
               </div>
               
-              <Button
-                size="sm"
-                color={connectedPlatforms.includes(platform.id) ? 'success' : 'gray'}
-                disabled={isConnecting}
+              <button
                 onClick={() => handleConnectPlatform(platform)}
-                className="w-full"
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+                disabled={isConnecting}
               >
                 {connectedPlatforms.includes(platform.id) ? 'Connected' : 'Connect'}
-              </Button>
+              </button>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
     </div>
   );
 } 
