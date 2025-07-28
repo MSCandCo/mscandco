@@ -18,7 +18,7 @@ import {
 } from 'react-icons/fa';
 
 export default function ArtistRoster() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading: authLoading } = useUser();
   const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,10 +55,10 @@ export default function ArtistRoster() {
   });
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!authLoading && user) {
       loadRoster();
     }
-  }, [user, isLoading]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     filterRoster();
