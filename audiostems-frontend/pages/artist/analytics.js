@@ -294,106 +294,106 @@ export default function ArtistAnalytics() {
             </div>
           </div>
                 </div>
+
+                {/* Top Tracks */}
+                <div className="bg-white rounded-lg shadow mb-8">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">Top Performing Tracks</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Track
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Streams
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Revenue
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Growth
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analyticsData.topTracks.map((track) => (
+                          <tr key={track.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="text-2xl mr-3">🎵</span>
+                                <span className="text-sm font-medium text-gray-900">{track.title}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {track.streams.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                              ${track.revenue.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                track.growth > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {track.growth > 0 ? '+' : ''}{track.growth}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Audience Insights */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Top Countries */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Countries</h3>
+                    <div className="space-y-4">
+                      {analyticsData.audienceInsights.topCountries.map((country, index) => (
+                        <div key={country.country} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{country.country}</span>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <span className="text-sm text-gray-600">{country.streams.toLocaleString()} streams</span>
+                            <span className="text-sm font-medium text-gray-900">{country.percentage}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Age Groups */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Age Demographics</h3>
+                    <div className="space-y-4">
+                      {analyticsData.audienceInsights.ageGroups.map((ageGroup) => (
+                        <div key={ageGroup.age} className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">{ageGroup.age}</span>
+                          <div className="flex items-center space-x-4">
+                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${ageGroup.percentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">{ageGroup.percentage}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
             
             {activeTab === 'social-footprint' && (
               <SocialFootprintIntegration />
             )}
-          </div>
-        </div>
-
-        {/* Top Tracks */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Top Performing Tracks</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Track
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Streams
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Revenue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Growth
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {analyticsData.topTracks.map((track) => (
-                  <tr key={track.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-3">🎵</span>
-                        <span className="text-sm font-medium text-gray-900">{track.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {track.streams.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      ${track.revenue.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        track.growth > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {track.growth > 0 ? '+' : ''}{track.growth}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Audience Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Top Countries */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Countries</h3>
-            <div className="space-y-4">
-              {analyticsData.audienceInsights.topCountries.map((country, index) => (
-                <div key={country.country} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">{country.country}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600">{country.streams.toLocaleString()} streams</span>
-                    <span className="text-sm font-medium text-gray-900">{country.percentage}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Age Groups */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Age Demographics</h3>
-            <div className="space-y-4">
-              {analyticsData.audienceInsights.ageGroups.map((ageGroup) => (
-                <div key={ageGroup.age} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">{ageGroup.age}</span>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${ageGroup.percentage}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-medium text-gray-900">{ageGroup.percentage}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
