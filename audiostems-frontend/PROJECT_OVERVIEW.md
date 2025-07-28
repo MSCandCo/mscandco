@@ -1,166 +1,54 @@
-# MSC & Co Music Distribution Platform
+# MSC & Co Music Distribution Platform - Project Overview
 
-## Overview
-MSC & Co is a multi-brand music distribution platform with enterprise-grade features designed for professional music distribution, publishing, and licensing. The platform serves both gospel/christian music (YHWH MSC) and general music licensing (Audio MSC) markets.
+## Business Requirements & Goals
+- Provide a multi-brand, multi-role music distribution and publishing platform for YHWH MSC and Audio MSC.
+- Support artists, distribution partners, company admins, and super admins with tailored dashboards and workflows.
+- Enable secure, modern authentication and role-based access control.
+- Deliver a scalable, maintainable, and user-friendly experience for music professionals.
 
-## Brand Structure
-- **MSC & Co** (parent company - mscandco.com)
-  - Central platform for multi-brand management
-  - Unified user authentication and role management
-  - Cross-brand analytics and reporting
+## High-Level Architecture
+- **Frontend:** Next.js (React), Tailwind CSS, Flowbite, Auth0 for authentication
+- **Backend:** Strapi CMS (for content management and API), PostgreSQL, Redis, Nginx (reverse proxy)
+- **Containerization:** Docker Compose for local development and deployment
+- **Authentication:** Auth0 (all user management, login, logout, roles, and brands)
+- **APIs:** RESTful endpoints for all content types (songs, projects, artists, stems, etc.)
 
-- **YHWH MSC** (gospel/christian music distribution & publishing)
-  - Specialized for gospel and christian music artists
-  - Religious content management and distribution
-  - Church and ministry licensing features
+## Brands
+- **YHWH MSC:** Gospel/Christian music brand
+- **Audio MSC:** General music and licensing brand
 
-- **Audio MSC** (general music distribution + licensing for film/TV/media)
-  - Film, TV, and media licensing
-  - Commercial music distribution
-  - Sync licensing and rights management
+## User Roles
+- **Super Admin:** Full platform control, user/role management, analytics
+- **Company Admin:** Brand-level management, content oversight
+- **Artist:** Upload/manage music, view analytics, earnings, and projects
+- **Distribution Partner Admin:** Manage partner content, analytics, and projects
+- **Distributor:** Manage distribution, content, and reporting
 
-## User Roles & Capabilities
+## Main Features
+- **Authentication:** Auth0 Universal Login, role/brand metadata, secure session management
+- **Dashboard:** Role-based dashboards for all user types
+- **Content Management:** Songs, stems, projects, lyrics, playlists, and more
+- **Analytics:** Real-time and historical analytics for artists, admins, and partners
+- **Export:** PDF/Excel/CSV export of reports and analytics
+- **Collaboration:** Project management, team workflows, and communication
+- **Earnings:** Artist earnings dashboard, payment history, and analytics
+- **Admin Tools:** User management, content moderation, platform analytics
+- **Responsive UI:** Modern, mobile-friendly design
 
-### Super Admin
-- Full platform access and system management
-- User role assignment and management
-- System configuration and maintenance
-- Cross-brand analytics and reporting
-- Database administration
+## Authentication & User Flows
+- **Auth0** is the only authentication provider (no Strapi/NextAuth)
+- All user roles and brands are managed via Auth0 user metadata
+- Login/logout handled via Auth0 React SDK
+- User profile and role/brand displayed in dashboard and header
 
-### Company Admin
-- Full business access and reporting
-- Brand-specific user management
-- Revenue and earnings analytics
-- Content moderation and approval
-- Business metrics and KPIs
+## Overall Structure
+- `/pages` - Next.js pages (dashboard, login, admin, artist, distribution, etc.)
+- `/components` - UI components, auth buttons, profile, navigation, etc.
+- `/lib` - Auth0 config, utility functions
+- `/docker` - Docker Compose, Nginx, Postgres, Redis setup
+- `/public` - Static assets
+- `/styles` - Tailwind and global CSS
 
-### Distribution Partner Admin
-- View all creations/projects within their scope
-- Comprehensive metadata management
-- Distribution channel management
-- Rights and licensing oversight
-- Partner-specific analytics
+---
 
-### Artist
-- Profile management and portfolio
-- Project creation and management
-- Earnings analytics and reporting
-- Content upload and metadata
-- Performance tracking
-- Export capabilities (PDF/Excel)
-
-### Distributor
-- Limited distribution access
-- Content discovery and licensing
-- Basic reporting and analytics
-- License management
-
-## Major Features Completed
-
-### ✅ Authentication & User Management
-- Auth0 integration with multi-brand support
-- Role-based access control (RBAC)
-- User registration and profile management
-- Multi-step registration process
-- Email and SMS verification
-- Backup codes for account recovery
-
-### ✅ Content Management System
-- Song and stem management
-- Playlist creation and curation
-- Genre classification and tagging
-- File upload and storage
-- Metadata management
-- Content approval workflows
-
-### ✅ Project & Release Management
-- Project creation and tracking
-- Release calendar management
-- Version control for tracks
-- Collaboration features
-- Status tracking and notifications
-
-### ✅ Analytics & Reporting
-- Earnings analytics dashboard
-- Performance metrics
-- Revenue tracking by brand
-- Export capabilities (PDF/Excel)
-- Real-time data visualization
-- Historical trend analysis
-
-### ✅ Export System
-- PDF report generation
-- Excel data export
-- Custom report creation
-- Multi-format export options
-- Scheduled report generation
-
-### ✅ Artist Portal
-- Profile management
-- Project creation interface
-- Earnings dashboard
-- Performance analytics
-- Content upload tools
-
-### ✅ Multi-Role Dashboard System
-- Role-specific dashboards
-- Custom navigation per role
-- Brand-specific interfaces
-- Permission-based feature access
-
-### ✅ Docker Infrastructure
-- Containerized development environment
-- Production-ready deployment setup
-- Multi-service architecture
-- Health monitoring and logging
-
-## Current Status
-
-### ✅ Completed & Operational
-- **Frontend**: Next.js application fully functional
-- **Backend**: Strapi CMS with all APIs working
-- **Database**: PostgreSQL with complete schema
-- **Authentication**: Auth0 integration complete
-- **Docker**: All containers running successfully
-- **Export System**: PDF and Excel exports working
-- **Multi-Role System**: All user roles implemented
-
-### 🚀 Ready for Production
-- **Docker Environment**: All services containerized and running
-- **Database**: Complete schema with relations
-- **API Endpoints**: All CRUD operations implemented
-- **Authentication**: Multi-brand Auth0 setup
-- **Export Features**: Working PDF/Excel generation
-- **Analytics**: Real-time dashboard and reporting
-
-### 📊 Platform Metrics
-- **Frontend**: http://localhost:3000 (fully operational)
-- **Backend**: http://localhost:1337/admin (Strapi admin accessible)
-- **Database**: PostgreSQL with complete data schema
-- **Redis**: Caching and session management
-- **Nginx**: Reverse proxy for production routing
-
-## Technology Stack
-- **Frontend**: Next.js 15.3.5, React, Tailwind CSS
-- **Backend**: Strapi 4.25.x, Node.js
-- **Database**: PostgreSQL 15
-- **Cache**: Redis 7
-- **Authentication**: Auth0
-- **Deployment**: Docker, Docker Compose
-- **Analytics**: Chart.js, Custom dashboards
-
-## Next Steps
-1. **Production Deployment**: Deploy to cloud infrastructure
-2. **Domain Configuration**: Set up production domains
-3. **SSL Certificates**: Configure HTTPS for all services
-4. **Monitoring**: Implement application monitoring
-5. **Backup Strategy**: Set up automated database backups
-6. **Performance Optimization**: Implement CDN and caching
-7. **Security Hardening**: Additional security measures
-8. **User Testing**: Beta testing with real users
-
-## Development Team
-- **Platform**: MSC & Co Development Team
-- **Architecture**: Enterprise-grade containerized setup
-- **Support**: 24/7 monitoring and maintenance ready 
+**This project is now fully Auth0-based, with all legacy authentication code removed. Ready for Claude Code takeover.** 

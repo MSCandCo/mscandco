@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -10,7 +10,7 @@ import { apiRoute } from "@/lib/utils";
 import { resourceUrl } from "@/lib/utils";
 
 function AdminContent() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("songs");
   const [showModal, setShowModal] = useState(false);
@@ -18,11 +18,11 @@ function AdminContent() {
 
   // Check if user is admin
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session || !session.user?.role?.includes("admin")) {
+    if (isLoading) return;
+    if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
       router.push("/");
     }
-  }, [session, status, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   const { data: songs } = useSWR(
     apiRoute("/songs?populate=*")
@@ -40,11 +40,11 @@ function AdminContent() {
     apiRoute("/genres?populate=*")
   );
 
-  if (status === "loading") {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!session || !session.user?.role?.includes("admin")) {
+  if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
     return null;
   }
 

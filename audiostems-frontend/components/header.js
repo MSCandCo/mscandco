@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import { Dropdown } from "flowbite-react";
-import { signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import useSWR from "swr";
-import React, { useMemo, useState, useEffect, useContext } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   HiArrowLeftOnRectangle,
   HiUser,
@@ -19,9 +19,8 @@ import {
 } from "lucide-react";
 import { useMediaQuery } from "react-responsive";
 import { apiRoute, openCustomerPortal, resourceUrl } from "@/lib/utils";
-import { userContext } from "./contexts/userProvider";
 import { getStripeProductById } from "@/lib/constants";
-import { getBrandByUser, COMPANY_INFO } from "@/lib/brand-config";
+import { getUserBrand, BRANDS } from "@/lib/auth0-config";
 import qs from "qs";
 import {
   NavigationMenu,
@@ -100,8 +99,8 @@ const menuItems = [
 ];
 
 function Header() {
-  const dbUser = useContext(userContext);
-  const userBrand = getBrandByUser(dbUser);
+  const { user, isAuthenticated, logout } = useAuth0();
+  const userBrand = getUserBrand(user);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -152,8 +151,8 @@ function Header() {
             </button>
             <Link href="/" className="h-[47px] flex items-center">
               <div className="flex flex-col items-center">
-                <span className="text-xl font-bold text-gray-900">{COMPANY_INFO.name}</span>
-                {dbUser && (
+                <span className="text-xl font-bold text-gray-900">MSC & Co</span>
+                {userBrand && (
                   <span className="text-xs text-gray-600">{userBrand.displayName}</span>
                 )}
               </div>
@@ -222,8 +221,8 @@ function Header() {
           </div>
           <Link href="/" className="shrink-0 h-[47px] flex items-center">
             <div className="flex flex-col items-center">
-              <span className="text-xl font-bold text-gray-900">{COMPANY_INFO.name}</span>
-              {dbUser && (
+              <span className="text-xl font-bold text-gray-900">MSC & Co</span>
+              {userBrand && (
                 <span className="text-xs text-gray-600">{userBrand.displayName}</span>
               )}
             </div>
@@ -236,29 +235,15 @@ function Header() {
               <li className="px-5 py-2 text-gray-500">About</li>
               <li className="px-5 py-2 text-gray-500">Support</li>
             </ul>
-            {dbUser ? (
+            {isAuthenticated ? (
               <Dropdown
                 color="gray"
                 size="sm"
                 label={
-                  dbUser.firstName ? <p>Hi, {dbUser.firstName}</p> : <p>Hi</p>
+                  user?.name ? <p>Hi, {user.name}</p> : <p>Hi</p>
                 }
                 dismissOnClick={false}
               >
-                {dbUser?.planActive && (
-                  <Dropdown.Header>
-                    <p className="text-xs font-semibold">
-                      {getStripeProductById(dbUser?.productId)?.name}
-                    </p>
-                  </Dropdown.Header>
-                )}
-                {dbUser?.credit ? (
-                  <Dropdown.Header>
-                    <p className="text-xs font-semibold">
-                      {dbUser?.credit} credits
-                    </p>
-                  </Dropdown.Header>
-                ) : null}
                 <Link href="/dashboard">
                   <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
                 </Link>
@@ -274,7 +259,11 @@ function Header() {
                 <Dropdown.Divider />
                 <Dropdown.Item
                   icon={HiArrowLeftOnRectangle}
-                  onClick={() => signOut()}
+                  onClick={() => logout({ 
+                    logoutParams: { 
+                      returnTo: window.location.origin 
+                    } 
+                  })}
                 >
                   Logout
                 </Dropdown.Item>

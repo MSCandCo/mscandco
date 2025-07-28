@@ -7,7 +7,7 @@ import { PlayerContext, normalizeStemForPlayer } from "./player";
 import { LucidePause, LucidePlay } from "lucide-react";
 import { Tooltip, Button, Spinner } from "flowbite-react";
 import WaveSurferConstructor from "wavesurfer.js";
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { saveAs } from "file-saver";
@@ -15,7 +15,7 @@ import { saveAs } from "file-saver";
 function StemCard({ stem }) {
   if (!stem || !stem.attributes) return null;
   const playerContext = useContext(PlayerContext);
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth0();
   const router = useRouter();
   const [downloading, setDownloading] = useState(false);
 

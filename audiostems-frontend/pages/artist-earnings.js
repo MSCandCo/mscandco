@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -31,7 +31,7 @@ import ExportSettingsModal from "@/components/export/ExportSettingsModal";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler);
 
 function ArtistEarnings() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPeriod, setSelectedPeriod] = useState("12");
@@ -125,8 +125,8 @@ function ArtistEarnings() {
     growthPercentage: statement.attributes.growthPercentage || 0
   })) || [];
 
-  const { data: user } = useSWR(
-    session ? apiRoute(`/users/me`) : null
+  const { data: userProfile } = useSWR(
+    isAuthenticated ? apiRoute(`/users/me`) : null
   );
 
   const { data: trackEarnings } = useSWR(
@@ -141,7 +141,7 @@ function ArtistEarnings() {
     apiRoute("/monthly-statements/platform-analytics")
   );
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -151,7 +151,7 @@ function ArtistEarnings() {
     );
   }
 
-  if (!session || session.user?.userRole !== "artist") {
+  if (!isAuthenticated || getUserRole(user) !== "artist") {
     return null;
   }
 

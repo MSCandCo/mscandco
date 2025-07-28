@@ -1,183 +1,132 @@
-import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Button, Alert } from 'flowbite-react';
-import { HiShieldExclamation, HiLogin } from 'react-icons/hi';
-import { getUserRole, canAccessRoute, ROLES } from '@/lib/role-config';
+import { getUserRole } from '@/lib/auth0-config';
 
 export default function RoleProtectedRoute({ 
   children, 
-  requiredRoles = [], 
-  requiredPermissions = [],
-  fallbackComponent = null,
+  allowedRoles = [], 
+  fallback = null,
   redirectTo = '/dashboard'
 }) {
-  const { isAuthenticated, isLoading, user, loginWithRedirect } = useAuth0();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
-  const [accessGranted, setAccessGranted] = useState(false);
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!isLoading) {
-      checkAccess();
+    if (!isLoading && isAuthenticated && user) {
+      const userRole = getUserRole(user);
+      
+      // If no specific roles are required, allow access
+      if (allowedRoles.length === 0) {
+        return;
+      }
+      
+      // Check if user has required role
+      if (!allowedRoles.includes(userRole)) {
+        console.warn(`Access denied: User role "${userRole}" not in allowed roles:`, allowedRoles);
+        router.push(redirectTo);
+      }
     }
-  }, [isLoading, isAuthenticated, user]);
+  }, [isAuthenticated, isLoading, user, allowedRoles, router, redirectTo]);
 
-  const checkAccess = () => {
-    if (!isAuthenticated) {
-      setAccessGranted(false);
-      setChecking(false);
-      return;
-    }
-
-    const userRole = getUserRole(user);
-    
-    // Check role-based access
-    let hasRoleAccess = true;
-    if (requiredRoles.length > 0) {
-      hasRoleAccess = requiredRoles.includes(userRole.id);
-    }
-
-    // Check permission-based access
-    let hasPermissionAccess = true;
-    if (requiredPermissions.length > 0) {
-      hasPermissionAccess = requiredPermissions.every(permission => 
-        userRole.permissions.includes(permission)
-      );
-    }
-
-    // Check route-based access
-    const hasRouteAccess = canAccessRoute(user, router.pathname);
-
-    const granted = hasRoleAccess && hasPermissionAccess && hasRouteAccess;
-    setAccessGranted(granted);
-    setChecking(false);
-
-    // Redirect if access denied
-    if (!granted && !checking) {
-      router.push(redirectTo);
-    }
-  };
-
-  if (isLoading || checking) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-          <div className="text-center">
-            <HiLogin className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Authentication Required
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Please log in to access this page.
-            </p>
-            <Button
-              color="blue"
-              className="w-full"
-              onClick={() => loginWithRedirect()}
-            >
-              Sign In
-            </Button>
-          </div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (!accessGranted) {
+  // Show fallback if not authenticated
+  if (!isAuthenticated) {
+    return fallback || (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please log in to access this page.</p>
+          <button 
+            onClick={() => router.push('/login')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check role access
+  if (allowedRoles.length > 0) {
     const userRole = getUserRole(user);
     
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    if (!allowedRoles.includes(userRole)) {
+      return fallback || (
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <HiShieldExclamation className="mx-auto h-12 w-12 text-red-400 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Access Denied
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
             <p className="text-gray-600 mb-4">
-              You don't have permission to access this page.
+              You don't have permission to access this page. 
+              Required roles: {allowedRoles.join(', ')}
             </p>
-            
-            <Alert color="warning" className="mb-4">
-              <div>
-                <div className="font-medium">Current Role: {userRole.displayName}</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Required: {requiredRoles.length > 0 ? requiredRoles.join(', ') : 'Any authenticated user'}
-                </div>
-              </div>
-            </Alert>
-
-            <div className="space-y-2">
-              <Button
-                color="blue"
-                className="w-full"
-                onClick={() => router.push('/dashboard')}
-              >
-                Go to Dashboard
-              </Button>
-              <Button
-                color="gray"
-                className="w-full"
-                onClick={() => router.push('/')}
-              >
-                Go to Home
-              </Button>
-            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Your role: {userRole}
+            </p>
+            <button 
+              onClick={() => router.push(redirectTo)}
+              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+            >
+              Go to Dashboard
+            </button>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
-  return <>{children}</>;
+  // Render children if access is granted
+  return children;
 }
 
-// Higher-order component for role-based protection
-export function withRoleProtection(Component, options = {}) {
-  return function ProtectedComponent(props) {
-    return (
-      <RoleProtectedRoute {...options}>
-        <Component {...props} />
-      </RoleProtectedRoute>
-    );
-  };
-}
+// Role constants for easy use
+export const ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  COMPANY_ADMIN: 'company_admin',
+  ARTIST: 'artist',
+  DISTRIBUTION_PARTNER: 'distribution_partner',
+  DISTRIBUTOR: 'distributor'
+};
 
-// Hook for checking permissions in components
-export function useRolePermissions() {
-  const { user, isAuthenticated } = useAuth0();
-  
-  const hasPermission = (permission) => {
-    if (!isAuthenticated || !user) return false;
-    const userRole = getUserRole(user);
-    return userRole.permissions.includes(permission);
-  };
+// Pre-configured route protectors
+export const SuperAdminRoute = ({ children, fallback }) => (
+  <RoleProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]} fallback={fallback}>
+    {children}
+  </RoleProtectedRoute>
+);
 
-  const hasRole = (roleId) => {
-    if (!isAuthenticated || !user) return false;
-    const userRole = getUserRole(user);
-    return userRole.id === roleId;
-  };
+export const AdminRoute = ({ children, fallback }) => (
+  <RoleProtectedRoute 
+    allowedRoles={[ROLES.SUPER_ADMIN, ROLES.COMPANY_ADMIN]} 
+    fallback={fallback}
+  >
+    {children}
+  </RoleProtectedRoute>
+);
 
-  const getUserRoleInfo = () => {
-    if (!isAuthenticated || !user) return null;
-    return getUserRole(user);
-  };
+export const ArtistRoute = ({ children, fallback }) => (
+  <RoleProtectedRoute allowedRoles={[ROLES.ARTIST]} fallback={fallback}>
+    {children}
+  </RoleProtectedRoute>
+);
 
-  return {
-    hasPermission,
-    hasRole,
-    getUserRoleInfo,
-    isAuthenticated,
-    user
-  };
-} 
+export const PartnerRoute = ({ children, fallback }) => (
+  <RoleProtectedRoute 
+    allowedRoles={[ROLES.DISTRIBUTION_PARTNER, ROLES.DISTRIBUTOR]} 
+    fallback={fallback}
+  >
+    {children}
+  </RoleProtectedRoute>
+); 

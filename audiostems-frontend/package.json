@@ -11,7 +11,7 @@
     "ssl": "npx local-ssl-proxy --key localhost+1-key.pem --cert localhost+1.pem --source 3000 --target 3001"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.3.0",
+    "@auth0/auth0-react": "^2.4.0",
     "@auth0/auth0-spa-js": "^2.2.0",
     "@auth0/nextjs-auth0": "^4.8.0",
     "@headlessui/react": "^1.7.15",
@@ -24,6 +24,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "auth0": "^4.27.0",
     "axios": "^1.10.0",
+    "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
@@ -45,7 +46,6 @@
     "lucide-react": "^0.316.0",
     "moment": "^2.29.4",
     "next": "^15.3.5",
-    "next-auth": "^4.24.5",
     "nextjs-progressbar": "^0.0.16",
     "qs": "^6.11.2",
     "react": "18.2.0",

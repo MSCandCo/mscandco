@@ -2,9 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { COMPANY_INFO } from '@/lib/brand-config';
-import RoleProtectedRoute from '@/components/auth/RoleProtectedRoute';
-import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import { getUserBrand } from '@/lib/auth0-config';
 import { 
   HiUsers, 
   HiCog, 
@@ -32,7 +30,7 @@ function SuperAdminDashboard() {
   return (
     <>
       <Head>
-        <title>Super Admin Dashboard - {COMPANY_INFO.name}</title>
+        <title>Super Admin Dashboard - MSC & Co</title>
       </Head>
 
       <div className="min-h-screen bg-gray-50">
@@ -65,7 +63,20 @@ function SuperAdminDashboard() {
                   <HiShieldCheck className="w-6 h-6 text-red-500" />
                   <h2 className="text-lg font-semibold text-gray-900">Admin Navigation</h2>
                 </div>
-                <RoleBasedNavigation />
+                <nav className="space-y-2">
+                  <Link href="/admin/dashboard" className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
+                    Dashboard
+                  </Link>
+                  <Link href="/admin/users" className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
+                    Users
+                  </Link>
+                  <Link href="/admin/analytics" className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
+                    Analytics
+                  </Link>
+                  <Link href="/admin/content" className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
+                    Content
+                  </Link>
+                </nav>
               </div>
             </div>
 
@@ -201,9 +212,5 @@ function SuperAdminDashboard() {
 }
 
 export default function AdminDashboard() {
-  return (
-    <RoleProtectedRoute requiredRoles={['super_admin']}>
-      <SuperAdminDashboard />
-    </RoleProtectedRoute>
-  );
+  return <SuperAdminDashboard />;
 } 

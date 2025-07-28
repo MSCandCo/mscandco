@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import Head from 'next/head';
@@ -24,22 +24,20 @@ const ArtistSetupSchema = Yup.object().shape({
 });
 
 export default function ArtistSetup() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session) {
+    if (isLoading) return;
+    if (!isAuthenticated || !user) {
       router.push('/login');
       return;
     }
-
     fetchGenres();
-  }, [session, status]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   const fetchGenres = async () => {
     try {
@@ -59,7 +57,7 @@ export default function ArtistSetup() {
       // Prepare the artist data
       const artistData = {
         data: {
-          user: session.user.id,
+          user: user?.sub,
           firstName: values.firstName,
           lastName: values.lastName,
           stageName: values.stageName,
@@ -107,7 +105,7 @@ export default function ArtistSetup() {
     'instagram', 'twitter', 'facebook', 'youtube', 'tiktok', 'spotify', 'soundcloud', 'apple_music'
   ];
 
-  if (status === 'loading' || loading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -135,11 +133,11 @@ export default function ArtistSetup() {
           <div className="bg-white rounded-lg shadow p-8">
             <Formik
               initialValues={{
-                firstName: session?.user?.firstName || '',
-                lastName: session?.user?.lastName || '',
+                firstName: user?.given_name || '',
+                lastName: user?.family_name || '',
                 stageName: '',
                 artistType: '',
-                email: session?.user?.email || '',
+                email: user?.email || '',
                 phoneNumber: '',
                 genres: [],
                 socialMediaHandles: {},

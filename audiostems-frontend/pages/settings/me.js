@@ -1,16 +1,14 @@
-import { userContext } from "@/components/contexts/userProvider";
+import { useAuth0 } from "@auth0/auth0-react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { apiRoute } from "@/lib/utils";
 import axios from "axios";
 import { Button, Label, Spinner, TextInput } from "flowbite-react";
 import { Formik } from "formik";
-import { useSession } from "next-auth/react";
-import React, { use, useContext } from "react";
+import React from "react";
 
 function MePage() {
-  const user = useContext(userContext);
-  const { data: userSession } = useSession();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   return (
     <MainLayout>
@@ -19,19 +17,20 @@ function MePage() {
         <Formik
           enableReinitialize
           initialValues={{
-            firstName: user?.firstName || "",
-            lastName: user?.lastName,
+            firstName: user?.given_name || "",
+            lastName: user?.family_name || "",
           }}
           onSubmit={async (values) => {
+            const token = await getAccessTokenSilently();
             await axios.put(
-              apiRoute(`/users/${user.id}`),
+              apiRoute(`/users/${user?.sub}`),
               {
                 firstName: values.firstName,
                 lastName: values.lastName,
               },
               {
                 headers: {
-                  Authorization: `Bearer ${userSession.jwt}`,
+                  Authorization: `Bearer ${token}`,
                 },
               }
             );

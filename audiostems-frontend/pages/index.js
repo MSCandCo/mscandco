@@ -7,7 +7,7 @@ import { apiRoute, resourceUrl } from "@/lib/utils";
 import { Tab, Transition } from "@headlessui/react";
 import classNames from "classnames";
 import { Button, Carousel as FlowbiteCarousel } from "flowbite-react";
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
@@ -71,7 +71,7 @@ export default function Home() {
     apiRoute("/playlists?populate=*&sort=createdAt:desc&pagination[limit]=8")
   );
 
-  const { data: user } = useSession();
+  const { user, isAuthenticated } = useAuth0();
 
   return (
     <MainLayout>

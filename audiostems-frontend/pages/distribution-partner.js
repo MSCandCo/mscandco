@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -15,7 +15,7 @@ import ExportSettingsModal from "@/components/export/ExportSettingsModal";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 function DistributionPartnerDashboard() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all-creations");
   const [showFilters, setShowFilters] = useState(false);
@@ -27,11 +27,11 @@ function DistributionPartnerDashboard() {
 
   // Check if user is distribution partner
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session || session.user?.userRole !== "distribution_partner") {
+    if (isLoading) return;
+    if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
       router.push("/");
     }
-  }, [session, status, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   const { data: creations, mutate: mutateCreations } = useSWR(
     apiRoute("/creations?populate=*&sort=createdAt:desc")
@@ -49,11 +49,11 @@ function DistributionPartnerDashboard() {
     apiRoute("/genres?populate=*&sort=title:asc")
   );
 
-  if (status === "loading") {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!session || session.user?.userRole !== "distribution_partner") {
+  if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
     return null;
   }
 
@@ -190,7 +190,7 @@ function DistributionPartnerDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.accessToken}`
+          'Authorization': `Bearer ${user?.access_token}`
         },
         body: JSON.stringify({
           filters,
@@ -278,7 +278,7 @@ function DistributionPartnerDashboard() {
             <h3 className="text-lg font-semibold">Filters</h3>
             <div className="flex gap-2">
               <ExportButton
-                userRole={session?.user?.userRole}
+                userRole={user?.['https://mscandco.com/role']}
                 exportType="creations"
                 data={exportData}
                 columns={exportColumns}
@@ -587,7 +587,7 @@ function DistributionPartnerDashboard() {
           availableColumns={exportColumns}
           currentFilters={filters}
           onExport={handleExport}
-          userRole={session?.user?.userRole}
+          userRole={user?.['https://mscandco.com/role']}
         />
       </div>
     </MainLayout>

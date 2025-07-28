@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -23,7 +23,7 @@ import { Bar, Pie, Line, Doughnut } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler);
 
 function PlatformAnalytics() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [dateRange, setDateRange] = useState("12");
@@ -31,17 +31,17 @@ function PlatformAnalytics() {
 
   // Check if user is artist
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session || session.user?.userRole !== "artist") {
+    if (isLoading) return;
+    if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'artist') {
       router.push("/");
     }
-  }, [session, status, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   const { data: platformAnalytics } = useSWR(
     apiRoute(`/monthly-statements/platform-analytics?dateRange=${dateRange}`)
   );
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -51,7 +51,7 @@ function PlatformAnalytics() {
     );
   }
 
-  if (!session || session.user?.userRole !== "artist") {
+  if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'artist') {
     return null;
   }
 

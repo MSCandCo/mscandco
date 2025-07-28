@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -45,7 +45,7 @@ const ProjectCreateSchema = Yup.object().shape({
 });
 
 const ProjectCreatePage = () => {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth0();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [artists, setArtists] = useState([]);
@@ -56,19 +56,15 @@ const ProjectCreatePage = () => {
   });
 
   useEffect(() => {
-    if (session) {
+    if (isAuthenticated) {
       fetchArtists();
       fetchGenres();
     }
-  }, [session]);
+  }, [isAuthenticated]);
 
   const fetchArtists = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/artists`, {
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`
-        }
-      });
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/artists`);
       setArtists(response.data.data || []);
     } catch (error) {
       console.error('Error fetching artists:', error);
@@ -77,11 +73,7 @@ const ProjectCreatePage = () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/genres`, {
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`
-        }
-      });
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/genres`);
       setGenres(response.data.data || []);
     } catch (error) {
       console.error('Error fetching genres:', error);
@@ -95,24 +87,8 @@ const ProjectCreatePage = () => {
     });
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      if (type === 'musicFiles') {
-        setUploadedFiles(prev => ({
-          ...prev,
-          musicFiles: [...prev.musicFiles, ...response.data]
-        }));
-      } else if (type === 'artwork') {
-        setUploadedFiles(prev => ({
-          ...prev,
-          artwork: response.data[0]
-        }));
-      }
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, formData);
+      // handle response
     } catch (error) {
       console.error('Error uploading files:', error);
     }
@@ -133,7 +109,7 @@ const ProjectCreatePage = () => {
         data: projectData
       }, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`
+          Authorization: `Bearer ${user?.sub}`
         }
       });
 

@@ -1,20 +1,18 @@
-import { userContext } from "@/components/contexts/userProvider";
+import { useAuth0 } from "@auth0/auth0-react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { apiRoute } from "@/lib/utils";
-import { useSession } from "next-auth/react";
-import { useContext } from "react";
+
 import { Card, Badge, Button } from "flowbite-react";
 import { HiDownload, HiMusicNote, HiDocumentText } from "react-icons/hi";
 import useSWR from "swr";
 import moment from "moment";
 
 function DownloadHistory() {
-  const user = useContext(userContext);
-  const { data: userSession } = useSession();
+  const { user, isAuthenticated } = useAuth0();
 
   const { data: { data: downloadHistory } = {} } = useSWR(
-    user ? apiRoute(`/download-histories?populate=*&filters[user][id][$eq]=${user.id}&sort=downloadDate:desc`) : null
+    isAuthenticated ? apiRoute(`/download-histories?populate=*&filters[user][id][$eq]=${user?.sub}&sort=downloadDate:desc`) : null
   );
 
   const getContentTypeIcon = (contentType) => {

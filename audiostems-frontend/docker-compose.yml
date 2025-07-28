@@ -167,7 +167,7 @@ services:
       AUTH0_MANAGEMENT_TOKEN: ${AUTH0_MANAGEMENT_TOKEN}
       
       # Strapi Configuration
-      NEXT_PUBLIC_STRAPI: http://backend:1337
+      NEXT_PUBLIC_STRAPI: http://localhost:1337
       STRAPI_API_TOKEN: ${STRAPI_API_TOKEN}
       
       # Email Service

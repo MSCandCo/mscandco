@@ -4,11 +4,10 @@ import axios from "axios";
 import classNames from "classnames";
 import { Button, Spinner } from "flowbite-react";
 import { Check, X } from "lucide-react";
-import React, { useContext, useState } from "react";
-import { useSession } from "next-auth/react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import SEO from "@/components/seo";
-import { userContext } from "@/components/contexts/userProvider";
+import { useAuth0 } from "@auth0/auth0-react";
 import MainLayout from "@/components/layouts/mainLayout";
 import { openCustomerPortal } from "@/lib/utils";
 import { COMPANY_INFO } from "@/lib/brand-config";
@@ -167,7 +166,7 @@ export const recordingPricing = [
 ];
 
 function Pricing() {
-  const user = useContext(userContext);
+  const { user, isAuthenticated } = useAuth0();
 
   const [chargingInterval, setChargingInterval] = useState("monthly");
   const [loading, setLoading] = useState();

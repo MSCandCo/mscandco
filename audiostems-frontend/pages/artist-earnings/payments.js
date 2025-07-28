@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -23,7 +23,7 @@ import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 
 function Payments() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
   const [showBankModal, setShowBankModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -48,11 +48,11 @@ function Payments() {
     apiRoute("/monthly-statements/payment-history")
   );
 
-  const { data: user } = useSWR(
-    session ? apiRoute(`/users/me`) : null
+  const { data: userProfile } = useSWR(
+    isAuthenticated ? apiRoute(`/users/me`) : null
   );
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -62,7 +62,7 @@ function Payments() {
     );
   }
 
-  if (!session || session.user?.userRole !== "artist") {
+  if (!isAuthenticated || getUserRole(user) !== "artist") {
     return null;
   }
 

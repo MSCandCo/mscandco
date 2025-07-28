@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth0 } from '@auth0/auth0-react';
 import axios from 'axios';
 import { 
   Calendar, 
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 const ProjectsPage = () => {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth0();
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,11 +48,11 @@ const ProjectsPage = () => {
   const [statistics, setStatistics] = useState({});
 
   useEffect(() => {
-    if (session) {
+    if (isAuthenticated) {
       fetchProjects();
       fetchStatistics();
     }
-  }, [session]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     applyFilters();
@@ -62,7 +62,7 @@ const ProjectsPage = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`
+          Authorization: `Bearer ${user?.sub}`
         }
       });
       setProjects(response.data.data || []);
@@ -77,7 +77,7 @@ const ProjectsPage = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/statistics`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`
+          Authorization: `Bearer ${user?.sub}`
         }
       });
       setStatistics(response.data.data || {});
