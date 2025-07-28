@@ -115,7 +115,7 @@ export default function RoleBasedDashboard() {
             { label: 'My Projects', value: '12', change: '+2', changeType: 'positive' },
             { label: 'Total Earnings', value: '$8,456', change: '+15%', changeType: 'positive' },
             { label: 'Streams', value: '45,678', change: '+23%', changeType: 'positive' },
-            { label: 'Followers', value: '1,234', change: '+8%', changeType: 'positive' }
+            { label: 'Social Footprint', value: '45,678', change: '+12%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -134,10 +134,10 @@ export default function RoleBasedDashboard() {
             },
             {
               title: 'Analytics',
-              description: 'View your performance metrics',
+              description: 'View your performance metrics and social footprint',
               icon: '📈',
               href: '/artist/analytics',
-              stats: { streams: 45678, views: 12345 }
+              stats: { streams: 45678, footprint: 45678 }
             }
           ]
         };

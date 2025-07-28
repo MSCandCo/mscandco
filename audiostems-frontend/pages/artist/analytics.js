@@ -2,13 +2,15 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
+import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 
 export default function ArtistAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [activeTab, setActiveTab] = useState('overview');
   const [analyticsData] = useState({
     totalStreams: 456789,
-    totalFollowers: 12345,
+    totalFollowers: 45678,
     totalPlays: 678901,
     totalRevenue: 12450,
     monthlyData: [
@@ -182,7 +184,7 @@ export default function ArtistAnalytics() {
                 <span className="text-2xl">👥</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Followers</p>
+                <p className="text-sm font-medium text-gray-600">Social Footprint</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {analyticsData.totalFollowers.toLocaleString()}
                 </p>
@@ -228,8 +230,38 @@ export default function ArtistAnalytics() {
           </div>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Tabs */}
+        <div className="bg-white rounded-lg shadow mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('social-footprint')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'social-footprint'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Social Footprint
+              </button>
+            </nav>
+          </div>
+          
+          <div className="p-6">
+            {activeTab === 'overview' && (
+              <>
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Performance Chart */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
@@ -260,6 +292,16 @@ export default function ArtistAnalytics() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+                </div>
+              </>
+            )}
+            
+            {activeTab === 'social-footprint' && (
+              <SocialFootprintIntegration />
+            )}
           </div>
         </div>
 
