@@ -1,9 +1,17 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import Link from 'next/link';
 import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
+import { Dropdown } from "flowbite-react";
+import {
+  HiArrowLeftOnRectangle,
+  HiUser,
+  HiDownload,
+  HiCog6Tooth,
+} from "lucide-react";
+import { openCustomerPortal } from "@/lib/utils";
 
 export default function RoleBasedNavigation() {
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, logout } = useAuth0();
 
   if (!isAuthenticated || !user) {
     return null;
@@ -82,22 +90,20 @@ export default function RoleBasedNavigation() {
   const navigationItems = getNavigationItems();
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-gray-900">
-                {displayBrand?.displayName || 'MSC & Co'}
-              </Link>
-            </div>
-
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+    <header className="px-3 lg:px-[50px] py-1 h-[55px] border-b border-gray-200 bg-white">
+      <div className="w-full max-h-full flex justify-between items-center">
+        <div className="flex-1">
+          <div className="flex items-center space-x-8">
+            <Link href="/dashboard" className="text-xl font-bold text-gray-900">
+              {displayBrand?.displayName || 'MSC & Co'}
+            </Link>
+            
+            <div className="flex space-x-8">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-gray-300"
+                  className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900"
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}
@@ -105,29 +111,57 @@ export default function RoleBasedNavigation() {
               ))}
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {userRole?.replace('_', ' ').toUpperCase()}
-              </span>
-            </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
+            <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900">
+              Prices
+            </Link>
+            <span className="text-sm text-gray-500">About</span>
+            <span className="text-sm text-gray-500">Support</span>
+          </div>
 
-            <div className="ml-4 flex items-center md:ml-6">
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-700">
-                  {user.name || user.email}
-                </span>
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=random`}
-                  alt="User avatar"
-                />
-              </div>
-            </div>
+          <div className="flex items-center space-x-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {userRole?.replace('_', ' ').toUpperCase()}
+            </span>
+            
+            <Dropdown
+              color="gray"
+              size="sm"
+              label={
+                user?.name ? <p>Hi, {user.name}</p> : <p>Hi</p>
+              }
+              dismissOnClick={false}
+            >
+              <Link href="/dashboard">
+                <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
+              </Link>
+              <Link href="/settings/me">
+                <Dropdown.Item icon={HiUser}>Profile</Dropdown.Item>
+              </Link>
+              <Link href="/download-history">
+                <Dropdown.Item icon={HiDownload}>Download History</Dropdown.Item>
+              </Link>
+              <Dropdown.Item icon={HiCog6Tooth} onClick={openCustomerPortal}>
+                Billing
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item
+                icon={HiArrowLeftOnRectangle}
+                onClick={() => logout({ 
+                  logoutParams: { 
+                    returnTo: window.location.origin 
+                  } 
+                })}
+              >
+                Logout
+              </Dropdown.Item>
+            </Dropdown>
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 } 
