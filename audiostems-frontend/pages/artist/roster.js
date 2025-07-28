@@ -307,16 +307,16 @@ export default function ArtistRoster() {
                   return (
                     <tr key={contributor.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex-shrink-0 h-12 w-12">
+                        <div className="flex-shrink-0 h-24 w-24">
                           {contributor.thumbnail ? (
                             <img
-                              className="h-12 w-12 rounded-full object-cover"
+                              className="h-24 w-24 rounded-full object-cover"
                               src={contributor.thumbnail}
                               alt={contributor.name}
                             />
                           ) : (
-                            <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
-                              <FaUser className="text-gray-500" />
+                            <div className="h-24 w-24 rounded-full bg-gray-300 flex items-center justify-center">
+                              <FaUser className="text-gray-500 text-2xl" />
                             </div>
                           )}
                         </div>
@@ -439,16 +439,16 @@ export default function ArtistRoster() {
                     Profile Image
                   </label>
                   <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0 h-16 w-16">
+                    <div className="flex-shrink-0 h-32 w-32">
                       {formData.thumbnailPreview ? (
                         <img
-                          className="h-16 w-16 rounded-full object-cover"
+                          className="h-32 w-32 rounded-full object-cover"
                           src={formData.thumbnailPreview}
                           alt="Preview"
                         />
                       ) : (
-                        <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
-                          <FaUser className="text-gray-500" />
+                        <div className="h-32 w-32 rounded-full bg-gray-300 flex items-center justify-center">
+                          <FaUser className="text-gray-500 text-3xl" />
                         </div>
                       )}
                     </div>
