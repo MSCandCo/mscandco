@@ -222,11 +222,11 @@ function Header() {
           <Link href="/" className="shrink-0 h-[47px] flex items-center">
             <div className="flex flex-col items-center">
               <img 
-                src="/logos/yhwh-msc-logo.png" 
-                alt="YHWH MSC" 
-                className="h-8 w-auto"
+                src="/logos/msc-logo.png" 
+                alt="MSC & Co" 
+                className="h-16 w-auto"
                 onError={(e) => {
-                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                  e.target.src = '/logos/msc-logo.svg';
                   e.target.onerror = () => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'block';
@@ -234,7 +234,7 @@ function Header() {
                 }}
               />
               <span className="text-xl font-bold text-gray-900 hidden">
-                YHWH MSC
+                MSC & Co
               </span>
               {userBrand && (
                 <span className="text-xs text-gray-600">{userBrand.displayName}</span>

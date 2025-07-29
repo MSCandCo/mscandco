@@ -123,10 +123,10 @@ export default function PhoneInput({ value, onChange, error, disabled = false })
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             disabled={disabled}
-            className="flex items-center justify-between w-32 px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="flex items-center justify-between w-28 px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed h-10"
           >
-            <span>{selectedCountry.code}</span>
-            <ChevronDown className="w-4 h-4 ml-1" />
+            <span className="font-medium">{selectedCountry.code}</span>
+            <ChevronDown className="w-4 h-4 ml-1 text-gray-500" />
           </button>
           
           {isDropdownOpen && (
@@ -136,7 +136,7 @@ export default function PhoneInput({ value, onChange, error, disabled = false })
                   key={country.country}
                   type="button"
                   onClick={() => handleCountryChange(country)}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-sm"
                 >
                   <span className="font-medium">{country.code}</span>
                   <span className="ml-2 text-gray-600">{country.name}</span>
@@ -153,7 +153,7 @@ export default function PhoneInput({ value, onChange, error, disabled = false })
           onChange={handlePhoneChange}
           disabled={disabled}
           placeholder="Enter phone number"
-          className={`flex-1 px-3 py-2 border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+          className={`flex-1 px-3 py-2 border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed h-10 text-sm ${
             error ? 'border-red-500' : ''
           }`}
         />

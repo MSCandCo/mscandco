@@ -1,6 +1,108 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Card, Button, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
+import { useState, useEffect } from 'react';
+import { Play, TrendingUp, Clock } from 'lucide-react';
+
+// Mock video data
+const mockVideos = {
+  highestPerforming: {
+    id: 'hp-001',
+    title: 'Summer Vibes - Official Music Video',
+    url: '/videos/summer-vibes.mp4', // Replace with actual video file
+    views: '2.4M',
+    likes: '156K',
+    releaseDate: '2024-01-15',
+    performance: 'trending'
+  },
+  newestReleased: {
+    id: 'nr-001',
+    title: 'Midnight Sessions - Behind the Scenes',
+    url: '/videos/midnight-sessions.mp4', // Replace with actual video file
+    views: '890K',
+    likes: '45K',
+    releaseDate: '2024-02-01',
+    performance: 'new'
+  }
+};
+
+// Video component for artist dashboard
+const ArtistVideoSection = () => {
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const [videoType, setVideoType] = useState('');
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    // Randomly choose between highest performing and newest video
+    const isHighestPerforming = Math.random() > 0.5;
+    const video = isHighestPerforming ? mockVideos.highestPerforming : mockVideos.newestReleased;
+    setCurrentVideo(video);
+    setVideoType(isHighestPerforming ? 'highest' : 'newest');
+    
+    // Switch videos every 30 seconds
+    const interval = setInterval(() => {
+      const newIsHighestPerforming = Math.random() > 0.5;
+      const newVideo = newIsHighestPerforming ? mockVideos.highestPerforming : mockVideos.newestReleased;
+      setCurrentVideo(newVideo);
+      setVideoType(newIsHighestPerforming ? 'highest' : 'newest');
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!currentVideo) return null;
+
+  return (
+    <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
+      {/* Video Player */}
+      <div className="relative aspect-video">
+        <video
+          src={currentVideo.url}
+          className="w-full h-full object-cover"
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          controls={false}
+        />
+        
+        {/* Video Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        
+        {/* Video Info Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold mb-1">{currentVideo.title}</h3>
+              <div className="flex items-center space-x-4 text-sm opacity-90">
+                <span>{currentVideo.views} views</span>
+                <span>{currentVideo.likes} likes</span>
+                <span>{videoType === 'highest' ? '🔥 Trending' : '🆕 New Release'}</span>
+              </div>
+            </div>
+            
+            {/* Mute Control */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className="bg-black/30 hover:bg-black/50 backdrop-blur-sm rounded-full p-3 transition-all duration-200"
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? (
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function RoleBasedDashboard() {
   const { user, isAuthenticated } = useAuth0();
@@ -243,12 +345,29 @@ export default function RoleBasedDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-3xl font-bold text-gray-900">{dashboardContent.title}</h1>
-          <p className="mt-2 text-lg text-gray-600">{dashboardContent.subtitle}</p>
-          <p className="mt-1 text-sm text-gray-500">{dashboardContent.description}</p>
-        </div>
+        {/* Video Hero Banner for Artists */}
+        {userRole === 'artist' && (
+          <div className="relative mb-8 px-4 sm:px-0">
+            <ArtistVideoSection />
+            {/* Overlapping Dashboard Header */}
+            <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
+              <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white">
+                <h1 className="text-4xl font-bold mb-2">{dashboardContent.title}</h1>
+                <p className="text-lg opacity-90">{dashboardContent.subtitle}</p>
+                <p className="text-sm opacity-75">{dashboardContent.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Header (only show for non-artist roles or if no video) */}
+        {userRole !== 'artist' && (
+          <div className="px-4 py-6 sm:px-0">
+            <h1 className="text-3xl font-bold text-gray-900">{dashboardContent.title}</h1>
+            <p className="mt-2 text-lg text-gray-600">{dashboardContent.subtitle}</p>
+            <p className="mt-1 text-sm text-gray-500">{dashboardContent.description}</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="px-4 sm:px-0">

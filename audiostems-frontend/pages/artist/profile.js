@@ -8,6 +8,7 @@ export default function ArtistProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState({});
   const [profile, setProfile] = useState({
     // Personal Information (Locked - Admin approval required)
     firstName: '',
@@ -269,89 +270,82 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        {/* Locked Personal Information */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <span className="text-yellow-600">🔒</span>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-lg font-semibold text-gray-900">Locked Personal Information</h3>
-              <p className="text-sm text-gray-600">These fields require admin approval for changes</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-              <input
-                type="text"
-                value={formData.firstName}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-              <input
-                type="text"
-                value={formData.lastName}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-              <input
-                type="date"
-                value={formData.dateOfBirth}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-              <input
-                type="text"
-                value={formData.nationality}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-              <input
-                type="text"
-                value={formData.country}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-              <input
-                type="text"
-                value={formData.city}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-          </div>
-          
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800">
-              <strong>Need to change locked information?</strong> Contact support to request changes. 
-              All modifications require admin approval and will be reviewed within 2-3 business days.
-            </p>
-          </div>
-        </div>
-
+        {/* Main Profile Information */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Profile Information */}
           <div className="lg:col-span-2 space-y-8">
             {/* Personal Information */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+              
+              {/* Locked Personal Information */}
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center mb-3">
+                  <span className="text-yellow-600 mr-2">🔒</span>
+                  <span className="text-sm font-medium text-yellow-800">Locked Information (Admin Approval Required)</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={formData.dateOfBirth}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                    <input
+                      type="text"
+                      value={formData.nationality}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input
+                      type="text"
+                      value={formData.country}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                  Contact support to request changes to locked information. All modifications require admin approval.
+                </div>
+              </div>
+
+              {/* Editable Personal Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Artist Name *</label>
@@ -387,7 +381,7 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                 </div>
-                <div className="col-span-6 sm:col-span-3">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                   <PhoneInput
                     value={formData.phone}

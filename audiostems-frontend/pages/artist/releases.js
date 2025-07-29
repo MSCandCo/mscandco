@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList } from 'react-icons/fa';
+import { Send, Eye, FileText, CheckCircle, Play } from 'lucide-react';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
 
 export default function ArtistReleases() {
@@ -207,12 +208,12 @@ export default function ArtistReleases() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'submitted': return '📤';
-      case 'under_review': return '🔍';
-      case 'draft': return '📝';
-      case 'completed': return '✅';
-      case 'live': return '🎵';
-      default: return '⚪';
+      case 'submitted': return <Send className="w-5 h-5" />;
+      case 'under_review': return <Eye className="w-5 h-5" />;
+      case 'draft': return <FileText className="w-5 h-5" />;
+      case 'completed': return <CheckCircle className="w-5 h-5" />;
+      case 'live': return <Play className="w-5 h-5" />;
+      default: return null;
     }
   };
 
