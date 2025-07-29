@@ -3,11 +3,15 @@ import { useState } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
+import { Calendar, ChevronDown } from 'lucide-react';
 
 export default function ArtistAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [analyticsData] = useState({
     totalStreams: 456789,
     totalFollowers: 45678,
@@ -142,11 +146,19 @@ export default function ArtistAnalytics() {
             {[
               { id: 'month', label: 'This Month' },
               { id: 'quarter', label: 'This Quarter' },
-              { id: 'year', label: 'This Year' }
+              { id: 'year', label: 'This Year' },
+              { id: 'custom', label: 'Custom Range' }
             ].map((period) => (
               <button
                 key={period.id}
-                onClick={() => setSelectedPeriod(period.id)}
+                onClick={() => {
+                  setSelectedPeriod(period.id);
+                  if (period.id === 'custom') {
+                    setShowCustomDateRange(true);
+                  } else {
+                    setShowCustomDateRange(false);
+                  }
+                }}
                 className={`px-4 py-2 rounded-lg font-medium ${
                   selectedPeriod === period.id
                     ? 'bg-blue-600 text-white'
@@ -158,6 +170,26 @@ export default function ArtistAnalytics() {
             ))}
           </div>
         </div>
+
+        {showCustomDateRange && (
+          <div className="mb-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <span className="text-gray-600">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Main Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

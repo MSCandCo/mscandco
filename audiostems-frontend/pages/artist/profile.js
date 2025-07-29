@@ -2,25 +2,28 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
+import PhoneInput from '../../components/ui/phone-input';
 
 export default function ArtistProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState({
-    // Personal Information
+    // Personal Information (Locked - Admin approval required)
     firstName: '',
     lastName: '',
-    artistName: '',
-    artistType: '',
-    email: '',
-    phone: '',
     dateOfBirth: '',
     nationality: '',
     country: '',
     city: '',
     address: '',
     postalCode: '',
+    
+    // Changeable Information
+    artistName: '',
+    artistType: '',
+    email: '',
+    phone: '',
     
     // Music Information
     primaryGenre: '',
@@ -85,7 +88,12 @@ export default function ArtistProfile() {
     
     // Verification
     isVerified: false,
-    verificationDocuments: []
+    verificationDocuments: [],
+    
+    // Admin Approval Status
+    pendingChanges: [],
+    lastApprovedBy: '',
+    lastApprovedDate: ''
   });
 
   const [formData, setFormData] = useState({ ...profile });
@@ -111,6 +119,21 @@ export default function ArtistProfile() {
   };
 
   const handleInputChange = (field, value) => {
+    // Special handling for email and phone to sync with Auth0
+    if (field === 'email' && user?.email) {
+      if (value !== user.email) {
+        alert('Email must match your login credentials. Please contact support to change your login email.');
+        return;
+      }
+    }
+    
+    if (field === 'phone' && user?.phone_number) {
+      if (value !== user.phone_number) {
+        alert('Phone number must match your login credentials. Please contact support to change your login phone.');
+        return;
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -246,6 +269,83 @@ export default function ArtistProfile() {
           </div>
         </div>
 
+        {/* Locked Personal Information */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center mb-4">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <span className="text-yellow-600">🔒</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold text-gray-900">Locked Personal Information</h3>
+              <p className="text-sm text-gray-600">These fields require admin approval for changes</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input
+                type="text"
+                value={formData.firstName}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input
+                type="text"
+                value={formData.lastName}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+              <input
+                type="date"
+                value={formData.dateOfBirth}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+              <input
+                type="text"
+                value={formData.nationality}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+              <input
+                type="text"
+                value={formData.country}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <input
+                type="text"
+                value={formData.city}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Need to change locked information?</strong> Contact support to request changes. 
+              All modifications require admin approval and will be reviewed within 2-3 business days.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Profile Information */}
           <div className="lg:col-span-2 space-y-8">
@@ -253,26 +353,6 @@ export default function ArtistProfile() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Artist Name *</label>
                   <input
@@ -307,34 +387,13 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                 </div>
-                <div>
+                <div className="col-span-6 sm:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onChange={(value) => handleInputChange('phone', value)}
+                    error={errors.phone}
                     disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                  <input
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-                  <input
-                    type="text"
-                    value={formData.nationality}
-                    onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>

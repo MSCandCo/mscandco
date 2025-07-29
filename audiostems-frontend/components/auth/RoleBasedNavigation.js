@@ -11,6 +11,7 @@ import {
   BarChart3,
   DollarSign,
   Users,
+  Wallet,
 } from "lucide-react";
 import { openCustomerPortal } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -18,6 +19,11 @@ import { useState, useEffect } from 'react';
 export default function RoleBasedNavigation() {
   const { user, isAuthenticated, logout } = useAuth0();
   const [profileData, setProfileData] = useState(null);
+  const [fundsData, setFundsData] = useState({
+    heldEarnings: 1560,
+    availableForCashout: 890,
+    minimumCashoutThreshold: 100
+  });
 
   // Fetch profile data to get first and last name
   useEffect(() => {
@@ -145,32 +151,42 @@ export default function RoleBasedNavigation() {
           <Link href="/dashboard" className="flex items-center">
             <img 
               src="/logos/yhwh-msc-logo.png" 
-              alt="YHWH MSC & Co" 
+              alt="YHWH MSC" 
               className="h-8 w-auto"
               onError={(e) => {
-                // Try SVG fallback
                 e.target.src = '/logos/yhwh-msc-logo.svg';
                 e.target.onerror = () => {
-                  // Final fallback to text
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
                 };
               }}
             />
             <span className="text-lg font-bold text-gray-900 hidden">
-              {displayBrand?.displayName || 'MSC & Co'}
+              {displayBrand?.displayName || 'YHWH MSC'}
             </span>
           </Link>
         </div>
 
         {/* Right side - Utility links and user menu */}
         <div className="flex-1 flex justify-end items-center space-x-3">
+          {/* Platform Funds Display - Only for artists */}
+          {userRole === 'artist' && (
+            <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
+              <Wallet className="w-4 h-4 text-gray-600" />
+              <span className="text-xs font-medium text-gray-900">${fundsData.heldEarnings}</span>
+            </div>
+          )}
+
           <div className="flex items-center space-x-4">
             <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900">
               Prices
             </Link>
-            <span className="text-sm text-gray-500">About</span>
-            <span className="text-sm text-gray-500">Support</span>
+            <Link href="/about" className="text-sm text-gray-500 hover:text-gray-900">
+              About
+            </Link>
+            <Link href="/support" className="text-sm text-gray-500 hover:text-gray-900">
+              Support
+            </Link>
           </div>
 
           <div className="flex items-center space-x-2">

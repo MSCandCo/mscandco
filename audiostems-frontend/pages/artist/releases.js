@@ -55,15 +55,15 @@ export default function ArtistReleases() {
       artist: 'YHWH MSC',
       releaseType: 'Album',
       genre: 'Hip Hop',
-      status: 'draft',
-      submissionDate: null,
+      status: 'under_review',
+      submissionDate: '2024-01-12',
       expectedReleaseDate: '2024-03-20',
       assets: 6,
       earnings: 0,
       streams: 0,
-      lastUpdated: '2024-01-10',
+      lastUpdated: '2024-01-12',
       cover: '🎵',
-      feedback: '',
+      feedback: 'Under review by distribution team',
       marketingPlan: 'TBD',
       trackListing: [
         { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
@@ -104,30 +104,31 @@ export default function ArtistReleases() {
     },
     {
       id: 4,
-      projectName: 'Electric Dreams',
+      projectName: 'Live at the Studio',
       artist: 'YHWH MSC',
-      releaseType: 'EP',
-      genre: 'Electronic',
+      releaseType: 'Live Album',
+      genre: 'Jazz',
       status: 'live',
-      submissionDate: '2023-12-01',
-      expectedReleaseDate: '2023-12-15',
-      assets: 3,
+      submissionDate: '2024-01-08',
+      expectedReleaseDate: '2024-01-25',
+      assets: 8,
       earnings: 8900,
-      streams: 156789,
-      lastUpdated: '2023-12-15',
+      streams: 123456,
+      lastUpdated: '2024-01-08',
       cover: '🎵',
-      feedback: 'Successfully live across all platforms',
-      marketingPlan: 'Electronic music festival promotion',
+      feedback: 'Live recording approved and distributed',
+      marketingPlan: 'Jazz festival promotion + live music platforms',
       trackListing: [
-        { title: 'Electric Dreams', duration: '5:20', isrc: 'USRC12345686' },
-        { title: 'Digital Love', duration: '4:45', isrc: 'USRC12345687' },
-        { title: 'Future Beats', duration: '6:10', isrc: 'USRC12345688' }
+        { title: 'Studio Jam', duration: '5:30', isrc: 'USRC12345686' },
+        { title: 'Improvisation', duration: '7:15', isrc: 'USRC12345687' },
+        { title: 'Jazz Standards', duration: '4:45', isrc: 'USRC12345688' }
       ],
       credits: [
-        { role: 'Producer', name: 'YHWH MSC' },
-        { role: 'Synth Programming', name: 'YHWH MSC' }
+        { role: 'Band Leader', name: 'YHWH MSC' },
+        { role: 'Piano', name: 'YHWH MSC' },
+        { role: 'Saxophone', name: 'Jazz Master' }
       ],
-      publishingNotes: 'Electronic music exploration'
+      publishingNotes: 'Live recording from studio session'
     }
   ];
 
@@ -196,6 +197,7 @@ export default function ArtistReleases() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'submitted': return 'bg-blue-100 text-blue-800';
+      case 'under_review': return 'bg-orange-100 text-orange-800';
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'live': return 'bg-purple-100 text-purple-800';
@@ -206,10 +208,22 @@ export default function ArtistReleases() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'submitted': return '📤';
+      case 'under_review': return '🔍';
       case 'draft': return '📝';
       case 'completed': return '✅';
       case 'live': return '🎵';
       default: return '⚪';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'submitted': return 'Submitted';
+      case 'under_review': return 'Under Review';
+      case 'draft': return 'Draft';
+      case 'completed': return 'Completed';
+      case 'live': return 'Live';
+      default: return 'Unknown';
     }
   };
 
@@ -241,6 +255,7 @@ export default function ArtistReleases() {
     totalEarnings: releases.reduce((sum, release) => sum + release.earnings, 0),
     totalStreams: releases.reduce((sum, release) => sum + release.streams, 0),
     submitted: releases.filter(r => r.status === 'submitted').length,
+    under_review: releases.filter(r => r.status === 'under_review').length,
     draft: releases.filter(r => r.status === 'draft').length,
     completed: releases.filter(r => r.status === 'completed').length,
     live: releases.filter(r => r.status === 'live').length
@@ -427,7 +442,7 @@ export default function ArtistReleases() {
                     <h3 className="text-lg font-semibold text-gray-900">{release.projectName}</h3>
                     <div className="flex flex-wrap gap-1 mt-1">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                        {getStatusIcon(release.status)} {release.status}
+                        {getStatusIcon(release.status)} {getStatusLabel(release.status)}
                       </span>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getReleaseTypeColor(release.releaseType)}`}>
                         {release.releaseType}
@@ -521,7 +536,7 @@ export default function ArtistReleases() {
               <div className="flex items-center justify-between mb-4">
                 <div className="text-3xl">{release.cover}</div>
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
-                  {getStatusIcon(release.status)} {release.status}
+                  {getStatusIcon(release.status)} {getStatusLabel(release.status)}
                 </span>
               </div>
               
@@ -590,7 +605,7 @@ export default function ArtistReleases() {
                     {new Date(release.expectedReleaseDate).toLocaleDateString()}
                   </p>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                    {getStatusIcon(release.status)} {release.status}
+                    {getStatusIcon(release.status)} {getStatusLabel(release.status)}
                   </span>
                 </div>
               </div>

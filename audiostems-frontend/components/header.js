@@ -221,7 +221,21 @@ function Header() {
           </div>
           <Link href="/" className="shrink-0 h-[47px] flex items-center">
             <div className="flex flex-col items-center">
-              <span className="text-xl font-bold text-gray-900">MSC & Co</span>
+              <img 
+                src="/logos/yhwh-msc-logo.png" 
+                alt="YHWH MSC" 
+                className="h-8 w-auto"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                  e.target.onerror = () => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  };
+                }}
+              />
+              <span className="text-xl font-bold text-gray-900 hidden">
+                YHWH MSC
+              </span>
               {userBrand && (
                 <span className="text-xs text-gray-600">{userBrand.displayName}</span>
               )}

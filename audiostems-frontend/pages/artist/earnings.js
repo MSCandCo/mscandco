@@ -2,13 +2,20 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
+import { Calendar, ChevronDown } from 'lucide-react';
 
 export default function ArtistEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [earningsData] = useState({
     totalEarnings: 12450,
     pendingEarnings: 2340,
+    heldEarnings: 1560,
+    availableForCashout: 890,
+    minimumCashoutThreshold: 100,
     thisMonth: 3450,
     lastMonth: 2890,
     thisYear: 12450,
@@ -98,17 +105,43 @@ export default function ArtistEarnings() {
 
   const getCurrentPeriodEarnings = () => {
     switch (selectedPeriod) {
-      case 'month': return earningsData.thisMonth;
-      case 'year': return earningsData.thisYear;
-      default: return earningsData.totalEarnings;
+      case 'month':
+        return earningsData.thisMonth;
+      case 'year':
+        return earningsData.thisYear;
+      case 'custom':
+        // For custom date range, calculate based on selected dates
+        if (customStartDate && customEndDate) {
+          // Mock calculation for custom date range
+          const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
+          const avgDailyEarnings = earningsData.totalEarnings / 365; // Assuming 1 year of data
+          return Math.round(avgDailyEarnings * daysDiff);
+        }
+        return earningsData.thisMonth; // Default to current month if no custom dates
+      case 'all':
+      default:
+        return earningsData.totalEarnings;
     }
   };
 
   const getPreviousPeriodEarnings = () => {
     switch (selectedPeriod) {
-      case 'month': return earningsData.lastMonth;
-      case 'year': return earningsData.lastYear;
-      default: return earningsData.lastYear;
+      case 'month':
+        return earningsData.lastMonth;
+      case 'year':
+        return earningsData.lastYear;
+      case 'custom':
+        // For custom date range, calculate previous period of same length
+        if (customStartDate && customEndDate) {
+          const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
+          const avgDailyEarnings = earningsData.totalEarnings / 365; // Assuming 1 year of data
+          // Calculate previous period of same length (80% of current for demo)
+          return Math.round(avgDailyEarnings * daysDiff * 0.8);
+        }
+        return earningsData.lastMonth; // Default to last month if no custom dates
+      case 'all':
+      default:
+        return earningsData.totalEarnings * 0.8; // Assume 20% growth for demo
     }
   };
 
@@ -150,11 +183,19 @@ export default function ArtistEarnings() {
             {[
               { id: 'month', label: 'This Month' },
               { id: 'year', label: 'This Year' },
-              { id: 'all', label: 'All Time' }
+              { id: 'all', label: 'All Time' },
+              { id: 'custom', label: 'Custom Range' }
             ].map((period) => (
               <button
                 key={period.id}
-                onClick={() => setSelectedPeriod(period.id)}
+                onClick={() => {
+                  setSelectedPeriod(period.id);
+                  if (period.id === 'custom') {
+                    setShowCustomDateRange(true);
+                  } else {
+                    setShowCustomDateRange(false);
+                  }
+                }}
                 className={`px-4 py-2 rounded-lg font-medium ${
                   selectedPeriod === period.id
                     ? 'bg-blue-600 text-white'
@@ -166,6 +207,29 @@ export default function ArtistEarnings() {
             ))}
           </div>
         </div>
+
+        {/* Custom Date Range */}
+        {showCustomDateRange && (
+          <div className="mb-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Start date"
+              />
+              <span className="text-gray-600">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="End date"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Main Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -225,6 +289,38 @@ export default function ArtistEarnings() {
                   {getPercentageChange()}%
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* My Funds Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">My Funds</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">${earningsData.heldEarnings.toLocaleString()}</div>
+              <div className="text-sm text-gray-600">Held in Platform</div>
+              <div className="text-xs text-gray-500 mt-1">Minimum $100 to cash out</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">${earningsData.availableForCashout.toLocaleString()}</div>
+              <div className="text-sm text-gray-600">Available for Cashout</div>
+              <div className="text-xs text-gray-500 mt-1">Ready to withdraw</div>
+            </div>
+            <div className="text-center">
+              <button
+                disabled={earningsData.availableForCashout < earningsData.minimumCashoutThreshold}
+                className={`px-6 py-2 rounded-lg font-medium ${
+                  earningsData.availableForCashout >= earningsData.minimumCashoutThreshold
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {earningsData.availableForCashout >= earningsData.minimumCashoutThreshold
+                  ? 'Cash Out'
+                  : `Need $${earningsData.minimumCashoutThreshold - earningsData.availableForCashout} more`
+                }
+              </button>
             </div>
           </div>
         </div>

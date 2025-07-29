@@ -4,228 +4,348 @@ import axios from "axios";
 import classNames from "classnames";
 import { Button, Spinner } from "flowbite-react";
 import { Check, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import SEO from "@/components/seo";
 import { useAuth0 } from "@auth0/auth0-react";
 import MainLayout from "@/components/layouts/mainLayout";
 import { openCustomerPortal } from "@/lib/utils";
 import { COMPANY_INFO } from "@/lib/brand-config";
+import { getUserRole } from "@/lib/auth0-config";
 
-const features = [
-  "{}",
-  "Access to all song lyrics library (choruses only)",
-  "Access to all full song lyrics library",
-  "Access to all songs melody library",
-  "Complimentary artwork design with limited revisions",
-  "Access to all music instrumental library",
-  "Complimentary artwork design with unlimited revisions",
-  "Complimentary audio mixing and mastering",
-  "Melody to song lyrics service",
-  "Artist feature consideration",
-];
+// Role-based pricing plans
+const getRoleSpecificPlans = (role) => {
+  switch (role) {
+    case 'artist':
+      return [
+        {
+          name: 'Artist Starter',
+          monthlyPrice: '$9.99',
+          yearlyPrice: '$99.99',
+          yearlySavings: '$19.89',
+          features: [
+            'Up to 10 Releases',
+            'Basic Analytics',
+            'Email Support',
+            'Standard Branding'
+          ]
+        },
+        {
+          name: 'Artist Pro',
+          monthlyPrice: '$29.99',
+          yearlyPrice: '$299.99',
+          yearlySavings: '$59.89',
+          features: [
+            'Unlimited Releases',
+            'Advanced Analytics',
+            'Priority Support',
+            'Custom Branding'
+          ]
+        }
+      ];
 
-export const performancePricing = [
-  {
-    stripeId: "prod_NXu2gPbDeF7xH3",
-    name: "Performance Basic",
-    features: ["1 MSC credit", true],
-    credits: 1,
-    monthly: {
-      price: 39.99,
-      id: "price_1MmoE1FP1MiYzMK9H6R7rTmO",
-    },
-    yearly: {
-      price: 399.9,
-      id: "price_1MmoLeFP1MiYzMK9SHCGfSBr",
-    },
-  },
-  {
-    stripeId: "prod_NXu5LW8r6jKbc1",
-    name: "Performance Standard",
-    features: ["5 MSC credit", true, true, true, true],
-    credits: 5,
-    monthly: {
-      price: 99.99,
-      id: "price_1MmoHVFP1MiYzMK96DmM1mX2",
-    },
-    yearly: {
-      price: 999.9,
-      id: "price_1MmoMEFP1MiYzMK9prVCaoqr",
-    },
-  },
-  {
-    stripeId: "prod_NYBiJqWIBiBgFf",
-    name: "Performance Premium",
-    features: ["10 MSC credit", true, true, true, true, true],
-    credits: 10,
-    monthly: {
-      price: 249.99,
-      id: "price_1Mn5KoFP1MiYzMK9aVsGNCSA",
-    },
-    yearly: {
-      price: 2499.9,
-      id: "price_1Mn5KoFP1MiYzMK9RSYRFesW",
-    },
-  },
-  {
-    stripeId: "prod_NXu8v2s3IC9SXV",
-    name: "Performance Ultimate",
-    features: [
-      "15 MSC credit",
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
-    credits: 15,
-    monthly: {
-      price: 499.99,
-      id: "price_1MmoJrFP1MiYzMK93QZZe7yn",
-    },
-    yearly: {
-      price: 4999.9,
-      id: "price_1MmoMsFP1MiYzMK9cMY6N6GR",
-    },
-  },
-];
+    case 'company_admin':
+      return [
+        {
+          name: 'Label Basic',
+          monthlyPrice: '$99.99',
+          yearlyPrice: '$999.99',
+          yearlySavings: '$199.89',
+          features: [
+            'Up to 10 Artists',
+            'Basic Label Analytics',
+            'Email Support',
+            'Standard Reporting'
+          ]
+        },
+        {
+          name: 'Label Management',
+          monthlyPrice: '$199.99',
+          yearlyPrice: '$1,999.99',
+          yearlySavings: '$399.89',
+          features: [
+            'Unlimited Artists',
+            'Label Analytics',
+            'Artist Management',
+            'Content Oversight',
+            'Advanced Reporting'
+          ]
+        },
+        {
+          name: 'Label Enterprise',
+          monthlyPrice: '$499.99',
+          yearlyPrice: '$4,999.99',
+          yearlySavings: '$999.89',
+          features: [
+            'Unlimited Artists',
+            'Advanced Label Analytics',
+            'Priority Support',
+            'White-label Options',
+            'API Access',
+            'Dedicated Account Manager',
+            'Custom Integrations'
+          ]
+        }
+      ];
 
-export const recordingPricing = [
-  {
-    stripeId: "prod_NXuFJe9T00wlh5",
-    name: "Recording Basic",
-    features: ["1 MSC credit", true],
-    credits: 1,
-    monthly: {
-      price: 99.99,
-      id: "price_1MmoQYFP1MiYzMK9y8ikndJ2",
-    },
-    yearly: {
-      price: 999.9,
-      id: "price_1MmoQYFP1MiYzMK9BiXEGu6G",
-    },
-  },
-  {
-    stripeId: "prod_NXuGg6rZXYGQCx",
-    name: "Recording Standard",
-    features: ["5 MSC credit", true, true, true, true],
-    credits: 5,
-    monthly: {
-      price: 399.99,
-      id: "price_1MmoSLFP1MiYzMK9hhcnQaPY",
-    },
-    yearly: {
-      price: 3999.9,
-      id: "price_1MmoSLFP1MiYzMK9ou6NPo4f",
-    },
-  },
-  {
-    stripeId: "prod_NYBfptEnskUzCh",
-    name: "Recording Premium",
-    features: ["10 MSC credit", true, true, true, true, true],
-    credits: 10,
-    monthly: {
-      price: 599.99,
-      id: "price_1Mn5IDFP1MiYzMK9EqjkLUPt",
-    },
-    yearly: {
-      price: 5999.9,
-      id: "price_1Mn5IDFP1MiYzMK9zZ4BNIaY",
-    },
-  },
-  {
-    stripeId: "prod_NXuJ091mOJ0zFL",
-    name: "Recording Ultimate",
-    features: [
-      "15 MSC credit",
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
-    credits: 15,
-    monthly: {
-      price: 999.99,
-      id: "price_1MmoUWFP1MiYzMK9g6ASBsLL",
-    },
-    yearly: {
-      price: 9999.9,
-      id: "price_1MmoUWFP1MiYzMK9TKbQD4e1",
-    },
-  },
-];
+    case 'super_admin':
+      return [
+        {
+          name: 'Platform Basic',
+          monthlyPrice: '$499.99',
+          yearlyPrice: '$4,999.99',
+          yearlySavings: '$999.89',
+          features: [
+            'Single Brand Management',
+            'Basic Platform Analytics',
+            'Email Support',
+            'Standard Administration'
+          ]
+        },
+        {
+          name: 'Platform Enterprise',
+          monthlyPrice: '$999.99',
+          yearlyPrice: '$9,999.99',
+          yearlySavings: '$1,999.89',
+          features: [
+            'Multi-Brand Management',
+            'Platform Analytics',
+            'User Management',
+            'System Administration',
+            'Custom Branding',
+            'API Access',
+            'Dedicated Support'
+          ]
+        },
+        {
+          name: 'Platform Ultimate',
+          monthlyPrice: '$1,999.99',
+          yearlyPrice: '$19,999.99',
+          yearlySavings: '$3,999.89',
+          features: [
+            'Unlimited Brands',
+            'Advanced Platform Analytics',
+            'Priority Support',
+            'White-label Options',
+            'Full API Access',
+            'Dedicated Account Manager',
+            'Custom Integrations',
+            'On-premise Options'
+          ]
+        }
+      ];
+
+    case 'distribution_partner':
+      return [
+        {
+          name: 'Partner Basic',
+          monthlyPrice: '$79.99',
+          yearlyPrice: '$799.99',
+          yearlySavings: '$159.89',
+          features: [
+            'Basic Distribution Analytics',
+            'Content Management',
+            'Email Support',
+            'Standard Reporting'
+          ]
+        },
+        {
+          name: 'Partner Pro',
+          monthlyPrice: '$149.99',
+          yearlyPrice: '$1,499.99',
+          yearlySavings: '$299.89',
+          features: [
+            'Distribution Analytics',
+            'Content Management',
+            'Partner Reporting',
+            'API Access',
+            'Priority Support'
+          ]
+        },
+        {
+          name: 'Partner Enterprise',
+          monthlyPrice: '$299.99',
+          yearlyPrice: '$2,999.99',
+          yearlySavings: '$599.89',
+          features: [
+            'Advanced Distribution Analytics',
+            'Full Content Management',
+            'Custom Reporting',
+            'Full API Access',
+            'Dedicated Support',
+            'White-label Options',
+            'Custom Integrations'
+          ]
+        }
+      ];
+
+    default:
+      return [
+        {
+          name: 'Basic Plan',
+          monthlyPrice: '$9.99',
+          yearlyPrice: '$99.99',
+          yearlySavings: '$19.89',
+          features: [
+            'Basic Features',
+            'Email Support'
+          ]
+        }
+      ];
+  }
+};
 
 function Pricing() {
-  const { user, isAuthenticated } = useAuth0();
-
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [chargingInterval, setChargingInterval] = useState("monthly");
   const [loading, setLoading] = useState();
+  const [userRole, setUserRole] = useState(null);
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = getUserRole(user);
+      setUserRole(role);
+      setPlans(getRoleSpecificPlans(role));
+    } else {
+      // Default plans for non-authenticated users
+      setPlans(getRoleSpecificPlans('artist'));
+    }
+  }, [isAuthenticated, user]);
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <SEO pageTitle="Pricing" />
       <Container>
         <div className="py-16">
-          <div className="text-4xl font-bold text-center">{COMPANY_INFO.name} Pricing</div>
-          <Button.Group className="mt-8 justify-center w-full">
-            <Button
-              color={chargingInterval === "monthly" ? "info" : "gray"}
-              onClick={() => {
-                setChargingInterval("monthly");
-              }}
-            >
-              Monthly
-            </Button>
-            <Button
-              color={chargingInterval === "yearly" ? "info" : "gray"}
-              onClick={() => {
-                setChargingInterval("yearly");
-              }}
-            >
-              Yearly
-            </Button>
-          </Button.Group>
-
-          <h2 className="my-6 text-2xl text-center">Performance packages</h2>
-          <div className="w-full grid justify-center grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {performancePricing.map((p, i) => (
-              <PackageListing
-                actionName="Subscribe"
-                user={user}
-                p={p}
-                chargingInterval={chargingInterval}
-                loading={loading?.type === "p" && loading?.index === i}
-                setLoading={(v) =>
-                  v ? setLoading({ type: "p", index: i }) : setLoading(null)
-                }
+          <div className="text-center mb-8">
+            <div className="flex flex-col items-center mb-4">
+              <img 
+                src="/logos/yhwh-msc-logo.png" 
+                alt="YHWH MSC" 
+                className="h-12 w-auto mb-2"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                  e.target.onerror = () => {
+                    e.target.style.display = 'none';
+                  };
+                }}
               />
+              <div className="text-lg text-gray-600">
+                Pricing
+              </div>
+            </div>
+          </div>
+          
+          {isAuthenticated && userRole && (
+            <div className="text-center mb-8">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                {userRole.replace('_', ' ').toUpperCase()} Plans
+              </span>
+            </div>
+          )}
+
+          <div className="flex justify-center mb-8">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setChargingInterval('monthly')}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  chargingInterval === 'monthly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setChargingInterval('yearly')}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  chargingInterval === 'yearly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Yearly
+                {chargingInterval === 'yearly' && (
+                  <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">
+                    Save
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {plans.map((plan, index) => (
+              <div
+                key={index}
+                className="relative p-6 rounded-lg border-2 transition-all hover:border-gray-300 border-gray-200"
+              >
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
+                  <div className="mb-2">
+                    <span className="text-3xl font-bold text-gray-900">
+                      {chargingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
+                    </span>
+                    <span className="text-gray-500">
+                      /{chargingInterval === 'monthly' ? 'month' : 'year'}
+                    </span>
+                  </div>
+                  {chargingInterval === 'yearly' && (
+                    <div className="flex items-center justify-center space-x-2">
+                      <span className="text-sm text-gray-500 line-through">
+                        {plan.monthlyPrice}/month
+                      </span>
+                      <span className="text-sm font-medium text-green-600">
+                        Save {plan.yearlySavings}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <ul className="space-y-2 mb-6">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="w-full py-2 px-4 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      window.location.href = '/login';
+                    } else {
+                      // Handle subscription logic
+                      console.log('Subscribe to:', plan.name);
+                    }
+                  }}
+                >
+                  {isAuthenticated ? 'Select Plan' : 'Sign Up'}
+                </button>
+              </div>
             ))}
           </div>
-          <h2 className="mt-12 mb-6 text-2xl text-center">
-            Recording packages
-          </h2>
-          <div className="w-full grid justify-center grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {recordingPricing.map((p, i) => (
-              <PackageListing
-                actionName="Subscribe"
-                user={user}
-                p={p}
-                chargingInterval={chargingInterval}
-                loading={loading?.type === "r" && loading?.index === i}
-                setLoading={(v) =>
-                  v ? setLoading({ type: "r", index: i }) : setLoading(null)
-                }
-              />
-            ))}
+
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 mb-4">
+              Need a custom plan? Contact our sales team for enterprise solutions.
+            </p>
+            <button className="text-blue-600 hover:text-blue-700 font-medium">
+              Contact Sales
+            </button>
           </div>
         </div>
       </Container>
@@ -234,75 +354,3 @@ function Pricing() {
 }
 
 export default Pricing;
-
-const PackageListing = ({
-  p,
-  chargingInterval,
-  loading,
-  setLoading,
-  user,
-  actionName,
-}) => {
-  const router = useRouter();
-  // subscriptionId implies user has a subscription and can update their plan via Customer Portal
-  const shouldOpenCustomerPortal = user && user.subscriptionId;
-  const current = user && user?.planActive && user.productId === p.stripeId;
-
-  return (
-    <div className="p-4 rounded-lg border border-gray-200 shadow transition-shadow hover:shadow-md">
-      <p className="text-lg font-semibold">{p.name}</p>
-      <div className="mt-3 flex items-center gap-2">
-        <div className="text-3xl font-bold">
-          £{p[chargingInterval].price.toFixed(2)}
-        </div>
-        <div className="text-sm text-gray-500 max-w-[3ch] leading-none">
-          per {chargingInterval === "monthly" ? "month" : "year"}
-        </div>
-      </div>
-      <ul className="mt-5 flex flex-col gap-2">
-        {features.map((f, i) => (
-          <p
-            className={classNames(
-              "text-xs flex items-center gap-1.5",
-              p.features[i] ? "text-gray-900" : "text-gray-400"
-            )}
-          >
-            {p.features[i] ? (
-              <Check
-                className="text-emerald-700 shrink-0 h-4 w-4 rounded-full border-[1.5px] p-0.5 border-emerald-600"
-                strokeWidth={3}
-              />
-            ) : (
-              <X
-                className="text-gray-600 shrink-0 h-4 w-4 rounded-full border-[1.5px] p-0.5 border-gray-300"
-                strokeWidth={1}
-              />
-            )}
-            {f === "{}" ? p.features[i] : f}
-          </p>
-        ))}
-      </ul>
-      <Button
-        disabled={loading || current}
-        className="w-full mt-8"
-        size="lg"
-        onClick={async () => {
-          setLoading(true);
-          if (!user) return router.push("/register");
-          if (shouldOpenCustomerPortal) {
-            await openCustomerPortal();
-          } else {
-            const { data } = await axios.get(
-              `/api/req/stripe-utils/create-checkout-session?priceId=${p[chargingInterval].id}`
-            );
-            window.open(data.url);
-          }
-          setLoading(false);
-        }}
-      >
-        {loading && <Spinner className="mr-2" />}
-        {current ? "Current" : actionName}
-      </Button>
-    </div>
-  );
-};

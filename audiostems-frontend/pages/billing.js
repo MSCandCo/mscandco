@@ -41,7 +41,11 @@ export default function Billing() {
                   'Unlimited Releases',
                   'Advanced Analytics',
                   'Priority Support',
-                  'Custom Branding'
+                  'Earnings Reporting',
+                  'Royalty Tracking',
+                  'Distribution Analytics',
+                  'Custom Release Scheduling',
+                  'Multi-Platform Distribution'
                 ]
               },
               availablePlans: [
@@ -52,9 +56,13 @@ export default function Billing() {
                   yearlySavings: '$19.89',
                   features: [
                     'Up to 10 Releases',
-                    'Basic Analytics',
+                    'Basic Analytics Dashboard',
                     'Email Support',
-                    'Standard Branding'
+                    'Earnings Overview',
+                    'Basic Royalty Tracking',
+                    'Standard Distribution',
+                    'Release Status Tracking',
+                    'Basic Performance Metrics'
                   ]
                 },
                 {
@@ -64,9 +72,17 @@ export default function Billing() {
                   yearlySavings: '$59.89',
                   features: [
                     'Unlimited Releases',
-                    'Advanced Analytics',
+                    'Advanced Analytics Dashboard',
                     'Priority Support',
-                    'Custom Branding'
+                    'Detailed Earnings Reports',
+                    'Advanced Royalty Tracking',
+                    'Multi-Platform Distribution',
+                    'Custom Release Scheduling',
+                    'Real-time Performance Metrics',
+                    'Revenue Forecasting',
+                    'Market Trend Analysis',
+                    'Competitor Insights',
+                    'Automated Reporting'
                   ],
                   current: true
                 }
