@@ -66,10 +66,9 @@ function Footer() {
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:gap-0">
             <StyledLink href="/">{COMPANY_INFO.copyright}</StyledLink>
             <div className="flex gap-2 sm:gap-4 md:gap-6 justify-center lg:gap-12">
-              <StyledLink href="#">Privacy Policy</StyledLink>
-              <StyledLink href="#">License Terms</StyledLink>
-              <StyledLink href="#">Terms of Use</StyledLink>
-              <StyledLink href="#">Careers</StyledLink>
+              <StyledLink href="/privacy-policy">Privacy Policy</StyledLink>
+              <StyledLink href="/license-terms">License Terms</StyledLink>
+              <StyledLink href="/terms-of-use">Terms of Use</StyledLink>
             </div>
           </div>
         </div>
