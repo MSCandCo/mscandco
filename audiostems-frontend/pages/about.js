@@ -144,16 +144,6 @@ export default function About() {
         
         <div className="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
           <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="flex items-center justify-center mb-8">
-              <img 
-                src="/logos/yhwh-msc-logo.png" 
-                alt="YHWH MSC" 
-                className="h-16 w-auto mr-6"
-                onError={(e) => {
-                  e.target.src = '/logos/yhwh-msc-logo.svg';
-                }}
-              />
-            </div>
             <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
               The Future of Music
             </h1>
