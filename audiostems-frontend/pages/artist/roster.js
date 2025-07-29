@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0';
+import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '../../lib/auth0-config';
 import { 
   FaPlus, 
@@ -150,7 +150,7 @@ const ContributorVideoSection = () => {
 
 export default function ArtistRoster() {
   console.log('ArtistRoster component rendering');
-  const { user, isLoading: authLoading } = useUser();
+  const { user, isLoading: authLoading } = useAuth0();
   const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');

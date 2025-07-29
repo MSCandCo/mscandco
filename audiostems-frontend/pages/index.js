@@ -283,6 +283,161 @@ export default function Home() {
           </Button>
         </div>
       </section>
+      <section className="py-16 bg-white">
+        <Container>
+          <h2 className="text-4xl font-bold text-center mb-16">
+            Choose Your Plan
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Artist Starter Plan */}
+            <div className="bg-gray-50 p-8 rounded-lg">
+              <h3 className="text-2xl font-bold mb-4">Artist Starter</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$9.99</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Up to 10 releases per year
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Basic analytics and reporting
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Email support
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Distribution to major platforms
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Basic earnings tracking
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Release management tools
+                </li>
+              </ul>
+              <Button 
+                className="w-full" 
+                onClick={() => router.push("/register")}
+              >
+                Get Started
+              </Button>
+            </div>
+
+            {/* Artist Pro Plan */}
+            <div className="bg-blue-50 p-8 rounded-lg border-2 border-blue-200">
+              <h3 className="text-2xl font-bold mb-4">Artist Pro</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$19.99</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Unlimited releases per year
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Advanced analytics and reporting
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Priority email and phone support
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Custom branding options
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Distribution to all major platforms
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Detailed earnings tracking
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Marketing campaign tools
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Advanced royalty tracking
+                </li>
+              </ul>
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700" 
+                onClick={() => router.push("/register")}
+              >
+                Get Started
+              </Button>
+            </div>
+
+            {/* Label Admin Plan */}
+            <div className="bg-gray-50 p-8 rounded-lg">
+              <h3 className="text-2xl font-bold mb-4">Label Management</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$29.99</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Unlimited Artists Management
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Label Analytics Dashboard
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Artist Content Oversight
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Advanced Reporting Tools
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Release Management
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Artist Performance Tracking
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Label Branding Options
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Priority Email Support
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Content Approval Workflows
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Revenue Tracking
+                </li>
+              </ul>
+              <Button 
+                className="w-full" 
+                onClick={() => router.push("/register")}
+              >
+                Get Started
+              </Button>
+            </div>
+          </div>
+        </Container>
+      </section>
       <section className="mx-3 md:mx-8 mb-16 py-16 bg-gray-100">
         <Container>
           <h2 className="pb-16 text-4xl font-bold text-center">

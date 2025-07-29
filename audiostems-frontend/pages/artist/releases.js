@@ -1,10 +1,271 @@
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList } from 'react-icons/fa';
+import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaSend } from 'react-icons/fa';
 import { Send, Eye, FileText, CheckCircle, Play } from 'lucide-react';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
+import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
+
+/*
+ * Distribution Partner Workflow:
+ * 1. Artist creates release → Auto-saves to DRAFT
+ * 2. Artist completes all fields → Can SUBMIT
+ * 3. Distribution Partner reviews → Moves to UNDER REVIEW
+ * 4. Distribution Partner approves → Moves to COMPLETED and sends to DSPs
+ * 5. Release goes live on DSPs → Moves to LIVE
+ * 
+ * Edit functionality: Only available for DRAFT and SUBMITTED releases
+ * Distribution Partner controls: UNDER REVIEW, COMPLETED, and LIVE statuses
+ */
+
+// Mock data for releases - moved outside component to prevent re-creation
+const mockReleases = [
+  {
+    id: 1,
+    projectName: 'Summer Vibes EP',
+    artist: 'YHWH MSC',
+    releaseType: 'EP',
+    genre: 'Electronic',
+    status: 'submitted',
+    submissionDate: '2024-01-15',
+    expectedReleaseDate: '2024-02-15',
+    assets: 4,
+    earnings: 2340,
+    streams: 45678,
+    lastUpdated: '2024-01-15',
+    cover: '🎵',
+    feedback: 'Great production quality',
+    marketingPlan: 'Social media campaign + playlist pitching',
+    trackListing: [
+      { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678' },
+      { title: 'Ocean Waves', duration: '4:12', isrc: 'USRC12345679' },
+      { title: 'Sunset Dreams', duration: '3:58', isrc: 'USRC12345680' },
+      { title: 'Beach Party', duration: '4:30', isrc: 'USRC12345681' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Mix Engineer', name: 'Studio Pro' },
+      { role: 'Mastering', name: 'Master Lab' }
+    ],
+    publishingNotes: 'All tracks written and produced by YHWH MSC'
+  },
+  {
+    id: 2,
+    projectName: 'Midnight Sessions',
+    artist: 'YHWH MSC',
+    releaseType: 'Album',
+    genre: 'Hip Hop',
+    status: 'under_review',
+    submissionDate: '2024-01-12',
+    expectedReleaseDate: '2024-03-20',
+    assets: 6,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-01-15',
+    cover: '🎵',
+    feedback: 'Under review by distribution team - awaiting approval',
+    marketingPlan: 'TBD',
+    trackListing: [
+      { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
+      { title: 'Street Lights', duration: '3:30', isrc: 'USRC12345683' },
+      { title: 'Urban Nights', duration: '4:05', isrc: 'USRC12345684' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Featured Artist', name: 'MC Flow' }
+    ],
+    publishingNotes: 'Collaborative project with MC Flow'
+  },
+  {
+    id: 3,
+    projectName: 'Acoustic Collection',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Acoustic',
+    status: 'draft',
+    submissionDate: '2024-01-10',
+    expectedReleaseDate: '2024-02-01',
+    assets: 1,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-01-10',
+    cover: '🎵',
+    feedback: '',
+    marketingPlan: '',
+    trackListing: [
+      { title: 'Acoustic Dreams', duration: '4:20', isrc: 'USRC12345685' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' }
+    ],
+    publishingNotes: 'Solo acoustic performance'
+  },
+  {
+    id: 4,
+    projectName: 'Urban Beats Collection',
+    artist: 'YHWH MSC',
+    releaseType: 'EP',
+    genre: 'Hip Hop',
+    status: 'draft',
+    submissionDate: '2024-01-08',
+    expectedReleaseDate: '2024-02-20',
+    assets: 3,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-01-08',
+    cover: '🎵',
+    feedback: '',
+    marketingPlan: '',
+    trackListing: [
+      { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686' },
+      { title: 'Street Flow', duration: '3:45', isrc: 'USRC12345687' },
+      { title: 'City Lights', duration: '4:10', isrc: 'USRC12345688' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' }
+    ],
+    publishingNotes: 'Urban hip-hop collection'
+  },
+  {
+    id: 5,
+    projectName: 'Electronic Dreams',
+    artist: 'YHWH MSC',
+    releaseType: 'Album',
+    genre: 'Electronic',
+    status: 'draft',
+    submissionDate: '2024-01-05',
+    expectedReleaseDate: '2024-03-15',
+    assets: 8,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-01-05',
+    cover: '🎵',
+    feedback: '',
+    marketingPlan: '',
+    trackListing: [
+      { title: 'Digital Dreams', duration: '5:15', isrc: 'USRC12345689' },
+      { title: 'Synthetic Soul', duration: '4:30', isrc: 'USRC12345690' },
+      { title: 'Electric Night', duration: '6:20', isrc: 'USRC12345691' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Sound Design', name: 'Digital Studio' }
+    ],
+    publishingNotes: 'Electronic music exploration'
+  },
+  {
+    id: 6,
+    projectName: 'Neon Lights',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Electronic',
+    status: 'completed',
+    submissionDate: '2023-12-15',
+    expectedReleaseDate: '2024-01-15',
+    actualReleaseDate: '2024-01-15',
+    assets: 1,
+    earnings: 1250,
+    streams: 23456,
+    lastUpdated: '2024-01-15',
+    cover: '🎵',
+    feedback: 'Successfully distributed to all major platforms',
+    marketingPlan: 'Playlist pitching + social media campaign',
+    trackListing: [
+      { title: 'Neon Lights', duration: '3:55', isrc: 'USRC12345692' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Mastering', name: 'Master Lab' }
+    ],
+    publishingNotes: 'Electronic dance track with neon aesthetic'
+  },
+  {
+    id: 7,
+    projectName: 'City Nights',
+    artist: 'YHWH MSC',
+    releaseType: 'EP',
+    genre: 'Hip Hop',
+    status: 'completed',
+    submissionDate: '2023-11-20',
+    expectedReleaseDate: '2024-01-10',
+    actualReleaseDate: '2024-01-10',
+    assets: 3,
+    earnings: 890,
+    streams: 15678,
+    lastUpdated: '2024-01-10',
+    cover: '🎵',
+    feedback: 'Distributed successfully - performing well on urban playlists',
+    marketingPlan: 'Urban radio promotion + influencer partnerships',
+    trackListing: [
+      { title: 'City Nights', duration: '4:12', isrc: 'USRC12345693' },
+      { title: 'Street Vibes', duration: '3:45', isrc: 'USRC12345694' },
+      { title: 'Urban Flow', duration: '4:30', isrc: 'USRC12345695' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Featured Artist', name: 'Urban MC' }
+    ],
+    publishingNotes: 'Urban hip-hop EP with street culture themes'
+  },
+  {
+    id: 8,
+    projectName: 'Ocean Waves',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Acoustic',
+    status: 'live',
+    submissionDate: '2023-10-10',
+    expectedReleaseDate: '2023-12-01',
+    actualReleaseDate: '2023-12-01',
+    assets: 1,
+    earnings: 2150,
+    streams: 45678,
+    lastUpdated: '2024-01-20',
+    cover: '🎵',
+    feedback: 'Live on all platforms - trending on acoustic playlists',
+    marketingPlan: 'Acoustic playlist pitching + YouTube promotion',
+    trackListing: [
+      { title: 'Ocean Waves', duration: '4:25', isrc: 'USRC12345696' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Guitar', name: 'YHWH MSC' }
+    ],
+    publishingNotes: 'Solo acoustic guitar performance'
+  },
+  {
+    id: 9,
+    projectName: 'Digital Age',
+    artist: 'YHWH MSC',
+    releaseType: 'Album',
+    genre: 'Electronic',
+    status: 'live',
+    submissionDate: '2023-09-15',
+    expectedReleaseDate: '2023-11-15',
+    actualReleaseDate: '2023-11-15',
+    assets: 10,
+    earnings: 5670,
+    streams: 123456,
+    lastUpdated: '2024-01-25',
+    cover: '🎵',
+    feedback: 'Live and performing exceptionally well across all platforms',
+    marketingPlan: 'Electronic festival promotion + streaming campaign',
+    trackListing: [
+      { title: 'Digital Age', duration: '5:30', isrc: 'USRC12345697' },
+      { title: 'Future Tech', duration: '4:15', isrc: 'USRC12345698' },
+      { title: 'Virtual Reality', duration: '6:45', isrc: 'USRC12345699' },
+      { title: 'AI Dreams', duration: '4:55', isrc: 'USRC12345700' },
+      { title: 'Cyber World', duration: '5:20', isrc: 'USRC12345701' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Sound Design', name: 'Digital Studio' },
+      { role: 'Mastering', name: 'Master Lab' }
+    ],
+    publishingNotes: 'Conceptual electronic album exploring digital themes'
+  }
+];
 
 export default function ArtistReleases() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -18,120 +279,41 @@ export default function ArtistReleases() {
   const [showFilters, setShowFilters] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingRelease, setEditingRelease] = useState(null);
+  const [viewReleaseDetailsModal, setViewReleaseDetailsModal] = useState(false);
+  const [selectedRelease, setSelectedRelease] = useState(null);
+  const [hoveredStatus, setHoveredStatus] = useState(null);
 
-  // Mock data for releases
-  const mockReleases = [
-    {
-      id: 1,
-      projectName: 'Summer Vibes EP',
-      artist: 'YHWH MSC',
-      releaseType: 'EP',
-      genre: 'Electronic',
-      status: 'submitted',
-      submissionDate: '2024-01-15',
-      expectedReleaseDate: '2024-02-15',
-      assets: 4,
-      earnings: 2340,
-      streams: 45678,
-      lastUpdated: '2024-01-15',
-      cover: '🎵',
-      feedback: 'Great production quality',
-      marketingPlan: 'Social media campaign + playlist pitching',
-      trackListing: [
-        { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678' },
-        { title: 'Ocean Waves', duration: '4:12', isrc: 'USRC12345679' },
-        { title: 'Sunset Dreams', duration: '3:58', isrc: 'USRC12345680' },
-        { title: 'Beach Party', duration: '4:30', isrc: 'USRC12345681' }
-      ],
-      credits: [
-        { role: 'Producer', name: 'YHWH MSC' },
-        { role: 'Mix Engineer', name: 'Studio Pro' },
-        { role: 'Mastering', name: 'Master Lab' }
-      ],
-      publishingNotes: 'All tracks written and produced by YHWH MSC'
-    },
-    {
-      id: 2,
-      projectName: 'Midnight Sessions',
-      artist: 'YHWH MSC',
-      releaseType: 'Album',
-      genre: 'Hip Hop',
-      status: 'under_review',
-      submissionDate: '2024-01-12',
-      expectedReleaseDate: '2024-03-20',
-      assets: 6,
-      earnings: 0,
-      streams: 0,
-      lastUpdated: '2024-01-12',
-      cover: '🎵',
-      feedback: 'Under review by distribution team',
-      marketingPlan: 'TBD',
-      trackListing: [
-        { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
-        { title: 'Street Lights', duration: '3:30', isrc: 'USRC12345683' },
-        { title: 'Urban Nights', duration: '4:05', isrc: 'USRC12345684' }
-      ],
-      credits: [
-        { role: 'Producer', name: 'YHWH MSC' },
-        { role: 'Featured Artist', name: 'MC Flow' }
-      ],
-      publishingNotes: 'Collaborative project with MC Flow'
-    },
-    {
-      id: 3,
-      projectName: 'Acoustic Collection',
-      artist: 'YHWH MSC',
-      releaseType: 'Single',
-      genre: 'Acoustic',
-      status: 'completed',
-      submissionDate: '2024-01-05',
-      expectedReleaseDate: '2024-01-20',
-      assets: 1,
-      earnings: 5670,
-      streams: 89012,
-      lastUpdated: '2024-01-05',
-      cover: '🎵',
-      feedback: 'Distribution confirmed - live on all platforms',
-      marketingPlan: 'Radio promotion + acoustic playlist features',
-      trackListing: [
-        { title: 'Acoustic Dreams', duration: '4:15', isrc: 'USRC12345685' }
-      ],
-      credits: [
-        { role: 'Artist', name: 'YHWH MSC' },
-        { role: 'Guitar', name: 'YHWH MSC' },
-        { role: 'Vocals', name: 'YHWH MSC' }
-      ],
-      publishingNotes: 'Solo acoustic performance'
-    },
-    {
-      id: 4,
-      projectName: 'Live at the Studio',
-      artist: 'YHWH MSC',
-      releaseType: 'Live Album',
-      genre: 'Jazz',
-      status: 'live',
-      submissionDate: '2024-01-08',
-      expectedReleaseDate: '2024-01-25',
-      assets: 8,
-      earnings: 8900,
-      streams: 123456,
-      lastUpdated: '2024-01-08',
-      cover: '🎵',
-      feedback: 'Live recording approved and distributed',
-      marketingPlan: 'Jazz festival promotion + live music platforms',
-      trackListing: [
-        { title: 'Studio Jam', duration: '5:30', isrc: 'USRC12345686' },
-        { title: 'Improvisation', duration: '7:15', isrc: 'USRC12345687' },
-        { title: 'Jazz Standards', duration: '4:45', isrc: 'USRC12345688' }
-      ],
-      credits: [
-        { role: 'Band Leader', name: 'YHWH MSC' },
-        { role: 'Piano', name: 'YHWH MSC' },
-        { role: 'Saxophone', name: 'Jazz Master' }
-      ],
-      publishingNotes: 'Live recording from studio session'
+  // Validation function to check if all required fields are filled
+  const validateReleaseForSubmission = (release) => {
+    if (!release.projectName || !release.artist || !release.releaseType || !release.genre) {
+      return false;
     }
-  ];
+    
+    if (!release.trackListing || release.trackListing.length === 0) {
+      return false;
+    }
+    
+    // Check if all tracks have required fields
+    for (const track of release.trackListing) {
+      if (!track.title || !track.duration || !track.isrc) {
+        return false;
+      }
+    }
+    
+    if (!release.credits || release.credits.length === 0) {
+      return false;
+    }
+    
+    // Check if all credits have required fields
+    for (const credit of release.credits) {
+      if (!credit.role || !credit.name) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
 
   // Load profile data and releases
   useEffect(() => {
@@ -159,6 +341,49 @@ export default function ArtistReleases() {
     }
   }, [isAuthenticated, isLoading]);
 
+  // Memoize filtered releases to prevent unnecessary re-renders
+  const filteredReleases = useMemo(() => {
+    return releases.filter(release => {
+      const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
+      const matchesSearch = release.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           release.artist.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesGenre = genreFilter === 'all' || release.genre === genreFilter;
+      const matchesReleaseType = releaseTypeFilter === 'all' || release.releaseType === releaseTypeFilter;
+      
+      return matchesStatus && matchesSearch && matchesGenre && matchesReleaseType;
+    });
+  }, [releases, statusFilter, searchTerm, genreFilter, releaseTypeFilter]);
+
+  // Memoize stats calculation
+  const stats = useMemo(() => {
+    const statusCounts = { draft: 0, submitted: 0, under_review: 0, completed: 0, live: 0 };
+    let totalEarnings = 0;
+    let totalStreams = 0;
+    let totalReleases = releases.length;
+    
+    releases.forEach(release => {
+      if (statusCounts.hasOwnProperty(release.status)) {
+        statusCounts[release.status]++;
+      }
+      totalEarnings += release.earnings || 0;
+      totalStreams += release.streams || 0;
+    });
+    
+    return {
+      ...statusCounts,
+      totalReleases,
+      totalEarnings,
+      totalStreams
+    };
+  }, [releases]);
+
+  // Memoize displayed releases based on hovered status
+  const displayedReleases = useMemo(() => {
+    return hoveredStatus 
+      ? releases.filter(release => release.status === hoveredStatus)
+      : releases;
+  }, [releases, hoveredStatus]);
+
   if (isLoading || isLoadingData) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -184,21 +409,10 @@ export default function ArtistReleases() {
     );
   }
 
-  // Filter releases based on current filters
-  const filteredReleases = releases.filter(release => {
-    const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
-    const matchesSearch = release.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         release.artist.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGenre = genreFilter === 'all' || release.genre === genreFilter;
-    const matchesReleaseType = releaseTypeFilter === 'all' || release.releaseType === releaseTypeFilter;
-    
-    return matchesStatus && matchesSearch && matchesGenre && matchesReleaseType;
-  });
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'under_review': return 'bg-orange-100 text-orange-800';
+      case 'under_review': return 'bg-amber-100 text-amber-800';
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'live': return 'bg-purple-100 text-purple-800';
@@ -230,7 +444,7 @@ export default function ArtistReleases() {
 
   const getReleaseTypeColor = (type) => {
     switch (type) {
-      case 'Single': return 'bg-red-100 text-red-800';
+      case 'Single': return 'bg-amber-100 text-amber-800';
       case 'EP': return 'bg-blue-100 text-blue-800';
       case 'Album': return 'bg-green-100 text-green-800';
       case 'Mixtape': return 'bg-purple-100 text-purple-800';
@@ -241,25 +455,13 @@ export default function ArtistReleases() {
   const getGenreColor = (genre) => {
     const colors = {
       'Electronic': 'bg-purple-100 text-purple-800',
-      'Hip Hop': 'bg-orange-100 text-orange-800',
+      'Hip Hop': 'bg-amber-100 text-amber-800',
       'Acoustic': 'bg-green-100 text-green-800',
       'Pop': 'bg-pink-100 text-pink-800',
-      'Rock': 'bg-red-100 text-red-800',
+      'Rock': 'bg-amber-100 text-amber-800',
       'Jazz': 'bg-blue-100 text-blue-800'
     };
     return colors[genre] || 'bg-gray-100 text-gray-800';
-  };
-
-  const stats = {
-    totalReleases: releases.length,
-    totalAssets: releases.reduce((sum, release) => sum + release.assets, 0),
-    totalEarnings: releases.reduce((sum, release) => sum + release.earnings, 0),
-    totalStreams: releases.reduce((sum, release) => sum + release.streams, 0),
-    submitted: releases.filter(r => r.status === 'submitted').length,
-    under_review: releases.filter(r => r.status === 'under_review').length,
-    draft: releases.filter(r => r.status === 'draft').length,
-    completed: releases.filter(r => r.status === 'completed').length,
-    live: releases.filter(r => r.status === 'live').length
   };
 
   const renderAllProjects = () => (
@@ -321,8 +523,9 @@ export default function ArtistReleases() {
           <nav className="-mb-px flex space-x-8">
             {[
               { id: 'all', label: 'All Releases', count: stats.totalReleases },
-              { id: 'submitted', label: 'Submitted', count: stats.submitted },
               { id: 'draft', label: 'Draft', count: stats.draft },
+              { id: 'submitted', label: 'Submitted', count: stats.submitted },
+              { id: 'under_review', label: 'Under Review', count: stats.under_review },
               { id: 'completed', label: 'Completed', count: stats.completed },
               { id: 'live', label: 'Live', count: stats.live }
             ].map((tab) => (
@@ -423,7 +626,10 @@ export default function ArtistReleases() {
               {/* Create New Release Button */}
         <div className="mb-6">
           <button 
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setEditingRelease(null);
+              setShowCreateModal(true);
+            }}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg flex items-center"
           >
             <FaPlus className="mr-2" />
@@ -486,12 +692,81 @@ export default function ArtistReleases() {
               </div>
 
               <div className="mt-6 flex space-x-2">
-                <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded">
-                  Edit
-                </button>
-                <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded">
-                  View Details
-                </button>
+                {release.status === 'draft' ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setEditingRelease(release);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        // Submit the release for review
+                        console.log('Submitting release for review:', release);
+                        // Here you would call an API to submit the release
+                        // For now, we'll just log it
+                      }}
+                      disabled={!validateReleaseForSubmission(release)}
+                      className={`flex-1 text-sm font-medium py-2 px-3 rounded ${
+                        validateReleaseForSubmission(release)
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Submit Release
+                    </button>
+                  </>
+                ) : release.status === 'submitted' ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setEditingRelease(release);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === 'under_review' ? (
+                  <>
+                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setSelectedRelease(release);
+                      setViewReleaseDetailsModal(true);
+                    }}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                  >
+                    View Details
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -508,61 +783,152 @@ export default function ArtistReleases() {
     </div>
   );
 
-  const renderStatusBoard = () => (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Release Status Overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { status: 'submitted', label: 'Submitted', count: stats.submitted, color: 'bg-blue-500' },
-            { status: 'draft', label: 'Draft', count: stats.draft, color: 'bg-yellow-500' },
-            { status: 'completed', label: 'Completed', count: stats.completed, color: 'bg-green-500' },
-            { status: 'live', label: 'Live', count: stats.live, color: 'bg-purple-500' }
-          ].map((item) => (
-            <div key={item.status} className="bg-white rounded-lg shadow p-4 text-center">
-              <div className={`w-12 h-12 ${item.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl`}>
-                {getStatusIcon(item.status)}
+  const renderStatusBoard = () => {
+    const statusItems = [
+      { status: 'draft', label: 'Draft', count: stats.draft, color: 'bg-yellow-500' },
+      { status: 'submitted', label: 'Submitted', count: stats.submitted, color: 'bg-blue-500' },
+      { status: 'under_review', label: 'Under Review', count: stats.under_review, color: 'bg-amber-500' },
+      { status: 'completed', label: 'Completed', count: stats.completed, color: 'bg-green-500' },
+      { status: 'live', label: 'Live', count: stats.live, color: 'bg-purple-500' }
+    ];
+
+    return (
+      <div>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Release Status Overview</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {statusItems.map((item) => (
+              <div 
+                key={item.status} 
+                className={`bg-white rounded-lg shadow p-4 text-center relative cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === item.status 
+                    ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' 
+                    : 'hover:shadow-lg'
+                }`}
+                onMouseEnter={() => setHoveredStatus(item.status)}
+              >
+                <div className={`w-12 h-12 ${item.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl`}>
+                  {getStatusIcon(item.status)}
+                </div>
+                <h3 className="font-semibold text-gray-900">{item.label}</h3>
+                <p className="text-2xl font-bold text-gray-900">{item.count}</p>
               </div>
-              <h3 className="font-semibold text-gray-900">{item.label}</h3>
-              <p className="text-2xl font-bold text-gray-900">{item.count}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedReleases.map((release) => (
+            <div key={release.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-3xl">{release.cover}</div>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
+                    {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                  </span>
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{release.projectName}</h3>
+                <p className="text-gray-600 mb-3">{release.artist}</p>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getReleaseTypeColor(release.releaseType)}`}>
+                    {release.releaseType}
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getGenreColor(release.genre)}`}>
+                    {release.genre}
+                  </span>
+                </div>
+                
+                <div className="text-sm text-gray-600">
+                  <p>Assets: {release.assets}</p>
+                  <p>Expected: {release.expectedReleaseDate ? new Date(release.expectedReleaseDate).toLocaleDateString() : 'TBD'}</p>
+                </div>
+                
+                <div className="mt-4 flex space-x-2">
+                  {release.status === 'draft' ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setEditingRelease(release);
+                          setShowCreateModal(true);
+                        }}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => {
+                          // Submit the release for review
+                          console.log('Submitting release for review:', release);
+                          // Here you would call an API to submit the release
+                          // For now, we'll just log it
+                        }}
+                        disabled={!validateReleaseForSubmission(release)}
+                        className={`flex-1 text-sm font-medium py-2 px-3 rounded ${
+                          validateReleaseForSubmission(release)
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        Submit Release
+                      </button>
+                    </>
+                  ) : release.status === 'submitted' ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setEditingRelease(release);
+                          setShowCreateModal(true);
+                        }}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setViewReleaseDetailsModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Details
+                      </button>
+                    </>
+                  ) : release.status === 'under_review' ? (
+                    <>
+                      <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                        Request Edit
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setViewReleaseDetailsModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Details
+                      </button>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredReleases.map((release) => (
-          <div key={release.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-3xl">{release.cover}</div>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
-                  {getStatusIcon(release.status)} {getStatusLabel(release.status)}
-                </span>
-              </div>
-              
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{release.projectName}</h3>
-              <p className="text-gray-600 mb-3">{release.artist}</p>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getReleaseTypeColor(release.releaseType)}`}>
-                  {release.releaseType}
-                </span>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getGenreColor(release.genre)}`}>
-                  {release.genre}
-                </span>
-              </div>
-              
-              <div className="text-sm text-gray-600">
-                <p>Assets: {release.assets}</p>
-                <p>Expected: {release.expectedReleaseDate ? new Date(release.expectedReleaseDate).toLocaleDateString() : 'TBD'}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderReleaseCalendar = () => (
     <div>
@@ -609,6 +975,104 @@ export default function ArtistReleases() {
                     {getStatusIcon(release.status)} {getStatusLabel(release.status)}
                   </span>
                 </div>
+              </div>
+              
+              <div className="mt-3 flex space-x-2">
+                {release.status === 'draft' ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setEditingRelease(release);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        // Submit the release for review
+                        console.log('Submitting release for review:', release);
+                        // Here you would call an API to submit the release
+                        // For now, we'll just log it
+                      }}
+                      disabled={!validateReleaseForSubmission(release)}
+                      className={`flex-1 text-sm font-medium py-2 px-3 rounded ${
+                        validateReleaseForSubmission(release)
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Submit Release
+                    </button>
+                  </>
+                ) : release.status === 'submitted' ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setEditingRelease(release);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === 'under_review' ? (
+                  <>
+                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === 'completed' ? (
+                  <>
+                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === 'live' ? (
+                  <>
+                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           ))}
@@ -663,8 +1127,19 @@ export default function ArtistReleases() {
       {/* Create Release Modal */}
       <CreateReleaseModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingRelease(null);
+        }}
         profileData={profileData}
+        existingRelease={editingRelease}
+      />
+
+      {/* View Release Details Modal */}
+      <ViewReleaseDetailsModal
+        isOpen={viewReleaseDetailsModal}
+        onClose={() => setViewReleaseDetailsModal(false)}
+        release={selectedRelease}
       />
     </Layout>
   );

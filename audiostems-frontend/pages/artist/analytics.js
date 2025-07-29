@@ -367,7 +367,7 @@ export default function ArtistAnalytics() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                track.growth > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                track.growth > 0 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
                               }`}>
                                 {track.growth > 0 ? '+' : ''}{track.growth}%
                               </span>

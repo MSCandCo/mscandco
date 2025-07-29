@@ -1,7 +1,8 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { getUserRole } from '@/lib/auth0-config';
+import { getStripe } from '@/lib/stripe';
 import { 
   CreditCard, 
   Calendar, 
@@ -10,341 +11,457 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
-  FileText
+  FileText,
+  ExternalLink,
+  Globe,
+  ChevronDown
 } from 'lucide-react';
+
+// Currency configuration
+const currencies = [
+  { code: 'GBP', name: 'British Pound', symbol: '£', rate: 1.0 },
+  { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.27 },
+  { code: 'EUR', name: 'Euro', symbol: '€', rate: 1.17 },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', rate: 1.72 },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', rate: 1.95 },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rate: 185.0 },
+  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', rate: 1.10 },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', rate: 13.2 },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', rate: 13.5 },
+  { code: 'DKK', name: 'Danish Krone', symbol: 'kr', rate: 8.8 },
+  { code: 'PLN', name: 'Polish Złoty', symbol: 'zł', rate: 5.1 },
+  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', rate: 29.8 },
+  { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', rate: 450.0 },
+  { code: 'RON', name: 'Romanian Leu', symbol: 'lei', rate: 5.9 },
+  { code: 'BGN', name: 'Bulgarian Lev', symbol: 'лв', rate: 2.3 },
+  { code: 'HRK', name: 'Croatian Kuna', symbol: 'kn', rate: 8.7 },
+  { code: 'RUB', name: 'Russian Ruble', symbol: '₽', rate: 115.0 },
+  { code: 'TRY', name: 'Turkish Lira', symbol: '₺', rate: 40.5 },
+  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', rate: 6.3 },
+  { code: 'MXN', name: 'Mexican Peso', symbol: '$', rate: 21.8 },
+  { code: 'ARS', name: 'Argentine Peso', symbol: '$', rate: 1080.0 },
+  { code: 'CLP', name: 'Chilean Peso', symbol: '$', rate: 1200.0 },
+  { code: 'COP', name: 'Colombian Peso', symbol: '$', rate: 5000.0 },
+  { code: 'PEN', name: 'Peruvian Sol', symbol: 'S/', rate: 4.7 },
+  { code: 'UYU', name: 'Uruguayan Peso', symbol: '$', rate: 50.0 },
+  { code: 'VEF', name: 'Venezuelan Bolívar', symbol: 'Bs', rate: 35.0 },
+  { code: 'BOB', name: 'Bolivian Boliviano', symbol: 'Bs', rate: 8.8 },
+  { code: 'PYG', name: 'Paraguayan Guaraní', symbol: '₲', rate: 9200.0 },
+  { code: 'KGS', name: 'Kyrgyzstani Som', symbol: 'с', rate: 110.0 },
+  { code: 'TJS', name: 'Tajikistani Somoni', symbol: 'ЅМ', rate: 13.5 },
+  { code: 'TMT', name: 'Turkmenistani Manat', symbol: 'T', rate: 4.4 },
+  { code: 'AZN', name: 'Azerbaijani Manat', symbol: '₼', rate: 2.2 },
+  { code: 'GEL', name: 'Georgian Lari', symbol: '₾', rate: 3.4 },
+  { code: 'AMD', name: 'Armenian Dram', symbol: '֏', rate: 520.0 },
+  { code: 'BYN', name: 'Belarusian Ruble', symbol: 'Br', rate: 3.2 },
+  { code: 'MDL', name: 'Moldovan Leu', symbol: 'L', rate: 22.5 },
+  { code: 'ALL', name: 'Albanian Lek', symbol: 'L', rate: 120.0 },
+  { code: 'MKD', name: 'Macedonian Denar', symbol: 'ден', rate: 61.0 },
+  { code: 'RSD', name: 'Serbian Dinar', symbol: 'дин', rate: 137.0 },
+  { code: 'BAM', name: 'Bosnia-Herzegovina Convertible Mark', symbol: 'KM', rate: 2.3 },
+  { code: 'MNT', name: 'Mongolian Tögrög', symbol: '₮', rate: 3500.0 },
+  { code: 'KZT', name: 'Kazakhstani Tenge', symbol: '₸', rate: 580.0 },
+  { code: 'KHR', name: 'Cambodian Riel', symbol: '៛', rate: 5200.0 },
+  { code: 'LAK', name: 'Laotian Kip', symbol: '₭', rate: 26000.0 },
+  { code: 'MMK', name: 'Myanmar Kyat', symbol: 'K', rate: 2700.0 },
+  { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', rate: 140.0 },
+  { code: 'NPR', name: 'Nepalese Rupee', symbol: '₨', rate: 160.0 },
+  { code: 'PKR', name: 'Pakistani Rupee', symbol: '₨', rate: 350.0 },
+  { code: 'LKR', name: 'Sri Lankan Rupee', symbol: '₨', rate: 400.0 },
+  { code: 'MVR', name: 'Maldivian Rufiyaa', symbol: 'Rf', rate: 19.5 },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹', rate: 105.0 },
+  { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', rate: 20000.0 },
+  { code: 'THB', name: 'Thai Baht', symbol: '฿', rate: 45.0 },
+  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', rate: 6.0 },
+  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', rate: 1.7 },
+  { code: 'PHP', name: 'Philippine Peso', symbol: '₱', rate: 70.0 },
+  { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', rate: 31000.0 },
+  { code: 'KRW', name: 'South Korean Won', symbol: '₩', rate: 1700.0 },
+  { code: 'TWD', name: 'Taiwan New Dollar', symbol: 'NT$', rate: 40.0 },
+  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$', rate: 9.9 },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', rate: 9.2 },
+  { code: 'TND', name: 'Tunisian Dinar', symbol: 'د.ت', rate: 3.9 },
+  { code: 'DZD', name: 'Algerian Dinar', symbol: 'د.ج', rate: 170.0 },
+  { code: 'MAD', name: 'Moroccan Dirham', symbol: 'د.م', rate: 12.8 },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', rate: 40.0 },
+  { code: 'LYD', name: 'Libyan Dinar', symbol: 'ل.د', rate: 6.1 },
+  { code: 'SDG', name: 'Sudanese Pound', symbol: 'ج.س', rate: 600.0 },
+  { code: 'ETB', name: 'Ethiopian Birr', symbol: 'Br', rate: 70.0 },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', rate: 200.0 },
+  { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh', rate: 3200.0 },
+  { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh', rate: 4800.0 },
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', rate: 1600.0 },
+  { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵', rate: 15.0 },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R', rate: 24.0 },
+  { code: 'NAD', name: 'Namibian Dollar', symbol: 'N$', rate: 24.0 },
+  { code: 'BWP', name: 'Botswana Pula', symbol: 'P', rate: 17.0 },
+  { code: 'ZMW', name: 'Zambian Kwacha', symbol: 'ZK', rate: 30.0 },
+  { code: 'MWK', name: 'Malawian Kwacha', symbol: 'MK', rate: 2100.0 },
+  { code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'Z$', rate: 500.0 },
+  { code: 'AOA', name: 'Angolan Kwanza', symbol: 'Kz', rate: 1000.0 },
+  { code: 'MZN', name: 'Mozambican Metical', symbol: 'MT', rate: 80.0 },
+  { code: 'CVE', name: 'Cape Verdean Escudo', symbol: '$', rate: 130.0 },
+  { code: 'STD', name: 'São Tomé and Príncipe Dobra', symbol: 'Db', rate: 28000.0 },
+  { code: 'GMD', name: 'Gambian Dalasi', symbol: 'D', rate: 80.0 },
+  { code: 'GNF', name: 'Guinean Franc', symbol: 'FG', rate: 11000.0 },
+  { code: 'SLL', name: 'Sierra Leonean Leone', symbol: 'Le', rate: 25000.0 },
+  { code: 'LRD', name: 'Liberian Dollar', symbol: 'L$', rate: 200.0 },
+  { code: 'SLE', name: 'Sierra Leonean Leone', symbol: 'Le', rate: 25000.0 },
+  { code: 'GIP', name: 'Gibraltar Pound', symbol: '£', rate: 1.0 },
+  { code: 'FKP', name: 'Falkland Islands Pound', symbol: '£', rate: 1.0 },
+  { code: 'SHP', name: 'Saint Helena Pound', symbol: '£', rate: 1.0 },
+  { code: 'JEP', name: 'Jersey Pound', symbol: '£', rate: 1.0 },
+  { code: 'GGP', name: 'Guernsey Pound', symbol: '£', rate: 1.0 },
+  { code: 'IMP', name: 'Isle of Man Pound', symbol: '£', rate: 1.0 },
+  { code: 'GBP', name: 'British Pound', symbol: '£', rate: 1.0 }
+];
+
+// Mock billing data function
+const getRoleSpecificPlans = (userRole) => {
+  const baseSubscription = {
+    plan: 'Artist Pro',
+    price: '£19.99',
+    nextBilling: 'March 15, 2024',
+    billingCycle: 'monthly',
+    autoRenewDate: 'March 15, 2024',
+    features: [
+      'Unlimited releases',
+      'Advanced analytics',
+      'Priority support',
+      'Custom branding',
+      'Earnings reporting'
+    ]
+  };
+
+  const basePaymentMethod = {
+    type: 'Visa',
+    last4: '4242',
+    expiry: '12/25'
+  };
+
+  const baseBillingHistory = [
+    {
+      id: 1,
+      description: 'Artist Pro - Monthly',
+      date: 'February 15, 2024',
+      amount: '£19.99',
+      status: 'Paid'
+    },
+    {
+      id: 2,
+      description: 'Artist Pro - Monthly',
+      date: 'January 15, 2024',
+      amount: '£19.99',
+      status: 'Paid'
+    }
+  ];
+
+  const baseAvailablePlans = [
+    {
+      name: 'Artist Starter',
+      monthlyPrice: '£9.99',
+      yearlyPrice: '£99.99',
+      yearlySavings: '17%',
+      current: false,
+      features: [
+        'Up to 10 releases per year',
+        'Basic analytics and reporting',
+        'Email support',
+        'Distribution to major platforms (Spotify, Apple Music, etc.)',
+        'Basic earnings tracking',
+        'Release management tools'
+      ]
+    },
+    {
+      name: 'Artist Pro',
+      monthlyPrice: '£19.99',
+      yearlyPrice: '£199.99',
+      yearlySavings: '17%',
+      current: true,
+      features: [
+        'Unlimited releases per year',
+        'Advanced analytics and reporting',
+        'Priority email and phone support',
+        'Custom branding options',
+        'Distribution to all major platforms',
+        'Detailed earnings tracking and reporting',
+        'Advanced release management tools',
+        'Social media integration',
+        'Marketing campaign tools',
+        'Priority customer service',
+        'Advanced royalty tracking',
+        'Custom artist profile optimisation'
+      ]
+    }
+  ];
+
+  return {
+    subscription: baseSubscription,
+    paymentMethod: basePaymentMethod,
+    billingHistory: baseBillingHistory,
+    availablePlans: baseAvailablePlans
+  };
+};
 
 export default function Billing() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
+  const [billingCycle, setBillingCycle] = useState('monthly');
+  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const currencyDropdownRef = useRef(null);
   const [autoRenew, setAutoRenew] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [message, setMessage] = useState('');
+
+  // Auto-detect currency based on user's location
+  useEffect(() => {
+    const detectUserCurrency = async () => {
+      try {
+        // Try to get user's location from IP
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        if (data.country_code === 'GB') {
+          setSelectedCurrency('GBP');
+        } else {
+          // Check if the country's currency is in our list
+          const countryCurrency = data.currency;
+          const hasCurrency = currencies.find(c => c.code === countryCurrency);
+          
+          if (hasCurrency) {
+            setSelectedCurrency(countryCurrency);
+          } else {
+            // Default to USD for countries not in our list
+            setSelectedCurrency('USD');
+          }
+        }
+      } catch (error) {
+        console.log('Could not detect user location, defaulting to GBP');
+        setSelectedCurrency('GBP');
+      }
+    };
+
+    detectUserCurrency();
+  }, []);
+
+  // Currency helper functions
+  const getCurrentCurrency = () => {
+    return currencies.find(c => c.code === selectedCurrency) || currencies[0];
+  };
+
+  const convertCurrency = (amount, fromCurrency = 'GBP', toCurrency = selectedCurrency) => {
+    if (fromCurrency === toCurrency) return amount;
+    
+    const fromRate = currencies.find(c => c.code === fromCurrency)?.rate || 1;
+    const toRate = currencies.find(c => c.code === toCurrency)?.rate || 1;
+    
+    return (amount * toRate) / fromRate;
+  };
+
+  const formatCurrency = (amount, currency = selectedCurrency) => {
+    const currencyInfo = currencies.find(c => c.code === currency) || currencies[0];
+    const convertedAmount = convertCurrency(parseFloat(amount.replace(/[^0-9.-]+/g, '')), 'GBP', currency);
+    
+    return `${currencyInfo.symbol}${convertedAmount.toFixed(2)}`;
+  };
+
+  // Load currency preference from localStorage
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem('selectedCurrency');
+    if (savedCurrency && currencies.find(c => c.code === savedCurrency)) {
+      setSelectedCurrency(savedCurrency);
+    }
+  }, []);
+
+  // Save currency preference to localStorage
+  const handleCurrencyChange = (currencyCode) => {
+    setSelectedCurrency(currencyCode);
+    localStorage.setItem('selectedCurrency', currencyCode);
+    setShowCurrencyDropdown(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
+        setShowCurrencyDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const userRole = getUserRole(user);
-      
-      // Role-specific billing data
-      const getRoleSpecificPlans = (role) => {
-        switch (role) {
-          case 'artist':
-            return {
-              subscription: {
-                status: 'active',
-                plan: 'Artist Pro',
-                price: '$29.99/month',
-                nextBilling: '2024-02-15',
-                billingCycle: 'monthly',
-                autoRenew: true,
-                autoRenewDate: '2024-02-15',
-                features: [
-                  'Unlimited Releases',
-                  'Advanced Analytics',
-                  'Priority Support',
-                  'Earnings Reporting',
-                  'Royalty Tracking',
-                  'Distribution Analytics',
-                  'Custom Release Scheduling',
-                  'Multi-Platform Distribution'
-                ]
-              },
-              availablePlans: [
-                {
-                  name: 'Artist Starter',
-                  monthlyPrice: '$9.99',
-                  yearlyPrice: '$99.99',
-                  yearlySavings: '$19.89',
-                  features: [
-                    'Up to 10 Releases',
-                    'Basic Analytics Dashboard',
-                    'Email Support',
-                    'Earnings Overview',
-                    'Basic Royalty Tracking',
-                    'Standard Distribution',
-                    'Release Status Tracking',
-                    'Basic Performance Metrics'
-                  ]
-                },
-                {
-                  name: 'Artist Pro',
-                  monthlyPrice: '$29.99',
-                  yearlyPrice: '$299.99',
-                  yearlySavings: '$59.89',
-                  features: [
-                    'Unlimited Releases',
-                    'Advanced Analytics Dashboard',
-                    'Priority Support',
-                    'Detailed Earnings Reports',
-                    'Advanced Royalty Tracking',
-                    'Multi-Platform Distribution',
-                    'Custom Release Scheduling',
-                    'Real-time Performance Metrics',
-                    'Revenue Forecasting',
-                    'Market Trend Analysis',
-                    'Competitor Insights',
-                    'Automated Reporting'
-                  ],
-                  current: true
-                }
-              ]
-            };
-
-          case 'company_admin':
-            return {
-              subscription: {
-                status: 'active',
-                plan: 'Label Management',
-                price: '$199.99/month',
-                nextBilling: '2024-02-15',
-                billingCycle: 'monthly',
-                autoRenew: true,
-                autoRenewDate: '2024-02-15',
-                features: [
-                  'Unlimited Artists',
-                  'Label Analytics',
-                  'Artist Management',
-                  'Content Oversight',
-                  'Advanced Reporting'
-                ]
-              },
-              availablePlans: [
-                {
-                  name: 'Label Basic',
-                  monthlyPrice: '$99.99',
-                  yearlyPrice: '$999.99',
-                  yearlySavings: '$199.89',
-                  features: [
-                    'Up to 10 Artists',
-                    'Basic Label Analytics',
-                    'Email Support',
-                    'Standard Reporting'
-                  ]
-                },
-                {
-                  name: 'Label Management',
-                  monthlyPrice: '$199.99',
-                  yearlyPrice: '$1,999.99',
-                  yearlySavings: '$399.89',
-                  features: [
-                    'Unlimited Artists',
-                    'Label Analytics',
-                    'Artist Management',
-                    'Content Oversight',
-                    'Advanced Reporting'
-                  ],
-                  current: true
-                },
-                {
-                  name: 'Label Enterprise',
-                  monthlyPrice: '$499.99',
-                  yearlyPrice: '$4,999.99',
-                  yearlySavings: '$999.89',
-                  features: [
-                    'Unlimited Artists',
-                    'Advanced Label Analytics',
-                    'Priority Support',
-                    'White-label Options',
-                    'API Access',
-                    'Dedicated Account Manager',
-                    'Custom Integrations'
-                  ]
-                }
-              ]
-            };
-
-          case 'super_admin':
-            return {
-              subscription: {
-                status: 'active',
-                plan: 'Platform Enterprise',
-                price: '$999.99/month',
-                nextBilling: '2024-02-15',
-                billingCycle: 'monthly',
-                autoRenew: true,
-                autoRenewDate: '2024-02-15',
-                features: [
-                  'Multi-Brand Management',
-                  'Platform Analytics',
-                  'User Management',
-                  'System Administration',
-                  'Custom Branding',
-                  'API Access',
-                  'Dedicated Support'
-                ]
-              },
-              availablePlans: [
-                {
-                  name: 'Platform Basic',
-                  monthlyPrice: '$499.99',
-                  yearlyPrice: '$4,999.99',
-                  yearlySavings: '$999.89',
-                  features: [
-                    'Single Brand Management',
-                    'Basic Platform Analytics',
-                    'Email Support',
-                    'Standard Administration'
-                  ]
-                },
-                {
-                  name: 'Platform Enterprise',
-                  monthlyPrice: '$999.99',
-                  yearlyPrice: '$9,999.99',
-                  yearlySavings: '$1,999.89',
-                  features: [
-                    'Multi-Brand Management',
-                    'Platform Analytics',
-                    'User Management',
-                    'System Administration',
-                    'Custom Branding',
-                    'API Access',
-                    'Dedicated Support'
-                  ],
-                  current: true
-                },
-                {
-                  name: 'Platform Ultimate',
-                  monthlyPrice: '$1,999.99',
-                  yearlyPrice: '$19,999.99',
-                  yearlySavings: '$3,999.89',
-                  features: [
-                    'Unlimited Brands',
-                    'Advanced Platform Analytics',
-                    'Priority Support',
-                    'White-label Options',
-                    'Full API Access',
-                    'Dedicated Account Manager',
-                    'Custom Integrations',
-                    'On-premise Options'
-                  ]
-                }
-              ]
-            };
-
-          case 'distribution_partner':
-            return {
-              subscription: {
-                status: 'active',
-                plan: 'Partner Pro',
-                price: '$149.99/month',
-                nextBilling: '2024-02-15',
-                billingCycle: 'monthly',
-                autoRenew: true,
-                autoRenewDate: '2024-02-15',
-                features: [
-                  'Distribution Analytics',
-                  'Content Management',
-                  'Partner Reporting',
-                  'API Access',
-                  'Priority Support'
-                ]
-              },
-              availablePlans: [
-                {
-                  name: 'Partner Basic',
-                  monthlyPrice: '$79.99',
-                  yearlyPrice: '$799.99',
-                  yearlySavings: '$159.89',
-                  features: [
-                    'Basic Distribution Analytics',
-                    'Content Management',
-                    'Email Support',
-                    'Standard Reporting'
-                  ]
-                },
-                {
-                  name: 'Partner Pro',
-                  monthlyPrice: '$149.99',
-                  yearlyPrice: '$1,499.99',
-                  yearlySavings: '$299.89',
-                  features: [
-                    'Distribution Analytics',
-                    'Content Management',
-                    'Partner Reporting',
-                    'API Access',
-                    'Priority Support'
-                  ],
-                  current: true
-                },
-                {
-                  name: 'Partner Enterprise',
-                  monthlyPrice: '$299.99',
-                  yearlyPrice: '$2,999.99',
-                  yearlySavings: '$599.89',
-                  features: [
-                    'Advanced Distribution Analytics',
-                    'Full Content Management',
-                    'Custom Reporting',
-                    'Full API Access',
-                    'Dedicated Support',
-                    'White-label Options',
-                    'Custom Integrations'
-                  ]
-                }
-              ]
-            };
-
-          default:
-            return {
-              subscription: {
-                status: 'active',
-                plan: 'Basic Plan',
-                price: '$9.99/month',
-                nextBilling: '2024-02-15',
-                billingCycle: 'monthly',
-                autoRenew: true,
-                autoRenewDate: '2024-02-15',
-                features: [
-                  'Basic Features',
-                  'Email Support'
-                ]
-              },
-              availablePlans: [
-                {
-                  name: 'Basic Plan',
-                  monthlyPrice: '$9.99',
-                  yearlyPrice: '$99.99',
-                  yearlySavings: '$19.89',
-                  features: [
-                    'Basic Features',
-                    'Email Support'
-                  ],
-                  current: true
-                }
-              ]
-            };
-        }
-      };
-
-      const roleData = getRoleSpecificPlans(userRole);
-      
-      // Mock billing data - replace with actual API call
-      setBillingData({
-        ...roleData,
-        paymentMethod: {
-          type: 'Visa',
-          last4: '4242',
-          expiry: '12/25'
-        },
-        billingHistory: [
-          {
-            id: 'inv_001',
-            date: '2024-01-15',
-            amount: roleData.subscription.price,
-            status: 'paid',
-            description: `${roleData.subscription.plan} - January 2024`
-          },
-          {
-            id: 'inv_002',
-            date: '2023-12-15',
-            amount: roleData.subscription.price,
-            status: 'paid',
-            description: `${roleData.subscription.plan} - December 2023`
-          }
-        ]
-      });
-      setLoading(false);
+      loadBillingData();
     }
   }, [isAuthenticated, user]);
+
+  const loadBillingData = async () => {
+    try {
+      setLoading(true);
+      
+      // For demo purposes, we'll use mock data
+      // In production, you would fetch real billing data from your API
+      const userRole = getUserRole(user);
+      const mockBillingData = getRoleSpecificPlans(userRole);
+      
+      setBillingData(mockBillingData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading billing data:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePaymentMethod = async () => {
+    try {
+      setProcessing(true);
+      setMessage('');
+
+      // For new customers, we'll create a customer portal session without a customer ID
+      // Stripe will handle customer creation during the first payment
+      const response = await fetch('/api/billing/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customerId: null }), // Remove hardcoded demo ID
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        setMessage(data.error);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage('Error creating portal session');
+      }
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+      setMessage('Stripe is not configured. Please contact support to set up billing.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleViewInvoiceHistory = async () => {
+    try {
+      setProcessing(true);
+      setMessage('');
+
+      // For new customers, we'll create a customer portal session without a customer ID
+      const response = await fetch('/api/billing/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customerId: null }), // Remove hardcoded demo ID
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        setMessage(data.error);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage('Error creating portal session');
+      }
+    } catch (error) {
+      console.error('Error viewing invoice history:', error);
+      setMessage('Stripe is not configured. Please contact support to set up billing.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleContactSupport = () => {
+    // Open support email or redirect to support page
+    window.open('mailto:support@mscandco.com?subject=Billing%20Support', '_blank');
+  };
+
+  const handleUpgradePlan = async (planName) => {
+    try {
+      setProcessing(true);
+      setMessage('');
+
+      // For new customers, we'll create a checkout session without a customer ID
+      // Stripe will handle customer creation during the first payment
+      const response = await fetch('/api/billing/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: planName,
+          billingCycle,
+          customerId: null, // Remove hardcoded demo ID
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        setMessage(data.error);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage('Error creating checkout session');
+      }
+    } catch (error) {
+      console.error('Error upgrading plan:', error);
+      setMessage('Stripe is not configured. Please contact support to set up billing.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    try {
+      setProcessing(true);
+      setMessage('');
+
+      // In production, you would get the customer ID from your database
+      const customerId = 'cus_demo123'; // Replace with actual customer ID
+      
+      const response = await fetch('/api/billing/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customerId }),
+      });
+
+      const { url } = await response.json();
+      
+      if (url) {
+        window.location.href = url;
+      } else {
+        setMessage('Error creating portal session');
+      }
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      setMessage('Error canceling subscription');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -377,8 +494,59 @@ export default function Billing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
-            <p className="mt-2 text-gray-600">Manage your subscription and billing information</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
+                <p className="mt-2 text-gray-600">Manage your subscription and billing information</p>
+              </div>
+              
+              {/* Currency Selector */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700">Display Currency:</span>
+                <div className="relative" ref={currencyDropdownRef}>
+                  <button
+                    onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <Globe className="w-4 h-4 text-gray-500" />
+                    <span className="font-medium">{getCurrentCurrency().symbol} {getCurrentCurrency().code}</span>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
+                  
+                  {showCurrencyDropdown && (
+                    <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-80 overflow-y-auto">
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-gray-500 px-3 py-1 mb-2">Select Currency</div>
+                        {currencies.map((currency) => (
+                          <button
+                            key={currency.code}
+                            onClick={() => handleCurrencyChange(currency.code)}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-left rounded hover:bg-gray-100 ${
+                              selectedCurrency === currency.code ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{currency.symbol}</span>
+                              <span className="text-sm">{currency.name}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">{currency.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Exchange Rate Info */}
+                {selectedCurrency !== 'GBP' && (
+                  <div className="text-xs text-gray-500">
+                    <span>
+                      1 GBP = {getCurrentCurrency().symbol}{getCurrentCurrency().rate.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {loading ? (
@@ -401,7 +569,7 @@ export default function Billing() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">{billingData.subscription.plan}</h3>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">{billingData.subscription.price}</p>
+                      <p className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(billingData.subscription.price)}</p>
                       <p className="text-sm text-gray-500">Next billing: {billingData.subscription.nextBilling}</p>
                       <p className="text-sm text-gray-500 capitalize">Billing cycle: {billingData.subscription.billingCycle}</p>
                       
@@ -527,7 +695,7 @@ export default function Billing() {
                                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
                                       <div className="mb-2">
                                         <span className="text-3xl font-bold text-gray-900">
-                                          {billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
+                                          {billingCycle === 'monthly' ? formatCurrency(plan.monthlyPrice) : formatCurrency(plan.yearlyPrice)}
                                         </span>
                                         <span className="text-gray-500">
                                           /{billingCycle === 'monthly' ? 'month' : 'year'}
@@ -536,7 +704,7 @@ export default function Billing() {
                                       {billingCycle === 'yearly' && (
                                         <div className="flex items-center justify-center space-x-2">
                                           <span className="text-sm text-gray-500 line-through">
-                                            {plan.monthlyPrice}/month
+                                            {formatCurrency(plan.monthlyPrice)}/month
                                           </span>
                                           <span className="text-sm font-medium text-green-600">
                                             Save {plan.yearlySavings}
@@ -600,7 +768,7 @@ export default function Billing() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className="font-medium text-gray-900">{invoice.amount}</span>
+                          <span className="font-medium text-gray-900">{formatCurrency(invoice.amount)}</span>
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             {invoice.status}
                           </span>
@@ -620,25 +788,51 @@ export default function Billing() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                   <div className="space-y-3">
-                    <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center">
-                        <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
-                        <span className="text-sm font-medium text-gray-900">Update Payment Method</span>
+                    <button 
+                      onClick={handleUpdatePaymentMethod}
+                      disabled={processing}
+                      className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
+                          <span className="text-sm font-medium text-gray-900">Update Payment Method</span>
+                        </div>
+                        {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>}
                       </div>
                     </button>
-                    <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center">
-                        <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                        <span className="text-sm font-medium text-gray-900">View Invoice History</span>
+                    <button 
+                      onClick={handleViewInvoiceHistory}
+                      disabled={processing}
+                      className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 text-gray-400 mr-3" />
+                          <span className="text-sm font-medium text-gray-900">View Invoice History</span>
+                        </div>
+                        {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>}
                       </div>
                     </button>
-                    <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center">
-                        <AlertCircle className="w-5 h-5 text-gray-400 mr-3" />
-                        <span className="text-sm font-medium text-gray-900">Contact Support</span>
+                    <button 
+                      onClick={handleContactSupport}
+                      className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <AlertCircle className="w-5 h-5 text-gray-400 mr-3" />
+                          <span className="text-sm font-medium text-gray-900">Contact Support</span>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-gray-400" />
                       </div>
                     </button>
                   </div>
+                  
+                  {message && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">{message}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Auto-Renewal Settings */}

@@ -205,7 +205,7 @@ function PlatformAnalytics() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{platform}</p>
                   <p className="text-2xl font-bold text-gray-900">{formatCurrency(data.totalEarnings)}</p>
-                  <p className={`text-sm ${data.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm ${data.growth > 0 ? 'text-green-600' : 'text-amber-600'}`}>
                     {formatPercentage(data.growth)} growth
                   </p>
                 </div>

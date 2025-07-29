@@ -243,11 +243,17 @@ function Header() {
           </Link>
           <div className="flex-1 flex justify-end items-center">
             <ul className="flex items-center">
+              {!isAuthenticated && (
+                <li className="px-5 py-2 text-gray-500">
+                  <Link href="/pricing">Prices</Link>
+                </li>
+              )}
               <li className="px-5 py-2 text-gray-500">
-                <Link href="/pricing">Prices</Link>
+                <Link href="/about">About</Link>
               </li>
-              <li className="px-5 py-2 text-gray-500">About</li>
-              <li className="px-5 py-2 text-gray-500">Support</li>
+              <li className="px-5 py-2 text-gray-500">
+                <Link href="/support">Support</Link>
+              </li>
             </ul>
             {isAuthenticated ? (
               <Dropdown

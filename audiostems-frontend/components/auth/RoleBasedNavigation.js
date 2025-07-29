@@ -12,6 +12,7 @@ import {
   DollarSign,
   Users,
   Wallet,
+  ChevronDown,
 } from "lucide-react";
 import { openCustomerPortal } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -24,6 +25,7 @@ export default function RoleBasedNavigation() {
     availableForCashout: 890,
     minimumCashoutThreshold: 100
   });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Fetch profile data to get first and last name
   useEffect(() => {
@@ -54,6 +56,15 @@ export default function RoleBasedNavigation() {
     return user.email || 'User';
   };
 
+  const handleLogout = () => {
+    setIsDropdownOpen(false);
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
+    });
+  };
+
   // Debug logging
   console.log('=== Navigation Debug ===');
   console.log('User object:', user);
@@ -61,67 +72,274 @@ export default function RoleBasedNavigation() {
   console.log('Detected role:', userRole);
   console.log('Display brand:', displayBrand);
 
-  // Navigation items based on role
-  const getNavigationItems = () => {
-    console.log('Getting navigation items for role:', userRole);
-    
-    switch (userRole) {
-      case 'super_admin':
-        console.log('Rendering Super Admin navigation');
-        return [
-          { href: '/dashboard', label: 'Dashboard' },
-          { href: '/admin/users', label: 'User Management' },
-          { href: '/admin/analytics', label: 'Analytics' },
-          { href: '/admin/content', label: 'Content Management' },
-          { href: '/admin/settings', label: 'Platform Settings' }
-        ];
+  // Add distribution partner navigation
+  if (userRole === 'distribution_partner') {
+    return (
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <img
+                src="/logos/yhwh-msc-logo.png"
+                alt="YHWH MSC"
+                className="h-8 w-auto"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                }}
+              />
+            </div>
 
-      case 'company_admin':
-        console.log('Rendering Company Admin navigation');
-        return [
-          { href: '/dashboard', label: 'Dashboard' },
-          { href: '/admin/users', label: 'User Management' },
-          { href: '/admin/analytics', label: 'Analytics' },
-          { href: '/admin/content', label: 'Content Management' }
-        ];
+            {/* Center Navigation */}
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                <Link
+                  href="/distribution-partner/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/distribution-partner/releases"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  All Releases
+                </Link>
+                <Link
+                  href="/distribution-partner/sync-board"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Sync Board
+                </Link>
+              </div>
+            </div>
 
-      case 'artist':
-        console.log('Rendering Artist navigation');
-        return [
-          { href: '/dashboard', label: 'Dashboard' },
-          { href: '/artist/earnings', label: 'Earnings' },
-          { href: '/artist/releases', label: 'My Releases' },
-          { href: '/artist/analytics', label: 'Analytics' },
-          { href: '/artist/roster', label: 'Roster' },
-          { href: '/artist/profile', label: 'Profile' }
-        ];
+            {/* Right side - User menu */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
 
-      case 'distribution_partner':
-        console.log('Rendering Distribution Partner navigation');
-        return [
-          { href: '/dashboard', label: 'Dashboard' },
-          { href: '/partner/content', label: 'Content Management' },
-          { href: '/partner/analytics', label: 'Analytics' },
-          { href: '/partner/reports', label: 'Reports' }
-        ];
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      href="/distribution-partner/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/billing"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Billing
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
-      case 'distributor':
-        console.log('Rendering Distributor navigation');
-        return [
-          { href: '/dashboard', label: 'Dashboard' },
-          { href: '/distribution/content', label: 'Distribution' },
-          { href: '/distribution/reports', label: 'Reports' },
-          { href: '/distribution/settings', label: 'Settings' }
-        ];
+  // Add super admin navigation
+  if (userRole === 'super_admin') {
+    return (
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <img
+                src="/logos/yhwh-msc-logo.png"
+                alt="YHWH MSC"
+                className="h-8 w-auto"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                }}
+              />
+            </div>
 
-      default:
-        console.log('Rendering default navigation for role:', userRole);
-        return [
-          { href: '/dashboard', label: 'Dashboard' }
-        ];
-    }
-  };
+            {/* Center Navigation */}
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                <Link
+                  href="/admin/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/admin/users"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Users
+                </Link>
+                <Link
+                  href="/admin/content"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Content
+                </Link>
+                <Link
+                  href="/admin/analytics"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/distribution-partner/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Distribution
+                </Link>
+              </div>
+            </div>
 
+            {/* Right side - User menu */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      href="/admin/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/billing"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Billing
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Add company admin navigation
+  if (userRole === 'company_admin') {
+    return (
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <img
+                src="/logos/yhwh-msc-logo.png"
+                alt="YHWH MSC"
+                className="h-8 w-auto"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                }}
+              />
+            </div>
+
+            {/* Center Navigation */}
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                <Link
+                  href="/admin/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/admin/users"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Users
+                </Link>
+                <Link
+                  href="/admin/content"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Content
+                </Link>
+                <Link
+                  href="/distribution-partner/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Distribution
+                </Link>
+              </div>
+            </div>
+
+            {/* Right side - User menu */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      href="/admin/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/billing"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Billing
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Default navigation for artists and distributors
   const navigationItems = [
     { href: '/artist/releases', label: 'My Releases', icon: FileText },
     { href: '/artist/analytics', label: 'Analytics', icon: BarChart3 },
