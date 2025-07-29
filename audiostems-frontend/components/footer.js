@@ -55,8 +55,9 @@ function Footer() {
             <h4 className="font-bold">HELP & SUPPORT</h4>
             <div className="mt-4 flex flex-col gap-3">
               <StyledLink href="/pricing">Pricing</StyledLink>
-              <StyledLink href="#">FAQ</StyledLink>
-              <StyledLink href="#">Contact Support</StyledLink>
+              <StyledLink href="/faq">FAQ</StyledLink>
+              <StyledLink href="/support">Contact Support</StyledLink>
+              <StyledLink href="/about">About Us</StyledLink>
             </div>
           </div>
         </div>
