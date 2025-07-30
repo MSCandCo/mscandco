@@ -1059,16 +1059,28 @@ export default function DistributionPartnerDashboard() {
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Creative Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Mood Description</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.moodDescription}</p>
+                      <label className="block text-sm font-medium text-gray-700">Mood Description (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.moodDescription}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Tags</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.tags}</p>
+                      <label className="block text-sm font-medium text-gray-700">Tags (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.tags}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">Lyrics</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.lyrics}</p>
+                      <label className="block text-sm font-medium text-gray-700">Lyrics (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.lyrics}
+                        rows={4}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1078,40 +1090,76 @@ export default function DistributionPartnerDashboard() {
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Product Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Format</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.format}</p>
+                      <label className="block text-sm font-medium text-gray-700">Format (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.format}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Product Type</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.productType}</p>
+                      <label className="block text-sm font-medium text-gray-700">Product Type (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.productType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Catalogue No.</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.catalogueNo}</p>
+                      <label className="block text-sm font-medium text-gray-700">Catalogue No. (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.catalogueNo}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Barcode</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.barcode}</p>
+                      <label className="block text-sm font-medium text-gray-700">Barcode (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.barcode}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Tunecode</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.tunecode}</p>
+                      <label className="block text-sm font-medium text-gray-700">Tunecode (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.tunecode}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">ICE Work Key</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.iceWorkKey}</p>
+                      <label className="block text-sm font-medium text-gray-700">ICE Work Key (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.iceWorkKey}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">ISWC</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.iswc}</p>
+                      <label className="block text-sm font-medium text-gray-700">ISWC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.iswc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">ISRC</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.isrc}</p>
+                      <label className="block text-sm font-medium text-gray-700">ISRC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.isrc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">UPC</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.upc}</p>
+                      <label className="block text-sm font-medium text-gray-700">UPC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.upc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1607,12 +1655,12 @@ export default function DistributionPartnerDashboard() {
               </div>
               
               <div className="space-y-6">
-                {/* Basic Information - Editable */}
+                {/* Basic Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information (Editable)</h4>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                      <label className="block text-sm font-medium text-gray-700">Project Name (Editable)</label>
                       <input
                         type="text"
                         defaultValue={editingRelease.projectName}
@@ -1620,7 +1668,7 @@ export default function DistributionPartnerDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Genre</label>
+                      <label className="block text-sm font-medium text-gray-700">Genre (Editable)</label>
                       <select
                         defaultValue={editingRelease.genre}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1631,7 +1679,7 @@ export default function DistributionPartnerDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Release Type</label>
+                      <label className="block text-sm font-medium text-gray-700">Release Type (Editable)</label>
                       <select
                         defaultValue={editingRelease.releaseType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1641,94 +1689,962 @@ export default function DistributionPartnerDashboard() {
                         ))}
                       </select>
                     </div>
-                  </div>
-                </div>
-
-                {/* Artist Information - Read Only */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information (Read Only)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Artist Name</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artist}</p>
+                      <label className="block text-sm font-medium text-gray-700">Song Title (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.songTitle || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Label</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.label}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                      <label className="block text-sm font-medium text-gray-700">Company Name (Read Only)</label>
                       <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.companyName || 'YHWH MSC'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Legal Name</label>
+                      <label className="block text-sm font-medium text-gray-700">Legal Name (Read Only)</label>
                       <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.legalName || editingRelease.artist}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Name (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artist}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Product Title (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.projectName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Track Position (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.trackPosition || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Featuring Artists (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.featuringArtists || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Background Vocalists (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.backgroundVocalists || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Track Metadata - Mixed Editable/Read Only */}
+                {/* Audio Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-gray-900 mb-3">Track Metadata</h4>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Audio Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Duration (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.duration}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BPM (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.bpm}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Song Key (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.songKey}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Version (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.version}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Explicit (Editable)</label>
+                      <select
+                        defaultValue={editingRelease.explicit}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Language (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.language || 'English'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Vocal Type (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.vocalType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">File Type (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.fileType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Audio File Name (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.audioFileName || 'To be set by DP'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Cover File Name (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coverFileName || 'To be set by DP'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Creative Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Creative Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mood Description (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.moodDescription}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tags (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.tags}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Lyrics (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.lyrics}
+                        rows={4}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Product Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Format (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.format}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Product Type (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.productType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Catalogue No. (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.catalogueNo}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Barcode (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.barcode}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tunecode (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.tunecode}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ICE Work Key (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.iceWorkKey}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISWC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.iswc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISRC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.isrc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">UPC (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.upc}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Release Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Release Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BOWI Previously Released (Editable)</label>
+                      <select
+                        defaultValue={editingRelease.bowiPreviouslyReleased}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Previous Release Date (Editable)</label>
+                      <input
+                        type="date"
+                        defaultValue={editingRelease.previousReleaseDate}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Country (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.recordingCountry}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Pre-Release Date (Editable)</label>
+                      <input
+                        type="date"
+                        defaultValue={editingRelease.preReleaseDate}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Pre-Release URL (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.preReleaseUrl}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Date (Editable)</label>
+                      <input
+                        type="date"
+                        defaultValue={editingRelease.releaseDate}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release URL (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.releaseUrl}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Label (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.releaseLabel}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Distribution Company (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.distributionCompany || 'YHWH MSC'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Copyright Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Copyright Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Copyright Year (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.copyrightYear || new Date().getFullYear()}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Copyright Owner (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.copyrightOwner || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">℗ P Line (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.pLine}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">© C Line (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.cLine}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Publishing Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Publishing Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Composer / Author (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.composerAuthor || editingRelease.artist}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Role (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.role}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">PRO (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.pro}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">CAE/IPI (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.caeIpi}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishing || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publisher IPI (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publisherIpi || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Admin (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishingAdmin || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Admin IPI (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishingAdminIpi || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mechanical (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.mechanical}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BMI Work # (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.bmiWorkNumber}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ASCAP Work # (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.ascapWorkNumber}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISNI (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.isni}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Sub-Publisher (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.subPublisher}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Type (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.publishingType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Territory (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.territory}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Production Credits */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Production Credits</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Executive Producer (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.executiveProducer || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Producer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.producer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mixing Engineer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.mixingEngineer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Engineer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.masteringEngineer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Co-Producer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.coProducer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Assistant Producer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.assistantProducer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Engineer / Editing (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.engineerEditing}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Studio (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.masteringStudio}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Engineer (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.recordingEngineer}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Production (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.additionalProduction}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Studio (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.recordingStudio}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Instrumentation */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Instrumentation</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Keyboards (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.keyboards}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Programming (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.programming}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Bass (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.bass}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Drums (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.drums}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Guitars (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.guitars}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Organ (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.organ}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Percussion (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.percussion}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Strings (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.strings}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Instrumentation (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.additionalInstrumentation}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Business Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Design/Art Direction (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.designArtDirection || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Management (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.management}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Booking Agent (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.bookingAgent}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Press Contact (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.pressContact}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact Email (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactEmail || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Email (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artistEmail || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact # (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactNumber || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Secondary Contact # (Read Only)</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.secondaryContactNumber || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Digital Links */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Digital Links</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Wikipedia (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.wikipedia}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Social Media (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.socialMediaLink}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Shazam (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.shazam}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">TikTok (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.tiktok}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Instagram (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.instagram}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Genius (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.genius}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">AllMusic (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.allMusic}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Discogs (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.discogs}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Musicbrainz (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.musicbrainz}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">IMDb (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.imdb}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Jaxsta (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.jaxsta}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Website (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.website}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">YouTube (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.youtube}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">YouTube Music (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.youtubeMusic}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Knowledge Panel (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.knowledgePanel}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tour Dates (Editable)</label>
+                      <input
+                        type="url"
+                        defaultValue={editingRelease.tourDates}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Spotify URI (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.spotifyUri}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Apple ID (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.appleId}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Technical Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Digital Assets Folder (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.digitalAssetsFolder}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Metadata Approved (Editable)</label>
+                      <select
+                        defaultValue={editingRelease.metadataApproved}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Initials (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.initials}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Submitted to Stores? (Editable)</label>
+                      <select
+                        defaultValue={editingRelease.submittedToStores}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Luminate (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.luminate}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mediabase (Editable)</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.mediabase}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Track Listing */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Track Listing</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {editingRelease.trackListing.map((track, index) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.duration}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.isrc}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Credits */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Credits</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {editingRelease.credits.map((credit, index) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2 text-sm text-gray-900">{credit.role}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{credit.name}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Information</h4>
                   <div className="space-y-4">
-                    {editingRelease.trackListing.map((track, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900 mb-3">Track {index + 1}</h5>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          {/* Read Only Fields */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Song Title (Read Only)</label>
-                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{track.title}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Track Position (Read Only)</label>
-                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{index + 1}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Audio File Name (Read Only)</label>
-                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{track.audioFileName || 'To be set by DP'}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Cover File Name (Read Only)</label>
-                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coverFileName || 'To be set by DP'}</p>
-                          </div>
-                          
-                          {/* Editable Fields */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Duration</label>
-                            <input
-                              type="text"
-                              defaultValue={track.duration}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">BPM</label>
-                            <input
-                              type="text"
-                              defaultValue={track.bpm || ''}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Key</label>
-                            <input
-                              type="text"
-                              defaultValue={track.songKey || ''}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">ISRC</label>
-                            <input
-                              type="text"
-                              defaultValue={track.isrc}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Feedback (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.feedback}
+                        rows={3}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Marketing Plan (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.marketingPlan}
+                        rows={3}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Notes (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.publishingNotes}
+                        rows={3}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Notes (Editable)</label>
+                      <textarea
+                        defaultValue={editingRelease.notes}
+                        rows={3}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1736,10 +2652,6 @@ export default function DistributionPartnerDashboard() {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Metadata (Read Only)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Language</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.language || 'English'}</p>
-                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Composer / Author</label>
                       <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.composer || editingRelease.artist}</p>
