@@ -134,15 +134,20 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release }) {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <FaMusic className="mr-2" />
-                Track Listing
+                Track Listing ({release.trackListing.length} tracks)
               </h3>
               <div className="space-y-3">
                 {release.trackListing.map((track, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-900">{track.title}</p>
-                        <p className="text-sm text-gray-600">Duration: {track.duration}</p>
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{track.title}</p>
+                          <p className="text-sm text-gray-600">Duration: {track.duration}</p>
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-gray-500">ISRC</p>

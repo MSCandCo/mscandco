@@ -61,6 +61,7 @@
     "tailwindcss-animate": "^1.0.7",
     "wavesurfer-multitrack": "^0.4.11",
     "wavesurfer.js": "^7.6.5",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
   "devDependencies": {

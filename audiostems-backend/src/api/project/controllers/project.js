@@ -5,6 +5,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
+const { validateProjectData, validateStatusUpdate } = require('../../../middlewares/validation');
 
 module.exports = createCoreController('api::project.project', ({ strapi }) => ({
   // Custom find method with advanced filtering
@@ -158,6 +159,9 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
   
   // Custom create method with automatic lastUpdated and submissionDate
   async create(ctx) {
+    // Validate input data
+    validateProjectData(ctx.request, ctx.response, () => {});
+    
     const now = new Date();
     ctx.request.body.data.lastUpdated = now;
     
@@ -173,6 +177,9 @@ module.exports = createCoreController('api::project.project', ({ strapi }) => ({
   
   // Custom update method with automatic lastUpdated
   async update(ctx) {
+    // Validate input data
+    validateProjectData(ctx.request, ctx.response, () => {});
+    
     ctx.request.body.data.lastUpdated = new Date();
     
     const { data, meta } = await super.update(ctx);

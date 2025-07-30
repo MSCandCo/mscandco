@@ -49,23 +49,27 @@ export default function About() {
                 </p>
                 <ul className="text-gray-600 space-y-2">
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Simplify music distribution across all major platforms
+                    <span className="text-[#1f2937] mr-2">•</span>
+                    Provide comprehensive music distribution services
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    Provide transparent analytics and earnings tracking
+                    <span className="text-[#1f2937] mr-2">•</span>
+                    Offer publishing and licensing opportunities
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
+                    <span className="text-[#1f2937] mr-2">•</span>
+                    Support both gospel/christian and general music
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#1f2937] mr-2">•</span>
                     Offer comprehensive artist management tools
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
+                    <span className="text-[#1f2937] mr-2">•</span>
                     Support both individual artists and label operations
                   </li>
                   <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
+                    <span className="text-[#1f2937] mr-2">•</span>
                     Ensure fair compensation and transparent royalty tracking
                   </li>
                 </ul>
@@ -119,7 +123,39 @@ export default function About() {
               <div className="flex gap-4 justify-center">
                 <a
                   href="/register"
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="
+                    bg-transparent 
+                    text-[#1f2937] 
+                    border 
+                    border-[#1f2937] 
+                    rounded-xl 
+                    px-8 
+                    py-3 
+                    font-bold 
+                    shadow 
+                    transition-all 
+                    duration-300 
+                    hover:bg-[#1f2937] 
+                    hover:text-white 
+                    hover:shadow-lg 
+                    hover:-translate-y-1
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-[#1f2937]
+                  "
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#1f2937',
+                    borderColor: '#1f2937'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#1f2937';
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#1f2937';
+                  }}
                 >
                   Get Started
                 </a>

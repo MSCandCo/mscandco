@@ -2,105 +2,314 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
-import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search } from 'lucide-react';
+import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload } from 'react-icons/fa';
+import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download } from 'lucide-react';
+import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor } from '../../lib/constants';
+
+// Excel download functions using template
+const downloadReleaseExcel = async (release) => {
+  try {
+    await downloadSingleReleaseExcel(release);
+  } catch (error) {
+    console.error('Error downloading release:', error);
+    alert('Error downloading release data. Please try again.');
+  }
+};
+
+// Bulk download function using template
+const downloadAllReleasesExcel = async (releases) => {
+  try {
+    await downloadMultipleReleasesExcel(releases);
+  } catch (error) {
+    console.error('Error downloading releases:', error);
+    alert('Error downloading releases data. Please try again.');
+  }
+};
 
 // Mock data for distribution partner
 const mockAllReleases = [
   {
     id: 1,
-    projectName: 'Summer Vibes EP',
+    projectName: 'Urban Beats Collection',
     artist: 'YHWH MSC',
     label: 'MSC & Co',
     releaseType: 'EP',
-    genre: 'Electronic',
-    status: 'submitted',
+    genre: 'Hip Hop',
+    status: 'under_review',
     submissionDate: '2024-01-15',
-    expectedReleaseDate: '2024-02-15',
-    assets: 4,
-    feedback: 'Great production quality',
-    marketingPlan: 'Social media campaign + playlist pitching',
+    expectedReleaseDate: '2024-03-01',
+    assets: '3 tracks, artwork',
+    feedback: 'Great urban sound, needs minor adjustments',
+    marketingPlan: 'Social media campaign, playlist pitching',
+    publishingNotes: 'Urban hip hop collection with strong beats',
     trackListing: [
-      { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678' },
-      { title: 'Ocean Waves', duration: '4:12', isrc: 'USRC12345679' },
-      { title: 'Sunset Dreams', duration: '3:58', isrc: 'USRC12345680' },
-      { title: 'Beach Party', duration: '4:30', isrc: 'USRC12345681' }
+      { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686', bpm: '140', songKey: 'C Minor' },
+      { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687', bpm: '135', songKey: 'F Minor' },
+      { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688', bpm: '145', songKey: 'A Minor' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Mix Engineer', name: 'Studio Pro' },
-      { role: 'Mastering', name: 'Master Lab' }
+      { role: 'Additional Production', name: 'Beat Maker' }
     ],
-    publishingNotes: 'All tracks written and produced by YHWH MSC'
+    // Comprehensive metadata
+    songTitle: 'Urban Beat',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC',
+    phoneticPronunciation: 'YAH-WAY EM-ES-SEE',
+    stylised: 'YHWH MSC',
+    akaFka: 'YHWH',
+    artistType: 'Solo Artist',
+    productTitle: 'Urban Beats Collection',
+    altTitle: 'Urban Collection',
+    trackPosition: '1',
+    featuringArtists: 'None',
+    backgroundVocalists: 'None',
+    duration: '3:30',
+    explicit: 'No',
+    version: 'Original',
+    bpm: '140',
+    songKey: 'C Minor',
+    moodDescription: 'Dark, urban, energetic',
+    tags: 'hip hop, urban, beats, dark',
+    lyrics: 'Urban beats in the city...',
+    fileType: '.wav',
+    audioFileName: 'urban_beat_01.wav',
+    coverFileName: 'urban_beats_cover.jpg',
+    language: 'English',
+    vocalType: 'Rap',
+    subGenre: 'Trap',
+    catalogueNo: 'MSC001',
+    format: 'Digital',
+    productType: 'EP',
+    barcode: '1234567890123',
+    tunecode: 'TC123456',
+    iceWorkKey: 'IWK123456',
+    iswc: 'T-123456789-0',
+    isrc: 'USRC12345686',
+    upc: '123456789012',
+    bowiPreviouslyReleased: 'No',
+    previousReleaseDate: null,
+    recordingCountry: 'United States',
+    preReleaseDate: '2024-02-15',
+    preReleaseUrl: 'https://prerelease.example.com',
+    releaseDate: '2024-03-01',
+    releaseUrl: 'https://release.example.com',
+    releaseLabel: 'MSC & Co',
+    distributionCompany: 'Code Group Distribution',
+    copyrightYear: '2024',
+    copyrightOwner: 'YHWH MSC',
+    pLine: '℗ 2024 MSC & Co Records',
+    cLine: '© 2024 MSC & Co Records',
+    composerAuthor: 'YHWH MSC',
+    role: 'Composer, Lyricist',
+    pro: 'ASCAP',
+    caeIpi: '123456789',
+    publishing: 'MSC Publishing',
+    publisherIpi: '987654321',
+    publishingAdmin: 'MSC Publishing Admin',
+    publishingAdminIpi: '456789123',
+    mechanical: 'Harry Fox Agency',
+    bmiWorkNumber: 'BM123456789',
+    ascapWorkNumber: 'AW123456789',
+    isni: '0000000123456789',
+    subPublisher: 'None',
+    publishingType: 'Administration',
+    territory: 'Worldwide',
+    executiveProducer: 'YHWH MSC',
+    producer: 'YHWH MSC',
+    mixingEngineer: 'Studio Pro',
+    masteringEngineer: 'Master Lab',
+    coProducer: 'Beat Maker',
+    assistantProducer: 'None',
+    engineerEditing: 'Studio Pro',
+    masteringStudio: 'Master Lab',
+    recordingEngineer: 'Studio Pro',
+    additionalProduction: 'Beat Maker',
+    recordingStudio: 'MSC Studio',
+    keyboards: 'None',
+    programming: 'YHWH MSC',
+    bass: 'None',
+    drums: 'None',
+    guitars: 'None',
+    organ: 'None',
+    percussion: 'None',
+    strings: 'None',
+    additionalInstrumentation: 'None',
+    designArtDirection: 'MSC Design',
+    management: 'MSC Management',
+    bookingAgent: 'MSC Booking',
+    pressContact: 'press@msc.com',
+    primaryContactEmail: 'contact@msc.com',
+    artistEmail: 'artist@msc.com',
+    primaryContactNumber: '+1-555-123-4567',
+    secondaryContactNumber: '+1-555-987-6543',
+    wikipedia: 'https://wikipedia.org/yhwh-msc',
+    socialMediaLink: 'https://instagram.com/yhwhmsc',
+    shazam: 'https://shazam.com/yhwh-msc',
+    tiktok: 'https://tiktok.com/@yhwhmsc',
+    instagram: 'https://instagram.com/yhwhmsc',
+    genius: 'https://genius.com/yhwh-msc',
+    allMusic: 'https://allmusic.com/yhwh-msc',
+    discogs: 'https://discogs.com/yhwh-msc',
+    musicbrainz: 'https://musicbrainz.org/yhwh-msc',
+    imdb: 'https://imdb.com/yhwh-msc',
+    jaxsta: 'https://jaxsta.com/yhwh-msc',
+    website: 'https://yhwhmsc.com',
+    youtube: 'https://youtube.com/yhwhmsc',
+    youtubeMusic: 'https://music.youtube.com/yhwh-msc',
+    knowledgePanel: 'https://google.com/yhwh-msc',
+    tourDates: 'https://tour.yhwhmsc.com',
+    spotifyUri: 'spotify:artist:123456789',
+    appleId: '123456789',
+    digitalAssetsFolder: '/assets/urban_beats',
+    metadataApproved: 'Yes',
+    initials: 'YM',
+    submittedToStores: 'Yes',
+    luminate: 'Submitted',
+    mediabase: 'Submitted',
+    notes: 'Urban hip hop collection with strong commercial potential'
   },
   {
     id: 2,
-    projectName: 'Midnight Sessions',
+    projectName: 'Rock Anthem',
     artist: 'YHWH MSC',
     label: 'MSC & Co',
-    releaseType: 'Album',
-    genre: 'Hip Hop',
-    status: 'under_review',
-    submissionDate: '2024-01-12',
-    expectedReleaseDate: '2024-03-20',
-    assets: 6,
-    feedback: 'Under review by distribution team - awaiting approval',
-    marketingPlan: 'TBD',
+    releaseType: 'Single',
+    genre: 'Rock',
+    status: 'submitted',
+    submissionDate: '2024-01-10',
+    expectedReleaseDate: '2024-02-15',
+    assets: '1 track, artwork',
+    feedback: 'Strong rock sound, ready for distribution',
+    marketingPlan: 'Radio promotion, streaming focus',
+    publishingNotes: 'Powerful rock anthem',
     trackListing: [
-      { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
-      { title: 'Street Lights', duration: '3:30', isrc: 'USRC12345683' },
-      { title: 'Urban Nights', duration: '4:05', isrc: 'USRC12345684' }
+      { title: 'Rock Anthem', duration: '4:20', isrc: 'USRC12345689', bpm: '120', songKey: 'E Major' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Featured Artist', name: 'MC Flow' }
+      { role: 'Mix Engineer', name: 'Studio Pro' }
     ],
-    publishingNotes: 'Collaborative project with MC Flow'
-  },
-  {
-    id: 3,
-    projectName: 'Acoustic Dreams',
-    artist: 'MC Flow',
-    label: 'MSC & Co',
-    releaseType: 'Single',
-    genre: 'Acoustic',
-    status: 'completed',
-    submissionDate: '2024-01-10',
-    expectedReleaseDate: '2024-02-01',
-    assets: 1,
-    feedback: 'Approved and sent to DSPs',
-    marketingPlan: 'Acoustic playlist targeting',
-    trackListing: [
-      { title: 'Acoustic Dreams', duration: '4:20', isrc: 'USRC12345685' }
-    ],
-    credits: [
-      { role: 'Producer', name: 'MC Flow' }
-    ],
-    publishingNotes: 'Solo acoustic performance'
-  },
-  {
-    id: 4,
-    projectName: 'Electronic Fusion',
-    artist: 'Studio Pro',
-    label: 'MSC & Co',
-    releaseType: 'EP',
-    genre: 'Electronic',
-    status: 'live',
-    submissionDate: '2024-01-08',
-    expectedReleaseDate: '2024-01-25',
-    assets: 3,
-    feedback: 'Live on all major platforms',
-    marketingPlan: 'Electronic music promotion',
-    trackListing: [
-      { title: 'Fusion Beat', duration: '5:15', isrc: 'USRC12345686' },
-      { title: 'Digital Dreams', duration: '4:30', isrc: 'USRC12345687' },
-      { title: 'Tech Groove', duration: '6:20', isrc: 'USRC12345688' }
-    ],
-    credits: [
-      { role: 'Producer', name: 'Studio Pro' },
-      { role: 'Sound Design', name: 'Studio Pro' }
-    ],
-    publishingNotes: 'Electronic fusion experiment'
+    // Comprehensive metadata
+    songTitle: 'Rock Anthem',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC',
+    phoneticPronunciation: 'YAH-WAY EM-ES-SEE',
+    stylised: 'YHWH MSC',
+    akaFka: 'YHWH',
+    artistType: 'Solo Artist',
+    productTitle: 'Rock Anthem',
+    altTitle: 'Anthem',
+    trackPosition: '1',
+    featuringArtists: 'None',
+    backgroundVocalists: 'Studio Choir',
+    duration: '4:20',
+    explicit: 'No',
+    version: 'Original',
+    bpm: '120',
+    songKey: 'E Major',
+    moodDescription: 'Energetic, powerful, anthemic',
+    tags: 'rock, anthem, powerful, energetic',
+    lyrics: 'This is our rock anthem...',
+    fileType: '.wav',
+    audioFileName: 'rock_anthem_01.wav',
+    coverFileName: 'rock_anthem_cover.jpg',
+    language: 'English',
+    vocalType: 'Rock',
+    subGenre: 'Alternative Rock',
+    catalogueNo: 'MSC002',
+    format: 'Digital',
+    productType: 'Single',
+    barcode: '1234567890124',
+    tunecode: 'TC123457',
+    iceWorkKey: 'IWK123457',
+    iswc: 'T-123456789-1',
+    isrc: 'USRC12345689',
+    upc: '123456789013',
+    bowiPreviouslyReleased: 'No',
+    previousReleaseDate: null,
+    recordingCountry: 'United States',
+    preReleaseDate: '2024-02-01',
+    preReleaseUrl: 'https://prerelease.example.com/rock',
+    releaseDate: '2024-02-15',
+    releaseUrl: 'https://release.example.com/rock',
+    releaseLabel: 'MSC & Co',
+    distributionCompany: 'Code Group Distribution',
+    copyrightYear: '2024',
+    copyrightOwner: 'YHWH MSC',
+    pLine: '℗ 2024 MSC & Co Records',
+    cLine: '© 2024 MSC & Co Records',
+    composerAuthor: 'YHWH MSC',
+    role: 'Composer, Lyricist',
+    pro: 'ASCAP',
+    caeIpi: '123456789',
+    publishing: 'MSC Publishing',
+    publisherIpi: '987654321',
+    publishingAdmin: 'MSC Publishing Admin',
+    publishingAdminIpi: '456789123',
+    mechanical: 'Harry Fox Agency',
+    bmiWorkNumber: 'BM123456790',
+    ascapWorkNumber: 'AW123456790',
+    isni: '0000000123456790',
+    subPublisher: 'None',
+    publishingType: 'Administration',
+    territory: 'Worldwide',
+    executiveProducer: 'YHWH MSC',
+    producer: 'YHWH MSC',
+    mixingEngineer: 'Studio Pro',
+    masteringEngineer: 'Master Lab',
+    coProducer: 'None',
+    assistantProducer: 'None',
+    engineerEditing: 'Studio Pro',
+    masteringStudio: 'Master Lab',
+    recordingEngineer: 'Studio Pro',
+    additionalProduction: 'None',
+    recordingStudio: 'MSC Studio',
+    keyboards: 'YHWH MSC',
+    programming: 'None',
+    bass: 'Studio Bassist',
+    drums: 'Studio Drummer',
+    guitars: 'Studio Guitarist',
+    organ: 'None',
+    percussion: 'Studio Percussionist',
+    strings: 'None',
+    additionalInstrumentation: 'Studio Orchestra',
+    designArtDirection: 'MSC Design',
+    management: 'MSC Management',
+    bookingAgent: 'MSC Booking',
+    pressContact: 'press@msc.com',
+    primaryContactEmail: 'contact@msc.com',
+    artistEmail: 'artist@msc.com',
+    primaryContactNumber: '+1-555-123-4567',
+    secondaryContactNumber: '+1-555-987-6543',
+    wikipedia: 'https://wikipedia.org/yhwh-msc',
+    socialMediaLink: 'https://instagram.com/yhwhmsc',
+    shazam: 'https://shazam.com/yhwh-msc',
+    tiktok: 'https://tiktok.com/@yhwhmsc',
+    instagram: 'https://instagram.com/yhwhmsc',
+    genius: 'https://genius.com/yhwh-msc',
+    allMusic: 'https://allmusic.com/yhwh-msc',
+    discogs: 'https://discogs.com/yhwh-msc',
+    musicbrainz: 'https://musicbrainz.org/yhwh-msc',
+    imdb: 'https://imdb.com/yhwh-msc',
+    jaxsta: 'https://jaxsta.com/yhwh-msc',
+    website: 'https://yhwhmsc.com',
+    youtube: 'https://youtube.com/yhwhmsc',
+    youtubeMusic: 'https://music.youtube.com/yhwh-msc',
+    knowledgePanel: 'https://google.com/yhwh-msc',
+    tourDates: 'https://tour.yhwhmsc.com',
+    spotifyUri: 'spotify:artist:123456789',
+    appleId: '123456789',
+    digitalAssetsFolder: '/assets/rock_anthem',
+    metadataApproved: 'Yes',
+    initials: 'YM',
+    submittedToStores: 'Yes',
+    luminate: 'Submitted',
+    mediabase: 'Submitted',
+    notes: 'Powerful rock anthem with strong commercial appeal'
   }
 ];
 
@@ -120,9 +329,9 @@ const mockEditRequests = [
     requestDetails: 'Need to change track names and upload new cover art',
     status: 'pending_review',
     trackListing: [
-      { title: 'Completed Track 1', duration: '4:20', isrc: 'USRC12345689' },
-      { title: 'Completed Track 2', duration: '3:55', isrc: 'USRC12345690' },
-      { title: 'Completed Track 3', duration: '4:10', isrc: 'USRC12345691' }
+      { title: 'Completed Track 1', duration: '4:20', isrc: 'USRC12345689', bpm: '125', songKey: 'G Major' },
+      { title: 'Completed Track 2', duration: '3:55', isrc: 'USRC12345690', bpm: '130', songKey: 'A Minor' },
+      { title: 'Completed Track 3', duration: '4:10', isrc: 'USRC12345691', bpm: '140', songKey: 'C Major' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
@@ -144,7 +353,7 @@ const mockEditRequests = [
     requestDetails: 'Need to update artist name spelling and add new producer credit',
     status: 'pending_review',
     trackListing: [
-      { title: 'Live Single Track', duration: '3:45', isrc: 'USRC12345692' }
+      { title: 'Live Single Track', duration: '3:45', isrc: 'USRC12345692', bpm: '110', songKey: 'D Major' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
@@ -169,8 +378,8 @@ const mockEditRequests = [
       { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686' },
       { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687' },
       { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688' },
-      { title: 'New Track 1', duration: '3:20', isrc: 'USRC12345693' },
-      { title: 'New Track 2', duration: '4:05', isrc: 'USRC12345694' }
+      { title: 'New Track 1', duration: '3:20', isrc: 'USRC12345693', bpm: '150', songKey: 'B Minor' },
+      { title: 'New Track 2', duration: '4:05', isrc: 'USRC12345694', bpm: '138', songKey: 'E Minor' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
@@ -185,6 +394,8 @@ export default function DistributionPartnerDashboard() {
   const [activeTab, setActiveTab] = useState('all-releases');
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
+  const [editingRelease, setEditingRelease] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [genreFilter, setGenreFilter] = useState('all');
@@ -223,10 +434,10 @@ export default function DistributionPartnerDashboard() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'submitted': return <FileText className="w-4 h-4" />;
-      case 'under_review': return <Eye className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'live': return <Play className="w-4 h-4" />;
+      case RELEASE_STATUSES.SUBMITTED: return <FileText className="w-4 h-4" />;
+      case RELEASE_STATUSES.UNDER_REVIEW: return <Eye className="w-4 h-4" />;
+      case RELEASE_STATUSES.COMPLETED: return <CheckCircle className="w-4 h-4" />;
+      case RELEASE_STATUSES.LIVE: return <Play className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
     }
   };
@@ -234,6 +445,13 @@ export default function DistributionPartnerDashboard() {
   const handleStatusChange = (releaseId, newStatus) => {
     // In a real app, this would update the database
     console.log(`Changing release ${releaseId} status to ${newStatus}`);
+  };
+
+  // Helper function to calculate total assets across all releases
+  const getTotalAssets = (releases) => {
+    return releases.reduce((total, release) => {
+      return total + (release.trackListing ? release.trackListing.length : 0);
+    }, 0);
   };
 
   const renderAllReleases = () => (
@@ -247,7 +465,7 @@ export default function DistributionPartnerDashboard() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search releases..."
+                placeholder="Search assets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -263,10 +481,9 @@ export default function DistributionPartnerDashboard() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Status</option>
-              <option value="submitted">Submitted</option>
-              <option value="under_review">Under Review</option>
-              <option value="completed">Completed</option>
-              <option value="live">Live</option>
+              {Object.entries(RELEASE_STATUSES).map(([key, value]) => (
+                <option key={value} value={value}>{getStatusLabel(value)}</option>
+              ))}
             </select>
           </div>
           
@@ -278,11 +495,9 @@ export default function DistributionPartnerDashboard() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Genres</option>
-              <option value="Electronic">Electronic</option>
-              <option value="Hip Hop">Hip Hop</option>
-              <option value="Acoustic">Acoustic</option>
-              <option value="Rock">Rock</option>
-              <option value="Pop">Pop</option>
+              {GENRES.map(genre => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
             </select>
           </div>
           
@@ -301,84 +516,92 @@ export default function DistributionPartnerDashboard() {
         </div>
       </div>
 
-      {/* Releases Table */}
+      {/* Assets Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All Releases ({filteredReleases.length})</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">All Assets ({getTotalAssets(filteredReleases)} assets)</h3>
+            <button
+              onClick={() => downloadAllReleasesExcel(filteredReleases)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download All</span>
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track Position</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Song Title</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredReleases.map((release) => (
-                <tr key={release.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{release.projectName}</div>
-                      <div className="text-sm text-gray-500">{release.releaseType} • {release.genre}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.label}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                      {getStatusIcon(release.status)}
-                      <span className="ml-1">{release.status.replace('_', ' ')}</span>
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.submissionDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedRelease(release);
-                          setShowReleaseDetails(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedRelease(release);
-                          // Open edit modal
-                        }}
-                        className="text-gray-600 hover:text-gray-900"
-                        title="Edit Release"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {release.status === 'submitted' && (
+                release.trackListing.map((track, trackIndex) => (
+                  <tr key={`${release.id}-${trackIndex}`} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{release.projectName}</div>
+                        <div className="text-sm text-gray-500">{release.releaseType} • {release.genre}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">
+                        {trackIndex + 1}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{track.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.duration}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{track.isrc}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
+                        {getStatusIcon(release.status)}
+                        <span className="ml-1">{getStatusLabel(release.status)}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
                         <button
-                          onClick={() => handleStatusChange(release.id, 'under_review')}
-                          className="text-amber-600 hover:text-amber-900"
-                          title="Move to Under Review"
+                          onClick={() => {
+                            setSelectedRelease(release);
+                            setShowReleaseDetails(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View Asset Details"
                         >
-                          <CheckCircle className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
                         </button>
-                      )}
-                      {release.status === 'under_review' && (
                         <button
-                          onClick={() => handleStatusChange(release.id, 'completed')}
+                          onClick={() => {
+                            setEditingRelease(release);
+                            setShowEditModal(true);
+                          }}
+                          className="text-gray-600 hover:text-gray-900"
+                          title="Edit Asset Metadata"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => downloadReleaseExcel(release)}
                           className="text-green-600 hover:text-green-900"
-                          title="Mark as Completed"
+                          title="Download Asset Data"
                         >
-                          <CheckCircle className="w-4 h-4" />
+                          <Download className="w-4 h-4" />
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ))}
             </tbody>
           </table>
@@ -508,7 +731,16 @@ export default function DistributionPartnerDashboard() {
       {/* Edit Requests Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Edit Requests & Amendments ({mockEditRequests.length})</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">Edit Requests & Amendments ({mockEditRequests.length})</h3>
+            <button
+              onClick={() => downloadAllReleasesExcel(mockEditRequests)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download All</span>
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -583,6 +815,13 @@ export default function DistributionPartnerDashboard() {
                       >
                         <FaTimes className="w-4 h-4" />
                       </button>
+                      <button
+                        onClick={() => downloadReleaseExcel(request)}
+                        className="text-green-600 hover:text-green-900"
+                        title="Download Release Data"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -656,6 +895,997 @@ export default function DistributionPartnerDashboard() {
           {activeTab === 'sync-board' && renderSyncBoard()}
           {activeTab === 'edit-requests' && renderEditRequests()}
         </div>
+
+        {/* Release Details Modal */}
+        {showReleaseDetails && selectedRelease && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
+                <h3 className="text-lg font-semibold text-gray-900">Release Details - {selectedRelease.projectName}</h3>
+                <button
+                  onClick={() => {
+                    setShowReleaseDetails(false);
+                    setSelectedRelease(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.projectName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Song Title</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.songTitle}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.artistName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Legal Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.legalName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.companyName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Label</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.label}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.releaseType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Genre</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.genre}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Sub Genre</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.subGenre}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Status</label>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedRelease.status)}`}>
+                        {getStatusIcon(selectedRelease.status)}
+                        <span className="ml-1">{selectedRelease.status.replace('_', ' ')}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Product Title</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.productTitle}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Alt Title</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.altTitle}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Number of Tracks</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.trackListing.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Artist Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.artistType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Stylised</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.stylised}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">AKA/FKA</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.akaFka}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Phonetic Pronunciation</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.phoneticPronunciation}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Featuring Artists</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.featuringArtists}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Background Vocalists</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.backgroundVocalists}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audio Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Audio Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Duration</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.duration}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BPM</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.bpm}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Song Key</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.songKey}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Version</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.version}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Explicit</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.explicit}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Language</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.language}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Vocal Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.vocalType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">File Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.fileType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Audio File Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.audioFileName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Cover File Name</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.coverFileName}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Creative Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Creative Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mood Description</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.moodDescription}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tags</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.tags}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Lyrics</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.lyrics}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Product Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Format</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.format}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Product Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.productType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Catalogue No.</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.catalogueNo}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Barcode</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.barcode}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tunecode</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.tunecode}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ICE Work Key</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.iceWorkKey}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISWC</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.iswc}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISRC</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.isrc}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">UPC</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.upc}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Release Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Release Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BOWI Previously Released</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.bowiPreviouslyReleased}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Previous Release Date</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.previousReleaseDate || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Country</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.recordingCountry}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Pre-Release Date</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.preReleaseDate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Pre-Release URL</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.preReleaseUrl}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Date</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.releaseDate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release URL</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.releaseUrl}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Label</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.releaseLabel}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Distribution Company</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.distributionCompany}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Copyright Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Copyright Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Copyright Year</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.copyrightYear}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Copyright Owner</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.copyrightOwner}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">℗ P Line</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.pLine}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">© C Line</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.cLine}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Publishing Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Publishing Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Composer / Author</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.composerAuthor}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Role</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.role}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">PRO</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.pro}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">CAE/IPI</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.caeIpi}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publishing}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publisher IPI</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publisherIpi}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Admin</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publishingAdmin}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Admin IPI</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publishingAdminIpi}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mechanical</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.mechanical}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">BMI Work #</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.bmiWorkNumber}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ASCAP Work #</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.ascapWorkNumber}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">ISNI</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.isni}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Sub-Publisher</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.subPublisher}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Type</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publishingType}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Territory</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.territory}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Production Credits */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Production Credits</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Executive Producer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.executiveProducer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Producer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.producer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mixing Engineer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.mixingEngineer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Engineer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.masteringEngineer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Co-Producer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.coProducer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Assistant Producer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.assistantProducer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Engineer / Editing</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.engineerEditing}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Studio</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.masteringStudio}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Engineer</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.recordingEngineer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Production</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.additionalProduction}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Studio</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.recordingStudio}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Instrumentation */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Instrumentation</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Keyboards</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.keyboards}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Programming</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.programming}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Bass</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.bass}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Drums</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.drums}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Guitars</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.guitars}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Organ</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.organ}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Percussion</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.percussion}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Strings</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.strings}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Instrumentation</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.additionalInstrumentation}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Business Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Design / Art Direction</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.designArtDirection}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Management</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.management}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Booking Agent</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.bookingAgent}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Press Contact</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.pressContact}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact Email</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.primaryContactEmail}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Email</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.artistEmail}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact #</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.primaryContactNumber}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Secondary Contact #</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.secondaryContactNumber}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Digital Links */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Digital Links</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Wikipedia</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.wikipedia}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Social Media</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.socialMediaLink}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Shazam</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.shazam}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">TikTok</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.tiktok}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Instagram</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.instagram}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Genius</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.genius}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">AllMusic</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.allMusic}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Discogs</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.discogs}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Musicbrainz</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.musicbrainz}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">IMDb</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.imdb}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Jaxsta</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.jaxsta}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Website</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.website}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">YouTube</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.youtube}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">YouTube Music</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.youtubeMusic}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Knowledge Panel</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.knowledgePanel}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tour Dates</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.tourDates}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Spotify URI</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.spotifyUri}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Apple ID</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.appleId}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Technical Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Digital Assets Folder</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.digitalAssetsFolder}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Metadata Approved</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.metadataApproved}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Initials</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.initials}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Submitted to Stores?</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.submittedToStores}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Luminate</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.luminate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mediabase</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.mediabase}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Track Listing */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Track Listing</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {selectedRelease.trackListing.map((track, index) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.duration}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{track.isrc}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Credits */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Credits</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {selectedRelease.credits.map((credit, index) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2 text-sm text-gray-900">{credit.role}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">{credit.name}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Information</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Feedback</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.feedback}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Marketing Plan</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.marketingPlan}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Notes</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.publishingNotes}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Notes</label>
+                      <p className="text-sm text-gray-900">{selectedRelease.notes}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => downloadReleaseExcel(selectedRelease)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Data</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowReleaseDetails(false);
+                      setSelectedRelease(null);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Edit Modal */}
+        {showEditModal && editingRelease && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
+                <h3 className="text-lg font-semibold text-gray-900">Edit Release Metadata - {editingRelease.projectName}</h3>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingRelease(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Basic Information - Editable */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information (Editable)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                      <input
+                        type="text"
+                        defaultValue={editingRelease.projectName}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Genre</label>
+                      <select
+                        defaultValue={editingRelease.genre}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {GENRES.map(genre => (
+                          <option key={genre} value={genre}>{genre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Release Type</label>
+                      <select
+                        defaultValue={editingRelease.releaseType}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {RELEASE_TYPES.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Artist Information - Read Only */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information (Read Only)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Name</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artist}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Label</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.label}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.companyName || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Legal Name</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.legalName || editingRelease.artist}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Track Metadata - Mixed Editable/Read Only */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Track Metadata</h4>
+                  <div className="space-y-4">
+                    {editingRelease.trackListing.map((track, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-900 mb-3">Track {index + 1}</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {/* Read Only Fields */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Song Title (Read Only)</label>
+                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{track.title}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Track Position (Read Only)</label>
+                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{index + 1}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Audio File Name (Read Only)</label>
+                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{track.audioFileName || 'To be set by DP'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Cover File Name (Read Only)</label>
+                            <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coverFileName || 'To be set by DP'}</p>
+                          </div>
+                          
+                          {/* Editable Fields */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Duration</label>
+                            <input
+                              type="text"
+                              defaultValue={track.duration}
+                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">BPM</label>
+                            <input
+                              type="text"
+                              defaultValue={track.bpm || ''}
+                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Key</label>
+                            <input
+                              type="text"
+                              defaultValue={track.songKey || ''}
+                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">ISRC</label>
+                            <input
+                              type="text"
+                              defaultValue={track.isrc}
+                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Additional Metadata - Read Only */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Metadata (Read Only)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Language</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.language || 'English'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Composer / Author</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.composer || editingRelease.artist}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Executive Producer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.executiveProducer || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Producer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.producer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mixing Engineer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.mixingEngineer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Engineer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.masteringEngineer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Co-Producer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coProducer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Assistant Producer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.assistantProducer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Engineer / Editing</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.engineer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mastering Studio</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.masteringStudio || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Engineer</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.recordingEngineer || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Production</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.additionalProduction || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Recording Studio</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.recordingStudio || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Keyboards</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.keyboards || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Programming</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.programming || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Bass</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.bass || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Drums</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.drums || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Guitars</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.guitars || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Organ</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.organ || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Percussion</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.percussion || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Strings</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.strings || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Additional Instrumentation</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.additionalInstrumentation || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Design/Art Direction</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.designArtDirection || 'YHWH MSC'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Management</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.management || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Booking Agent</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.bookingAgent || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Press Contact</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.pressContact || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact Email</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactEmail || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Artist Email</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artistEmail || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Primary Contact #</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactNumber || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Secondary Contact #</label>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.secondaryContactNumber || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      // Save changes logic would go here
+                      console.log('Saving changes to release:', editingRelease.id);
+                      setShowEditModal(false);
+                      setEditingRelease(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingRelease(null);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

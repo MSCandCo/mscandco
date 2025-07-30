@@ -476,11 +476,11 @@ function Pricing() {
           <div className="text-center mb-8">
             <div className="flex flex-col items-center mb-4">
               <img 
-                src="/logos/yhwh-msc-logo.png" 
-                alt="YHWH MSC" 
+                src="/logos/msc-logo.png" 
+                alt="MSC & Co" 
                 className="h-12 w-auto mb-2"
                 onError={(e) => {
-                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                  e.target.src = '/logos/msc-logo.svg';
                   e.target.onerror = () => {
                     e.target.style.display = 'none';
                   };
@@ -615,7 +615,40 @@ function Pricing() {
                 </ul>
 
                 <button
-                  className="w-full py-2 px-4 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className="
+                    bg-transparent 
+                    text-[#1f2937] 
+                    border 
+                    border-[#1f2937] 
+                    rounded-xl 
+                    px-8 
+                    py-3 
+                    font-bold 
+                    shadow 
+                    transition-all 
+                    duration-300 
+                    hover:bg-[#1f2937] 
+                    hover:text-white 
+                    hover:shadow-lg 
+                    hover:-translate-y-1
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-[#1f2937]
+                    w-full
+                  "
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#1f2937',
+                    borderColor: '#1f2937'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#1f2937';
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#1f2937';
+                  }}
                   onClick={() => {
                     if (!isAuthenticated) {
                       window.location.href = '/login';
@@ -635,7 +668,7 @@ function Pricing() {
             <p className="text-gray-600 mb-4">
               Need a custom plan? Contact our sales team for enterprise solutions.
             </p>
-            <button className="text-blue-600 hover:text-blue-700 font-medium">
+            <button className="text-[#1f2937] hover:text-gray-700 font-medium">
               Contact Sales
             </button>
           </div>

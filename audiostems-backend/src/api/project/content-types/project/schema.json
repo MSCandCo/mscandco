@@ -26,33 +26,54 @@
     "releaseType": {
       "type": "enumeration",
       "enum": [
-        "single",
-        "ep",
-        "album",
-        "mixtape",
-        "compilation",
-        "live_album",
-        "remix_album",
-        "soundtrack"
+        "Single",
+        "EP",
+        "Album",
+        "Mixtape"
       ],
       "required": true
     },
     "genre": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::genre.genre",
-      "inversedBy": "projects"
+      "type": "enumeration",
+      "enum": [
+        "Acoustic",
+        "Alternative",
+        "Ambient",
+        "Blues",
+        "Classical",
+        "Country",
+        "Dance",
+        "Electronic",
+        "Experimental",
+        "Folk",
+        "Funk",
+        "Gospel",
+        "Hip Hop",
+        "House",
+        "Indie",
+        "Jazz",
+        "Latin",
+        "Metal",
+        "Pop",
+        "Punk",
+        "R&B",
+        "Reggae",
+        "Rock",
+        "Soul",
+        "Techno",
+        "World"
+      ],
+      "required": true
     },
     "status": {
       "type": "enumeration",
       "enum": [
         "draft",
-        "in_progress",
+        "submitted",
         "under_review",
-        "approved",
-        "scheduled",
-        "released",
-        "cancelled"
+        "approval_required",
+        "completed",
+        "live"
       ],
       "default": "draft",
       "required": true

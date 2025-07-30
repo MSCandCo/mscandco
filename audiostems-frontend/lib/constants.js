@@ -25,3 +25,94 @@ export const getStripeProductById = (productId) => {
     (product) => product.stripeId === productId
   );
 };
+
+// Standardized status options for the entire application
+export const RELEASE_STATUSES = {
+  DRAFT: 'draft',
+  SUBMITTED: 'submitted',
+  UNDER_REVIEW: 'under_review',
+  APPROVAL_REQUIRED: 'approval_required',
+  COMPLETED: 'completed',
+  LIVE: 'live'
+};
+
+export const RELEASE_STATUS_LABELS = {
+  [RELEASE_STATUSES.DRAFT]: 'Draft',
+  [RELEASE_STATUSES.SUBMITTED]: 'Submitted',
+  [RELEASE_STATUSES.UNDER_REVIEW]: 'Under Review',
+  [RELEASE_STATUSES.APPROVAL_REQUIRED]: 'Approval Required',
+  [RELEASE_STATUSES.COMPLETED]: 'Completed',
+  [RELEASE_STATUSES.LIVE]: 'Live'
+};
+
+export const RELEASE_STATUS_COLORS = {
+  [RELEASE_STATUSES.DRAFT]: 'bg-yellow-100 text-yellow-800',
+  [RELEASE_STATUSES.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [RELEASE_STATUSES.UNDER_REVIEW]: 'bg-amber-100 text-amber-800',
+  [RELEASE_STATUSES.APPROVAL_REQUIRED]: 'bg-orange-100 text-orange-800',
+  [RELEASE_STATUSES.COMPLETED]: 'bg-green-100 text-green-800',
+  [RELEASE_STATUSES.LIVE]: 'bg-purple-100 text-purple-800'
+};
+
+// Standardized genre options for the entire application
+export const GENRES = [
+  'Acoustic',
+  'Alternative',
+  'Ambient',
+  'Blues',
+  'Classical',
+  'Country',
+  'Dance',
+  'Electronic',
+  'Experimental',
+  'Folk',
+  'Funk',
+  'Gospel',
+  'Hip Hop',
+  'House',
+  'Indie',
+  'Jazz',
+  'Latin',
+  'Metal',
+  'Pop',
+  'Punk',
+  'R&B',
+  'Reggae',
+  'Rock',
+  'Soul',
+  'Techno',
+  'World'
+];
+
+// Release types
+export const RELEASE_TYPES = [
+  'Single',
+  'EP',
+  'Album',
+  'Mixtape'
+];
+
+// Helper function to get status label
+export const getStatusLabel = (status) => {
+  return RELEASE_STATUS_LABELS[status] || status;
+};
+
+// Helper function to get status color
+export const getStatusColor = (status) => {
+  return RELEASE_STATUS_COLORS[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Helper function to check if status is editable by artist
+export const isStatusEditableByArtist = (status) => {
+  return [RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.APPROVAL_REQUIRED].includes(status);
+};
+
+// Helper function to check if status is controlled by distribution partner
+export const isStatusControlledByDistributionPartner = (status) => {
+  return [RELEASE_STATUSES.UNDER_REVIEW, RELEASE_STATUSES.APPROVAL_REQUIRED, RELEASE_STATUSES.COMPLETED, RELEASE_STATUSES.LIVE].includes(status);
+};
+
+// Helper function to check if status requires artist approval
+export const isStatusRequiringApproval = (status) => {
+  return status === RELEASE_STATUSES.APPROVAL_REQUIRED;
+};

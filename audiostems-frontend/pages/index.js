@@ -85,7 +85,7 @@ export default function Home() {
     return (
       <MainLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1f2937]"></div>
         </div>
       </MainLayout>
     );
@@ -152,6 +152,16 @@ export default function Home() {
             ></div>
             <div className="md:absolute md:inset-y-0 md:left-[10%] flex items-center">
               <div className="py-12 md:py-4 text-center md:text-left md:text-white md:max-w-md">
+                <div className="mb-6 flex justify-center md:justify-start">
+                  <img 
+                    src="/logos/msc-logo.png" 
+                    alt="MSC & Co Logo" 
+                    className="h-16 md:h-20 w-auto filter brightness-0 invert"
+                    style={{
+                      filter: 'brightness(0) invert(1)'
+                    }}
+                  />
+                </div>
                 <h1 className="text-4xl font-bold mb-4">
                   Multi-Brand Music Distribution & Publishing
                 </h1>
@@ -159,7 +169,41 @@ export default function Home() {
                   {COMPANY_INFO.name} - Discover highly curated roster of label-quality musicians and composers across gospel, christian, and general music licensing.
                 </h3>
                 <Button
-                  className="mx-auto md:ml-0"
+                  className="
+                    bg-white 
+                    text-[#1f2937] 
+                    border 
+                    border-white 
+                    rounded-xl 
+                    px-8 
+                    py-3 
+                    font-bold 
+                    shadow 
+                    transition-all 
+                    duration-300 
+                    hover:bg-[#1f2937] 
+                    hover:text-white 
+                    hover:shadow-lg 
+                    hover:-translate-y-1
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-white
+                    mx-auto 
+                    md:ml-0
+                  "
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#1f2937',
+                    borderColor: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#1f2937';
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'white';
+                    e.target.style.color = '#1f2937';
+                  }}
                   onClick={() => router.push("/register")}
                 >
                   Create Free Account
@@ -222,7 +266,43 @@ export default function Home() {
                 <h2 className="text-5xl font-bold mb-8">
                   Built for Filmmakers & Artists
                 </h2>
-                <Button onClick={() => router.push("/register")}>
+                <Button 
+                  className="
+                    bg-transparent 
+                    text-[#1f2937] 
+                    border 
+                    border-[#1f2937] 
+                    rounded-xl 
+                    px-8 
+                    py-3 
+                    font-bold 
+                    shadow 
+                    transition-all 
+                    duration-300 
+                    hover:bg-[#1f2937] 
+                    hover:text-white 
+                    hover:shadow-lg 
+                    hover:-translate-y-1
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-[#1f2937]
+                  "
+                  style={{
+                    '--tw-bg-opacity': '1',
+                    backgroundColor: 'transparent',
+                    color: '#1f2937',
+                    borderColor: '#1f2937'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#1f2937';
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#1f2937';
+                  }}
+                  onClick={() => router.push("/register")}
+                >
                   Create Free Account
                 </Button>
               </div>
@@ -278,165 +358,45 @@ export default function Home() {
           <p className="mb-10 text-lg text-gray-600">
             Simplify your process with a subscription.
           </p>
-          <Button onClick={() => router.push("/register")}>
+          <Button 
+            className="
+              bg-transparent 
+              text-[#1f2937] 
+              border 
+              border-[#1f2937] 
+              rounded-xl 
+              px-8 
+              py-3 
+              font-bold 
+              shadow 
+              transition-all 
+              duration-300 
+              hover:bg-[#1f2937] 
+              hover:text-white 
+              hover:shadow-lg 
+              hover:-translate-y-1
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[#1f2937]
+            "
+            style={{
+              backgroundColor: 'transparent',
+              color: '#1f2937',
+              borderColor: '#1f2937'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#1f2937';
+              e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = '#1f2937';
+            }}
+            onClick={() => router.push("/register")}
+          >
             Create Free Account
           </Button>
         </div>
-      </section>
-      <section className="py-16 bg-white">
-        <Container>
-          <h2 className="text-4xl font-bold text-center mb-16">
-            Choose Your Plan
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Artist Starter Plan */}
-            <div className="bg-gray-50 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold mb-4">Artist Starter</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$9.99</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Up to 10 releases per year
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Basic analytics and reporting
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Email support
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Distribution to major platforms
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Basic earnings tracking
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Release management tools
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => router.push("/register")}
-              >
-                Get Started
-              </Button>
-            </div>
-
-            {/* Artist Pro Plan */}
-            <div className="bg-blue-50 p-8 rounded-lg border-2 border-blue-200">
-              <h3 className="text-2xl font-bold mb-4">Artist Pro</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$19.99</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Unlimited releases per year
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Advanced analytics and reporting
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Priority email and phone support
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Custom branding options
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Distribution to all major platforms
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Detailed earnings tracking
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Marketing campaign tools
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Advanced royalty tracking
-                </li>
-              </ul>
-              <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
-                onClick={() => router.push("/register")}
-              >
-                Get Started
-              </Button>
-            </div>
-
-            {/* Label Admin Plan */}
-            <div className="bg-gray-50 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold mb-4">Label Management</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$29.99</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Unlimited Artists Management
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Label Analytics Dashboard
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Artist Content Oversight
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Advanced Reporting Tools
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Release Management
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Artist Performance Tracking
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Label Branding Options
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Priority Email Support
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Content Approval Workflows
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Revenue Tracking
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => router.push("/register")}
-              >
-                Get Started
-              </Button>
-            </div>
-          </div>
-        </Container>
       </section>
       <section className="mx-3 md:mx-8 mb-16 py-16 bg-gray-100">
         <Container>
@@ -524,7 +484,42 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <Button className="mx-auto" onClick={() => router.push("/register")}>
+          <Button 
+            className="
+              bg-transparent 
+              text-[#1f2937] 
+              border 
+              border-[#1f2937] 
+              rounded-xl 
+              px-8 
+              py-3 
+              font-bold 
+              shadow 
+              transition-all 
+              duration-300 
+              hover:bg-[#1f2937] 
+              hover:text-white 
+              hover:shadow-lg 
+              hover:-translate-y-1
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[#1f2937]
+            "
+            style={{
+              backgroundColor: 'transparent',
+              color: '#1f2937',
+              borderColor: '#1f2937'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#1f2937';
+              e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = '#1f2937';
+            }}
+            onClick={() => router.push("/register")}
+          >
             Create Free Account
           </Button>
         </Container>

@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaSend } from 'react-icons/fa';
-import { Send, Eye, FileText, CheckCircle, Play } from 'lucide-react';
+import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
+import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
 import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, isStatusEditableByArtist, isStatusRequiringApproval } from '../../lib/constants';
 
 /*
  * Distribution Partner Workflow:
@@ -37,6 +38,8 @@ const mockReleases = [
     cover: '🎵',
     feedback: 'Great production quality',
     marketingPlan: 'Social media campaign + playlist pitching',
+    musicFiles: ['summer-vibes.mp3', 'ocean-waves.mp3', 'sunset-dreams.mp3', 'beach-party.mp3'],
+    artworkFile: 'summer-vibes-cover.jpg',
     trackListing: [
       { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678' },
       { title: 'Ocean Waves', duration: '4:12', isrc: 'USRC12345679' },
@@ -66,6 +69,8 @@ const mockReleases = [
     cover: '🎵',
     feedback: 'Under review by distribution team - awaiting approval',
     marketingPlan: 'TBD',
+    musicFiles: ['midnight-intro.mp3', 'street-lights.mp3', 'urban-nights.mp3'],
+    artworkFile: 'midnight-sessions-cover.jpg',
     trackListing: [
       { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
       { title: 'Street Lights', duration: '3:30', isrc: 'USRC12345683' },
@@ -93,6 +98,8 @@ const mockReleases = [
     cover: '🎵',
     feedback: '',
     marketingPlan: '',
+    musicFiles: [], // No music files uploaded yet
+    artworkFile: null, // No artwork uploaded yet
     trackListing: [
       { title: 'Acoustic Dreams', duration: '4:20', isrc: 'USRC12345685' }
     ],
@@ -117,6 +124,8 @@ const mockReleases = [
     cover: '🎵',
     feedback: '',
     marketingPlan: '',
+    musicFiles: ['urban-beat.mp3', 'street-rhythm.mp3'], // Some music files uploaded
+    artworkFile: null, // No artwork uploaded yet
     trackListing: [
       { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686' },
       { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687' },
@@ -263,6 +272,44 @@ const mockReleases = [
       { role: 'Mastering', name: 'Master Lab' }
     ],
     publishingNotes: 'Conceptual electronic album exploring digital themes'
+  },
+  {
+    id: 10,
+    projectName: 'Approval Required EP',
+    artist: 'Test Artist',
+    releaseType: 'EP',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.APPROVAL_REQUIRED,
+    submissionDate: '2024-01-15',
+    expectedReleaseDate: '2024-03-01',
+    musicFiles: ['track1.wav', 'track2.wav', 'track3.wav'],
+    artworkFile: 'ep-cover.jpg',
+    trackListing: [
+      { title: 'Approval Track 1', duration: '3:45', isrc: 'USRC12345693', bpm: '128', songKey: 'C Major' },
+      { title: 'Approval Track 2', duration: '4:12', isrc: 'USRC12345694', bpm: '130', songKey: 'A Minor' },
+      { title: 'Approval Track 3', duration: '3:58', isrc: 'USRC12345695', bpm: '125', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Producer', fullName: 'Test Producer' },
+      { role: 'Mixing Engineer', fullName: 'Test Mixer' }
+    ],
+    publishingNotes: 'EP ready for approval',
+    marketingPlan: 'Marketing plan pending approval',
+    feedback: 'Distribution partner has requested changes to track titles and BPM values',
+    originalData: {
+      trackListing: [
+        { title: 'Original Track 1', duration: '3:45', isrc: 'USRC12345693', bpm: '120', songKey: 'C Major' },
+        { title: 'Original Track 2', duration: '4:12', isrc: 'USRC12345694', bpm: '125', songKey: 'A Minor' },
+        { title: 'Original Track 3', duration: '3:58', isrc: 'USRC12345695', bpm: '122', songKey: 'G Major' }
+      ]
+    },
+    proposedChanges: {
+      trackListing: [
+        { title: 'Approval Track 1', duration: '3:45', isrc: 'USRC12345693', bpm: '128', songKey: 'C Major' },
+        { title: 'Approval Track 2', duration: '4:12', isrc: 'USRC12345694', bpm: '130', songKey: 'A Minor' },
+        { title: 'Approval Track 3', duration: '3:58', isrc: 'USRC12345695', bpm: '125', songKey: 'G Major' }
+      ]
+    }
   }
 ];
 
@@ -283,6 +330,9 @@ export default function ArtistReleases() {
   const [viewReleaseDetailsModal, setViewReleaseDetailsModal] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [hoveredStatus, setHoveredStatus] = useState(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalRelease, setApprovalRelease] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Validation function to check if all required fields are filled
   const validateReleaseForSubmission = (release) => {
@@ -356,10 +406,11 @@ export default function ArtistReleases() {
 
   // Memoize stats calculation
   const stats = useMemo(() => {
-    const statusCounts = { draft: 0, submitted: 0, under_review: 0, completed: 0, live: 0 };
+    const statusCounts = { draft: 0, submitted: 0, under_review: 0, approval_required: 0, completed: 0, live: 0 };
     let totalEarnings = 0;
     let totalStreams = 0;
     let totalReleases = releases.length;
+    let totalAssets = 0;
     
     releases.forEach(release => {
       if (statusCounts.hasOwnProperty(release.status)) {
@@ -367,11 +418,13 @@ export default function ArtistReleases() {
       }
       totalEarnings += release.earnings || 0;
       totalStreams += release.streams || 0;
+      totalAssets += release.trackListing ? release.trackListing.length : 0;
     });
     
     return {
       ...statusCounts,
       totalReleases,
+      totalAssets,
       totalEarnings,
       totalStreams
     };
@@ -409,59 +462,47 @@ export default function ArtistReleases() {
     );
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'under_review': return 'bg-amber-100 text-amber-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'live': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'submitted': return <Send className="w-5 h-5" />;
-      case 'under_review': return <Eye className="w-5 h-5" />;
-      case 'draft': return <FileText className="w-5 h-5" />;
-      case 'completed': return <CheckCircle className="w-5 h-5" />;
-      case 'live': return <Play className="w-5 h-5" />;
-      default: return null;
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'submitted': return 'Submitted';
-      case 'under_review': return 'Under Review';
-      case 'draft': return 'Draft';
-      case 'completed': return 'Completed';
-      case 'live': return 'Live';
-      default: return 'Unknown';
-    }
-  };
-
   const getReleaseTypeColor = (type) => {
     switch (type) {
-      case 'Single': return 'bg-amber-100 text-amber-800';
+      case 'Single': return 'bg-green-100 text-green-800';
       case 'EP': return 'bg-blue-100 text-blue-800';
-      case 'Album': return 'bg-green-100 text-green-800';
-      case 'Mixtape': return 'bg-purple-100 text-purple-800';
+      case 'Album': return 'bg-purple-100 text-purple-800';
+      case 'Mixtape': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getGenreColor = (genre) => {
-    const colors = {
-      'Electronic': 'bg-purple-100 text-purple-800',
-      'Hip Hop': 'bg-amber-100 text-amber-800',
-      'Acoustic': 'bg-green-100 text-green-800',
-      'Pop': 'bg-pink-100 text-pink-800',
-      'Rock': 'bg-amber-100 text-amber-800',
-      'Jazz': 'bg-blue-100 text-blue-800'
-    };
-    return colors[genre] || 'bg-gray-100 text-gray-800';
+    switch (genre) {
+      case 'Hip Hop': return 'bg-red-100 text-red-800';
+      case 'Rock': return 'bg-amber-100 text-amber-800';
+      case 'Electronic': return 'bg-blue-100 text-blue-800';
+      case 'Pop': return 'bg-pink-100 text-pink-800';
+      case 'Jazz': return 'bg-indigo-100 text-indigo-800';
+      case 'Acoustic': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Helper functions for checking release completeness
+  const hasMusicFiles = (release) => {
+    return release.musicFiles && release.musicFiles.length > 0;
+  };
+
+  const hasCoverArtwork = (release) => {
+    return release.artworkFile || release.coverArtwork;
+  };
+
+  const isReleaseDetailsComplete = (release) => {
+    return release.projectName && 
+           release.artist && 
+           release.releaseType && 
+           release.genre && 
+           release.expectedReleaseDate &&
+           release.trackListing && 
+           release.trackListing.length > 0 &&
+           release.credits && 
+           release.credits.length > 0;
   };
 
   const renderAllProjects = () => (
@@ -486,7 +527,7 @@ export default function ArtistReleases() {
               <span className="text-2xl">🎵</span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Assets</p>
+              <p className="text-sm font-medium text-gray-600">Total Tracks</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalAssets}</p>
             </div>
           </div>
@@ -523,11 +564,12 @@ export default function ArtistReleases() {
           <nav className="-mb-px flex space-x-8">
             {[
               { id: 'all', label: 'All Releases', count: stats.totalReleases },
-              { id: 'draft', label: 'Draft', count: stats.draft },
-              { id: 'submitted', label: 'Submitted', count: stats.submitted },
-              { id: 'under_review', label: 'Under Review', count: stats.under_review },
-              { id: 'completed', label: 'Completed', count: stats.completed },
-              { id: 'live', label: 'Live', count: stats.live }
+              { id: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: stats.draft },
+              { id: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: stats.submitted },
+              { id: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: stats.under_review },
+              { id: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: stats.approval_required },
+              { id: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: stats.completed },
+              { id: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: stats.live }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -581,12 +623,9 @@ export default function ArtistReleases() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Genres</option>
-                  <option value="Electronic">Electronic</option>
-                  <option value="Hip Hop">Hip Hop</option>
-                  <option value="Acoustic">Acoustic</option>
-                  <option value="Pop">Pop</option>
-                  <option value="Rock">Rock</option>
-                  <option value="Jazz">Jazz</option>
+                  {GENRES.map(genre => (
+                    <option key={genre} value={genre}>{genre}</option>
+                  ))}
                 </select>
               </div>
               
@@ -598,10 +637,9 @@ export default function ArtistReleases() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Types</option>
-                  <option value="Single">Single</option>
-                  <option value="EP">EP</option>
-                  <option value="Album">Album</option>
-                  <option value="Mixtape">Mixtape</option>
+                  {RELEASE_TYPES.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
                 </select>
               </div>
               
@@ -668,17 +706,54 @@ export default function ArtistReleases() {
                   <span className="font-medium">{release.artist}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Assets:</span>
-                  <span className="font-medium">{release.assets}</span>
+                  <span className="text-gray-600">Number of Tracks:</span>
+                  <span className="font-medium">{release.trackListing.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Earnings:</span>
-                  <span className="font-medium text-green-600">${release.earnings.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Streams:</span>
-                  <span className="font-medium">{release.streams.toLocaleString()}</span>
-                </div>
+                {[RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.UNDER_REVIEW].includes(release.status) ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Music Files:</span>
+                      <span className="font-medium">
+                        {hasMusicFiles(release) ? (
+                          <span className="text-green-600">✓</span>
+                        ) : (
+                          <span className="text-red-600">✗</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Cover Artwork:</span>
+                      <span className="font-medium">
+                        {hasCoverArtwork(release) ? (
+                          <span className="text-green-600">✓</span>
+                        ) : (
+                          <span className="text-red-600">✗</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Release Details:</span>
+                      <span className="font-medium">
+                        {isReleaseDetailsComplete(release) ? (
+                          <span className="text-green-600">Complete</span>
+                        ) : (
+                          <span className="text-red-600">Incomplete</span>
+                        )}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Earnings:</span>
+                      <span className="font-medium text-green-600">${release.earnings.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Streams:</span>
+                      <span className="font-medium">{release.streams.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
                 {release.expectedReleaseDate && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Release Date:</span>
@@ -692,7 +767,7 @@ export default function ArtistReleases() {
               </div>
 
               <div className="mt-6 flex space-x-2">
-                {release.status === 'draft' ? (
+                {release.status === RELEASE_STATUSES.DRAFT ? (
                   <>
                     <button 
                       onClick={() => {
@@ -720,7 +795,7 @@ export default function ArtistReleases() {
                       Submit Release
                     </button>
                   </>
-                ) : release.status === 'submitted' ? (
+                ) : release.status === RELEASE_STATUSES.SUBMITTED ? (
                   <>
                     <button 
                       onClick={() => {
@@ -741,7 +816,7 @@ export default function ArtistReleases() {
                       View Details
                     </button>
                   </>
-                ) : release.status === 'under_review' ? (
+                ) : release.status === RELEASE_STATUSES.UNDER_REVIEW ? (
                   <>
                     <button 
                       onClick={() => {
@@ -764,17 +839,74 @@ export default function ArtistReleases() {
                       View Details
                     </button>
                   </>
-                ) : (
-                  <button 
-                    onClick={() => {
-                      setSelectedRelease(release);
-                      setViewReleaseDetailsModal(true);
-                    }}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
-                  >
-                    View Details
-                  </button>
-                )}
+                ) : release.status === RELEASE_STATUSES.APPROVAL_REQUIRED ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setApprovalRelease(release);
+                        setShowApprovalModal(true);
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Changes
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === RELEASE_STATUSES.COMPLETED ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        // Open edit request modal with existing release data
+                        setEditingRelease(release);
+                        setIsEditRequestMode(true);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : release.status === RELEASE_STATUSES.LIVE ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        // Open edit request modal with existing release data
+                        setEditingRelease(release);
+                        setIsEditRequestMode(true);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
+                      Request Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedRelease(release);
+                        setViewReleaseDetailsModal(true);
+                      }}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                    >
+                      View Details
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -793,11 +925,12 @@ export default function ArtistReleases() {
 
   const renderStatusBoard = () => {
     const statusItems = [
-      { status: 'draft', label: 'Draft', count: stats.draft, color: 'bg-yellow-500' },
-      { status: 'submitted', label: 'Submitted', count: stats.submitted, color: 'bg-blue-500' },
-      { status: 'under_review', label: 'Under Review', count: stats.under_review, color: 'bg-amber-500' },
-      { status: 'completed', label: 'Completed', count: stats.completed, color: 'bg-green-500' },
-      { status: 'live', label: 'Live', count: stats.live, color: 'bg-purple-500' }
+      { status: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: stats.draft, color: 'bg-yellow-500' },
+      { status: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: stats.submitted, color: 'bg-blue-500' },
+      { status: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: stats.under_review, color: 'bg-amber-500' },
+      { status: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: stats.approval_required, color: 'bg-orange-500' },
+      { status: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: stats.completed, color: 'bg-green-500' },
+      { status: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: stats.live, color: 'bg-purple-500' }
     ];
 
     return (
@@ -849,12 +982,24 @@ export default function ArtistReleases() {
                 </div>
                 
                 <div className="text-sm text-gray-600">
-                  <p>Assets: {release.assets}</p>
+                  <p>Number of Tracks: {release.trackListing.length}</p>
+                  {['draft', 'submitted', 'under_review'].includes(release.status) ? (
+                    <>
+                      <p>Music Files: {hasMusicFiles(release) ? '✓' : '✗'}</p>
+                      <p>Cover Artwork: {hasCoverArtwork(release) ? '✓' : '✗'}</p>
+                      <p>Release Details: {isReleaseDetailsComplete(release) ? 'Complete' : 'Incomplete'}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>Earnings: ${release.earnings.toLocaleString()}</p>
+                      <p>Streams: {release.streams.toLocaleString()}</p>
+                    </>
+                  )}
                   <p>Expected: {release.expectedReleaseDate ? new Date(release.expectedReleaseDate).toLocaleDateString() : 'TBD'}</p>
                 </div>
                 
                 <div className="mt-4 flex space-x-2">
-                  {release.status === 'draft' ? (
+                  {release.status === RELEASE_STATUSES.DRAFT ? (
                     <>
                       <button 
                         onClick={() => {
@@ -882,7 +1027,7 @@ export default function ArtistReleases() {
                         Submit Release
                       </button>
                     </>
-                  ) : release.status === 'submitted' ? (
+                  ) : release.status === RELEASE_STATUSES.SUBMITTED ? (
                     <>
                       <button 
                         onClick={() => {
@@ -903,7 +1048,7 @@ export default function ArtistReleases() {
                         View Details
                       </button>
                     </>
-                  ) : release.status === 'under_review' ? (
+                  ) : release.status === RELEASE_STATUSES.UNDER_REVIEW ? (
                     <>
                       <button 
                         onClick={() => {
@@ -926,7 +1071,28 @@ export default function ArtistReleases() {
                         View Details
                       </button>
                     </>
-                  ) : release.status === 'completed' ? (
+                  ) : release.status === RELEASE_STATUSES.APPROVAL_REQUIRED ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setApprovalRelease(release);
+                          setShowApprovalModal(true);
+                        }}
+                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Changes
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setViewReleaseDetailsModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Details
+                      </button>
+                    </>
+                  ) : release.status === RELEASE_STATUSES.COMPLETED ? (
                     <>
                       <button 
                         onClick={() => {
@@ -949,7 +1115,7 @@ export default function ArtistReleases() {
                         View Details
                       </button>
                     </>
-                  ) : release.status === 'live' ? (
+                  ) : release.status === RELEASE_STATUSES.LIVE ? (
                     <>
                       <button 
                         onClick={() => {
@@ -1040,7 +1206,7 @@ export default function ArtistReleases() {
               </div>
               
               <div className="mt-3 flex space-x-2">
-                {release.status === 'draft' ? (
+                {release.status === RELEASE_STATUSES.DRAFT ? (
                   <>
                     <button 
                       onClick={() => {
@@ -1068,7 +1234,7 @@ export default function ArtistReleases() {
                       Submit Release
                     </button>
                   </>
-                ) : release.status === 'submitted' ? (
+                ) : release.status === RELEASE_STATUSES.SUBMITTED ? (
                   <>
                     <button 
                       onClick={() => {
@@ -1089,7 +1255,7 @@ export default function ArtistReleases() {
                       View Details
                     </button>
                   </>
-                ) : release.status === 'under_review' ? (
+                ) : release.status === RELEASE_STATUSES.UNDER_REVIEW ? (
                   <>
                     <button 
                       onClick={() => {
@@ -1112,7 +1278,7 @@ export default function ArtistReleases() {
                       View Details
                     </button>
                   </>
-                ) : release.status === 'completed' ? (
+                ) : release.status === RELEASE_STATUSES.COMPLETED ? (
                   <>
                     <button 
                       onClick={() => {
@@ -1135,7 +1301,7 @@ export default function ArtistReleases() {
                       View Details
                     </button>
                   </>
-                ) : release.status === 'live' ? (
+                ) : release.status === RELEASE_STATUSES.LIVE ? (
                   <>
                     <button 
                       onClick={() => {
@@ -1220,6 +1386,7 @@ export default function ArtistReleases() {
         }}
         existingRelease={editingRelease}
         isEditRequest={isEditRequestMode}
+        isApprovalEdit={hasChanges}
       />
 
       {/* View Release Details Modal */}
@@ -1228,6 +1395,171 @@ export default function ArtistReleases() {
         onClose={() => setViewReleaseDetailsModal(false)}
         release={selectedRelease}
       />
+
+      {/* Approval Modal */}
+      {showApprovalModal && approvalRelease && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Review Changes - {approvalRelease.projectName}</h3>
+              <button
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setApprovalRelease(null);
+                  setHasChanges(false);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FaTimes className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Feedback from Distribution Partner */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-blue-900 mb-2">Distribution Partner Feedback</h4>
+                <p className="text-sm text-blue-800">{approvalRelease.feedback}</p>
+              </div>
+
+              {/* Changes Comparison */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Proposed Changes</h4>
+                <div className="space-y-4">
+                  {approvalRelease.trackListing.map((track, index) => {
+                    const originalTrack = approvalRelease.originalData?.trackListing?.[index];
+                    const hasChanges = originalTrack && (
+                      track.title !== originalTrack.title ||
+                      track.bpm !== originalTrack.bpm ||
+                      track.songKey !== originalTrack.songKey
+                    );
+                    
+                    return (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-900 mb-3">Track {index + 1}</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Original Values */}
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Original</h6>
+                            <div className="space-y-2">
+                              <div>
+                                <label className="block text-xs text-gray-500">Title</label>
+                                <p className="text-sm text-gray-900 bg-gray-100 px-2 py-1 rounded">{originalTrack?.title || 'N/A'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">BPM</label>
+                                <p className="text-sm text-gray-900 bg-gray-100 px-2 py-1 rounded">{originalTrack?.bpm || 'N/A'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">Key</label>
+                                <p className="text-sm text-gray-900 bg-gray-100 px-2 py-1 rounded">{originalTrack?.songKey || 'N/A'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Proposed Values */}
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Proposed</h6>
+                            <div className="space-y-2">
+                              <div>
+                                <label className="block text-xs text-gray-500">Title</label>
+                                <p className={`text-sm px-2 py-1 rounded ${
+                                  track.title !== originalTrack?.title 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-900'
+                                }`}>
+                                  {track.title}
+                                  {track.title !== originalTrack?.title && <span className="ml-2 text-xs">← Changed</span>}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">BPM</label>
+                                <p className={`text-sm px-2 py-1 rounded ${
+                                  track.bpm !== originalTrack?.bpm 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-900'
+                                }`}>
+                                  {track.bpm}
+                                  {track.bpm !== originalTrack?.bpm && <span className="ml-2 text-xs">← Changed</span>}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500">Key</label>
+                                <p className={`text-sm px-2 py-1 rounded ${
+                                  track.songKey !== originalTrack?.songKey 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-900'
+                                }`}>
+                                  {track.songKey}
+                                  {track.songKey !== originalTrack?.songKey && <span className="ml-2 text-xs">← Changed</span>}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    // Accept changes - status becomes "edits_approved"
+                    console.log('Accepting changes for release:', approvalRelease.id);
+                    alert('Changes accepted! Release will be updated.');
+                    setShowApprovalModal(false);
+                    setApprovalRelease(null);
+                    setHasChanges(false);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+                >
+                  <FaCheck className="w-4 h-4 mr-2" />
+                  Accept Changes
+                </button>
+                <button
+                  onClick={() => {
+                    // Reject changes - status becomes "edits_rejected"
+                    console.log('Rejecting changes for release:', approvalRelease.id);
+                    alert('Changes rejected! Release will remain unchanged.');
+                    setShowApprovalModal(false);
+                    setApprovalRelease(null);
+                    setHasChanges(false);
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                >
+                  <FaTimes className="w-4 h-4 mr-2" />
+                  Reject Changes
+                </button>
+                <button
+                  onClick={() => {
+                    // Make edits - opens edit modal
+                    setEditingRelease(approvalRelease);
+                    setShowCreateModal(true);
+                    setShowApprovalModal(false);
+                    setApprovalRelease(null);
+                    setHasChanges(true);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Make Edits
+                </button>
+                <button
+                  onClick={() => {
+                    setShowApprovalModal(false);
+                    setApprovalRelease(null);
+                    setHasChanges(false);
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 } 

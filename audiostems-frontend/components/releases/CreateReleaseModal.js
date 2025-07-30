@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { FaTimes, FaUpload, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
+import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist } from '../../lib/constants';
 
-export default function CreateReleaseModal({ isOpen, onClose, existingRelease = null, isEditRequest = false }) {
+export default function CreateReleaseModal({ isOpen, onClose, existingRelease = null, isEditRequest = false, isApprovalEdit = false }) {
   const [formData, setFormData] = useState({
     projectName: 'New Release Project',
     artist: 'YHWH MSC',
@@ -13,7 +14,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     expectedReleaseDate: '',
     musicFiles: [],
     artworkFile: null,
-    trackListing: [{ title: 'New Track', duration: '3:45', isrc: 'USRC12345678' }],
+    trackListing: [{ title: 'New Track', duration: '3:45', isrc: 'USRC12345678', bpm: '', songKey: '' }],
     credits: [{ role: 'Producer', fullName: 'YHWH MSC' }],
     publishingNotes: 'All tracks written and produced by YHWH MSC',
     marketingPlan: 'Social media campaign + playlist pitching'
@@ -34,7 +35,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
         expectedReleaseDate: existingRelease.expectedReleaseDate || '',
         musicFiles: existingRelease.musicFiles || [],
         artworkFile: existingRelease.artworkFile || null,
-        trackListing: existingRelease.trackListing || [{ title: '', duration: '', isrc: '' }],
+        trackListing: existingRelease.trackListing || [{ title: '', duration: '', isrc: '', bpm: '', songKey: '' }],
         credits: existingRelease.credits || [{ role: '', fullName: '' }],
         publishingNotes: existingRelease.publishingNotes || '',
         marketingPlan: existingRelease.marketingPlan || ''
@@ -71,7 +72,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   const addTrack = () => {
     setFormData(prev => ({
       ...prev,
-      trackListing: [...prev.trackListing, { title: '', duration: '', isrc: '' }]
+      trackListing: [...prev.trackListing, { title: '', duration: '', isrc: '', bpm: '', songKey: '' }]
     }));
   };
 
@@ -205,15 +206,15 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            {isEditRequest ? 'Edit Request' : existingRelease ? 'Edit Release' : 'Create New Release'}
+            {isEditRequest ? 'Edit Request' : isApprovalEdit ? 'Update Release' : 'Create New Release'}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
           >
-            <FaTimes className="text-xl" />
+            <FaTimes className="w-6 h-6" />
           </button>
         </div>
 
@@ -303,32 +304,9 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
                 }`}
               >
                 <option value="">Select genre</option>
-                <option value="Acoustic">Acoustic</option>
-                <option value="Alternative">Alternative</option>
-                <option value="Ambient">Ambient</option>
-                <option value="Blues">Blues</option>
-                <option value="Classical">Classical</option>
-                <option value="Country">Country</option>
-                <option value="Dance">Dance</option>
-                <option value="Electronic">Electronic</option>
-                <option value="Experimental">Experimental</option>
-                <option value="Folk">Folk</option>
-                <option value="Funk">Funk</option>
-                <option value="Gospel">Gospel</option>
-                <option value="Hip Hop">Hip Hop</option>
-                <option value="House">House</option>
-                <option value="Indie">Indie</option>
-                <option value="Jazz">Jazz</option>
-                <option value="Latin">Latin</option>
-                <option value="Metal">Metal</option>
-                <option value="Pop">Pop</option>
-                <option value="Punk">Punk</option>
-                <option value="R&B">R&B</option>
-                <option value="Reggae">Reggae</option>
-                <option value="Rock">Rock</option>
-                <option value="Soul">Soul</option>
-                <option value="Techno">Techno</option>
-                <option value="World">World</option>
+                {GENRES.map(genre => (
+                  <option key={genre} value={genre}>{genre}</option>
+                ))}
               </select>
               {errors.genre && (
                 <p className="text-red-500 text-sm mt-1">{errors.genre}</p>
@@ -344,8 +322,11 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
                 onChange={(e) => handleInputChange('status', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="draft">Draft</option>
-                <option value="submitted">Submitted</option>
+                {Object.entries(RELEASE_STATUSES)
+                  .filter(([key, value]) => isStatusEditableByArtist(value))
+                  .map(([key, value]) => (
+                    <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
+                  ))}
               </select>
             </div>
 
@@ -444,7 +425,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
           {/* Track Listing */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Track Listing</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Track Listing ({formData.trackListing.length} tracks)</h3>
               <button
                 type="button"
                 onClick={addTrack}
@@ -457,14 +438,19 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
             
             <div className="space-y-3">
               {formData.trackListing.map((track, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
-                  <input
-                    type="text"
-                    placeholder="Track title"
-                    value={track.title}
-                    onChange={(e) => handleTrackChange(index, 'title', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3">
+                      {index + 1}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Track title"
+                      value={track.title}
+                      onChange={(e) => handleTrackChange(index, 'title', e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                   <input
                     type="text"
                     placeholder="Duration (e.g., 3:45)"
@@ -472,24 +458,36 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
                     onChange={(e) => handleTrackChange(index, 'duration', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="ISRC code"
-                      value={track.isrc}
-                      onChange={(e) => handleTrackChange(index, 'isrc', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                    {formData.trackListing.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeTrack(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <FaTrash />
-                      </button>
-                    )}
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="BPM (e.g., 140)"
+                    value={track.bpm || ''}
+                    onChange={(e) => handleTrackChange(index, 'bpm', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Key (e.g., C Minor)"
+                    value={track.songKey || ''}
+                    onChange={(e) => handleTrackChange(index, 'songKey', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="ISRC code"
+                    value={track.isrc}
+                    onChange={(e) => handleTrackChange(index, 'isrc', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  {formData.trackListing.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeTrack(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <FaTrash />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -618,19 +616,15 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              {isSubmitting 
-                ? (isEditRequest ? 'Finalising...' : existingRelease ? 'Updating...' : 'Creating...') 
-                : (isEditRequest ? 'Finalise Request' : existingRelease ? 'Update Release' : 'Create Release')
-              }
+              {isEditRequest ? 'Finalise Request' : isApprovalEdit ? 'Update Release' : 'Create Release'}
             </button>
           </div>
         </form>

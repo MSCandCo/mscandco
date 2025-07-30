@@ -19,6 +19,18 @@
       "type": "integer",
       "description": "Duration in seconds"
     },
+    "bpm": {
+      "type": "integer",
+      "description": "Beats per minute"
+    },
+    "songKey": {
+      "type": "string",
+      "description": "Musical key (e.g., C Major, A Minor)"
+    },
+    "isrc": {
+      "type": "string",
+      "description": "International Standard Recording Code"
+    },
     "creation": {
       "type": "relation",
       "relation": "oneToOne",

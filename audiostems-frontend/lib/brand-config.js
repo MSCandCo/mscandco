@@ -20,7 +20,7 @@ export const BRANDS = {
       accent: '#3182ce',
       background: '#f7fafc'
     },
-    logo: '/brands/yhwh-msc-logo.png',
+    logo: '/logos/msc-logo.png',
     emailDomain: 'yhwh-msc.mscandco.com'
   },
   AUDIO_MSC: {
@@ -43,7 +43,7 @@ export const BRANDS = {
       accent: '#e53e3e',
       background: '#f7fafc'
     },
-    logo: '/brands/audio-msc-logo.png',
+    logo: '/logos/msc-logo.png',
     emailDomain: 'audio-msc.mscandco.com'
   }
 };
