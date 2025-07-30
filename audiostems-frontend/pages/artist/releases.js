@@ -119,66 +119,65 @@ const mockReleases = [
     marketingPlan: '',
     trackListing: [
       { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686' },
-      { title: 'Street Flow', duration: '3:45', isrc: 'USRC12345687' },
-      { title: 'City Lights', duration: '4:10', isrc: 'USRC12345688' }
+      { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687' },
+      { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' }
     ],
-    publishingNotes: 'Urban hip-hop collection'
+    publishingNotes: 'Urban hip hop collection'
   },
   {
     id: 5,
-    projectName: 'Electronic Dreams',
+    projectName: 'Completed Album',
     artist: 'YHWH MSC',
     releaseType: 'Album',
     genre: 'Electronic',
-    status: 'draft',
+    status: 'completed',
     submissionDate: '2024-01-05',
-    expectedReleaseDate: '2024-03-15',
+    expectedReleaseDate: '2024-01-15',
     assets: 8,
-    earnings: 0,
-    streams: 0,
-    lastUpdated: '2024-01-05',
+    earnings: 5670,
+    streams: 89012,
+    lastUpdated: '2024-01-15',
     cover: '🎵',
-    feedback: '',
-    marketingPlan: '',
+    feedback: 'Successfully completed and distributed',
+    marketingPlan: 'Completed marketing campaign',
     trackListing: [
-      { title: 'Digital Dreams', duration: '5:15', isrc: 'USRC12345689' },
-      { title: 'Synthetic Soul', duration: '4:30', isrc: 'USRC12345690' },
-      { title: 'Electric Night', duration: '6:20', isrc: 'USRC12345691' }
+      { title: 'Completed Track 1', duration: '4:20', isrc: 'USRC12345689' },
+      { title: 'Completed Track 2', duration: '3:55', isrc: 'USRC12345690' },
+      { title: 'Completed Track 3', duration: '4:10', isrc: 'USRC12345691' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Sound Design', name: 'Digital Studio' }
+      { role: 'Mix Engineer', name: 'Studio Pro' }
     ],
-    publishingNotes: 'Electronic music exploration'
+    publishingNotes: 'Successfully completed album'
   },
   {
     id: 6,
-    projectName: 'Neon Lights',
+    projectName: 'Live Single',
     artist: 'YHWH MSC',
     releaseType: 'Single',
-    genre: 'Electronic',
-    status: 'completed',
-    submissionDate: '2023-12-15',
-    expectedReleaseDate: '2024-01-15',
-    actualReleaseDate: '2024-01-15',
+    genre: 'Pop',
+    status: 'live',
+    submissionDate: '2024-01-03',
+    expectedReleaseDate: '2024-01-10',
     assets: 1,
-    earnings: 1250,
-    streams: 23456,
-    lastUpdated: '2024-01-15',
+    earnings: 1234,
+    streams: 15678,
+    lastUpdated: '2024-01-10',
     cover: '🎵',
-    feedback: 'Successfully distributed to all major platforms',
-    marketingPlan: 'Playlist pitching + social media campaign',
+    feedback: 'Live on all platforms',
+    marketingPlan: 'Active marketing campaign',
     trackListing: [
-      { title: 'Neon Lights', duration: '3:55', isrc: 'USRC12345692' }
+      { title: 'Live Single Track', duration: '3:45', isrc: 'USRC12345692' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Mastering', name: 'Master Lab' }
+      { role: 'Mastering Engineer', name: 'Master Lab' }
     ],
-    publishingNotes: 'Electronic dance track with neon aesthetic'
+    publishingNotes: 'Live single performing well'
   },
   {
     id: 7,
@@ -280,6 +279,7 @@ export default function ArtistReleases() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
+  const [isEditRequestMode, setIsEditRequestMode] = useState(false);
   const [viewReleaseDetailsModal, setViewReleaseDetailsModal] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [hoveredStatus, setHoveredStatus] = useState(null);
@@ -743,7 +743,15 @@ export default function ArtistReleases() {
                   </>
                 ) : release.status === 'under_review' ? (
                   <>
-                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                    <button 
+                      onClick={() => {
+                        // Open edit request modal with existing release data
+                        setEditingRelease(release);
+                        setIsEditRequestMode(true);
+                        setShowCreateModal(true);
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
                       Request Edit
                     </button>
                     <button 
@@ -897,7 +905,61 @@ export default function ArtistReleases() {
                     </>
                   ) : release.status === 'under_review' ? (
                     <>
-                      <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      <button 
+                        onClick={() => {
+                          // Open edit request modal with existing release data
+                          setEditingRelease(release);
+                          setIsEditRequestMode(true);
+                          setShowCreateModal(true);
+                        }}
+                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        Request Edit
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setViewReleaseDetailsModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Details
+                      </button>
+                    </>
+                  ) : release.status === 'completed' ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          // Open edit request modal with existing release data
+                          setEditingRelease(release);
+                          setIsEditRequestMode(true);
+                          setShowCreateModal(true);
+                        }}
+                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        Request Edit
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setViewReleaseDetailsModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded"
+                      >
+                        View Details
+                      </button>
+                    </>
+                  ) : release.status === 'live' ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          // Open edit request modal with existing release data
+                          setEditingRelease(release);
+                          setIsEditRequestMode(true);
+                          setShowCreateModal(true);
+                        }}
+                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
                         Request Edit
                       </button>
                       <button 
@@ -1029,7 +1091,15 @@ export default function ArtistReleases() {
                   </>
                 ) : release.status === 'under_review' ? (
                   <>
-                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                    <button 
+                      onClick={() => {
+                        // Request edit for under review release
+                        console.log('Requesting edit for under review release:', release.id);
+                        // Here you would typically call an API to request an edit
+                        alert('Edit request sent for under review release. The distribution team will review your request.');
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
                       Request Edit
                     </button>
                     <button 
@@ -1044,7 +1114,15 @@ export default function ArtistReleases() {
                   </>
                 ) : release.status === 'completed' ? (
                   <>
-                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                    <button 
+                      onClick={() => {
+                        // Request edit for completed release
+                        console.log('Requesting edit for completed release:', release.id);
+                        // Here you would typically call an API to request an edit
+                        alert('Edit request sent for completed release. The distribution team will review your request.');
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
                       Request Edit
                     </button>
                     <button 
@@ -1059,7 +1137,15 @@ export default function ArtistReleases() {
                   </>
                 ) : release.status === 'live' ? (
                   <>
-                    <button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded">
+                    <button 
+                      onClick={() => {
+                        // Request edit for live release
+                        console.log('Requesting edit for live release:', release.id);
+                        // Here you would typically call an API to request an edit
+                        alert('Edit request sent for live release. The distribution team will review your request.');
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-3 rounded"
+                    >
                       Request Edit
                     </button>
                     <button 
@@ -1130,9 +1216,10 @@ export default function ArtistReleases() {
         onClose={() => {
           setShowCreateModal(false);
           setEditingRelease(null);
+          setIsEditRequestMode(false);
         }}
-        profileData={profileData}
         existingRelease={editingRelease}
+        isEditRequest={isEditRequestMode}
       />
 
       {/* View Release Details Modal */}

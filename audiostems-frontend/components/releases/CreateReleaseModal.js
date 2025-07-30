@@ -1,65 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FaTimes, FaUpload, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
+import React from 'react'; // Added missing import
 
-export default function CreateReleaseModal({ isOpen, onClose, profileData, existingRelease = null }) {
+export default function CreateReleaseModal({ isOpen, onClose, existingRelease = null, isEditRequest = false }) {
   const [formData, setFormData] = useState({
-    projectName: '',
-    artist: '',
-    releaseType: '',
-    genre: '',
+    projectName: 'New Release Project',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Hip Hop',
     status: 'draft',
     submissionDate: '',
     expectedReleaseDate: '',
     musicFiles: [],
     artworkFile: null,
-    trackListing: [{ title: '', duration: '', isrc: '' }],
-    credits: [{ role: '', fullName: '' }],
-    publishingNotes: '',
-    marketingPlan: ''
+    trackListing: [{ title: 'New Track', duration: '3:45', isrc: 'USRC12345678' }],
+    credits: [{ role: 'Producer', fullName: 'YHWH MSC' }],
+    publishingNotes: 'All tracks written and produced by YHWH MSC',
+    marketingPlan: 'Social media campaign + playlist pitching'
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form when modal opens/closes or when editing release changes
-  useEffect(() => {
-    if (isOpen) {
-      if (existingRelease) {
-        // Populate form with existing release data
-        setFormData({
-          projectName: existingRelease.projectName || '',
-          artist: existingRelease.artist || profileData?.artistName || '',
-          releaseType: existingRelease.releaseType || '',
-          genre: existingRelease.genre || '',
-          status: existingRelease.status || 'draft',
-          submissionDate: existingRelease.submissionDate || '',
-          expectedReleaseDate: existingRelease.expectedReleaseDate || '',
-          musicFiles: existingRelease.musicFiles || [],
-          artworkFile: existingRelease.artworkFile || null,
-          trackListing: existingRelease.trackListing || [{ title: '', duration: '', isrc: '' }],
-          credits: existingRelease.credits || [{ role: '', fullName: '' }],
-          publishingNotes: existingRelease.publishingNotes || '',
-          marketingPlan: existingRelease.marketingPlan || ''
-        });
-      } else {
-        // Reset form for new release - completely blank form
-        setFormData({
-          projectName: '',
-          artist: '', // Completely blank for new releases
-          releaseType: '',
-          genre: '',
-          status: 'draft',
-          submissionDate: '',
-          expectedReleaseDate: '',
-          musicFiles: [],
-          artworkFile: null,
-          trackListing: [{ title: '', duration: '', isrc: '' }],
-          credits: [{ role: '', fullName: '' }],
-          publishingNotes: '',
-          marketingPlan: ''
-        });
-      }
+  // Populate form with existing release data when modal opens
+  React.useEffect(() => {
+    if (isOpen && existingRelease && isEditRequest) {
+      setFormData({
+        projectName: existingRelease.projectName || '',
+        artist: existingRelease.artist || '',
+        releaseType: existingRelease.releaseType || '',
+        genre: existingRelease.genre || '',
+        status: existingRelease.status || 'draft',
+        submissionDate: existingRelease.submissionDate || '',
+        expectedReleaseDate: existingRelease.expectedReleaseDate || '',
+        musicFiles: existingRelease.musicFiles || [],
+        artworkFile: existingRelease.artworkFile || null,
+        trackListing: existingRelease.trackListing || [{ title: '', duration: '', isrc: '' }],
+        credits: existingRelease.credits || [{ role: '', fullName: '' }],
+        publishingNotes: existingRelease.publishingNotes || '',
+        marketingPlan: existingRelease.marketingPlan || ''
+      });
     }
-  }, [isOpen, existingRelease]);
+  }, [isOpen, existingRelease, isEditRequest]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -67,7 +48,6 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
       [field]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -203,34 +183,17 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
     setIsSubmitting(true);
     
     try {
-      // Mock API call
-      console.log('Submitting release:', formData);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Success - close modal
+      if (isEditRequest) {
+        console.log('Submitting edit request:', formData);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        alert('Edit request submitted successfully! The distribution team will review your changes.');
+      } else {
+        console.log('Submitting release:', formData);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
       onClose();
-      
-      // Reset form
-      setFormData({
-        projectName: '',
-        artist: profileData?.artistName || '',
-        releaseType: '',
-        genre: '',
-        status: 'draft',
-        submissionDate: '',
-        expectedReleaseDate: '',
-        musicFiles: [],
-        artworkFile: null,
-        trackListing: [{ title: '', duration: '', isrc: '' }],
-        credits: [{ role: '', fullName: '' }],
-        publishingNotes: '',
-        marketingPlan: ''
-      });
-      
     } catch (error) {
-      console.error('Error creating release:', error);
+      console.error('Error submitting:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -244,7 +207,7 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
-            {existingRelease ? 'Edit Release' : 'Create New Release'}
+            {isEditRequest ? 'Edit Request' : existingRelease ? 'Edit Release' : 'Create New Release'}
           </h2>
           <button
             onClick={onClose}
@@ -558,8 +521,6 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select role</option>
-                    
-                    {/* Production Roles */}
                     <optgroup label="Production">
                       <option value="Executive Producer">Executive Producer</option>
                       <option value="Producer">Producer</option>
@@ -567,8 +528,6 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
                       <option value="Assistant Producer">Assistant Producer</option>
                       <option value="Additional Production">Additional Production</option>
                     </optgroup>
-                    
-                    {/* Engineering Roles */}
                     <optgroup label="Engineering">
                       <option value="Mixing Engineer">Mixing Engineer</option>
                       <option value="Mastering Engineer">Mastering Engineer</option>
@@ -576,14 +535,10 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
                       <option value="Engineer">Engineer</option>
                       <option value="Editing">Editing</option>
                     </optgroup>
-                    
-                    {/* Studio Roles */}
                     <optgroup label="Studio">
                       <option value="Mastering Studio">Mastering Studio</option>
                       <option value="Recording Studio">Recording Studio</option>
                     </optgroup>
-                    
-                    {/* Instrumental Roles */}
                     <optgroup label="Instruments">
                       <option value="Keyboards">Keyboards</option>
                       <option value="Programming">Programming</option>
@@ -595,13 +550,9 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
                       <option value="Strings">Strings</option>
                       <option value="Additional Instrumentation">Additional Instrumentation</option>
                     </optgroup>
-                    
-                    {/* Creative Roles */}
                     <optgroup label="Creative">
                       <option value="Design/Art Direction">Design/Art Direction</option>
                     </optgroup>
-                    
-                    {/* Management Roles */}
                     <optgroup label="Management">
                       <option value="Management">Management</option>
                       <option value="Booking Agent">Booking Agent</option>
@@ -671,44 +622,14 @@ export default function CreateReleaseModal({ isOpen, onClose, profileData, exist
             >
               Cancel
             </button>
-            {!existingRelease && formData.status === 'draft' && (
-              <button
-                type="button"
-                disabled={!validateForm()}
-                onClick={() => {
-                  // Submit the release for review
-                  console.log('Submitting release for review:', formData);
-                  // Here you would call an API to submit the release
-                  onClose();
-                }}
-                className={`px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${!validateForm() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Submit Release
-              </button>
-            )}
-            {existingRelease && existingRelease.status === 'draft' && (
-              <button
-                type="button"
-                disabled={!validateForm()}
-                onClick={() => {
-                  // Submit the release for review
-                  console.log('Submitting release for review:', formData);
-                  // Here you would call an API to submit the release
-                  onClose();
-                }}
-                className={`px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${!validateForm() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Submit Release
-              </button>
-            )}
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting 
-                ? (existingRelease ? 'Updating...' : 'Creating...') 
-                : (existingRelease ? 'Update Release' : 'Create Release')
+                ? (isEditRequest ? 'Finalising...' : existingRelease ? 'Updating...' : 'Creating...') 
+                : (isEditRequest ? 'Finalise Request' : existingRelease ? 'Update Release' : 'Create Release')
               }
             </button>
           </div>

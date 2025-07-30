@@ -118,6 +118,90 @@ const currencies = [
 
 // Mock billing data function
 const getRoleSpecificPlans = (userRole) => {
+  // For admin roles, show no billing
+  if (userRole === 'super_admin' || userRole === 'company_admin' || userRole === 'distribution_partner') {
+    return {
+      subscription: null,
+      paymentMethod: null,
+      billingHistory: [],
+      availablePlans: [],
+      noBilling: true
+    };
+  }
+
+  // For Label Admin, show only Label Admin plans
+  if (userRole === 'label_admin') {
+    const labelAdminSubscription = {
+      plan: 'Label Admin',
+      price: '£29.99',
+      nextBilling: 'March 15, 2024',
+      billingCycle: 'monthly',
+      autoRenewDate: 'March 15, 2024',
+      features: [
+        'Manage multiple artists',
+        'Label analytics dashboard',
+        'Priority support',
+        'Artist management tools',
+        'Combined earnings reporting'
+      ]
+    };
+
+    const labelAdminPaymentMethod = {
+      type: 'Visa',
+      last4: '4242',
+      expiry: '12/25'
+    };
+
+    const labelAdminBillingHistory = [
+      {
+        id: 1,
+        description: 'Label Admin - Monthly',
+        date: 'February 15, 2024',
+        amount: '£29.99',
+        status: 'Paid'
+      },
+      {
+        id: 2,
+        description: 'Label Admin - Monthly',
+        date: 'January 15, 2024',
+        amount: '£29.99',
+        status: 'Paid'
+      }
+    ];
+
+    const labelAdminAvailablePlans = [
+      {
+        name: 'Label Admin',
+        monthlyPrice: '£29.99',
+        yearlyPrice: '£299.99',
+        yearlySavings: '17%',
+        current: true,
+        features: [
+          'Manage unlimited artists',
+          'Label-wide analytics dashboard',
+          'Priority support',
+          'Artist management tools',
+          'Combined earnings reporting',
+          'Label branding options',
+          'Advanced release management',
+          'Artist onboarding tools',
+          'Label social media integration',
+          'Marketing campaign management',
+          'Royalty tracking for all artists',
+          'Label profile optimization'
+        ]
+      }
+    ];
+
+    return {
+      subscription: labelAdminSubscription,
+      paymentMethod: labelAdminPaymentMethod,
+      billingHistory: labelAdminBillingHistory,
+      availablePlans: labelAdminAvailablePlans
+    };
+  }
+
+  // Default Artist plans
   const baseSubscription = {
     plan: 'Artist Pro',
     price: '£19.99',
@@ -472,6 +556,7 @@ export default function Billing() {
   }
 
   const userRole = getUserRole(user);
+  const roleBillingData = getRoleSpecificPlans(userRole);
 
   // Allow access to billing for all authenticated users
   if (!isAuthenticated) {
@@ -481,6 +566,86 @@ export default function Billing() {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Please log in to access billing</h1>
         </div>
       </div>
+    );
+  }
+
+  // Show no-billing message for admin roles
+  if (roleBillingData.noBilling) {
+    return (
+      <>
+        <Head>
+          <title>Billing - MSC & Co</title>
+        </Head>
+
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <div className="mb-6">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">No Billing Required</h1>
+                <p className="text-gray-600">
+                  As a {userRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}, 
+                  you have full access to the platform without any billing requirements.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Your Access Includes:</h3>
+                <ul className="text-left space-y-2 text-gray-600">
+                  {userRole === 'super_admin' && (
+                    <>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Access to all brands and platforms
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Complete system administration
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        User management and role assignment
+                      </li>
+                    </>
+                  )}
+                  {userRole === 'company_admin' && (
+                    <>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Access to YHWH MSC brand
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Company-wide analytics and reporting
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Brand management tools
+                      </li>
+                    </>
+                  )}
+                  {userRole === 'distribution_partner' && (
+                    <>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Access to all releases and distribution
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Release approval and management
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        Distribution partner tools
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 

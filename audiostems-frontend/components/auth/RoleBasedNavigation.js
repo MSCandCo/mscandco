@@ -339,6 +339,95 @@ export default function RoleBasedNavigation() {
     );
   }
 
+  // Add label admin navigation
+  if (userRole === 'label_admin') {
+    return (
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <img
+                src="/logos/yhwh-msc-logo.png"
+                alt="YHWH MSC"
+                className="h-8 w-auto"
+                onError={(e) => {
+                  e.target.src = '/logos/yhwh-msc-logo.svg';
+                }}
+              />
+            </div>
+
+            {/* Center Navigation */}
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                <Link
+                  href="/label-admin/dashboard"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/label-admin/artists"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  My Artists
+                </Link>
+                <Link
+                  href="/label-admin/releases"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  All Releases
+                </Link>
+                <Link
+                  href="/label-admin/earnings"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Earnings
+                </Link>
+              </div>
+            </div>
+
+            {/* Right side - User menu */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      href="/label-admin/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/billing"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Billing
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   // Default navigation for artists and distributors
   const navigationItems = [
     { href: '/artist/releases', label: 'My Releases', icon: FileText },
