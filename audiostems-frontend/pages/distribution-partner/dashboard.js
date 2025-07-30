@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload } from 'react-icons/fa';
-import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download } from 'lucide-react';
+import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock, FaAlertCircle } from 'react-icons/fa';
+import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock, AlertCircle } from 'lucide-react';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor } from '../../lib/constants';
+import * as XLSX from 'xlsx';
 
 // Excel download functions using template
 const downloadReleaseExcel = async (release) => {
@@ -399,6 +400,8 @@ export default function DistributionPartnerDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [genreFilter, setGenreFilter] = useState('all');
+  const [uploadedData, setUploadedData] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState(null);
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -465,7 +468,7 @@ export default function DistributionPartnerDashboard() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search assets..."
+                placeholder="Search releases..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -516,96 +519,110 @@ export default function DistributionPartnerDashboard() {
         </div>
       </div>
 
-      {/* Assets Table */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">All Assets ({getTotalAssets(filteredReleases)} assets)</h3>
-            <button
-              onClick={() => downloadAllReleasesExcel(filteredReleases)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download All</span>
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track Position</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Song Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredReleases.map((release) => (
-                release.trackListing.map((track, trackIndex) => (
-                  <tr key={`${release.id}-${trackIndex}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{release.projectName}</div>
-                        <div className="text-sm text-gray-500">{release.releaseType} • {release.genre}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className="bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-bold">
-                        {trackIndex + 1}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{track.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.duration}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{track.isrc}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                        {getStatusIcon(release.status)}
-                        <span className="ml-1">{getStatusLabel(release.status)}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedRelease(release);
-                            setShowReleaseDetails(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View Asset Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingRelease(release);
-                            setShowEditModal(true);
-                          }}
-                          className="text-gray-600 hover:text-gray-900"
-                          title="Edit Asset Metadata"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => downloadReleaseExcel(release)}
-                          className="text-green-600 hover:text-green-900"
-                          title="Download Asset Data"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+      {/* Releases with Individual Tables */}
+      <div className="space-y-8">
+        {filteredReleases.map((release) => (
+          <div key={release.id} className="bg-white rounded-lg shadow-sm border">
+            {/* Release Header */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4">
+                    <h3 className="text-xl font-semibold text-gray-900">{release.projectName}</h3>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
+                      {getStatusIcon(release.status)}
+                      <span className="ml-1">{getStatusLabel(release.status)}</span>
+                    </span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600">
+                    <span className="font-medium">{release.artist}</span> • {release.releaseType} • {release.genre} • {release.trackListing.length} tracks
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Submitted: {release.submissionDate} • Expected Release: {release.expectedReleaseDate}
+                  </div>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => downloadReleaseExcel(release)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                    title="Download all assets for this release"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Release</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingRelease(release);
+                      setShowEditModal(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                    title="Edit release metadata"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit Release</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Assets Table for this Release */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track Position</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Song Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BPM</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
-                ))
-              ))}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {release.trackListing.map((track, trackIndex) => (
+                    <tr key={trackIndex} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span className="bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-sm font-bold">
+                          {trackIndex + 1}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{track.title}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.duration}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.bpm || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.songKey || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{track.isrc}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedRelease(release);
+                              setShowReleaseDetails(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View Asset Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingRelease(release);
+                              setShowEditModal(true);
+                            }}
+                            className="text-gray-600 hover:text-gray-900"
+                            title="Edit Asset Metadata"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -832,6 +849,85 @@ export default function DistributionPartnerDashboard() {
       </div>
     </div>
   );
+
+  // Excel upload handler
+  const handleExcelUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadStatus('processing');
+    
+    try {
+      const data = await readExcelFile(file);
+      if (data && data.length > 0) {
+        // Use the first row of data to populate the form
+        const releaseData = data[0];
+        setUploadedData(releaseData);
+        setUploadStatus('success');
+        
+        // Update the editing release with the uploaded data
+        const updatedRelease = { ...editingRelease, ...releaseData };
+        setEditingRelease(updatedRelease);
+        
+        // Show success message
+        alert('Excel data uploaded successfully! Form fields have been populated.');
+      } else {
+        setUploadStatus('error');
+        alert('No valid data found in the Excel file. Please ensure the file follows the correct template format.');
+      }
+    } catch (error) {
+      console.error('Error processing Excel file:', error);
+      setUploadStatus('error');
+      alert('Error processing Excel file. Please ensure the file follows the correct template format.');
+    }
+    
+    // Reset file input
+    event.target.value = '';
+  };
+
+  // Read Excel file function
+  const readExcelFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (jsonData.length < 2) {
+            reject(new Error('Excel file must have at least a header row and one data row'));
+            return;
+          }
+          
+          // Extract headers and data
+          const headers = jsonData[0];
+          const dataRows = jsonData.slice(1);
+          
+          // Convert to object format
+          const processedData = dataRows.map(row => {
+            const obj = {};
+            headers.forEach((header, index) => {
+              if (header && row[index] !== undefined) {
+                obj[header] = row[index];
+              }
+            });
+            return obj;
+          });
+          
+          resolve(processedData);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  };
 
   return (
     <Layout>
@@ -1643,15 +1739,113 @@ export default function DistributionPartnerDashboard() {
             <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
                 <h3 className="text-lg font-semibold text-gray-900">Edit Release Metadata - {editingRelease.projectName}</h3>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingRelease(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <FaTimes className="w-5 h-5" />
-                </button>
+                <div className="flex items-center space-x-3">
+                  {/* Excel Upload Feature */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="excel-upload"
+                      accept=".xlsx,.xls"
+                      onChange={(e) => handleExcelUpload(e)}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="excel-upload"
+                      className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-colors ${
+                        uploadStatus === 'processing' 
+                          ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                          : uploadStatus === 'success'
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : uploadStatus === 'error'
+                          ? 'bg-red-600 text-white hover:bg-red-700'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      {uploadStatus === 'processing' ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : uploadStatus === 'success' ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Uploaded
+                        </>
+                      ) : uploadStatus === 'error' ? (
+                        <>
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          Error
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" />
+                          Upload Excel
+                        </>
+                      )}
+                    </label>
+                    {uploadedData && (
+                      <div className="absolute top-full left-0 mt-1 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                        Data loaded from Excel
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Download Template Button */}
+                  <button
+                    onClick={() => {
+                      // Download a template Excel file for the current release
+                      downloadSingleReleaseExcel(editingRelease);
+                    }}
+                    className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    title="Download Excel template for this release"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Template
+                  </button>
+                  
+                  {/* Clear Uploaded Data Button */}
+                  {uploadedData && (
+                    <button
+                      onClick={() => {
+                        setUploadedData(null);
+                        setUploadStatus(null);
+                        // Reset the editing release to original data
+                        setEditingRelease(mockAllReleases.find(r => r.id === editingRelease.id));
+                        alert('Uploaded data cleared. Form reset to original values.');
+                      }}
+                      className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      <FaTimes className="w-4 h-4 mr-2" />
+                      Clear Data
+                    </button>
+                  )}
+                  
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingRelease(null);
+                      setUploadedData(null);
+                      setUploadStatus(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <FaTimes className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                {/* Excel Upload Instructions */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">📋 Excel Upload Instructions</h4>
+                  <div className="text-xs text-blue-800 space-y-1">
+                    <p>• Click "Download Template" to get the correct Excel format for this release</p>
+                    <p>• Use the "Upload Excel" button to import metadata from an Excel file</p>
+                    <p>• The Excel file should follow the same template format as downloaded files</p>
+                    <p>• First row should contain headers, second row should contain your data</p>
+                    <p>• Only editable fields will be populated from the Excel file</p>
+                    <p>• Supported formats: .xlsx, .xls</p>
+                    <p>• Use "Clear Data" to reset the form to original values</p>
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-6">
@@ -2301,7 +2495,7 @@ export default function DistributionPartnerDashboard() {
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Business Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Design/Art Direction (Read Only)</label>
+                      <label className="block text-sm font-medium text-gray-700">Design / Art Direction (Read Only)</label>
                       <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.designArtDirection || 'YHWH MSC'}</p>
                     </div>
                     <div>
