@@ -1,8 +1,9 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { Card, Button, Badge } from 'flowbite-react';
+import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
 import { useState, useEffect } from 'react';
 import { Play, TrendingUp, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 // Mock video data
 const mockVideos = {
@@ -422,9 +423,11 @@ export default function RoleBasedDashboard() {
                 </div>
 
                 <div className="mt-4">
-                  <Button href={card.href} className="w-full">
-                    View {card.title}
-                  </Button>
+                  <Link href={card.href}>
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                      View {card.title}
+                    </button>
+                  </Link>
                 </div>
               </Card>
             ))}
