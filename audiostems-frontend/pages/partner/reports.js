@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default function PartnerReports() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -65,6 +68,94 @@ export default function PartnerReports() {
     paidOut: 23347.42
   };
 
+  // Detailed mock earnings data for export
+  const detailedEarningsData = [
+    {
+      month: 'January 2024',
+      artist: 'YHWH MSC',
+      release: 'Midnight Sessions',
+      track: 'Lost in Time',
+      platform: 'Spotify',
+      streams: 45789,
+      downloads: 234,
+      streamingRevenue: 183.16,
+      downloadRevenue: 234.00,
+      mechanicalRevenue: 45.50,
+      performanceRevenue: 67.80,
+      totalEarnings: 530.46
+    },
+    {
+      month: 'January 2024',
+      artist: 'Audio MSC',
+      release: 'Summer Vibes',
+      track: 'Beach Dreams',
+      platform: 'Apple Music',
+      streams: 32456,
+      downloads: 189,
+      streamingRevenue: 129.82,
+      downloadRevenue: 189.00,
+      mechanicalRevenue: 32.25,
+      performanceRevenue: 48.40,
+      totalEarnings: 399.47
+    },
+    {
+      month: 'February 2024',
+      artist: 'YHWH MSC',
+      release: 'Urban Beats Collection',
+      track: 'City Lights',
+      platform: 'YouTube Music',
+      streams: 67234,
+      downloads: 156,
+      streamingRevenue: 201.70,
+      downloadRevenue: 156.00,
+      mechanicalRevenue: 56.12,
+      performanceRevenue: 78.90,
+      totalEarnings: 492.72
+    },
+    {
+      month: 'February 2024',
+      artist: 'Independent Artists',
+      release: 'Rock Anthem',
+      track: 'Thunder Road',
+      platform: 'Amazon Music',
+      streams: 23567,
+      downloads: 345,
+      streamingRevenue: 94.27,
+      downloadRevenue: 345.00,
+      mechanicalRevenue: 28.40,
+      performanceRevenue: 41.80,
+      totalEarnings: 509.47
+    },
+    {
+      month: 'March 2024',
+      artist: 'Audio MSC',
+      release: 'Electronic Fusion EP',
+      track: 'Digital Dreams',
+      platform: 'Deezer',
+      streams: 34567,
+      downloads: 278,
+      streamingRevenue: 138.27,
+      downloadRevenue: 278.00,
+      mechanicalRevenue: 41.50,
+      performanceRevenue: 55.20,
+      totalEarnings: 512.97
+    },
+    {
+      month: 'March 2024',
+      artist: 'YHWH MSC',
+      release: 'Midnight Sessions',
+      track: 'Eternal Night',
+      platform: 'Spotify',
+      streams: 56789,
+      downloads: 234,
+      streamingRevenue: 227.16,
+      downloadRevenue: 234.00,
+      mechanicalRevenue: 62.10,
+      performanceRevenue: 89.30,
+      totalEarnings: 612.56
+    }
+  ];
+
   // Mock data for filters
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
@@ -110,9 +201,227 @@ export default function PartnerReports() {
     // Here you would typically call your API with the filter parameters
   };
 
+  // Filter the earnings data based on current filters
+  const getFilteredEarningsData = () => {
+    let filteredData = [...detailedEarningsData];
+
+    // Apply artist filter
+    if (selectedArtist !== 'all') {
+      const artistMap = {
+        'yhwh_msc': 'YHWH MSC',
+        'audio_msc': 'Audio MSC',
+        'independent': 'Independent Artists'
+      };
+      filteredData = filteredData.filter(item => item.artist === artistMap[selectedArtist]);
+    }
+
+    // Apply release filter  
+    if (selectedRelease !== 'all') {
+      const releaseMap = {
+        'midnight_sessions': 'Midnight Sessions',
+        'summer_vibes': 'Summer Vibes',
+        'urban_beats': 'Urban Beats Collection',
+        'rock_anthem': 'Rock Anthem',
+        'electronic_fusion': 'Electronic Fusion EP'
+      };
+      filteredData = filteredData.filter(item => item.release === releaseMap[selectedRelease]);
+    }
+
+    // Apply asset filter (simplified - would normally be more complex)
+    if (selectedAsset !== 'all') {
+      // For demo purposes, we'll filter by some logic
+      if (selectedAsset === 'singles') {
+        filteredData = filteredData.filter(item => 
+          !['Collection', 'EP'].some(term => item.release.includes(term))
+        );
+      }
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filteredData = filteredData.filter(item =>
+        item.artist.toLowerCase().includes(query) ||
+        item.release.toLowerCase().includes(query) ||
+        item.track.toLowerCase().includes(query) ||
+        item.platform.toLowerCase().includes(query)
+      );
+    }
+
+    return filteredData;
+  };
+
+  // Excel export function
+  const exportToExcel = () => {
+    try {
+      const filteredData = getFilteredEarningsData();
+      
+      // Create a new workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Prepare the data for Excel
+      const excelData = filteredData.map(item => ({
+        'Month': item.month,
+        'Artist': item.artist,
+        'Release': item.release,
+        'Track': item.track,
+        'Platform': item.platform,
+        'Streams': item.streams.toLocaleString(),
+        'Downloads': item.downloads.toLocaleString(),
+        'Streaming Revenue': `$${item.streamingRevenue.toFixed(2)}`,
+        'Download Revenue': `$${item.downloadRevenue.toFixed(2)}`,
+        'Mechanical Revenue': `$${item.mechanicalRevenue.toFixed(2)}`,
+        'Performance Revenue': `$${item.performanceRevenue.toFixed(2)}`,
+        'Total Earnings': `$${item.totalEarnings.toFixed(2)}`
+      }));
+
+      // Add summary row
+      const totalEarnings = filteredData.reduce((sum, item) => sum + item.totalEarnings, 0);
+      const totalStreams = filteredData.reduce((sum, item) => sum + item.streams, 0);
+      const totalDownloads = filteredData.reduce((sum, item) => sum + item.downloads, 0);
+      
+      excelData.push({
+        'Month': 'TOTAL',
+        'Artist': '',
+        'Release': '',
+        'Track': '',
+        'Platform': '',
+        'Streams': totalStreams.toLocaleString(),
+        'Downloads': totalDownloads.toLocaleString(),
+        'Streaming Revenue': '',
+        'Download Revenue': '',
+        'Mechanical Revenue': '',
+        'Performance Revenue': '',
+        'Total Earnings': `$${totalEarnings.toFixed(2)}`
+      });
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Earnings Report');
+      
+      // Generate filename
+      const currentDate = new Date();
+      const dateString = currentDate.toISOString().split('T')[0];
+      const filename = `MSC-Earnings-Report-${selectedPeriod}-${dateString}.xlsx`;
+      
+      // Save the file
+      XLSX.writeFile(workbook, filename);
+      
+      console.log('Excel export completed successfully');
+    } catch (error) {
+      console.error('Excel export error:', error);
+      alert('Error generating Excel file. Please try again.');
+    }
+  };
+
+  // PDF export function
+  const exportToPDF = () => {
+    try {
+      const filteredData = getFilteredEarningsData();
+      
+      // Create new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.text('MSC & Co - Earnings Report', 20, 20);
+      
+      // Add period and filters info
+      doc.setFontSize(12);
+      doc.text(`Period: ${selectedPeriod}`, 20, 35);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
+      
+      if (selectedArtist !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) {
+        let filtersText = 'Filters: ';
+        const activeFilters = [];
+        if (selectedArtist !== 'all') activeFilters.push(`Artist: ${mockArtists.find(a => a.id === selectedArtist)?.name}`);
+        if (selectedRelease !== 'all') activeFilters.push(`Release: ${mockReleases.find(r => r.id === selectedRelease)?.name}`);
+        if (selectedAsset !== 'all') activeFilters.push(`Asset: ${mockAssets.find(a => a.id === selectedAsset)?.name}`);
+        if (searchQuery) activeFilters.push(`Search: "${searchQuery}"`);
+        filtersText += activeFilters.join(', ');
+        doc.text(filtersText, 20, 55);
+      }
+
+      // Prepare table data
+      const tableHeaders = [
+        'Month', 'Artist', 'Release', 'Track', 'Platform', 
+        'Streams', 'Downloads', 'Total Earnings'
+      ];
+      
+      const tableData = filteredData.map(item => [
+        item.month,
+        item.artist,
+        item.release,
+        item.track,
+        item.platform,
+        item.streams.toLocaleString(),
+        item.downloads.toLocaleString(),
+        `$${item.totalEarnings.toFixed(2)}`
+      ]);
+
+      // Add summary row
+      const totalEarnings = filteredData.reduce((sum, item) => sum + item.totalEarnings, 0);
+      const totalStreams = filteredData.reduce((sum, item) => sum + item.streams, 0);
+      const totalDownloads = filteredData.reduce((sum, item) => sum + item.downloads, 0);
+      
+      tableData.push([
+        'TOTAL', '', '', '', '',
+        totalStreams.toLocaleString(),
+        totalDownloads.toLocaleString(),
+        `$${totalEarnings.toFixed(2)}`
+      ]);
+
+      // Add the table
+      doc.autoTable({
+        head: [tableHeaders],
+        body: tableData,
+        startY: 70,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2
+        },
+        headStyles: {
+          fillColor: [68, 114, 196],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        didParseCell: function(data) {
+          // Make the total row bold
+          if (data.row.index === tableData.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [220, 220, 220];
+          }
+        }
+      });
+
+      // Generate filename
+      const currentDate = new Date();
+      const dateString = currentDate.toISOString().split('T')[0];
+      const filename = `MSC-Earnings-Report-${selectedPeriod}-${dateString}.pdf`;
+      
+      // Save the PDF
+      doc.save(filename);
+      
+      console.log('PDF export completed successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Error generating PDF file. Please try again.');
+    }
+  };
+
   const handleExportReport = (format) => {
     console.log(`Exporting ${format} report for period: ${selectedPeriod}`);
-    alert(`${format.toUpperCase()} export functionality will be implemented soon.`);
+    
+    if (format === 'excel') {
+      exportToExcel();
+    } else if (format === 'pdf') {
+      exportToPDF();
+    }
   };
 
   return (
