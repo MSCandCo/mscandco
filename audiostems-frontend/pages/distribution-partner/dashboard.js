@@ -618,6 +618,29 @@ export default function DistributionPartnerDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [releaseTypeFilter, setReleaseTypeFilter] = useState('all');
+  
+  // ISRC editing state
+  const [editingIsrc, setEditingIsrc] = useState(null); // { releaseId, trackIndex }
+  const [tempIsrc, setTempIsrc] = useState('');
+  
+  // ISRC editing functions
+  const startEditingIsrc = (releaseId, trackIndex, currentIsrc) => {
+    setEditingIsrc({ releaseId, trackIndex });
+    setTempIsrc(currentIsrc);
+  };
+  
+  const saveIsrc = () => {
+    // In a real app, this would save to the backend
+    console.log('Saving ISRC:', tempIsrc, 'for release:', editingIsrc.releaseId, 'track:', editingIsrc.trackIndex);
+    // Here you would update the release data
+    setEditingIsrc(null);
+    setTempIsrc('');
+  };
+  
+  const cancelEditingIsrc = () => {
+    setEditingIsrc(null);
+    setTempIsrc('');
+  };
   const [uploadedData, setUploadedData] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [hoveredStatus, setHoveredStatus] = useState(null);
@@ -857,7 +880,45 @@ export default function DistributionPartnerDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.duration}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.bpm || 'N/A'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.songKey || 'N/A'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{track.isrc}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {editingIsrc?.releaseId === release.id && editingIsrc?.trackIndex === trackIndex ? (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={tempIsrc}
+                              onChange={(e) => setTempIsrc(e.target.value)}
+                              className="px-2 py-1 border border-gray-300 rounded text-sm font-mono w-32"
+                              placeholder="USRC12345678"
+                              maxLength="12"
+                            />
+                            <button
+                              onClick={saveIsrc}
+                              className="text-green-600 hover:text-green-800"
+                              title="Save ISRC"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={cancelEditingIsrc}
+                              className="text-red-600 hover:text-red-800"
+                              title="Cancel"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2 group">
+                            <span className="font-mono">{track.isrc}</span>
+                            <button
+                              onClick={() => startEditingIsrc(release.id, trackIndex, track.isrc)}
+                              className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 transition-opacity"
+                              title="Edit ISRC"
+                            >
+                              ✏️
+                            </button>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
@@ -2028,7 +2089,45 @@ export default function DistributionPartnerDashboard() {
                             <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{track.duration}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900">{track.isrc}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">
+                              {editingIsrc?.releaseId === selectedRelease.id && editingIsrc?.trackIndex === index ? (
+                                <div className="flex items-center space-x-1">
+                                  <input
+                                    type="text"
+                                    value={tempIsrc}
+                                    onChange={(e) => setTempIsrc(e.target.value)}
+                                    className="px-1 py-1 border border-gray-300 rounded text-xs font-mono w-28"
+                                    placeholder="USRC12345678"
+                                    maxLength="12"
+                                  />
+                                  <button
+                                    onClick={saveIsrc}
+                                    className="text-green-600 hover:text-green-800 text-xs"
+                                    title="Save ISRC"
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    onClick={cancelEditingIsrc}
+                                    className="text-red-600 hover:text-red-800 text-xs"
+                                    title="Cancel"
+                                  >
+                                    ✗
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <span className="font-mono text-xs">{track.isrc}</span>
+                                  <button
+                                    onClick={() => startEditingIsrc(selectedRelease.id, index, track.isrc)}
+                                    className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 transition-opacity text-xs"
+                                    title="Edit ISRC"
+                                  >
+                                    ✏️
+                                  </button>
+                                </div>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -3151,7 +3250,45 @@ export default function DistributionPartnerDashboard() {
                             <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{track.duration}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900">{track.isrc}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">
+                              {editingIsrc?.releaseId === editingRelease.id && editingIsrc?.trackIndex === index ? (
+                                <div className="flex items-center space-x-1">
+                                  <input
+                                    type="text"
+                                    value={tempIsrc}
+                                    onChange={(e) => setTempIsrc(e.target.value)}
+                                    className="px-1 py-1 border border-gray-300 rounded text-xs font-mono w-28"
+                                    placeholder="USRC12345678"
+                                    maxLength="12"
+                                  />
+                                  <button
+                                    onClick={saveIsrc}
+                                    className="text-green-600 hover:text-green-800 text-xs"
+                                    title="Save ISRC"
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    onClick={cancelEditingIsrc}
+                                    className="text-red-600 hover:text-red-800 text-xs"
+                                    title="Cancel"
+                                  >
+                                    ✗
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <span className="font-mono text-xs">{track.isrc}</span>
+                                  <button
+                                    onClick={() => startEditingIsrc(editingRelease.id, index, track.isrc)}
+                                    className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 transition-opacity text-xs"
+                                    title="Edit ISRC"
+                                  >
+                                    ✏️
+                                  </button>
+                                </div>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
