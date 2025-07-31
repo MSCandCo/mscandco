@@ -24,21 +24,59 @@ function AdminContent() {
     }
   }, [isAuthenticated, isLoading, user, router]);
 
-  const { data: songs } = useSWR(
-    apiRoute("/songs?populate=*")
-  );
+  // Comprehensive mock data for admin content management - matches our database
+  const mockSongs = [
+    { id: 1, title: 'Urban Beat', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 45000, duration: '3:30' },
+    { id: 2, title: 'Street Rhythm', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 38000, duration: '4:15' },
+    { id: 3, title: 'City Lights', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 42000, duration: '3:45' },
+    { id: 4, title: 'Hit Single #1', artist: 'Global Superstar', genre: 'Pop', status: 'active', streams: 950000, duration: '3:25' },
+    { id: 5, title: 'Radio Favorite', artist: 'Global Superstar', genre: 'Pop', status: 'active', streams: 890000, duration: '3:18' },
+    { id: 6, title: 'Starlight', artist: 'Seoul Stars', genre: 'Pop', status: 'active', streams: 1500000, duration: '3:15' },
+    { id: 7, title: 'Electric Love', artist: 'Seoul Stars', genre: 'Pop', status: 'active', streams: 1200000, duration: '3:42' },
+    { id: 8, title: 'Opening Anthem (Live)', artist: 'Rock Legends', genre: 'Rock', status: 'active', streams: 400000, duration: '4:30' },
+    { id: 9, title: 'Digital Sunrise', artist: 'DJ Phoenix', genre: 'Electronic', status: 'pending', streams: 0, duration: '4:20' },
+    { id: 10, title: 'Fuego', artist: 'Carlos Mendez', genre: 'Latin', status: 'active', streams: 280000, duration: '3:28' }
+  ];
 
-  const { data: stems } = useSWR(
-    apiRoute("/stems?populate=*")
-  );
+  const mockStems = [
+    { id: 1, title: 'Urban Beat - Vocals', song: 'Urban Beat', artist: 'YHWH MSC', type: 'vocals', size: '15.2 MB' },
+    { id: 2, title: 'Urban Beat - Instrumental', song: 'Urban Beat', artist: 'YHWH MSC', type: 'instrumental', size: '18.4 MB' },
+    { id: 3, title: 'Urban Beat - Drums', song: 'Urban Beat', artist: 'YHWH MSC', type: 'drums', size: '12.1 MB' },
+    { id: 4, title: 'Starlight - Vocals', song: 'Starlight', artist: 'Seoul Stars', type: 'vocals', size: '14.8 MB' },
+    { id: 5, title: 'Starlight - Instrumental', song: 'Starlight', artist: 'Seoul Stars', type: 'instrumental', size: '16.3 MB' },
+    { id: 6, title: 'Hit Single #1 - Acapella', song: 'Hit Single #1', artist: 'Global Superstar', type: 'vocals', size: '13.7 MB' }
+  ];
 
-  const { data: artists } = useSWR(
-    apiRoute("/artists?populate=*")
-  );
+  const mockArtists = [
+    { id: 1, name: 'YHWH MSC', genre: 'Hip Hop', songs: 6, totalStreams: 125000, status: 'active', label: 'MSC & Co' },
+    { id: 2, name: 'Global Superstar', genre: 'Pop', songs: 3, totalStreams: 2800000, status: 'active', label: 'Major Label Music' },
+    { id: 3, name: 'Seoul Stars', genre: 'Pop', songs: 3, totalStreams: 4500000, status: 'active', label: 'K-Entertainment' },
+    { id: 4, name: 'Rock Legends', genre: 'Rock', songs: 3, totalStreams: 1200000, status: 'active', label: 'Live Music Records' },
+    { id: 5, name: 'DJ Phoenix', genre: 'Electronic', songs: 4, totalStreams: 0, status: 'pending', label: 'Digital Beats' },
+    { id: 6, name: 'Carlos Mendez', genre: 'Latin', songs: 1, totalStreams: 280000, status: 'active', label: 'Latin Beats Records' },
+    { id: 7, name: 'Emma Rodriguez', genre: 'Pop', songs: 1, totalStreams: 0, status: 'pending', label: 'Indie Sounds' },
+    { id: 8, name: 'Marcus Williams Quartet', genre: 'Jazz', songs: 3, totalStreams: 0, status: 'inactive', label: 'Jazz Heritage' },
+    { id: 9, name: 'The Basement Band', genre: 'Rock', songs: 3, totalStreams: 0, status: 'pending', label: 'Underground Records' },
+    { id: 10, name: 'Film Composer Orchestra', genre: 'Classical', songs: 4, totalStreams: 0, status: 'pending', label: 'Cinematic Music' },
+    { id: 11, name: 'Nashville Dreams', genre: 'Country', songs: 3, totalStreams: 0, status: 'inactive', label: 'Country Music Nashville' }
+  ];
 
-  const { data: genres } = useSWR(
-    apiRoute("/genres?populate=*")
-  );
+  const mockGenres = [
+    { id: 1, name: 'Hip Hop', songs: 6, artists: 1, color: '#8B5CF6' },
+    { id: 2, name: 'Pop', songs: 9, artists: 3, color: '#EF4444' },
+    { id: 3, name: 'Rock', songs: 6, artists: 2, color: '#F59E0B' },
+    { id: 4, name: 'Electronic', songs: 4, artists: 1, color: '#10B981' },
+    { id: 5, name: 'Latin', songs: 1, artists: 1, color: '#F97316' },
+    { id: 6, name: 'Jazz', songs: 3, artists: 1, color: '#6366F1' },
+    { id: 7, name: 'Classical', songs: 4, artists: 1, color: '#84CC16' },
+    { id: 8, name: 'Country', songs: 3, artists: 1, color: '#06B6D4' }
+  ];
+
+  // Use mock data instead of API calls
+  const songs = { data: mockSongs };
+  const stems = { data: mockStems };
+  const artists = { data: mockArtists };
+  const genres = { data: mockGenres };
 
   if (isLoading) {
     return <div>Loading...</div>;
