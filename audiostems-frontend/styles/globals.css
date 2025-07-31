@@ -120,3 +120,23 @@ body {
 .track-isrc-input {
   @apply max-w-[140px];
 }
+
+/* DIRECT FIX: Force smaller title boxes to prevent overlap */
+.track-card-layout input:first-child,
+.track-input-card input:first-child,
+input[placeholder*="Track"],
+input[placeholder*="Title"] {
+  @apply max-w-[180px] !important;
+}
+
+/* Alternative: Force specific widths for track form inputs */
+div[class*="track"] input,
+div[class*="Track"] input {
+  @apply flex-shrink;
+}
+
+/* Override any flex-grow on track title inputs */
+.track-card-layout .track-input-card:first-child input,
+.track-listing-form .track-row > div:first-child input {
+  @apply max-w-[180px] flex-shrink-0 !important;
+}
