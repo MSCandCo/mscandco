@@ -6,6 +6,8 @@ import Layout from '@/components/layouts/mainLayout';
 export default function PartnerReports() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   if (isLoading) {
     return (
@@ -96,19 +98,60 @@ export default function PartnerReports() {
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Period Selector */}
-          <div className="flex space-x-4 mb-6">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="current-month">Current Month</option>
-              <option value="last-month">Last Month</option>
-              <option value="last-3-months">Last 3 Months</option>
-              <option value="last-6-months">Last 6 Months</option>
-              <option value="current-year">Current Year</option>
-              <option value="all-time">All Time</option>
-            </select>
+          <div className="mb-6">
+            <div className="flex flex-wrap items-center gap-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="current-month">Current Month</option>
+                <option value="last-month">Last Month</option>
+                <option value="last-3-months">Last 3 Months</option>
+                <option value="last-6-months">Last 6 Months</option>
+                <option value="current-year">Current Year</option>
+                <option value="custom">Custom Range</option>
+                <option value="all-time">All Time</option>
+              </select>
+              
+              {selectedPeriod === 'custom' && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="reports-start-date" className="text-sm font-medium text-gray-700">From:</label>
+                    <input
+                      id="reports-start-date"
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="reports-end-date" className="text-sm font-medium text-gray-700">To:</label>
+                    <input
+                      id="reports-end-date"
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (customStartDate && customEndDate) {
+                        console.log(`Applying custom date range for reports: ${customStartDate} to ${customEndDate}`);
+                        // Here you would typically refresh the earnings data with the new date range
+                      } else {
+                        alert('Please select both start and end dates');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Earnings Summary */}

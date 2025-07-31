@@ -6,6 +6,8 @@ import Layout from '@/components/layouts/mainLayout';
 export default function PartnerAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedTimeframe, setSelectedTimeframe] = useState('all-time');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   if (isLoading) {
     return (
@@ -79,16 +81,57 @@ export default function PartnerAnalytics() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Timeframe Selector */}
           <div className="mb-6">
-            <select
-              value={selectedTimeframe}
-              onChange={(e) => setSelectedTimeframe(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="7-days">Last 7 Days</option>
-              <option value="30-days">Last 30 Days</option>
-              <option value="90-days">Last 90 Days</option>
-              <option value="all-time">All Time</option>
-            </select>
+            <div className="flex flex-wrap items-center gap-4">
+              <select
+                value={selectedTimeframe}
+                onChange={(e) => setSelectedTimeframe(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="7-days">Last 7 Days</option>
+                <option value="30-days">Last 30 Days</option>
+                <option value="90-days">Last 90 Days</option>
+                <option value="custom">Custom Range</option>
+                <option value="all-time">All Time</option>
+              </select>
+              
+              {selectedTimeframe === 'custom' && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="start-date" className="text-sm font-medium text-gray-700">From:</label>
+                    <input
+                      id="start-date"
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="end-date" className="text-sm font-medium text-gray-700">To:</label>
+                    <input
+                      id="end-date"
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (customStartDate && customEndDate) {
+                        console.log(`Applying custom date range: ${customStartDate} to ${customEndDate}`);
+                        // Here you would typically refresh the data with the new date range
+                      } else {
+                        alert('Please select both start and end dates');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Key Metrics */}
