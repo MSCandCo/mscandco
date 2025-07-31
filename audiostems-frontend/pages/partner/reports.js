@@ -4,7 +4,7 @@ import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -573,7 +573,7 @@ export default function PartnerReports() {
         item.platform,
         item.streams.toLocaleString(),
         item.downloads.toLocaleString(),
-        `$${item.totalEarnings.toFixed(2)}`
+        formatCurrency(item.totalEarnings)
       ]);
 
       // Add summary row
@@ -585,11 +585,11 @@ export default function PartnerReports() {
         'TOTAL', '', '', '', '',
         totalStreams.toLocaleString(),
         totalDownloads.toLocaleString(),
-        `$${totalEarnings.toFixed(2)}`
+        formatCurrency(totalEarnings)
       ]);
 
       // Add the table
-      doc.autoTable({
+      autoTable(doc, {
         head: [tableHeaders],
         body: tableData,
         startY: 70,
