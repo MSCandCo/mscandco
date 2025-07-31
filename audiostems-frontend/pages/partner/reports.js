@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
-import Layout from '../../components/layouts/mainLayout';
+import { getUserRole, getUserBrand } from '@/lib/auth0-config';
+import Layout from '@/components/layouts/mainLayout';
 import { FaDownload, FaCalendar, FaDollarSign, FaMusic, FaTrendingUp, FaFileExcel, FaFilePdf } from 'react-icons/fa';
 
 // Mock earnings data for all released assets

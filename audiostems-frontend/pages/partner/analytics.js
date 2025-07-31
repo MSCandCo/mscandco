@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
-import Layout from '../../components/layouts/mainLayout';
+import { getUserRole, getUserBrand } from '@/lib/auth0-config';
+import Layout from '@/components/layouts/mainLayout';
 import { FaPlay, FaDownload, FaEye, FaHeart, FaShare, FaUsers, FaMusic, FaTrendingUp } from 'react-icons/fa';
 
 // Mock analytics data for distributed releases
