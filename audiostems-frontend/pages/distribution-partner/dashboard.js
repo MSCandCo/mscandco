@@ -973,6 +973,54 @@ const mockEditRequests = [
     language: 'English',
     subGenre: 'Traditional Country',
     recordingCountry: 'United States'
+  },
+
+  // NEW SUBMITTED RELEASES for complete testing coverage
+  {
+    id: 25,
+    projectName: 'Electronic Dreams Single',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.SUBMITTED,
+    submissionDate: '2024-12-01',
+    expectedReleaseDate: '2025-04-20',
+    assets: '1 track, final artwork',
+    feedback: 'Submitted for review - awaiting initial assessment',
+    marketingPlan: 'Electronic music blogs, streaming playlists, social media',
+    publishingNotes: 'Electronic single with cutting-edge production',
+    trackListing: [
+      { title: 'Electronic Dreams', duration: '4:05', isrc: 'USRC12345755', bpm: '126', songKey: 'F# Minor' }
+    ],
+    credits: [
+      { role: 'Artist', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Sound Design', name: 'Synth Master' }
+    ]
+  },
+
+  {
+    id: 26,
+    projectName: 'Acoustic Sessions',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Acoustic',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: null,
+    expectedReleaseDate: '2025-06-30',
+    assets: '1 track, draft artwork',
+    feedback: '',
+    marketingPlan: 'To be determined',
+    publishingNotes: 'Raw acoustic performance - work in progress',
+    trackListing: [
+      { title: 'Acoustic Sessions', duration: '3:55', isrc: 'USRC12345756', bpm: '75', songKey: 'D Major' }
+    ],
+    credits: [
+      { role: 'Artist', name: 'YHWH MSC' },
+      { role: 'Songwriter', name: 'YHWH MSC' }
+    ]
   }
 ];
 

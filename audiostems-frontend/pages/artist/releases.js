@@ -311,6 +311,65 @@ const mockReleases = [
         { title: 'Approval Track 3', duration: '3:58', isrc: 'USRC12345695', bpm: '125', songKey: 'G Major' }
       ]
     }
+  },
+
+  // SUBMITTED Status Example - Missing in original data
+  {
+    id: 25,
+    projectName: 'Electronic Dreams Single',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.SUBMITTED,
+    submissionDate: '2024-12-01',
+    expectedReleaseDate: '2025-04-20',
+    assets: 1,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-12-01',
+    cover: '⚡',
+    feedback: 'Submitted for review - awaiting distribution partner assessment',
+    marketingPlan: 'Electronic music blogs, streaming playlists, social media',
+    musicFiles: ['electronic_dreams.wav'],
+    artworkFile: 'electronic_dreams_cover.jpg',
+    trackListing: [
+      { title: 'Electronic Dreams', duration: '4:05', isrc: 'USRC12345755', bpm: '126', songKey: 'F# Minor' }
+    ],
+    credits: [
+      { role: 'Artist', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Sound Design', name: 'Synth Master' }
+    ],
+    publishingNotes: 'Electronic single with cutting-edge production'
+  },
+
+  // Additional DRAFT Example
+  {
+    id: 26,
+    projectName: 'Acoustic Sessions',
+    artist: 'YHWH MSC',
+    releaseType: 'Single',
+    genre: 'Acoustic',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: null,
+    expectedReleaseDate: '2025-06-30',
+    assets: 1,
+    earnings: 0,
+    streams: 0,
+    lastUpdated: '2024-12-05',
+    cover: '🎸',
+    feedback: '',
+    marketingPlan: 'To be determined',
+    musicFiles: ['acoustic_sessions_demo.wav'],
+    artworkFile: null,
+    trackListing: [
+      { title: 'Acoustic Sessions', duration: '3:55', isrc: 'USRC12345756', bpm: '75', songKey: 'D Major' }
+    ],
+    credits: [
+      { role: 'Artist', name: 'YHWH MSC' },
+      { role: 'Songwriter', name: 'YHWH MSC' }
+    ],
+    publishingNotes: 'Raw acoustic performance - work in progress'
   }
 ];
 

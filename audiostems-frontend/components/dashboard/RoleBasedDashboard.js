@@ -341,10 +341,10 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to YHWH MSC - Your Music Career Hub`,
           description: 'Manage your releases, track earnings, and grow your audience',
           stats: [
-            { label: 'Total Releases', value: '6', change: '+2 this month', changeType: 'positive' },
+            { label: 'Total Releases', value: '8', change: '+2 this month', changeType: 'positive' },
             { label: 'Total Streams', value: '125K', change: '+15%', changeType: 'positive' },
-            { label: 'Total Earnings', value: '£1,560', change: '+£320', changeType: 'positive' },
-            { label: 'Active Projects', value: '3', change: '2 in review', changeType: 'neutral' }
+            { label: 'Total Earnings', value: '£8,750', change: '+£2,800', changeType: 'positive' },
+            { label: 'Active Projects', value: '5', change: '3 in review', changeType: 'neutral' }
           ],
           cards: [
             {
@@ -353,10 +353,12 @@ export default function RoleBasedDashboard() {
               icon: '🎵',
               href: '/artist/releases',
               stats: { 
-                total: 6, 
-                draft: 1, 
+                total: 8, 
+                draft: 2, 
+                submitted: 1,
                 underReview: 2, 
-                live: 2,
+                approvalRequired: 1,
+                live: 1,
                 completed: 1
               }
             },
@@ -366,9 +368,9 @@ export default function RoleBasedDashboard() {
               icon: '💰',
               href: '/artist/earnings',
               stats: { 
-                thisMonth: '£320', 
-                lastMonth: '£240',
-                held: '£1,560',
+                thisMonth: '£2,800', 
+                lastMonth: '£5,950',
+                held: '£8,750',
                 platforms: 7
               }
             },
