@@ -497,6 +497,114 @@ const mockEditRequests = [
     companyName: 'MSC & Co Records',
     legalName: 'YHWH MSC',
     artistName: 'YHWH MSC'
+  },
+  {
+    id: 7,
+    projectName: 'Greatest Hits Collection',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Compilation',
+    genre: 'Hip Hop',
+    status: RELEASE_STATUSES.COMPLETED,
+    submissionDate: '2024-02-01',
+    expectedReleaseDate: '2024-04-01',
+    assets: '12 tracks, artwork',
+    feedback: 'Compilation ready for release',
+    marketingPlan: 'Best of collection marketing campaign',
+    publishingNotes: 'Collection of top performing tracks',
+    trackListing: [
+      { title: 'Urban Beat (Remastered)', duration: '3:30', isrc: 'USRC12345700', bpm: '140', songKey: 'C Minor' },
+      { title: 'Summer Vibes (Remastered)', duration: '4:00', isrc: 'USRC12345701', bpm: '120', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Compilation Producer', name: 'YHWH MSC' },
+      { role: 'Mastering Engineer', name: 'Audio Pro' }
+    ],
+    songTitle: 'Urban Beat (Remastered)',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 8,
+    projectName: 'Urban Beat (Remix Package)',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Remix',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.UNDER_REVIEW,
+    submissionDate: '2024-02-15',
+    expectedReleaseDate: '2024-05-01',
+    assets: '5 remixes, artwork',
+    feedback: 'Exciting remix package under review',
+    marketingPlan: 'Electronic music promotion focus',
+    publishingNotes: 'Official remixes by top electronic producers',
+    trackListing: [
+      { title: 'Urban Beat (Club Remix)', duration: '6:30', isrc: 'USRC12345710', bpm: '128', songKey: 'C Minor' },
+      { title: 'Urban Beat (Ambient Remix)', duration: '4:45', isrc: 'USRC12345711', bpm: '85', songKey: 'C Minor' }
+    ],
+    credits: [
+      { role: 'Original Artist', name: 'YHWH MSC' },
+      { role: 'Remix Producer', name: 'DJ Electronic' }
+    ],
+    songTitle: 'Urban Beat (Club Remix)',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 9,
+    projectName: 'Live at Madison Square',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Live Album',
+    genre: 'Hip Hop',
+    status: RELEASE_STATUSES.SUBMITTED,
+    submissionDate: '2024-03-01',
+    expectedReleaseDate: '2024-06-01',
+    assets: '15 live tracks, concert footage',
+    feedback: 'High-quality live recording submitted for review',
+    marketingPlan: 'Concert experience marketing',
+    publishingNotes: 'Full live concert recording from Madison Square Garden',
+    trackListing: [
+      { title: 'Urban Beat (Live)', duration: '4:15', isrc: 'USRC12345720', bpm: '142', songKey: 'C Minor' },
+      { title: 'Summer Vibes (Live)', duration: '5:30', isrc: 'USRC12345721', bpm: '122', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Live Performance', name: 'YHWH MSC' },
+      { role: 'Live Recording Engineer', name: 'Concert Audio' }
+    ],
+    songTitle: 'Urban Beat (Live)',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 10,
+    projectName: 'Movie Score: Urban Dreams',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Soundtrack',
+    genre: 'Ambient',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: '2024-03-15',
+    expectedReleaseDate: '2024-08-01',
+    assets: '20 instrumental tracks, movie artwork',
+    feedback: 'Film soundtrack in development phase',
+    marketingPlan: 'Movie tie-in promotional campaign',
+    publishingNotes: 'Original soundtrack for Urban Dreams feature film',
+    trackListing: [
+      { title: 'Opening Credits', duration: '2:30', isrc: 'USRC12345730', bpm: '70', songKey: 'D Minor' },
+      { title: 'City Chase Scene', duration: '3:45', isrc: 'USRC12345731', bpm: '110', songKey: 'A Minor' }
+    ],
+    credits: [
+      { role: 'Composer', name: 'YHWH MSC' },
+      { role: 'Orchestrator', name: 'Film Music Pro' }
+    ],
+    songTitle: 'Opening Credits',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
   }
 ];
 
@@ -801,6 +909,10 @@ export default function DistributionPartnerDashboard() {
         case 'EP': return 'bg-green-100 text-green-800';
         case 'Album': return 'bg-purple-100 text-purple-800';
         case 'Mixtape': return 'bg-orange-100 text-orange-800';
+        case 'Compilation': return 'bg-indigo-100 text-indigo-800';
+        case 'Remix': return 'bg-pink-100 text-pink-800';
+        case 'Live Album': return 'bg-red-100 text-red-800';
+        case 'Soundtrack': return 'bg-teal-100 text-teal-800';
         default: return 'bg-gray-100 text-gray-800';
       }
     };

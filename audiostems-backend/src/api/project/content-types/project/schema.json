@@ -29,7 +29,11 @@
         "Single",
         "EP",
         "Album",
-        "Mixtape"
+        "Mixtape",
+        "Compilation",
+        "Remix",
+        "Live Album",
+        "Soundtrack"
       ],
       "required": true
     },

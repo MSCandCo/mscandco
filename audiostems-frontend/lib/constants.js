@@ -90,7 +90,11 @@ export const RELEASE_TYPES = [
   'Single',
   'EP',
   'Album',
-  'Mixtape'
+  'Mixtape',
+  'Compilation',
+  'Remix',
+  'Live Album',
+  'Soundtrack'
 ];
 
 // Helper function to get status label
