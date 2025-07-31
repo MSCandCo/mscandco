@@ -141,18 +141,6 @@ export default function RoleBasedNavigation() {
                       Profile
                     </Link>
                     <Link
-                      href="/partner/analytics"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Analytics
-                    </Link>
-                    <Link
-                      href="/partner/reports"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Earnings
-                    </Link>
-                    <Link
                       href="/billing"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
