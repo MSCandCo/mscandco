@@ -121,22 +121,92 @@ body {
   @apply max-w-[140px];
 }
 
-/* DIRECT FIX: Force smaller title boxes to prevent overlap */
-.track-card-layout input:first-child,
-.track-input-card input:first-child,
+/* COMPREHENSIVE FIX: Force track title inputs to be smaller */
+input[value*="Urban Beat"],
+input[value*="Street Rhythm"], 
+input[value*="City Lights"],
 input[placeholder*="Track"],
 input[placeholder*="Title"] {
-  @apply max-w-[180px] !important;
+  @apply max-w-[160px] !important;
 }
 
-/* Alternative: Force specific widths for track form inputs */
-div[class*="track"] input,
-div[class*="Track"] input {
-  @apply flex-shrink;
+/* Target any input field that might be in a track listing context */
+div:has(input[value*="3:30"]) input:first-child,
+div:has(input[value*="4:15"]) input:first-child,
+div:has(input[value*="3:45"]) input:first-child {
+  @apply max-w-[160px] !important;
 }
 
-/* Override any flex-grow on track title inputs */
-.track-card-layout .track-input-card:first-child input,
-.track-listing-form .track-row > div:first-child input {
-  @apply max-w-[180px] flex-shrink-0 !important;
+/* Force title inputs in card layouts to be smaller */
+.track-card-layout input:first-child,
+.track-input-card input:first-child {
+  @apply max-w-[160px] !important;
+}
+
+/* Prevent flex-grow on title inputs */
+div[class*="track"] input:first-child,
+div[class*="Track"] input:first-child {
+  @apply max-w-[160px] flex-shrink-0 !important;
+}
+
+/* ULTIMATE FIX: Target ANY grid or flex layout with track-like inputs */
+.grid input:first-child,
+.flex input:first-child,
+div:first-child input {
+  @apply max-w-[160px] !important;
+}
+
+/* Force ALL input fields in ANY multi-column layout to respect sizing */
+.grid-cols-5 input:nth-child(1),
+.grid-cols-4 input:nth-child(1),
+.grid-cols-3 input:nth-child(1) {
+  @apply max-w-[160px] !important;
+}
+
+/* Emergency override for ANY form with numeric track numbers */
+div:has(input[value="1"]) input:first-child,
+div:has(input[value="2"]) input:first-child,
+div:has(input[value="3"]) input:first-child,
+div:has(.text-center:contains("1")) input:first-child,
+div:has(.text-center:contains("2")) input:first-child,
+div:has(.text-center:contains("3")) input:first-child {
+  @apply max-w-[160px] !important;
+}
+
+/* Target any input that appears to be the first in a row/card */
+.border.rounded input:first-child,
+.bg-white.border input:first-child,
+.shadow input:first-child {
+  @apply max-w-[160px] !important;
+}
+
+/* SIMPLE UNIVERSAL FIX: Force ALL inputs to reasonable max-width */
+input[type="text"] {
+  @apply max-w-[200px];
+}
+
+/* More specific for track listing contexts */
+div input[type="text"]:first-child {
+  @apply max-w-[160px] !important;
+}
+
+/* Force first input in any container to be smaller */
+div > input:first-child,
+span > input:first-child {
+  @apply max-w-[160px] !important;
+}
+
+/* Target input groups with numbered tracks */
+div:has(.track-number) input:first-of-type,
+div:has(> span:first-child:contains("1")) input:first-of-type,
+div:has(> span:first-child:contains("2")) input:first-of-type,
+div:has(> span:first-child:contains("3")) input:first-of-type {
+  @apply max-w-[160px] !important;
+}
+
+/* Universal track form title width constraint - only in specific contexts */
+form input[type="text"]:first-child,
+.track-listing input[type="text"]:first-child,
+div[class*="listing"] input[type="text"]:first-child {
+  @apply max-w-[160px] !important;
 }

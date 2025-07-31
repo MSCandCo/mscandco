@@ -206,20 +206,20 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 px-6 pt-6">
           <h2 className="text-2xl font-bold text-gray-900">
             {isEditRequest ? 'Edit Request' : isApprovalEdit ? 'Update Release' : 'Create New Release'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 p-2 -mr-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <FaTimes className="w-6 h-6" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6">
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -438,54 +438,62 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
             
             <div className="space-y-3">
               {formData.trackListing.map((track, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3">
-                      {index + 1}
-                    </div>
+                <div key={index} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {index + 1}
+                  </div>
+                  <div className="w-80 flex-shrink-0">
                     <input
                       type="text"
                       placeholder="Track title"
                       value={track.title}
                       onChange={(e) => handleTrackChange(index, 'title', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Duration (e.g., 3:45)"
-                    value={track.duration}
-                    onChange={(e) => handleTrackChange(index, 'duration', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="BPM (e.g., 140)"
-                    value={track.bpm || ''}
-                    onChange={(e) => handleTrackChange(index, 'bpm', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Key (e.g., C Minor)"
-                    value={track.songKey || ''}
-                    onChange={(e) => handleTrackChange(index, 'songKey', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="ISRC code"
-                    value={track.isrc}
-                    onChange={(e) => handleTrackChange(index, 'isrc', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="w-20 flex-shrink-0">
+                    <input
+                      type="text"
+                      placeholder="3:45"
+                      value={track.duration}
+                      onChange={(e) => handleTrackChange(index, 'duration', e.target.value)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div className="w-16 flex-shrink-0">
+                    <input
+                      type="text"
+                      placeholder="140"
+                      value={track.bpm || ''}
+                      onChange={(e) => handleTrackChange(index, 'bpm', e.target.value)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div className="w-24 flex-shrink-0">
+                    <input
+                      type="text"
+                      placeholder="C Minor"
+                      value={track.songKey || ''}
+                      onChange={(e) => handleTrackChange(index, 'songKey', e.target.value)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div className="w-32 flex-shrink-0">
+                    <input
+                      type="text"
+                      placeholder="USRC1234567"
+                      value={track.isrc}
+                      onChange={(e) => handleTrackChange(index, 'isrc', e.target.value)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                    />
+                  </div>
                   {formData.trackListing.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeTrack(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors flex-shrink-0"
                     >
-                      <FaTrash />
+                      <FaTrash className="w-4 h-4" />
                     </button>
                   )}
                 </div>

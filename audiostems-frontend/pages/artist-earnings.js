@@ -367,12 +367,118 @@ function ArtistEarnings() {
           <div className="bg-white rounded-lg shadow">
             <Tabs.Group aria-label="Earnings tabs" style="underline">
               <Tabs.Item active title="Overview" icon={FaChartBar}>
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Earnings Trend</h3>
-                  <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <FaChartBar className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Earnings chart would be displayed here</p>
+                <div className="p-6 space-y-8">
+                  {/* Earnings Trend Chart */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Earnings Trend</h3>
+                    <div className="h-64 bg-white rounded-lg border p-4">
+                      {monthlyData && monthlyData.length > 0 ? (
+                        <Line 
+                          data={{
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                            datasets: [
+                              {
+                                label: 'Monthly Earnings (£)',
+                                data: [180, 225, 195, 298, 342, 389, 421, 458, 502, 548, 578, 612],
+                                borderColor: '#3B82F6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#3B82F6',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
+                              }
+                            ]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: 'top'
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context) {
+                                    return `Earnings: £${context.parsed.y}`;
+                                  }
+                                }
+                              }
+                            },
+                            scales: {
+                              y: {
+                                beginAtZero: true,
+                                ticks: {
+                                  callback: function(value) {
+                                    return '£' + value;
+                                  }
+                                }
+                              }
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-500">Loading earnings data...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Performance Trend Chart */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
+                    <div className="h-64 bg-white rounded-lg border p-4">
+                      <Line 
+                        data={{
+                          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                          datasets: [
+                            {
+                              label: 'Monthly Streams',
+                              data: [12000, 15500, 14200, 18900, 22100, 26800, 31200, 35600, 38900, 41200, 42800, 44500],
+                              borderColor: '#10B981',
+                              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                              borderWidth: 3,
+                              fill: true,
+                              tension: 0.4,
+                              pointBackgroundColor: '#10B981',
+                              pointBorderColor: '#ffffff',
+                              pointBorderWidth: 2,
+                              pointRadius: 6,
+                              pointHoverRadius: 8
+                            }
+                          ]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: 'top'
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: function(context) {
+                                  return `Streams: ${context.parsed.y.toLocaleString()}`;
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              ticks: {
+                                callback: function(value) {
+                                  return value.toLocaleString();
+                                }
+                              }
+                            }
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
