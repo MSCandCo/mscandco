@@ -20,31 +20,31 @@ import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES,
  * Distribution Partner controls: UNDER REVIEW, COMPLETED, and LIVE statuses
  */
 
-// Mock data for releases - moved outside component to prevent re-creation
+// Comprehensive mock data for artist releases - consistent with distribution partner database
 const mockReleases = [
+  // YHWH MSC releases from the shared database
   {
     id: 1,
-    projectName: 'Summer Vibes EP',
+    projectName: 'Urban Beats Collection',
     artist: 'YHWH MSC',
     releaseType: 'EP',
-    genre: 'Electronic',
-    status: 'submitted',
+    genre: 'Hip Hop',
+    status: RELEASE_STATUSES.UNDER_REVIEW,
     submissionDate: '2024-01-15',
-    expectedReleaseDate: '2025-03-15',
-    assets: 4,
-    earnings: 2340,
-    streams: 45678,
+    expectedReleaseDate: '2025-03-01',
+    assets: 3,
+    earnings: 0,
+    streams: 0,
     lastUpdated: '2024-01-15',
     cover: '🎵',
-    feedback: 'Great production quality',
-    marketingPlan: 'Social media campaign + playlist pitching',
-    musicFiles: ['summer-vibes.mp3', 'ocean-waves.mp3', 'sunset-dreams.mp3', 'beach-party.mp3'],
-    artworkFile: 'summer-vibes-cover.jpg',
+    feedback: 'Great urban sound, needs minor adjustments',
+    marketingPlan: 'Social media campaign, playlist pitching',
+    musicFiles: ['urban_beat_01.wav', 'street_rhythm_02.wav', 'city_lights_03.wav'],
+    artworkFile: 'urban_beats_cover.jpg',
     trackListing: [
-      { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678' },
-      { title: 'Ocean Waves', duration: '4:12', isrc: 'USRC12345679' },
-      { title: 'Sunset Dreams', duration: '3:58', isrc: 'USRC12345680' },
-      { title: 'Beach Party', duration: '4:30', isrc: 'USRC12345681' }
+      { title: 'Urban Beat', duration: '3:30', isrc: 'USRC12345686', bpm: '140', songKey: 'C Minor' },
+      { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687', bpm: '135', songKey: 'F Minor' },
+      { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688', bpm: '145', songKey: 'A Minor' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
@@ -54,49 +54,50 @@ const mockReleases = [
     publishingNotes: 'All tracks written and produced by YHWH MSC'
   },
   {
-    id: 2,
-    projectName: 'Midnight Sessions',
+    id: 16,
+    projectName: 'Urban Beat (Remix Package)',
     artist: 'YHWH MSC',
-    releaseType: 'Album',
+    releaseType: 'Remix',
     genre: 'Hip Hop',
-    status: 'under_review',
-    submissionDate: '2024-01-12',
-    expectedReleaseDate: '2025-02-20',
-    assets: 6,
+    status: RELEASE_STATUSES.COMPLETED,
+    submissionDate: '2024-10-01',
+    expectedReleaseDate: '2025-01-15',
+    assets: 3,
     earnings: 0,
     streams: 0,
-    lastUpdated: '2024-01-15',
+    lastUpdated: '2024-10-01',
     cover: '🎵',
-    feedback: 'Under review by distribution team - awaiting approval',
-    marketingPlan: 'TBD',
-    musicFiles: ['midnight-intro.mp3', 'street-lights.mp3', 'urban-nights.mp3'],
-    artworkFile: 'midnight-sessions-cover.jpg',
+    feedback: 'Remix package completed - ready for release',
+    marketingPlan: 'DJ promotion, club distribution, streaming features',
+    musicFiles: ['urban_beat_club_remix.wav', 'urban_beat_ambient_remix.wav', 'urban_beat_trap_remix.wav'],
+    artworkFile: 'urban_beat_remix_cover.jpg',
     trackListing: [
-      { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682' },
-      { title: 'Street Lights', duration: '3:30', isrc: 'USRC12345683' },
-      { title: 'Urban Nights', duration: '4:05', isrc: 'USRC12345684' }
+      { title: 'Urban Beat (Club Remix)', duration: '5:45', isrc: 'USRC12345734', bpm: '128', songKey: 'C Minor' },
+      { title: 'Urban Beat (Ambient Remix)', duration: '4:20', isrc: 'USRC12345735', bpm: '85', songKey: 'C Minor' },
+      { title: 'Urban Beat (Trap Remix)', duration: '3:50', isrc: 'USRC12345736', bpm: '140', songKey: 'C Minor' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Featured Artist', name: 'MC Flow' }
+      { role: 'Original Artist', name: 'YHWH MSC' },
+      { role: 'Remix Producer', name: 'DJ ElectroMaster' },
+      { role: 'Additional Remix', name: 'Ambient Artist' }
     ],
-    publishingNotes: 'Collaborative project with MC Flow'
+    publishingNotes: 'Official remixes by top electronic producers'
   },
   {
-    id: 3,
-    projectName: 'Acoustic Collection',
+    id: 18,
+    projectName: 'Movie Epic Soundtrack',
     artist: 'YHWH MSC',
-    releaseType: 'Single',
-    genre: 'Acoustic',
-    status: 'draft',
-    submissionDate: '2024-01-10',
-    expectedReleaseDate: '2025-04-01',
-    assets: 1,
+    releaseType: 'Soundtrack',
+    genre: 'Classical',
+    status: RELEASE_STATUSES.UNDER_REVIEW,
+    submissionDate: '2024-11-20',
+    expectedReleaseDate: '2025-04-05',
+    assets: 4,
     earnings: 0,
     streams: 0,
-    lastUpdated: '2024-01-10',
-    cover: '🎵',
-    feedback: '',
+    lastUpdated: '2024-11-20',
+    cover: '🎼',
+    feedback: 'Under review - coordinating with film release schedule',
     marketingPlan: '',
     musicFiles: [], // No music files uploaded yet
     artworkFile: null, // No artwork uploaded yet
