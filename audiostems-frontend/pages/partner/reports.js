@@ -46,6 +46,9 @@ export default function PartnerReports() {
   const [selectedRelease, setSelectedRelease] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Currency state
+  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
 
   if (isLoading) {
     return (
@@ -83,10 +86,8 @@ export default function PartnerReports() {
   }
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    const symbol = selectedCurrency === 'GBP' ? '£' : selectedCurrency === 'EUR' ? '€' : '$';
+    return `${symbol}${amount.toLocaleString()}`;
   };
 
   // Enhanced earnings summary
@@ -765,7 +766,23 @@ export default function PartnerReports() {
                 <h1 className="text-2xl font-bold text-gray-900">Earnings Reports</h1>
                 <p className="text-sm text-gray-500">Earnings from all distributed releases and assets</p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex items-center space-x-6">
+                {/* Currency Selector */}
+                <div className="flex items-center space-x-3">
+                  <label className="text-sm font-medium text-gray-700">Currency:</label>
+                  <select
+                    value={selectedCurrency}
+                    onChange={(e) => setSelectedCurrency(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="GBP">GBP (£)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                  </select>
+                </div>
+                
+                {/* Export Buttons */}
+                <div className="flex space-x-3">
                 <button
                   onClick={() => handleExportReport('excel')}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -784,6 +801,7 @@ export default function PartnerReports() {
                   </svg>
                   Export PDF
                 </button>
+                </div>
               </div>
             </div>
           </div>

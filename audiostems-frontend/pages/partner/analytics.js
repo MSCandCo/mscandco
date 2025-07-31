@@ -445,8 +445,26 @@ export default function PartnerAnalytics() {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-6">
-              <h1 className="text-2xl font-bold text-gray-900">Distribution Analytics</h1>
-              <p className="text-sm text-gray-500">Analytics for all distributed releases</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Distribution Analytics</h1>
+                  <p className="text-sm text-gray-500">Analytics for all distributed releases</p>
+                </div>
+                
+                {/* Currency Selector */}
+                <div className="flex items-center space-x-3">
+                  <label className="text-sm font-medium text-gray-700">Currency:</label>
+                  <select
+                    value={selectedCurrency}
+                    onChange={(e) => setSelectedCurrency(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="GBP">GBP (£)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -521,25 +539,6 @@ export default function PartnerAnalytics() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Currency Selector */}
-              <div className="flex items-center justify-between">
-                <div></div>
-                
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm font-medium text-gray-700">Currency:</label>
-                  <select
-                    value={selectedCurrency}
-                    onChange={(e) => setSelectedCurrency(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="GBP">GBP (£)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
-              </div>
-
-
 
               {/* Smart Search */}
               <div className="relative">
