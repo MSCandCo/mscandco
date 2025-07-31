@@ -78,7 +78,7 @@ export default function RoleBasedNavigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link href="/distribution-partner">
+              <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
@@ -175,14 +175,16 @@ export default function RoleBasedNavigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <img
-                src="/logos/msc-logo.png"
-                alt="MSC & Co"
-                className="h-8 w-auto"
-                onError={(e) => {
-                  e.target.src = '/logos/msc-logo.svg';
-                }}
-              />
+              <Link href="/">
+                <img
+                  src="/logos/msc-logo.png"
+                  alt="MSC & Co"
+                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  onError={(e) => {
+                    e.target.src = '/logos/msc-logo.svg';
+                  }}
+                />
+              </Link>
             </div>
 
             {/* Center Navigation */}
@@ -270,14 +272,16 @@ export default function RoleBasedNavigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <img
-                src="/logos/msc-logo.png"
-                alt="MSC & Co"
-                className="h-8 w-auto"
-                onError={(e) => {
-                  e.target.src = '/logos/msc-logo.svg';
-                }}
-              />
+              <Link href="/">
+                <img
+                  src="/logos/msc-logo.png"
+                  alt="MSC & Co"
+                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  onError={(e) => {
+                    e.target.src = '/logos/msc-logo.svg';
+                  }}
+                />
+              </Link>
             </div>
 
             {/* Center Navigation */}
@@ -359,14 +363,16 @@ export default function RoleBasedNavigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <img
-                src="/logos/msc-logo.png"
-                alt="MSC & Co"
-                className="h-8 w-auto"
-                onError={(e) => {
-                  e.target.src = '/logos/msc-logo.svg';
-                }}
-              />
+              <Link href="/">
+                <img
+                  src="/logos/msc-logo.png"
+                  alt="MSC & Co"
+                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  onError={(e) => {
+                    e.target.src = '/logos/msc-logo.svg';
+                  }}
+                />
+              </Link>
             </div>
 
             {/* Center Navigation */}
@@ -467,11 +473,11 @@ export default function RoleBasedNavigation() {
 
         {/* Center - Logo */}
         <div className="flex-1 flex justify-center">
-          <Link href="/dashboard" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <img 
               src="/logos/yhwh-msc-logo.png" 
               alt="YHWH MSC" 
-              className="h-8 w-auto"
+              className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
               onError={(e) => {
                 e.target.src = '/logos/yhwh-msc-logo.svg';
                 e.target.onerror = () => {
