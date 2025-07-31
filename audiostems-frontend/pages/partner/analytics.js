@@ -166,9 +166,116 @@ export default function PartnerAnalytics() {
     { artist: 'Independent Artists', streams: 625072, revenue: 2500.29, growth: 22.1, releases: 1, topTrack: 'Thunder Road' }
   ];
 
+  // View mode specific data
+  const getViewModeData = useMemo(() => {
+    switch (viewMode) {
+      case 'overview':
+        return {
+          title: 'High-Level Overview',
+          description: 'Summary metrics and key performance indicators',
+          platformData: {
+            spotify: { name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954', marketShare: 35.2 },
+            apple: { name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C', marketShare: 25.3 },
+            youtube: { name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000', marketShare: 15.9 },
+            other: { name: 'Other Platforms', streams: 245678, revenue: 1123.45, growth: 11.2, color: '#6B7280', marketShare: 23.6 }
+          },
+          metrics: {
+            totalRevenue: 11392.37,
+            totalStreams: 2953839,
+            avgGrowth: 17.1,
+            topPerformer: 'Spotify'
+          }
+        };
+      
+      case 'detailed':
+        return {
+          title: 'Detailed Breakdown',
+          description: 'Comprehensive analytics with granular data points',
+          platformData: {
+            spotify: { 
+              name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954',
+              details: { avgStreamsPerTrack: 45678, conversionRate: 4.2, royaltyRate: 0.004, topCountry: 'US' }
+            },
+            apple: { 
+              name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C',
+              details: { avgStreamsPerTrack: 38902, conversionRate: 4.8, royaltyRate: 0.0045, topCountry: 'US' }
+            },
+            youtube: { 
+              name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000',
+              details: { avgStreamsPerTrack: 23456, conversionRate: 3.2, royaltyRate: 0.003, topCountry: 'UK' }
+            },
+            amazon: { 
+              name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900',
+              details: { avgStreamsPerTrack: 19897, conversionRate: 4.1, royaltyRate: 0.004, topCountry: 'Germany' }
+            },
+            deezer: { 
+              name: 'Deezer', streams: 187634, revenue: 750.54, growth: 9.3, color: '#FEAA2D',
+              details: { avgStreamsPerTrack: 15636, conversionRate: 4.3, royaltyRate: 0.0035, topCountry: 'France' }
+            },
+            tidal: { 
+              name: 'TIDAL', streams: 98234, revenue: 392.94, growth: 7.1, color: '#000000',
+              details: { avgStreamsPerTrack: 8203, conversionRate: 5.1, royaltyRate: 0.0052, topCountry: 'Norway' }
+            },
+            soundcloud: { 
+              name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300',
+              details: { avgStreamsPerTrack: 13066, conversionRate: 3.0, royaltyRate: 0.003, topCountry: 'US' }
+            },
+            other: { 
+              name: 'Other Platforms', streams: 245678, revenue: 1123.45, growth: 11.2, color: '#6B7280',
+              details: { avgStreamsPerTrack: 10232, conversionRate: 4.6, royaltyRate: 0.0034, topCountry: 'Various' }
+            }
+          },
+          metrics: {
+            totalRevenue: 13201.70,
+            totalStreams: 3694932,
+            avgRoyaltyRate: 0.00384,
+            conversionRateRange: '3.0% - 5.1%'
+          }
+        };
+      
+      case 'comparison':
+        return {
+          title: 'Platform Comparison',
+          description: 'Side-by-side analysis and competitive insights',
+          platformData: {
+            spotify: { 
+              name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954',
+              comparison: { vsIndustry: '+5.2%', vsLastMonth: '+12.3%', marketPosition: '#1', efficiency: 'High' }
+            },
+            apple: { 
+              name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C',
+              comparison: { vsIndustry: '+2.1%', vsLastMonth: '+8.7%', marketPosition: '#2', efficiency: 'High' }
+            },
+            youtube: { 
+              name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000',
+              comparison: { vsIndustry: '-1.3%', vsLastMonth: '+5.2%', marketPosition: '#3', efficiency: 'Medium' }
+            },
+            amazon: { 
+              name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900',
+              comparison: { vsIndustry: '+0.8%', vsLastMonth: '+3.8%', marketPosition: '#4', efficiency: 'Medium' }
+            },
+            other: { 
+              name: 'Other Platforms', streams: 245678, revenue: 1123.45, growth: 11.2, color: '#6B7280',
+              comparison: { vsIndustry: '-2.1%', vsLastMonth: '+2.2%', marketPosition: '#5+', efficiency: 'Variable' }
+            }
+          },
+          metrics: {
+            industryBenchmark: 16.5,
+            ourPerformance: 17.1,
+            competitiveAdvantage: '+0.6%',
+            recommendedFocus: 'Spotify & Apple Music'
+          }
+        };
+      
+      default:
+        return getViewModeData('overview');
+    }
+  }, [viewMode]);
+
   // Advanced filtering logic
   const getFilteredData = useMemo(() => {
-    let filteredPlatforms = { ...platformData };
+    const viewData = getViewModeData;
+    let filteredPlatforms = { ...viewData.platformData };
     let filteredCountries = { ...countryData };
     let filteredArtists = [...artistPerformance];
 
@@ -206,8 +313,13 @@ export default function PartnerAnalytics() {
       );
     }
 
-    return { filteredPlatforms, filteredCountries, filteredArtists };
-  }, [selectedPlatforms, selectedCountries, selectedArtist, platformData, countryData, artistPerformance]);
+    return { 
+      filteredPlatforms, 
+      filteredCountries, 
+      filteredArtists,
+      viewModeInfo: viewData
+    };
+  }, [selectedPlatforms, selectedCountries, selectedArtist, getViewModeData, countryData, artistPerformance]);
 
   // Chart configurations
   const platformChartData = {
@@ -754,6 +866,85 @@ export default function PartnerAnalytics() {
             </div>
           </div>
 
+          {/* View Mode Information Panel */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{getFilteredData.viewModeInfo.title}</h3>
+                <p className="text-sm text-gray-600">{getFilteredData.viewModeInfo.description}</p>
+              </div>
+              <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {viewMode.charAt(0).toUpperCase() + viewMode.slice(1)} Mode
+              </div>
+            </div>
+            
+            {/* View Mode Specific Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {viewMode === 'overview' && (
+                <>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-sm text-blue-600 font-medium">Total Revenue</div>
+                    <div className="text-xl font-bold text-blue-900">${getFilteredData.viewModeInfo.metrics.totalRevenue.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-sm text-green-600 font-medium">Total Streams</div>
+                    <div className="text-xl font-bold text-green-900">{getFilteredData.viewModeInfo.metrics.totalStreams.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-sm text-purple-600 font-medium">Avg Growth</div>
+                    <div className="text-xl font-bold text-purple-900">{getFilteredData.viewModeInfo.metrics.avgGrowth}%</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-sm text-yellow-600 font-medium">Top Performer</div>
+                    <div className="text-xl font-bold text-yellow-900">{getFilteredData.viewModeInfo.metrics.topPerformer}</div>
+                  </div>
+                </>
+              )}
+              
+              {viewMode === 'detailed' && (
+                <>
+                  <div className="bg-indigo-50 p-4 rounded-lg">
+                    <div className="text-sm text-indigo-600 font-medium">Total Revenue</div>
+                    <div className="text-xl font-bold text-indigo-900">${getFilteredData.viewModeInfo.metrics.totalRevenue.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-teal-50 p-4 rounded-lg">
+                    <div className="text-sm text-teal-600 font-medium">Total Streams</div>
+                    <div className="text-xl font-bold text-teal-900">{getFilteredData.viewModeInfo.metrics.totalStreams.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-pink-50 p-4 rounded-lg">
+                    <div className="text-sm text-pink-600 font-medium">Avg Royalty Rate</div>
+                    <div className="text-xl font-bold text-pink-900">${getFilteredData.viewModeInfo.metrics.avgRoyaltyRate.toFixed(5)}</div>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="text-sm text-orange-600 font-medium">Conversion Range</div>
+                    <div className="text-xl font-bold text-orange-900">{getFilteredData.viewModeInfo.metrics.conversionRateRange}</div>
+                  </div>
+                </>
+              )}
+              
+              {viewMode === 'comparison' && (
+                <>
+                  <div className="bg-emerald-50 p-4 rounded-lg">
+                    <div className="text-sm text-emerald-600 font-medium">Industry Benchmark</div>
+                    <div className="text-xl font-bold text-emerald-900">{getFilteredData.viewModeInfo.metrics.industryBenchmark}%</div>
+                  </div>
+                  <div className="bg-cyan-50 p-4 rounded-lg">
+                    <div className="text-sm text-cyan-600 font-medium">Our Performance</div>
+                    <div className="text-xl font-bold text-cyan-900">{getFilteredData.viewModeInfo.metrics.ourPerformance}%</div>
+                  </div>
+                  <div className="bg-violet-50 p-4 rounded-lg">
+                    <div className="text-sm text-violet-600 font-medium">Competitive Edge</div>
+                    <div className="text-xl font-bold text-violet-900">{getFilteredData.viewModeInfo.metrics.competitiveAdvantage}</div>
+                  </div>
+                  <div className="bg-rose-50 p-4 rounded-lg">
+                    <div className="text-sm text-rose-600 font-medium">Focus Areas</div>
+                    <div className="text-lg font-bold text-rose-900">{getFilteredData.viewModeInfo.metrics.recommendedFocus}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Interactive Charts Dashboard */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
             {/* Platform Performance Chart */}
@@ -821,6 +1012,7 @@ export default function PartnerAnalytics() {
                 </div>
                 
                 <div className="space-y-3">
+                  {/* Basic metrics for all view modes */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm text-gray-600">Streams</span>
@@ -852,6 +1044,67 @@ export default function PartnerAnalytics() {
                       ></div>
                     </div>
                   </div>
+
+                  {/* View mode specific content */}
+                  {viewMode === 'overview' && platform.marketShare && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Market Share</span>
+                        <span className="text-sm font-medium text-blue-600">{platform.marketShare}%</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {viewMode === 'detailed' && platform.details && (
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Avg Streams/Track</span>
+                        <span className="text-xs font-medium">{platform.details.avgStreamsPerTrack.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Conversion Rate</span>
+                        <span className="text-xs font-medium">{platform.details.conversionRate}%</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Royalty Rate</span>
+                        <span className="text-xs font-medium">${platform.details.royaltyRate.toFixed(4)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Top Country</span>
+                        <span className="text-xs font-medium">{platform.details.topCountry}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {viewMode === 'comparison' && platform.comparison && (
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">vs Industry</span>
+                        <span className={`text-xs font-medium ${
+                          platform.comparison.vsIndustry.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {platform.comparison.vsIndustry}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">vs Last Month</span>
+                        <span className="text-xs font-medium text-blue-600">{platform.comparison.vsLastMonth}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Market Position</span>
+                        <span className="text-xs font-medium">{platform.comparison.marketPosition}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Efficiency</span>
+                        <span className={`text-xs font-medium ${
+                          platform.comparison.efficiency === 'High' ? 'text-green-600' : 
+                          platform.comparison.efficiency === 'Medium' ? 'text-yellow-600' : 'text-gray-600'
+                        }`}>
+                          {platform.comparison.efficiency}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
