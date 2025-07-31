@@ -217,155 +217,8 @@ export default function PartnerAnalytics() {
           }
         };
       
-      case 'detailed':
-        return {
-          title: 'Detailed Breakdown',
-          description: 'Comprehensive analytics with granular data points',
-          platformData: {
-            spotify: { 
-              name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954',
-              details: { avgStreamsPerTrack: 45678, conversionRate: 4.2, royaltyRate: 0.004, topCountry: 'US' }
-            },
-            apple: { 
-              name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C',
-              details: { avgStreamsPerTrack: 38902, conversionRate: 4.8, royaltyRate: 0.0045, topCountry: 'US' }
-            },
-            youtube: { 
-              name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000',
-              details: { avgStreamsPerTrack: 23456, conversionRate: 3.2, royaltyRate: 0.003, topCountry: 'UK' }
-            },
-            amazon: { 
-              name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900',
-              details: { avgStreamsPerTrack: 19897, conversionRate: 4.1, royaltyRate: 0.004, topCountry: 'Germany' }
-            },
-            deezer: { 
-              name: 'Deezer', streams: 187634, revenue: 750.54, growth: 9.3, color: '#FEAA2D',
-              details: { avgStreamsPerTrack: 15636, conversionRate: 4.3, royaltyRate: 0.0035, topCountry: 'France' }
-            },
-            tidal: { 
-              name: 'TIDAL', streams: 98234, revenue: 392.94, growth: 7.1, color: '#000000',
-              details: { avgStreamsPerTrack: 8203, conversionRate: 5.1, royaltyRate: 0.0052, topCountry: 'Norway' }
-            },
-            soundcloud: { 
-              name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300',
-              details: { avgStreamsPerTrack: 13066, conversionRate: 3.0, royaltyRate: 0.003, topCountry: 'US' }
-            },
-            other: { 
-              name: 'Other Platforms', streams: 245678, revenue: 1123.45, growth: 11.2, color: '#6B7280',
-              details: { avgStreamsPerTrack: 10232, conversionRate: 4.6, royaltyRate: 0.0034, topCountry: 'Various' }
-            }
-          },
-          metrics: {
-            totalRevenue: 13201.70,
-            totalStreams: 3694932,
-            avgRoyaltyRate: 0.00384,
-            conversionRateRange: '3.0% - 5.1%'
-          }
-        };
-      
-      case 'comparison':
-        // Dynamic comparison data based on selected options
-        const getComparisonData = () => {
-          const baseData = {
-            spotify: { name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954' },
-            apple: { name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C' },
-            youtube: { name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000' },
-            amazon: { name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900' },
-            other: { name: 'Other Platforms', streams: 245678, revenue: 1123.45, growth: 11.2, color: '#6B7280' }
-          };
 
-          // Generate comparison metrics based on selected options
-          const comparisonMetrics = {};
-          Object.keys(baseData).forEach(platform => {
-            let vsMetric, vsValue, position, efficiency;
-            
-            switch (comparisonType) {
-              case 'industry':
-                vsMetric = 'vs Industry';
-                vsValue = platform === 'spotify' ? '+5.2%' : platform === 'apple' ? '+2.1%' : platform === 'youtube' ? '-1.3%' : platform === 'amazon' ? '+0.8%' : '-2.1%';
-                break;
-              case 'competitors':
-                vsMetric = 'vs Competitors';
-                vsValue = platform === 'spotify' ? '+8.4%' : platform === 'apple' ? '+5.7%' : platform === 'youtube' ? '+1.2%' : platform === 'amazon' ? '-2.3%' : '-4.1%';
-                break;
-              case 'historical':
-                vsMetric = 'vs Historical';
-                vsValue = platform === 'spotify' ? '+15.8%' : platform === 'apple' ? '+12.4%' : platform === 'youtube' ? '+8.9%' : platform === 'amazon' ? '+6.2%' : '+3.8%';
-                break;
-              case 'market_leaders':
-                vsMetric = 'vs Leaders';
-                vsValue = platform === 'spotify' ? '+2.1%' : platform === 'apple' ? '-1.4%' : platform === 'youtube' ? '-8.7%' : platform === 'amazon' ? '-12.3%' : '-15.6%';
-                break;
-              case 'similar_artists':
-                vsMetric = 'vs Similar';
-                vsValue = platform === 'spotify' ? '+7.3%' : platform === 'apple' ? '+4.8%' : platform === 'youtube' ? '+2.1%' : platform === 'amazon' ? '-1.2%' : '-3.4%';
-                break;
-              default:
-                vsMetric = 'vs Benchmark';
-                vsValue = '+0.0%';
-            }
 
-            let periodMetric, periodValue;
-            switch (comparisonPeriod) {
-              case 'last_month':
-                periodMetric = 'vs Last Month';
-                periodValue = platform === 'spotify' ? '+12.3%' : platform === 'apple' ? '+8.7%' : platform === 'youtube' ? '+5.2%' : platform === 'amazon' ? '+3.8%' : '+2.2%';
-                break;
-              case 'last_quarter':
-                periodMetric = 'vs Last Quarter';
-                periodValue = platform === 'spotify' ? '+28.4%' : platform === 'apple' ? '+22.1%' : platform === 'youtube' ? '+18.7%' : platform === 'amazon' ? '+15.3%' : '+12.8%';
-                break;
-              case 'last_year':
-                periodMetric = 'vs Last Year';
-                periodValue = platform === 'spotify' ? '+45.7%' : platform === 'apple' ? '+38.2%' : platform === 'youtube' ? '+31.9%' : platform === 'amazon' ? '+26.4%' : '+19.8%';
-                break;
-              case 'ytd':
-                periodMetric = 'vs YTD';
-                periodValue = platform === 'spotify' ? '+34.2%' : platform === 'apple' ? '+28.9%' : platform === 'youtube' ? '+23.4%' : platform === 'amazon' ? '+18.7%' : '+14.2%';
-                break;
-              default:
-                periodMetric = 'vs Current';
-                periodValue = '+0.0%';
-            }
-
-            position = platform === 'spotify' ? '#1' : platform === 'apple' ? '#2' : platform === 'youtube' ? '#3' : platform === 'amazon' ? '#4' : '#5+';
-            efficiency = platform === 'spotify' || platform === 'apple' ? 'High' : platform === 'youtube' || platform === 'amazon' ? 'Medium' : 'Variable';
-
-            comparisonMetrics[platform] = {
-              [vsMetric]: vsValue,
-              [periodMetric]: periodValue,
-              marketPosition: position,
-              efficiency: efficiency
-            };
-          });
-
-          return { baseData, comparisonMetrics };
-        };
-
-        const { baseData, comparisonMetrics } = getComparisonData();
-        const platformData = {};
-        
-        Object.keys(baseData).forEach(key => {
-          platformData[key] = {
-            ...baseData[key],
-            comparison: comparisonMetrics[key]
-          };
-        });
-
-        return {
-          title: `Platform Comparison - ${comparisonTypes[comparisonType]}`,
-          description: `${comparisonTypes[comparisonType]} analysis ${comparisonPeriods[comparisonPeriod]} (${competitorOptions[selectedCompetitor]})`,
-          platformData,
-          metrics: {
-            comparisonType: comparisonTypes[comparisonType],
-            comparisonPeriod: comparisonPeriods[comparisonPeriod],
-            benchmarkTarget: competitorOptions[selectedCompetitor],
-            recommendedAction: comparisonType === 'industry' ? 'Maintain competitive edge' : 
-                              comparisonType === 'competitors' ? 'Accelerate growth strategies' :
-                              comparisonType === 'historical' ? 'Continue current trajectory' :
-                              comparisonType === 'market_leaders' ? 'Focus on top platforms' : 'Optimize similar artist strategies'
-          }
-        };
       
       default:
         return getViewModeData('overview');
@@ -678,7 +531,7 @@ export default function PartnerAnalytics() {
               {/* View Mode Toggle */}
               <div className="flex items-center justify-between">
                 <div className="flex space-x-2">
-                  {['overview', 'detailed', 'comparison'].map((mode) => (
+                  {['overview'].map((mode) => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
@@ -694,68 +547,11 @@ export default function PartnerAnalytics() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <label className="text-sm font-medium text-gray-700">Chart Type:</label>
-                  <select
-                    value={chartType}
-                    onChange={(e) => setChartType(e.target.value)}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="line">Line</option>
-                    <option value="bar">Bar</option>
-                    <option value="doughnut">Doughnut</option>
-                  </select>
+                  <span className="text-sm font-medium text-gray-700">Currency: USD ($)</span>
                 </div>
               </div>
 
-              {/* Comparison Mode Controls */}
-              {viewMode === 'comparison' && (
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-blue-900">Comparison Settings</h4>
-                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Configure Analysis</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-blue-700 mb-1">Compare Against</label>
-                      <select
-                        value={comparisonType}
-                        onChange={(e) => setComparisonType(e.target.value)}
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                      >
-                        {Object.entries(comparisonTypes).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-blue-700 mb-1">Time Period</label>
-                      <select
-                        value={comparisonPeriod}
-                        onChange={(e) => setComparisonPeriod(e.target.value)}
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                      >
-                        {Object.entries(comparisonPeriods).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-blue-700 mb-1">Benchmark Target</label>
-                      <select
-                        value={selectedCompetitor}
-                        onChange={(e) => setSelectedCompetitor(e.target.value)}
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                      >
-                        {Object.entries(competitorOptions).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {/* Smart Search */}
               <div className="relative">
@@ -776,7 +572,7 @@ export default function PartnerAnalytics() {
                 {/* Platform Multi-Select */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Platforms</label>
-                  <div className="max-h-36 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                  <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-lg bg-white">
                     {/* All Platforms Option */}
                     <label className="flex items-center p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
                       <input
@@ -830,7 +626,7 @@ export default function PartnerAnalytics() {
                 {/* Country Multi-Select */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Countries</label>
-                  <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                  <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-lg bg-white">
                     {Object.entries(countryData).map(([key, country]) => (
                       <label key={key} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
                         <input
@@ -1034,7 +830,7 @@ export default function PartnerAnalytics() {
                 <>
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-sm text-blue-600 font-medium">Total Revenue</div>
-                    <div className="text-xl font-bold text-blue-900">${getFilteredData.viewModeInfo.metrics.totalRevenue.toLocaleString()}</div>
+                    <div className="text-xl font-bold text-blue-900">USD ${getFilteredData.viewModeInfo.metrics.totalRevenue.toLocaleString()}</div>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-sm text-green-600 font-medium">Total Streams</div>
@@ -1051,47 +847,8 @@ export default function PartnerAnalytics() {
                 </>
               )}
               
-              {viewMode === 'detailed' && (
-                <>
-                  <div className="bg-indigo-50 p-4 rounded-lg">
-                    <div className="text-sm text-indigo-600 font-medium">Total Revenue</div>
-                    <div className="text-xl font-bold text-indigo-900">${getFilteredData.viewModeInfo.metrics.totalRevenue.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-teal-50 p-4 rounded-lg">
-                    <div className="text-sm text-teal-600 font-medium">Total Streams</div>
-                    <div className="text-xl font-bold text-teal-900">{getFilteredData.viewModeInfo.metrics.totalStreams.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-pink-50 p-4 rounded-lg">
-                    <div className="text-sm text-pink-600 font-medium">Avg Royalty Rate</div>
-                    <div className="text-xl font-bold text-pink-900">${getFilteredData.viewModeInfo.metrics.avgRoyaltyRate.toFixed(5)}</div>
-                  </div>
-                  <div className="bg-orange-50 p-4 rounded-lg">
-                    <div className="text-sm text-orange-600 font-medium">Conversion Range</div>
-                    <div className="text-xl font-bold text-orange-900">{getFilteredData.viewModeInfo.metrics.conversionRateRange}</div>
-                  </div>
-                </>
-              )}
-              
-              {viewMode === 'comparison' && (
-                <>
-                  <div className="bg-emerald-50 p-4 rounded-lg">
-                    <div className="text-sm text-emerald-600 font-medium">Comparison Type</div>
-                    <div className="text-lg font-bold text-emerald-900">{getFilteredData.viewModeInfo.metrics.comparisonType}</div>
-                  </div>
-                  <div className="bg-cyan-50 p-4 rounded-lg">
-                    <div className="text-sm text-cyan-600 font-medium">Time Period</div>
-                    <div className="text-lg font-bold text-cyan-900">{getFilteredData.viewModeInfo.metrics.comparisonPeriod}</div>
-                  </div>
-                  <div className="bg-violet-50 p-4 rounded-lg">
-                    <div className="text-sm text-violet-600 font-medium">Benchmark Target</div>
-                    <div className="text-lg font-bold text-violet-900">{getFilteredData.viewModeInfo.metrics.benchmarkTarget}</div>
-                  </div>
-                  <div className="bg-rose-50 p-4 rounded-lg">
-                    <div className="text-sm text-rose-600 font-medium">Recommended Action</div>
-                    <div className="text-sm font-bold text-rose-900">{getFilteredData.viewModeInfo.metrics.recommendedAction}</div>
-                  </div>
-                </>
-              )}
+
+
             </div>
           </div>
 
@@ -1182,7 +939,7 @@ export default function PartnerAnalytics() {
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm text-gray-600">Revenue</span>
-                      <span className="text-sm font-medium">${platform.revenue.toLocaleString()}</span>
+                      <span className="text-sm font-medium">USD ${platform.revenue.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
@@ -1205,63 +962,9 @@ export default function PartnerAnalytics() {
                     </div>
                   )}
 
-                  {viewMode === 'detailed' && platform.details && (
-                    <div className="pt-2 border-t border-gray-100 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">Avg Streams/Track</span>
-                        <span className="text-xs font-medium">{platform.details.avgStreamsPerTrack.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">Conversion Rate</span>
-                        <span className="text-xs font-medium">{platform.details.conversionRate}%</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">Royalty Rate</span>
-                        <span className="text-xs font-medium">${platform.details.royaltyRate.toFixed(4)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">Top Country</span>
-                        <span className="text-xs font-medium">{platform.details.topCountry}</span>
-                      </div>
-                    </div>
-                  )}
 
-                  {viewMode === 'comparison' && platform.comparison && (
-                    <div className="pt-2 border-t border-gray-100 space-y-2">
-                      {Object.entries(platform.comparison).map(([key, value]) => {
-                        if (key === 'marketPosition' || key === 'efficiency') {
-                          return (
-                            <div key={key} className="flex justify-between items-center">
-                              <span className="text-xs text-gray-500">
-                                {key === 'marketPosition' ? 'Market Position' : 'Efficiency'}
-                              </span>
-                              <span className={`text-xs font-medium ${
-                                key === 'efficiency' ? (
-                                  value === 'High' ? 'text-green-600' : 
-                                  value === 'Medium' ? 'text-yellow-600' : 'text-gray-600'
-                                ) : ''
-                              }`}>
-                                {value}
-                              </span>
-                            </div>
-                          );
-                        } else {
-                          // Dynamic comparison metrics (vs Industry, vs Last Month, etc.)
-                          return (
-                            <div key={key} className="flex justify-between items-center">
-                              <span className="text-xs text-gray-500">{key}</span>
-                              <span className={`text-xs font-medium ${
-                                value && value.toString().startsWith('+') ? 'text-green-600' : 
-                                value && value.toString().startsWith('-') ? 'text-red-600' : 'text-blue-600'
-                              }`}>
-                                {value}
-                              </span>
-                            </div>
-                          );
-                        }
-                      })}
-                    </div>
-                  )}
+
+
                 </div>
               </div>
             ))}
