@@ -28,7 +28,7 @@ const downloadAllReleasesExcel = async (releases) => {
   }
 };
 
-// Mock data for distribution partner
+// Comprehensive mock data for distribution partner - covers all statuses, types, and scenarios
 const mockAllReleases = [
   {
     id: 1,
@@ -605,6 +605,371 @@ const mockEditRequests = [
     companyName: 'MSC & Co Records',
     legalName: 'YHWH MSC',
     artistName: 'YHWH MSC'
+  },
+
+  // DRAFT Status Examples
+  {
+    id: 11,
+    projectName: 'New Dreams Single',
+    artist: 'Emma Rodriguez',
+    label: 'Indie Sounds',
+    releaseType: 'Single',
+    genre: 'Pop',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: null,
+    expectedReleaseDate: '2025-06-15',
+    assets: '1 track, draft artwork',
+    feedback: '',
+    marketingPlan: 'To be determined',
+    publishingNotes: 'Fresh pop single with modern production',
+    trackListing: [
+      { title: 'New Dreams', duration: '3:42', isrc: 'USRC12345720', bpm: '128', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Vocalist', name: 'Emma Rodriguez' },
+      { role: 'Producer', name: 'Alex Thompson' }
+    ],
+    songTitle: 'New Dreams',
+    companyName: 'Indie Sounds Records',
+    legalName: 'Emma Rodriguez',
+    artistName: 'Emma Rodriguez',
+    phoneticPronunciation: 'EM-mah Rod-REE-gez',
+    stylised: 'Emma Rodriguez',
+    akaFka: 'Em',
+    artistType: 'Solo Artist',
+    productTitle: 'New Dreams',
+    explicit: 'No',
+    version: 'Original',
+    language: 'English',
+    vocalType: 'Vocal',
+    subGenre: 'Pop Rock',
+    catalogueNo: 'IS001',
+    format: 'Digital',
+    recordingCountry: 'United States',
+    releaseLabel: 'Indie Sounds'
+  },
+
+  {
+    id: 12,
+    projectName: 'Jazz Fusion Mixtape',
+    artist: 'Marcus Williams Quartet',
+    label: 'Jazz Heritage',
+    releaseType: 'Mixtape',
+    genre: 'Jazz',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: null,
+    expectedReleaseDate: '2025-07-20',
+    assets: '8 tracks, concept artwork',
+    feedback: '',
+    marketingPlan: 'Jazz festival circuit, radio promotion',
+    publishingNotes: 'Modern jazz fusion with classic influences',
+    trackListing: [
+      { title: 'City Nights', duration: '5:15', isrc: 'USRC12345721', bpm: '120', songKey: 'Bb Major' },
+      { title: 'Electric Dreams', duration: '6:30', isrc: 'USRC12345722', bpm: '108', songKey: 'F# Minor' },
+      { title: 'Midnight Express', duration: '4:45', isrc: 'USRC12345723', bpm: '140', songKey: 'D Minor' }
+    ],
+    credits: [
+      { role: 'Saxophone', name: 'Marcus Williams' },
+      { role: 'Piano', name: 'Sarah Chen' },
+      { role: 'Bass', name: 'David Johnson' },
+      { role: 'Drums', name: 'Michael Brown' }
+    ],
+    artistType: 'Band',
+    recordingCountry: 'United States',
+    language: 'Instrumental'
+  },
+
+  // SUBMITTED Status Examples
+  {
+    id: 13,
+    projectName: 'Electronic Horizons',
+    artist: 'DJ Phoenix',
+    label: 'Digital Beats',
+    releaseType: 'Album',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.SUBMITTED,
+    submissionDate: '2024-12-01',
+    expectedReleaseDate: '2025-03-15',
+    assets: '12 tracks, final artwork, promotional materials',
+    feedback: 'Submitted for review - awaiting initial assessment',
+    marketingPlan: 'EDM festival promotion, streaming platform features',
+    publishingNotes: 'Progressive electronic album with orchestral elements',
+    trackListing: [
+      { title: 'Digital Sunrise', duration: '4:20', isrc: 'USRC12345724', bpm: '128', songKey: 'C Major' },
+      { title: 'Neon Lights', duration: '5:10', isrc: 'USRC12345725', bpm: '132', songKey: 'A Minor' },
+      { title: 'Future Bass', duration: '3:55', isrc: 'USRC12345726', bpm: '140', songKey: 'F Major' },
+      { title: 'Cosmic Journey', duration: '6:45', isrc: 'USRC12345727', bpm: '124', songKey: 'E Minor' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'DJ Phoenix' },
+      { role: 'Sound Design', name: 'Alex Synthesizer' },
+      { role: 'Mastering', name: 'Studio Masters' }
+    ],
+    artistType: 'Solo Artist',
+    explicit: 'No',
+    language: 'Instrumental',
+    subGenre: 'Progressive House',
+    recordingCountry: 'Germany'
+  },
+
+  // APPROVAL_REQUIRED Status Examples
+  {
+    id: 14,
+    projectName: 'Indie Rock Revival',
+    artist: 'The Basement Band',
+    label: 'Underground Records',
+    releaseType: 'EP',
+    genre: 'Rock',
+    status: RELEASE_STATUSES.APPROVAL_REQUIRED,
+    submissionDate: '2024-11-15',
+    expectedReleaseDate: '2025-02-28',
+    assets: '5 tracks, artwork, music videos',
+    feedback: 'Technical requirements met - awaiting artist approval for final release',
+    marketingPlan: 'Rock radio, music blogs, live tour promotion',
+    publishingNotes: 'Raw indie rock with garage band aesthetic',
+    trackListing: [
+      { title: 'Basement Blues', duration: '3:28', isrc: 'USRC12345728', bpm: '110', songKey: 'E Minor' },
+      { title: 'City Rebel', duration: '4:02', isrc: 'USRC12345729', bpm: '125', songKey: 'A Major' },
+      { title: 'Underground', duration: '3:15', isrc: 'USRC12345730', bpm: '135', songKey: 'G Minor' }
+    ],
+    credits: [
+      { role: 'Lead Vocals', name: 'Jake Morrison' },
+      { role: 'Guitar', name: 'Riley Chen' },
+      { role: 'Bass', name: 'Sam Taylor' },
+      { role: 'Drums', name: 'Alex Kim' }
+    ],
+    artistType: 'Band',
+    explicit: 'Yes',
+    language: 'English',
+    subGenre: 'Indie Rock',
+    recordingCountry: 'United Kingdom'
+  },
+
+  // LIVE Status Examples
+  {
+    id: 15,
+    projectName: 'Chart Topper Hits',
+    artist: 'Global Superstar',
+    label: 'Major Label Music',
+    releaseType: 'Compilation',
+    genre: 'Pop',
+    status: RELEASE_STATUSES.LIVE,
+    submissionDate: '2024-08-01',
+    expectedReleaseDate: '2024-12-01',
+    assets: '15 tracks, deluxe artwork, bonus content',
+    feedback: 'Successfully released and performing well on charts',
+    marketingPlan: 'Global radio campaign, TV appearances, streaming features',
+    publishingNotes: 'Compilation of chart-topping hits with exclusive remixes',
+    earnings: 25400,
+    streams: 2800000,
+    trackListing: [
+      { title: 'Hit Single #1', duration: '3:25', isrc: 'USRC12345731', bpm: '120', songKey: 'C Major' },
+      { title: 'Radio Favorite', duration: '3:18', isrc: 'USRC12345732', bpm: '128', songKey: 'G Major' },
+      { title: 'Dance Floor Anthem', duration: '3:35', isrc: 'USRC12345733', bpm: '132', songKey: 'F Major' }
+    ],
+    credits: [
+      { role: 'Lead Artist', name: 'Global Superstar' },
+      { role: 'Executive Producer', name: 'Music Mogul' },
+      { role: 'A&R', name: 'Label Executive' }
+    ],
+    artistType: 'Solo Artist',
+    language: 'English',
+    subGenre: 'Commercial Pop',
+    recordingCountry: 'United States'
+  },
+
+  // REMIX Release Type Example
+  {
+    id: 16,
+    projectName: 'Urban Beat (Remix Package)',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Remix',
+    genre: 'Hip Hop',
+    status: RELEASE_STATUSES.COMPLETED,
+    submissionDate: '2024-10-01',
+    expectedReleaseDate: '2025-01-15',
+    assets: '4 remix versions, artwork variants',
+    feedback: 'Remix package completed - ready for release',
+    marketingPlan: 'DJ promotion, club distribution, streaming features',
+    publishingNotes: 'Official remixes by top electronic producers',
+    trackListing: [
+      { title: 'Urban Beat (Club Remix)', duration: '5:45', isrc: 'USRC12345734', bpm: '128', songKey: 'C Minor' },
+      { title: 'Urban Beat (Ambient Remix)', duration: '4:20', isrc: 'USRC12345735', bpm: '85', songKey: 'C Minor' },
+      { title: 'Urban Beat (Trap Remix)', duration: '3:50', isrc: 'USRC12345736', bpm: '140', songKey: 'C Minor' }
+    ],
+    credits: [
+      { role: 'Original Artist', name: 'YHWH MSC' },
+      { role: 'Remix Producer', name: 'DJ ElectroMaster' },
+      { role: 'Additional Remix', name: 'Ambient Artist' }
+    ],
+    artistType: 'Solo Artist',
+    language: 'English',
+    subGenre: 'Remix',
+    recordingCountry: 'United States'
+  },
+
+  // LIVE ALBUM Release Type Example
+  {
+    id: 17,
+    projectName: 'Madison Square Garden Live',
+    artist: 'Rock Legends',
+    label: 'Live Music Records',
+    releaseType: 'Live Album',
+    genre: 'Rock',
+    status: RELEASE_STATUSES.LIVE,
+    submissionDate: '2024-09-01',
+    expectedReleaseDate: '2024-11-25',
+    assets: '18 live tracks, concert footage, special packaging',
+    feedback: 'Live album successfully released - great fan response',
+    marketingPlan: 'Rock radio, concert promotion, merchandise tie-ins',
+    publishingNotes: 'Historic live performance at Madison Square Garden',
+    earnings: 18750,
+    streams: 1200000,
+    trackListing: [
+      { title: 'Opening Anthem (Live)', duration: '4:30', isrc: 'USRC12345737', bpm: '120', songKey: 'E Major' },
+      { title: 'Classic Hit (Live)', duration: '5:15', isrc: 'USRC12345738', bpm: '115', songKey: 'A Major' },
+      { title: 'Encore Performance (Live)', duration: '6:45', isrc: 'USRC12345739', bpm: '110', songKey: 'D Major' }
+    ],
+    credits: [
+      { role: 'Lead Vocals', name: 'Rock Star' },
+      { role: 'Lead Guitar', name: 'Guitar Hero' },
+      { role: 'Live Recording', name: 'Concert Audio Pro' }
+    ],
+    artistType: 'Band',
+    explicit: 'No',
+    language: 'English',
+    subGenre: 'Arena Rock',
+    recordingCountry: 'United States'
+  },
+
+  // SOUNDTRACK Release Type Example
+  {
+    id: 18,
+    projectName: 'Movie Epic Soundtrack',
+    artist: 'Film Composer Orchestra',
+    label: 'Cinematic Music',
+    releaseType: 'Soundtrack',
+    genre: 'Classical',
+    status: RELEASE_STATUSES.UNDER_REVIEW,
+    submissionDate: '2024-11-20',
+    expectedReleaseDate: '2025-04-05',
+    assets: '22 orchestral pieces, movie tie-in artwork',
+    feedback: 'Under review - coordinating with film release schedule',
+    marketingPlan: 'Film promotion tie-in, classical radio, streaming features',
+    publishingNotes: 'Epic orchestral soundtrack for major motion picture',
+    trackListing: [
+      { title: 'Main Theme', duration: '3:20', isrc: 'USRC12345740', bpm: '72', songKey: 'D Major' },
+      { title: 'Battle Scene', duration: '4:55', isrc: 'USRC12345741', bpm: '140', songKey: 'C Minor' },
+      { title: 'Love Theme', duration: '3:40', isrc: 'USRC12345742', bpm: '60', songKey: 'F Major' },
+      { title: 'End Credits', duration: '5:30', isrc: 'USRC12345743', bpm: '76', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Composer', name: 'Film Composer' },
+      { role: 'Orchestra', name: 'Symphony Orchestra' },
+      { role: 'Conductor', name: 'Maestro Conductor' }
+    ],
+    artistType: 'Orchestra',
+    explicit: 'No',
+    language: 'Instrumental',
+    subGenre: 'Film Score',
+    recordingCountry: 'United States'
+  },
+
+  // International Artist Examples
+  {
+    id: 19,
+    projectName: 'Reggaeton Fuego',
+    artist: 'Carlos Mendez',
+    label: 'Latin Beats Records',
+    releaseType: 'Single',
+    genre: 'Latin',
+    status: RELEASE_STATUSES.COMPLETED,
+    submissionDate: '2024-11-01',
+    expectedReleaseDate: '2025-01-30',
+    assets: '1 track, bilingual artwork, radio edit',
+    feedback: 'Completed - ready for Latin market release',
+    marketingPlan: 'Latin radio, reggaeton playlists, club promotion',
+    publishingNotes: 'Hot reggaeton single with crossover appeal',
+    trackListing: [
+      { title: 'Fuego', duration: '3:28', isrc: 'USRC12345744', bpm: '95', songKey: 'A Minor' }
+    ],
+    credits: [
+      { role: 'Vocalist', name: 'Carlos Mendez' },
+      { role: 'Producer', name: 'Latin Producer' },
+      { role: 'Featured Artist', name: 'Maria Santos' }
+    ],
+    artistType: 'Solo Artist',
+    explicit: 'No',
+    language: 'Spanish',
+    subGenre: 'Reggaeton',
+    recordingCountry: 'Puerto Rico'
+  },
+
+  {
+    id: 20,
+    projectName: 'K-Pop Sensation',
+    artist: 'Seoul Stars',
+    label: 'K-Entertainment',
+    releaseType: 'EP',
+    genre: 'Pop',
+    status: RELEASE_STATUSES.LIVE,
+    submissionDate: '2024-09-15',
+    expectedReleaseDate: '2024-12-10',
+    assets: '6 tracks, music videos, choreography videos',
+    feedback: 'Successfully launched - trending globally',
+    marketingPlan: 'Global K-pop promotion, social media campaigns, fan events',
+    publishingNotes: 'Fresh K-pop sound with international appeal',
+    earnings: 31200,
+    streams: 4500000,
+    trackListing: [
+      { title: 'Starlight', duration: '3:15', isrc: 'USRC12345745', bpm: '128', songKey: 'C Major' },
+      { title: 'Electric Love', duration: '3:42', isrc: 'USRC12345746', bpm: '120', songKey: 'G Major' },
+      { title: 'Dream On', duration: '3:58', isrc: 'USRC12345747', bpm: '125', songKey: 'F Major' }
+    ],
+    credits: [
+      { role: 'Lead Vocals', name: 'Kim Min-jun' },
+      { role: 'Rapper', name: 'Park So-young' },
+      { role: 'Producer', name: 'K-Producer' },
+      { role: 'Choreographer', name: 'Dance Master' }
+    ],
+    artistType: 'Group',
+    explicit: 'No',
+    language: 'Korean',
+    subGenre: 'K-Pop',
+    recordingCountry: 'South Korea'
+  },
+
+  // Different Label Examples
+  {
+    id: 21,
+    projectName: 'Country Roads Album',
+    artist: 'Nashville Dreams',
+    label: 'Country Music Nashville',
+    releaseType: 'Album',
+    genre: 'Country',
+    status: RELEASE_STATUSES.SUBMITTED,
+    submissionDate: '2024-12-05',
+    expectedReleaseDate: '2025-05-20',
+    assets: '14 tracks, country-themed artwork, radio edits',
+    feedback: 'Under initial review - strong country sound',
+    marketingPlan: 'Country radio, Nashville promotion, festival circuit',
+    publishingNotes: 'Traditional country with modern production',
+    trackListing: [
+      { title: 'Back Home', duration: '3:45', isrc: 'USRC12345748', bpm: '100', songKey: 'G Major' },
+      { title: 'Country Heart', duration: '4:20', isrc: 'USRC12345749', bpm: '92', songKey: 'C Major' },
+      { title: 'Highway Dreams', duration: '3:55', isrc: 'USRC12345750', bpm: '105', songKey: 'D Major' }
+    ],
+    credits: [
+      { role: 'Lead Vocals', name: 'Johnny Nashville' },
+      { role: 'Guitar', name: 'Country Guitar Pro' },
+      { role: 'Fiddle', name: 'Traditional Fiddler' }
+    ],
+    artistType: 'Solo Artist',
+    explicit: 'No',
+    language: 'English',
+    subGenre: 'Traditional Country',
+    recordingCountry: 'United States'
   }
 ];
 

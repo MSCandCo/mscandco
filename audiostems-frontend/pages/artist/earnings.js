@@ -25,6 +25,21 @@ export default function ArtistEarnings() {
     }
   }, []);
   
+  // Save currency preference to localStorage when changed
+  const handleCurrencyChange = (currencyCode) => {
+    setSelectedCurrency(currencyCode);
+    setShowCurrencyDropdown(false);
+    localStorage.setItem('artist-earnings-currency', currencyCode);
+    
+    // Trigger storage event to sync currency across components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'artist-earnings-currency',
+      newValue: currencyCode,
+      oldValue: selectedCurrency,
+      storageArea: localStorage
+    }));
+  };
+  
   // Auto-detect currency based on user's location
   const detectUserCurrency = async () => {
     try {
@@ -33,30 +48,23 @@ export default function ArtistEarnings() {
       const data = await response.json();
       
       if (data.country_code === 'GB') {
-        setSelectedCurrency('GBP');
+        handleCurrencyChange('GBP');
       } else {
         // Check if the country's currency is in our list
         const countryCurrency = data.currency;
         const hasCurrency = currencies.find(c => c.code === countryCurrency);
         
         if (hasCurrency) {
-          setSelectedCurrency(countryCurrency);
+          handleCurrencyChange(countryCurrency);
         } else {
           // Default to USD for countries not in our list
-          setSelectedCurrency('USD');
+          handleCurrencyChange('USD');
         }
       }
     } catch (error) {
       console.log('Could not detect user location, defaulting to GBP');
-      setSelectedCurrency('GBP');
+      handleCurrencyChange('GBP');
     }
-  };
-  
-  // Save currency preference to localStorage when changed
-  const handleCurrencyChange = (currencyCode) => {
-    setSelectedCurrency(currencyCode);
-    setShowCurrencyDropdown(false);
-    localStorage.setItem('artist-earnings-currency', currencyCode);
   };
   
   // Handle clicking outside the currency dropdown
