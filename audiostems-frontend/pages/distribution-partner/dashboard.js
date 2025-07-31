@@ -509,7 +509,7 @@ export default function DistributionPartnerDashboard() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [genreFilter, setGenreFilter] = useState('all');
+  const [releaseTypeFilter, setReleaseTypeFilter] = useState('all');
   const [uploadedData, setUploadedData] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [hoveredStatus, setHoveredStatus] = useState(null);
@@ -586,9 +586,9 @@ export default function DistributionPartnerDashboard() {
                          release.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          release.label.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
-    const matchesGenre = genreFilter === 'all' || release.genre === genreFilter;
+    const matchesReleaseType = releaseTypeFilter === 'all' || release.releaseType === releaseTypeFilter;
     
-    return matchesSearch && matchesStatus && matchesGenre;
+    return matchesSearch && matchesStatus && matchesReleaseType;
   });
 
   const getStatusColor = (status) => {
@@ -649,15 +649,15 @@ export default function DistributionPartnerDashboard() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Release Type</label>
             <select
-              value={genreFilter}
-              onChange={(e) => setGenreFilter(e.target.value)}
+              value={releaseTypeFilter}
+              onChange={(e) => setReleaseTypeFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Genres</option>
-              {GENRES.map(genre => (
-                <option key={genre} value={genre}>{genre}</option>
+              <option value="all">All Release Types</option>
+              {RELEASE_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
@@ -667,7 +667,7 @@ export default function DistributionPartnerDashboard() {
               onClick={() => {
                 setSearchTerm('');
                 setStatusFilter('all');
-                setGenreFilter('all');
+                setReleaseTypeFilter('all');
               }}
               className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
