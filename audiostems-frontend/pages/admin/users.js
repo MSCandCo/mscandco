@@ -14,40 +14,169 @@ export default function AdminUsersPage() {
 function AdminUsersContent() {
   const { user } = useAuth0();
 
-  // Mock user data - in a real app, this would come from an API
+  // Comprehensive mock user data - includes all artists and roles from our database
   const mockUsers = [
     {
       id: 1,
       email: 'superadmin@mscandco.com',
       name: 'Super Admin User',
       role: 'super_admin',
-      brand: 'YHWH MSC',
+      brand: 'MSC & Co',
       status: 'active',
-      lastLogin: '2024-01-15T10:30:00Z'
+      lastLogin: '2024-01-15T10:30:00Z',
+      releases: 0,
+      totalStreams: 0,
+      permissions: ['all']
     },
     {
       id: 2,
       email: 'companyadmin@mscandco.com',
       name: 'Company Admin User',
       role: 'company_admin',
-      brand: 'Audio MSC',
+      brand: 'MSC & Co',
       status: 'active',
-      lastLogin: '2024-01-14T15:45:00Z'
+      lastLogin: '2024-01-14T15:45:00Z',
+      releases: 0,
+      totalStreams: 0,
+      permissions: ['user_management', 'content_oversight']
     },
     {
       id: 3,
-      email: 'artist@mscandco.com',
-      name: 'Artist User',
+      email: 'yhwh@mscandco.com',
+      name: 'YHWH MSC',
       role: 'artist',
       brand: 'YHWH MSC',
       status: 'active',
-      lastLogin: '2024-01-13T09:20:00Z'
+      lastLogin: '2024-01-16T09:20:00Z',
+      releases: 6,
+      totalStreams: 125000,
+      permissions: ['releases', 'earnings', 'analytics']
     },
     {
       id: 4,
-      email: 'distributor@mscandco.com',
-      name: 'Distribution Partner User',
+      email: 'distributor@codegroup.com',
+      name: 'Code Group Distribution',
       role: 'distribution_partner',
+      brand: 'Code Group',
+      status: 'active',
+      lastLogin: '2024-01-16T11:15:00Z',
+      releases: 21,
+      totalStreams: 15000000,
+      permissions: ['release_management', 'analytics', 'reports']
+    },
+    {
+      id: 5,
+      email: 'global.superstar@majorlabel.com',
+      name: 'Global Superstar',
+      role: 'artist',
+      brand: 'Major Label Music',
+      status: 'active',
+      lastLogin: '2024-01-15T14:30:00Z',
+      releases: 1,
+      totalStreams: 2800000,
+      permissions: ['releases', 'earnings', 'analytics']
+    },
+    {
+      id: 6,
+      email: 'contact@seoulstars.kr',
+      name: 'Seoul Stars',
+      role: 'artist',
+      brand: 'K-Entertainment',
+      status: 'active',
+      lastLogin: '2024-01-16T08:45:00Z',
+      releases: 1,
+      totalStreams: 4500000,
+      permissions: ['releases', 'earnings', 'analytics']
+    },
+    {
+      id: 7,
+      email: 'management@rocklegends.com',
+      name: 'Rock Legends',
+      role: 'artist',
+      brand: 'Live Music Records',
+      status: 'active',
+      lastLogin: '2024-01-14T16:20:00Z',
+      releases: 1,
+      totalStreams: 1200000,
+      permissions: ['releases', 'earnings', 'analytics']
+    },
+    {
+      id: 8,
+      email: 'dj.phoenix@digitalbeats.com',
+      name: 'DJ Phoenix',
+      role: 'artist',
+      brand: 'Digital Beats',
+      status: 'pending',
+      lastLogin: '2024-01-12T12:00:00Z',
+      releases: 1,
+      totalStreams: 0,
+      permissions: ['releases']
+    },
+    {
+      id: 9,
+      email: 'emma@indiesounds.com',
+      name: 'Emma Rodriguez',
+      role: 'artist',
+      brand: 'Indie Sounds',
+      status: 'pending',
+      lastLogin: '2024-01-10T10:15:00Z',
+      releases: 1,
+      totalStreams: 0,
+      permissions: ['releases']
+    },
+    {
+      id: 10,
+      email: 'marcus@jazzheritage.com',
+      name: 'Marcus Williams',
+      role: 'artist',
+      brand: 'Jazz Heritage',
+      status: 'inactive',
+      lastLogin: '2024-01-05T14:30:00Z',
+      releases: 1,
+      totalStreams: 0,
+      permissions: ['releases']
+    },
+    {
+      id: 11,
+      email: 'basement@undergroundrecords.com',
+      name: 'The Basement Band',
+      role: 'artist',
+      brand: 'Underground Records',
+      status: 'pending',
+      lastLogin: '2024-01-11T19:45:00Z',
+      releases: 1,
+      totalStreams: 0,
+      permissions: ['releases']
+    },
+    {
+      id: 12,
+      email: 'carlos@latinbeats.com',
+      name: 'Carlos Mendez',
+      role: 'artist',
+      brand: 'Latin Beats Records',
+      status: 'active',
+      lastLogin: '2024-01-15T13:20:00Z',
+      releases: 1,
+      totalStreams: 280000,
+      permissions: ['releases', 'earnings', 'analytics']
+    },
+    {
+      id: 13,
+      email: 'composer@cinematicmusic.com',
+      name: 'Film Composer Orchestra',
+      role: 'artist',
+      brand: 'Cinematic Music',
+      status: 'pending',
+      lastLogin: '2024-01-08T11:30:00Z',
+      releases: 1,
+      totalStreams: 0,
+      permissions: ['releases']
+    },
+    {
+      id: 14,
+      email: 'nashville@countrymusic.com',
+      name: 'Nashville Dreams',
+      role: 'artist',
       brand: 'Audio MSC',
       status: 'inactive',
       lastLogin: '2024-01-10T14:15:00Z'

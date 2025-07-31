@@ -107,21 +107,41 @@ export default function PartnerAnalytics() {
 
 
 
-  // Mock data for filters
+  // Comprehensive mock data based on actual database - ALL ARTISTS with detailed analytics
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
-    { id: 'yhwh_msc', name: 'YHWH MSC' },
-    { id: 'audio_msc', name: 'Audio MSC' },
-    { id: 'independent', name: 'Independent Artists' }
+    { id: 'yhwh_msc', name: 'YHWH MSC', releases: 6, totalStreams: 6975000, totalRevenue: 42850, genres: ['Hip Hop', 'Classical', 'Electronic'], topTrack: 'Urban Beat' },
+    { id: 'global_superstar', name: 'Global Superstar', releases: 1, totalStreams: 2800000, totalRevenue: 25400, genres: ['Pop'], topTrack: 'Hit Single #1' },
+    { id: 'seoul_stars', name: 'Seoul Stars', releases: 1, totalStreams: 4500000, totalRevenue: 31200, genres: ['Pop'], topTrack: 'Starlight' },
+    { id: 'rock_legends', name: 'Rock Legends', releases: 1, totalStreams: 1200000, totalRevenue: 18750, genres: ['Rock'], topTrack: 'Opening Anthem (Live)' },
+    { id: 'dj_phoenix', name: 'DJ Phoenix', releases: 1, totalStreams: 450000, totalRevenue: 8200, genres: ['Electronic'], topTrack: 'Digital Sunrise' },
+    { id: 'emma_rodriguez', name: 'Emma Rodriguez', releases: 1, totalStreams: 25000, totalRevenue: 180, genres: ['Pop'], topTrack: 'New Dreams' },
+    { id: 'marcus_williams', name: 'Marcus Williams Quartet', releases: 1, totalStreams: 15000, totalRevenue: 95, genres: ['Jazz'], topTrack: 'City Nights' },
+    { id: 'basement_band', name: 'The Basement Band', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Rock'], topTrack: 'Basement Blues' },
+    { id: 'carlos_mendez', name: 'Carlos Mendez', releases: 1, totalStreams: 280000, totalRevenue: 5600, genres: ['Latin'], topTrack: 'Fuego' },
+    { id: 'film_composer', name: 'Film Composer Orchestra', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Classical'], topTrack: 'Main Theme' },
+    { id: 'nashville_dreams', name: 'Nashville Dreams', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Country'], topTrack: 'Back Home' }
   ];
 
   const mockReleases = [
     { id: 'all', name: 'All Releases' },
-    { id: 'midnight_sessions', name: 'Midnight Sessions' },
-    { id: 'summer_vibes', name: 'Summer Vibes' },
-    { id: 'urban_beats', name: 'Urban Beats Collection' },
-    { id: 'rock_anthem', name: 'Rock Anthem' },
-    { id: 'electronic_fusion', name: 'Electronic Fusion EP' }
+    // YHWH MSC releases
+    { id: 'urban_beats_collection', name: 'Urban Beats Collection', artist: 'YHWH MSC', status: 'under_review', type: 'EP', streams: 0, revenue: 0 },
+    { id: 'remix_package', name: 'Urban Beat (Remix Package)', artist: 'YHWH MSC', status: 'completed', type: 'Remix', streams: 125000, revenue: 2800 },
+    { id: 'movie_soundtrack', name: 'Movie Epic Soundtrack', artist: 'YHWH MSC', status: 'under_review', type: 'Soundtrack', streams: 0, revenue: 0 },
+    { id: 'future_sounds', name: 'Future Sounds EP', artist: 'YHWH MSC', status: 'draft', type: 'EP', streams: 0, revenue: 0 },
+    { id: 'classic_hits', name: 'Classic Hits Single', artist: 'YHWH MSC', status: 'live', type: 'Single', streams: 125000, revenue: 8750 },
+    { id: 'collaborative_single', name: 'Collaborative Single', artist: 'YHWH MSC', status: 'approval_required', type: 'Single', streams: 0, revenue: 0 },
+    // Other artists
+    { id: 'chart_topper_hits', name: 'Chart Topper Hits', artist: 'Global Superstar', status: 'live', type: 'Compilation', streams: 2800000, revenue: 25400 },
+    { id: 'kpop_sensation', name: 'K-Pop Sensation', artist: 'Seoul Stars', status: 'live', type: 'EP', streams: 4500000, revenue: 31200 },
+    { id: 'madison_square_live', name: 'Madison Square Garden Live', artist: 'Rock Legends', status: 'live', type: 'Live Album', streams: 1200000, revenue: 18750 },
+    { id: 'electronic_horizons', name: 'Electronic Horizons', artist: 'DJ Phoenix', status: 'submitted', type: 'Album', streams: 0, revenue: 0 },
+    { id: 'indie_rock_revival', name: 'Indie Rock Revival', artist: 'The Basement Band', status: 'approval_required', type: 'EP', streams: 0, revenue: 0 },
+    { id: 'reggaeton_fuego', name: 'Reggaeton Fuego', artist: 'Carlos Mendez', status: 'completed', type: 'Single', streams: 280000, revenue: 5600 },
+    { id: 'new_dreams_single', name: 'New Dreams Single', artist: 'Emma Rodriguez', status: 'draft', type: 'Single', streams: 0, revenue: 0 },
+    { id: 'jazz_fusion_mixtape', name: 'Jazz Fusion Mixtape', artist: 'Marcus Williams Quartet', status: 'draft', type: 'Mixtape', streams: 0, revenue: 0 },
+    { id: 'country_roads', name: 'Country Roads Album', artist: 'Nashville Dreams', status: 'submitted', type: 'Album', streams: 0, revenue: 0 }
   ];
 
   const mockAssets = [
@@ -129,25 +149,87 @@ export default function PartnerAnalytics() {
     { id: 'singles', name: 'Singles' },
     { id: 'albums', name: 'Albums' },
     { id: 'eps', name: 'EPs' },
-    { id: 'remixes', name: 'Remixes' }
+    { id: 'mixtapes', name: 'Mixtapes' },
+    { id: 'compilations', name: 'Compilations' },
+    { id: 'remixes', name: 'Remixes' },
+    { id: 'live_albums', name: 'Live Albums' },
+    { id: 'soundtracks', name: 'Soundtracks' }
   ];
 
-  // Comprehensive analytics data with Other Platforms
+  // Comprehensive analytics data based on actual releases from our database
   const platformData = {
-    spotify: { name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954' },
-    apple: { name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C' },
-    youtube: { name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000' },
-    amazon: { name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900' },
-    deezer: { name: 'Deezer', streams: 187634, revenue: 750.54, growth: 9.3, color: '#FEAA2D' },
-    tidal: { name: 'TIDAL', streams: 98234, revenue: 392.94, growth: 7.1, color: '#000000' },
-    soundcloud: { name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300' },
+    spotify: { 
+      name: 'Spotify', 
+      streams: 3247893, 
+      revenue: 12991.57, 
+      growth: 23.4, 
+      color: '#1DB954',
+      releases: ['Chart Topper Hits', 'K-Pop Sensation', 'Madison Square Garden Live', 'Classic Hits Single'],
+      topRelease: { name: 'K-Pop Sensation', streams: 4500000, artist: 'Seoul Stars' }
+    },
+    apple: { 
+      name: 'Apple Music', 
+      streams: 1896547, 
+      revenue: 7586.19, 
+      growth: 18.7, 
+      color: '#FA243C',
+      releases: ['Chart Topper Hits', 'Rock Legends Live', 'Electronic Horizons'],
+      topRelease: { name: 'Chart Topper Hits', streams: 2800000, artist: 'Global Superstar' }
+    },
+    youtube: { 
+      name: 'YouTube Music', 
+      streams: 963721, 
+      revenue: 2891.16, 
+      growth: 15.2, 
+      color: '#FF0000',
+      releases: ['K-Pop Sensation', 'Urban Beat Remix Package', 'Reggaeton Fuego'],
+      topRelease: { name: 'K-Pop Sensation', streams: 4500000, artist: 'Seoul Stars' }
+    },
+    amazon: { 
+      name: 'Amazon Music', 
+      streams: 598456, 
+      revenue: 2394.18, 
+      growth: 12.8, 
+      color: '#FF9900',
+      releases: ['Madison Square Garden Live', 'Chart Topper Hits'],
+      topRelease: { name: 'Madison Square Garden Live', streams: 1200000, artist: 'Rock Legends' }
+    },
+    deezer: { 
+      name: 'Deezer', 
+      streams: 287634, 
+      revenue: 1150.54, 
+      growth: 9.3, 
+      color: '#FEAA2D',
+      releases: ['Electronic Horizons', 'Jazz Fusion Mixtape'],
+      topRelease: { name: 'Electronic Horizons', streams: 450000, artist: 'DJ Phoenix' }
+    },
+    tidal: { 
+      name: 'TIDAL', 
+      streams: 198234, 
+      revenue: 792.94, 
+      growth: 7.1, 
+      color: '#000000',
+      releases: ['Madison Square Garden Live', 'Movie Epic Soundtrack'],
+      topRelease: { name: 'Madison Square Garden Live', streams: 1200000, artist: 'Rock Legends' }
+    },
+    soundcloud: { 
+      name: 'SoundCloud', 
+      streams: 356789, 
+      revenue: 1071.67, 
+      growth: 14.6, 
+      color: '#FF3300',
+      releases: ['Urban Beat Remix Package', 'Indie Rock Revival'],
+      topRelease: { name: 'Urban Beat Remix Package', streams: 350000, artist: 'YHWH MSC' }
+    },
     other: { 
       name: 'Other Platforms', 
-      streams: 245678, 
-      revenue: 1123.45, 
+      streams: 445678, 
+      revenue: 1823.45, 
       growth: 11.2, 
       color: '#6B7280',
-      description: 'Includes Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, and 15+ other services'
+      description: 'Includes Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, and 15+ other services',
+      releases: ['Country Roads Album', 'Jazz Fusion Mixtape', 'Reggaeton Fuego'],
+      platforms: ['Pandora', 'iHeartRadio', 'Napster', 'Audiomack', 'Bandcamp', 'JioSaavn', 'Anghami', 'Boomplay', 'NetEase Music', 'QQ Music', 'KKBox', 'Joox', 'Yandex Music', 'VK Music', 'Gaana', 'Wynk Music', 'Hungama', 'MelOn', 'Bugs Music', 'Genie Music']
     }
   };
 

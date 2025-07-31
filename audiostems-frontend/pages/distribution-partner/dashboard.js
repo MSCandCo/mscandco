@@ -314,25 +314,25 @@ const mockAllReleases = [
   }
 ];
 
-// Mock data for edit requests and amendments
+// Comprehensive mock data for edit requests and amendments - covers all artists and scenarios
 const mockEditRequests = [
   {
     id: 101,
-    projectName: 'Completed Album',
+    projectName: 'Urban Beats Collection',
     artist: 'YHWH MSC',
     label: 'MSC & Co',
-    releaseType: 'Album',
-    genre: 'Electronic',
-    originalStatus: 'completed',
+    releaseType: 'EP',
+    genre: 'Hip Hop',
+    originalStatus: 'under_review',
     requestType: 'edit_request',
     requestDate: '2024-01-20',
     requestReason: 'Artist wants to update track titles and add new artwork',
-    requestDetails: 'Need to change track names and upload new cover art',
+    requestDetails: 'Need to change "Urban Beat" to "Urban Beat (Original Mix)" and upload updated cover art with label logo',
     status: 'pending_review',
     trackListing: [
-      { title: 'Completed Track 1', duration: '4:20', isrc: 'USRC12345689', bpm: '125', songKey: 'G Major' },
-      { title: 'Completed Track 2', duration: '3:55', isrc: 'USRC12345690', bpm: '130', songKey: 'A Minor' },
-      { title: 'Completed Track 3', duration: '4:10', isrc: 'USRC12345691', bpm: '140', songKey: 'C Major' }
+      { title: 'Urban Beat (Original Mix)', duration: '3:30', isrc: 'USRC12345686', bpm: '140', songKey: 'C Minor' },
+      { title: 'Street Rhythm', duration: '4:15', isrc: 'USRC12345687', bpm: '135', songKey: 'F Minor' },
+      { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688', bpm: '145', songKey: 'A Minor' }
     ],
     credits: [
       { role: 'Producer', name: 'YHWH MSC' },
@@ -342,25 +342,28 @@ const mockEditRequests = [
   },
   {
     id: 102,
-    projectName: 'Live Single',
-    artist: 'YHWH MSC',
-    label: 'MSC & Co',
-    releaseType: 'Single',
+    projectName: 'Chart Topper Hits',
+    artist: 'Global Superstar',
+    label: 'Major Label Music',
+    releaseType: 'Compilation',
     genre: 'Pop',
     originalStatus: 'live',
-    requestType: 'edit_request',
+    requestType: 'amendment',
     requestDate: '2024-01-18',
-    requestReason: 'Artist wants to update metadata and add new credits',
-    requestDetails: 'Need to update artist name spelling and add new producer credit',
-    status: 'pending_review',
+    requestReason: 'Legal requirement to update rights information for one track',
+    requestDetails: 'Track 5 "Radio Favorite" needs updated publishing rights and writer credits due to legal settlement',
+    status: 'approved',
     trackListing: [
-      { title: 'Live Single Track', duration: '3:45', isrc: 'USRC12345692', bpm: '110', songKey: 'D Major' }
+      { title: 'Hit Single #1', duration: '3:25', isrc: 'USRC12345731', bpm: '120', songKey: 'C Major' },
+      { title: 'Radio Favorite', duration: '3:18', isrc: 'USRC12345732', bpm: '128', songKey: 'G Major' },
+      { title: 'Dance Floor Anthem', duration: '3:35', isrc: 'USRC12345733', bpm: '132', songKey: 'F Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Mastering Engineer', name: 'Master Lab' }
+      { role: 'Lead Artist', name: 'Global Superstar' },
+      { role: 'Executive Producer', name: 'Music Mogul' },
+      { role: 'A&R', name: 'Label Executive' }
     ],
-    publishingNotes: 'Live single performing well - requesting metadata updates'
+    publishingNotes: 'Legal amendment approved - rights updated'
   },
   {
     id: 103,

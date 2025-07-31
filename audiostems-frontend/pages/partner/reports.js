@@ -359,21 +359,38 @@ export default function PartnerReports() {
     }
   ];
 
-  // Mock data for filters
+  // Comprehensive mock data for filters - matches full database
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
     { id: 'yhwh_msc', name: 'YHWH MSC' },
-    { id: 'audio_msc', name: 'Audio MSC' },
-    { id: 'independent', name: 'Independent Artists' }
+    { id: 'global_superstar', name: 'Global Superstar' },
+    { id: 'seoul_stars', name: 'Seoul Stars' },
+    { id: 'rock_legends', name: 'Rock Legends' },
+    { id: 'dj_phoenix', name: 'DJ Phoenix' },
+    { id: 'emma_rodriguez', name: 'Emma Rodriguez' },
+    { id: 'marcus_williams', name: 'Marcus Williams Quartet' },
+    { id: 'basement_band', name: 'The Basement Band' },
+    { id: 'carlos_mendez', name: 'Carlos Mendez' },
+    { id: 'film_composer', name: 'Film Composer Orchestra' },
+    { id: 'nashville_dreams', name: 'Nashville Dreams' }
   ];
 
   const mockReleases = [
     { id: 'all', name: 'All Releases' },
-    { id: 'midnight_sessions', name: 'Midnight Sessions' },
-    { id: 'summer_vibes', name: 'Summer Vibes' },
-    { id: 'urban_beats', name: 'Urban Beats Collection' },
-    { id: 'rock_anthem', name: 'Rock Anthem' },
-    { id: 'electronic_fusion', name: 'Electronic Fusion EP' }
+    { id: 'urban_beats_collection', name: 'Urban Beats Collection' },
+    { id: 'remix_package', name: 'Urban Beat (Remix Package)' },
+    { id: 'movie_soundtrack', name: 'Movie Epic Soundtrack' },
+    { id: 'classic_hits', name: 'Classic Hits Single' },
+    { id: 'collaborative_single', name: 'Collaborative Single' },
+    { id: 'chart_topper_hits', name: 'Chart Topper Hits' },
+    { id: 'kpop_sensation', name: 'K-Pop Sensation' },
+    { id: 'madison_square_live', name: 'Madison Square Garden Live' },
+    { id: 'electronic_horizons', name: 'Electronic Horizons' },
+    { id: 'indie_rock_revival', name: 'Indie Rock Revival' },
+    { id: 'reggaeton_fuego', name: 'Reggaeton Fuego' },
+    { id: 'new_dreams_single', name: 'New Dreams Single' },
+    { id: 'jazz_fusion_mixtape', name: 'Jazz Fusion Mixtape' },
+    { id: 'country_roads', name: 'Country Roads Album' }
   ];
 
   const mockAssets = [
@@ -381,7 +398,11 @@ export default function PartnerReports() {
     { id: 'singles', name: 'Singles' },
     { id: 'albums', name: 'Albums' },
     { id: 'eps', name: 'EPs' },
-    { id: 'remixes', name: 'Remixes' }
+    { id: 'mixtapes', name: 'Mixtapes' },
+    { id: 'compilations', name: 'Compilations' },
+    { id: 'remixes', name: 'Remixes' },
+    { id: 'live_albums', name: 'Live Albums' },
+    { id: 'soundtracks', name: 'Soundtracks' }
   ];
 
   const mockPlatforms = [

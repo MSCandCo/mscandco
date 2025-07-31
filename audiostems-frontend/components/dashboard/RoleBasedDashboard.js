@@ -5,25 +5,40 @@ import { useState, useEffect } from 'react';
 import { Play, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 
-// Mock video data
+// Comprehensive video mock data based on YHWH MSC releases from database
 const mockVideos = {
   highestPerforming: {
     id: 'hp-001',
-    title: 'Summer Vibes - Official Music Video',
-    url: '/videos/summer-vibes.mp4', // Replace with actual video file
-    views: '2.4M',
-    likes: '156K',
-    releaseDate: '2024-01-15',
-    performance: 'trending'
+    title: 'Urban Beat - Official Music Video',
+    url: '/videos/urban-beat.mp4', // Replace with actual video file
+    views: '125K',
+    likes: '8.5K',
+    releaseDate: '2024-09-15',
+    performance: 'trending',
+    streams: '125,000',
+    revenue: '£8,750'
   },
   newestReleased: {
     id: 'nr-001',
-    title: 'Midnight Sessions - Behind the Scenes',
-    url: '/videos/midnight-sessions.mp4', // Replace with actual video file
-    views: '890K',
-    likes: '45K',
-    releaseDate: '2024-02-01',
-    performance: 'new'
+    title: 'Urban Beat (Club Remix) - Behind the Studio',
+    url: '/videos/urban-beat-remix.mp4', // Replace with actual video file
+    views: '45K',
+    likes: '3.2K',
+    releaseDate: '2025-01-15',
+    performance: 'new',
+    streams: '12,500',
+    revenue: '£2,800'
+  },
+  upcoming: {
+    id: 'up-001',
+    title: 'Movie Epic Soundtrack - Teaser Trailer',
+    url: '/videos/movie-soundtrack-teaser.mp4',
+    views: '8.9K',
+    likes: '567',
+    releaseDate: '2025-04-05',
+    performance: 'upcoming',
+    expectedStreams: 'TBD',
+    status: 'Under Review'
   }
 };
 
@@ -315,6 +330,59 @@ export default function RoleBasedDashboard() {
               icon: '⚙️',
               href: '/distribution/settings',
               stats: { platforms: 12, features: 8 }
+            }
+          ]
+        };
+
+      case 'artist':
+        console.log('Rendering Artist dashboard');
+        return {
+          title: 'Artist Dashboard',
+          subtitle: `Welcome to YHWH MSC - Your Music Career Hub`,
+          description: 'Manage your releases, track earnings, and grow your audience',
+          stats: [
+            { label: 'Total Releases', value: '6', change: '+2 this month', changeType: 'positive' },
+            { label: 'Total Streams', value: '125K', change: '+15%', changeType: 'positive' },
+            { label: 'Total Earnings', value: '£1,560', change: '+£320', changeType: 'positive' },
+            { label: 'Active Projects', value: '3', change: '2 in review', changeType: 'neutral' }
+          ],
+          cards: [
+            {
+              title: 'Releases',
+              description: 'Manage your music releases and track submissions',
+              icon: '🎵',
+              href: '/artist/releases',
+              stats: { 
+                total: 6, 
+                draft: 1, 
+                underReview: 2, 
+                live: 2,
+                completed: 1
+              }
+            },
+            {
+              title: 'Earnings',
+              description: 'Track your revenue from streaming platforms',
+              icon: '💰',
+              href: '/artist/earnings',
+              stats: { 
+                thisMonth: '£320', 
+                lastMonth: '£240',
+                held: '£1,560',
+                platforms: 7
+              }
+            },
+            {
+              title: 'Analytics',
+              description: 'View detailed performance analytics',
+              icon: '📈',
+              href: '/artist/analytics',
+              stats: { 
+                streams: '125K', 
+                countries: 45,
+                topTrack: 'Urban Beat',
+                growth: '+15%'
+              }
             }
           ]
         };
