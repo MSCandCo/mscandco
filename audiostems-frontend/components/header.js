@@ -4,11 +4,25 @@ import { HiUser, HiDownload, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-i
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
+import { useState, useEffect } from 'react';
 
 function Header({ largeLogo = false }) {
   const { user, isAuthenticated, logout } = useAuth0();
   const router = useRouter();
   const userBrand = getBrandByUser(user);
+  const [profileData, setProfileData] = useState(null);
+
+  // Fetch profile data to get first and last name
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetch('/api/artist/get-profile')
+        .then(res => res.json())
+        .then(data => {
+          setProfileData(data);
+        })
+        .catch(err => console.error('Error fetching profile:', err));
+    }
+  }, [isAuthenticated, user]);
 
   const openCustomerPortal = async () => {
     try {
@@ -35,6 +49,14 @@ function Header({ largeLogo = false }) {
 
   const isActivePage = (path) => {
     return router.pathname === path;
+  };
+
+  // Get display name from profile data or fallback to email
+  const getDisplayName = () => {
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName} ${profileData.lastName}`;
+    }
+    return user?.email || 'User';
   };
 
   return (
@@ -100,7 +122,7 @@ function Header({ largeLogo = false }) {
                 color="gray"
                 size="sm"
                 label={
-                  user?.name ? <p>Hi, {user.name}</p> : <p>Hi</p>
+                  <p>Hi, {getDisplayName()}</p>
                 }
                 dismissOnClick={false}
               >

@@ -119,9 +119,10 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Artist Starter',
-          monthlyPrice: '£9.99',
-          yearlyPrice: '£99.99',
-          yearlySavings: '£19.89',
+          monthlyPrice: '$9.99',
+          yearlyPrice: '$99.99',
+          yearlySavings: '$19.89',
+          stripeProductKey: 'artist_starter',
           features: [
             'Up to 10 releases per year',
             'Basic analytics and reporting',
@@ -133,9 +134,10 @@ const getRoleSpecificPlans = (role) => {
         },
         {
           name: 'Artist Pro',
-          monthlyPrice: '£19.99',
-          yearlyPrice: '£199.99',
-          yearlySavings: '£39.89',
+          monthlyPrice: '$19.99',
+          yearlyPrice: '$199.99',
+          yearlySavings: '$39.89',
+          stripeProductKey: 'artist_pro',
           features: [
             'Unlimited releases per year',
             'Advanced analytics and reporting',
@@ -156,22 +158,11 @@ const getRoleSpecificPlans = (role) => {
     case 'company_admin':
       return [
         {
-          name: 'Label Basic',
-          monthlyPrice: '$99.99',
-          yearlyPrice: '$999.99',
-          yearlySavings: '$199.89',
-          features: [
-            'Up to 10 Artists',
-            'Basic Label Analytics',
-            'Email Support',
-            'Standard Reporting'
-          ]
-        },
-        {
-          name: 'Label Management',
-          monthlyPrice: '£29.99',
-          yearlyPrice: '£299.99',
-          yearlySavings: '£59.89',
+          name: 'Company Admin',
+          monthlyPrice: 'Free',
+          yearlyPrice: 'Free',
+          yearlySavings: '',
+          isFree: true,
           features: [
             'Unlimited Artists Management',
             'Label Analytics Dashboard',
@@ -192,22 +183,13 @@ const getRoleSpecificPlans = (role) => {
             'Artist Development Tools',
             'Release Coordination',
             'Label Brand Management',
-            'Advanced Content Controls'
-          ]
-        },
-        {
-          name: 'Label Enterprise',
-          monthlyPrice: '$499.99',
-          yearlyPrice: '$4,999.99',
-          yearlySavings: '$999.89',
-          features: [
-            'Unlimited Artists',
-            'Advanced Label Analytics',
-            'Priority Support',
-            'White-label Options',
-            'API Access',
-            'Dedicated Account Manager',
-            'Custom Integrations'
+            'Advanced Content Controls',
+            'Full Platform Administration',
+            'User Management',
+            'System Configuration',
+            'Brand Management',
+            'Advanced Analytics',
+            'Priority Support'
           ]
         }
       ];
@@ -215,10 +197,11 @@ const getRoleSpecificPlans = (role) => {
     case 'label_admin':
       return [
         {
-          name: 'Label Management',
+          name: 'Label Admin',
           monthlyPrice: '$29.99',
           yearlyPrice: '$299.99',
           yearlySavings: '$59.89',
+          stripeProductKey: 'label_admin',
           features: [
             'Unlimited Artists Management',
             'Label Analytics Dashboard',
@@ -294,43 +277,22 @@ const getRoleSpecificPlans = (role) => {
     case 'distribution_partner':
       return [
         {
-          name: 'Partner Basic',
-          monthlyPrice: '£79.99',
-          yearlyPrice: '£799.99',
-          yearlySavings: '£159.89',
+          name: 'Distribution Partner',
+          monthlyPrice: 'Free',
+          yearlyPrice: 'Free',
+          yearlySavings: '',
+          isFree: true,
           features: [
-            'Basic Distribution Analytics',
-            'Content Management',
-            'Email Support',
-            'Standard Reporting'
-          ]
-        },
-        {
-          name: 'Partner Pro',
-          monthlyPrice: '£149.99',
-          yearlyPrice: '£1,499.99',
-          yearlySavings: '£299.89',
-          features: [
-            'Distribution Analytics',
-            'Content Management',
-            'Partner Reporting',
+            'Full Distribution Analytics',
+            'Complete Content Management',
+            'Release Approval Workflows',
+            'Partner Reporting Dashboard',
             'API Access',
-            'Priority Support'
-          ]
-        },
-        {
-          name: 'Partner Enterprise',
-          monthlyPrice: '£299.99',
-          yearlyPrice: '£2,999.99',
-          yearlySavings: '£599.89',
-          features: [
-            'Advanced Distribution Analytics',
-            'Full Content Management',
+            'Priority Support',
+            'Artist Management Tools',
+            'Revenue Tracking',
             'Custom Reporting',
-            'Full API Access',
-            'Dedicated Support',
-            'White-label Options',
-            'Custom Integrations'
+            'Direct Platform Access'
           ]
         }
       ];

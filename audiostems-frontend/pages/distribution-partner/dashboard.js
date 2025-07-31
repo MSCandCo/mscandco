@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock, FaAlertCircle } from 'react-icons/fa';
 import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock, AlertCircle } from 'lucide-react';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
-import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor } from '../../lib/constants';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import * as XLSX from 'xlsx';
 
 // Excel download functions using template
@@ -37,7 +37,7 @@ const mockAllReleases = [
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
-    status: 'under_review',
+    status: RELEASE_STATUSES.UNDER_REVIEW,
     submissionDate: '2024-01-15',
     expectedReleaseDate: '2024-03-01',
     assets: '3 tracks, artwork',
@@ -98,7 +98,7 @@ const mockAllReleases = [
     releaseDate: '2024-03-01',
     releaseUrl: 'https://release.example.com',
     releaseLabel: 'MSC & Co',
-    distributionCompany: 'Code Group Distribution',
+    distributionCompany: 'Code Group',
     copyrightYear: '2024',
     copyrightOwner: 'YHWH MSC',
     pLine: '℗ 2024 MSC & Co Records',
@@ -179,7 +179,7 @@ const mockAllReleases = [
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Rock',
-    status: 'submitted',
+    status: RELEASE_STATUSES.SUBMITTED,
     submissionDate: '2024-01-10',
     expectedReleaseDate: '2024-02-15',
     assets: '1 track, artwork',
@@ -238,7 +238,7 @@ const mockAllReleases = [
     releaseDate: '2024-02-15',
     releaseUrl: 'https://release.example.com/rock',
     releaseLabel: 'MSC & Co',
-    distributionCompany: 'Code Group Distribution',
+    distributionCompany: 'Code Group',
     copyrightYear: '2024',
     copyrightOwner: 'YHWH MSC',
     pLine: '℗ 2024 MSC & Co Records',
@@ -387,6 +387,116 @@ const mockEditRequests = [
       { role: 'Additional Production', name: 'Beat Maker' }
     ],
     publishingNotes: 'Urban hip hop collection - added new tracks'
+  },
+  {
+    id: 3,
+    projectName: 'Acoustic Dreams',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Acoustic',
+    status: RELEASE_STATUSES.DRAFT,
+    submissionDate: null,
+    expectedReleaseDate: '2025-04-01',
+    assets: '1 track, artwork',
+    feedback: '',
+    marketingPlan: 'To be determined',
+    publishingNotes: 'Solo acoustic performance',
+    trackListing: [
+      { title: 'Acoustic Dreams', duration: '4:20', isrc: 'USRC12345689', bpm: '90', songKey: 'G Major' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Songwriter', name: 'YHWH MSC' }
+    ],
+    songTitle: 'Acoustic Dreams',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 4,
+    projectName: 'Electronic Fusion EP',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'Electronic',
+    status: RELEASE_STATUSES.APPROVAL_REQUIRED,
+    submissionDate: '2024-01-20',
+    expectedReleaseDate: '2025-05-01',
+    assets: '4 tracks, artwork',
+    feedback: 'Changes requested by artist - pending approval',
+    marketingPlan: 'Digital release with social media campaign',
+    publishingNotes: 'Electronic fusion with hip hop elements',
+    trackListing: [
+      { title: 'Digital Waves', duration: '3:45', isrc: 'USRC12345690', bpm: '128', songKey: 'C Major' },
+      { title: 'Synth Dreams', duration: '4:12', isrc: 'USRC12345691', bpm: '132', songKey: 'A Minor' },
+      { title: 'Bass Drop', duration: '3:30', isrc: 'USRC12345692', bpm: '140', songKey: 'E Minor' },
+      { title: 'Future Sounds', duration: '4:05', isrc: 'USRC12345693', bpm: '135', songKey: 'F Major' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Sound Engineer', name: 'Audio Pro' }
+    ],
+    songTitle: 'Digital Waves',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 5,
+    projectName: 'Summer Vibes',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Pop',
+    status: RELEASE_STATUSES.COMPLETED,
+    submissionDate: '2024-01-05',
+    expectedReleaseDate: '2024-02-15',
+    assets: '1 track, artwork',
+    feedback: 'Approved and ready for distribution',
+    marketingPlan: 'Summer playlist campaign',
+    publishingNotes: 'Upbeat summer track',
+    trackListing: [
+      { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678', bpm: '120', songKey: 'C Major' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Songwriter', name: 'YHWH MSC' }
+    ],
+    songTitle: 'Summer Vibes',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
+  },
+  {
+    id: 6,
+    projectName: 'Midnight Sessions',
+    artist: 'YHWH MSC',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'R&B',
+    status: RELEASE_STATUSES.LIVE,
+    submissionDate: '2023-12-15',
+    expectedReleaseDate: '2024-01-20',
+    assets: '8 tracks, artwork',
+    feedback: 'Successfully distributed and live on all platforms',
+    marketingPlan: 'Full album promotion campaign',
+    publishingNotes: 'Late night R&B collection',
+    trackListing: [
+      { title: 'Midnight Intro', duration: '2:15', isrc: 'USRC12345682', bpm: '85', songKey: 'A Minor' },
+      { title: 'Late Night Groove', duration: '4:30', isrc: 'USRC12345683', bpm: '90', songKey: 'C Major' },
+      { title: 'City Lights', duration: '3:55', isrc: 'USRC12345684', bpm: '88', songKey: 'F Major' }
+    ],
+    credits: [
+      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Songwriter', name: 'YHWH MSC' },
+      { role: 'Mix Engineer', name: 'Studio Pro' }
+    ],
+    songTitle: 'Midnight Intro',
+    companyName: 'MSC & Co Records',
+    legalName: 'YHWH MSC',
+    artistName: 'YHWH MSC'
   }
 ];
 
@@ -402,9 +512,65 @@ export default function DistributionPartnerDashboard() {
   const [genreFilter, setGenreFilter] = useState('all');
   const [uploadedData, setUploadedData] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [hoveredStatus, setHoveredStatus] = useState(null);
+  
+  // Profile state
+  const [profileData, setProfileData] = useState({
+    firstName: 'John',
+    lastName: 'Doe', 
+    email: 'john.doe@codegroup.com'
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileData, setEditProfileData] = useState({ ...profileData });
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
+
+  // Memoize displayed releases based on hovered status for Release Board
+  const displayedReleasesForBoard = useMemo(() => {
+    return hoveredStatus 
+      ? mockAllReleases.filter(release => release.status === hoveredStatus)
+      : mockAllReleases;
+  }, [hoveredStatus]);
+
+  // Profile handlers
+  const handleProfileSave = () => {
+    setProfileData({ ...editProfileData });
+    setIsEditingProfile(false);
+    // Here you would typically save to an API
+    console.log('Saving profile:', editProfileData);
+  };
+
+  const handleProfileCancel = () => {
+    setEditProfileData({ ...profileData });
+    setIsEditingProfile(false);
+  };
+
+  // Sync edit data when profile data changes
+  useEffect(() => {
+    setEditProfileData({ ...profileData });
+  }, [profileData]);
+
+  // Check for profile query parameter and open modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('profile') === 'open') {
+      setShowProfileModal(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // Check for tab query parameter and switch to appropriate tab
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['all-releases', 'sync-board', 'edit-requests'].includes(tabParam)) {
+      setActiveTab(tabParam);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -435,15 +601,7 @@ export default function DistributionPartnerDashboard() {
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case RELEASE_STATUSES.SUBMITTED: return <FileText className="w-4 h-4" />;
-      case RELEASE_STATUSES.UNDER_REVIEW: return <Eye className="w-4 h-4" />;
-      case RELEASE_STATUSES.COMPLETED: return <CheckCircle className="w-4 h-4" />;
-      case RELEASE_STATUSES.LIVE: return <Play className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
-  };
+
 
   const handleStatusChange = (releaseId, newStatus) => {
     // In a real app, this would update the database
@@ -627,82 +785,184 @@ export default function DistributionPartnerDashboard() {
     </div>
   );
 
-  const renderSyncBoard = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Submitted</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {mockAllReleases.filter(r => r.status === 'submitted').length}
-              </p>
-            </div>
-            <FileText className="w-8 h-8 text-blue-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Under Review</p>
-              <p className="text-2xl font-bold text-amber-600">
-                {mockAllReleases.filter(r => r.status === 'under_review').length}
-              </p>
-            </div>
-            <Eye className="w-8 h-8 text-amber-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-green-600">
-                {mockAllReleases.filter(r => r.status === 'completed').length}
-              </p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Live</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {mockAllReleases.filter(r => r.status === 'live').length}
-              </p>
-            </div>
-            <Play className="w-8 h-8 text-purple-600" />
-          </div>
-        </div>
-      </div>
+  const renderSyncBoard = () => {
+    const statusItems = [
+      { status: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length, color: 'bg-yellow-500', icon: FileText },
+      { status: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length, color: 'bg-blue-500', icon: FileText },
+      { status: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length, color: 'bg-amber-500', icon: Eye },
+      { status: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length, color: 'bg-orange-500', icon: AlertCircle },
+      { status: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length, color: 'bg-green-500', icon: CheckCircle },
+      { status: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.LIVE).length, color: 'bg-purple-500', icon: Play }
+    ];
 
-      {/* Status Board */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {['submitted', 'under_review', 'completed', 'live'].map((status) => (
-          <div key={status} className="bg-white rounded-lg shadow-sm border">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 capitalize">
-                {status.replace('_', ' ')}
-              </h3>
-            </div>
-            <div className="p-4">
-              {mockAllReleases
-                .filter(release => release.status === status)
-                .map(release => (
-                  <div key={release.id} className="mb-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-sm text-gray-900">{release.projectName}</div>
-                    <div className="text-xs text-gray-500">{release.artist} • {release.releaseType}</div>
+    const getReleaseTypeColor = (type) => {
+      switch (type) {
+        case 'Single': return 'bg-blue-100 text-blue-800';
+        case 'EP': return 'bg-green-100 text-green-800';
+        case 'Album': return 'bg-purple-100 text-purple-800';
+        case 'Mixtape': return 'bg-orange-100 text-orange-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    const getGenreColor = (genre) => {
+      switch (genre) {
+        case 'Hip Hop': return 'bg-red-100 text-red-800';
+        case 'Electronic': return 'bg-blue-100 text-blue-800';
+        case 'Rock': return 'bg-yellow-100 text-yellow-800';
+        case 'Pop': return 'bg-pink-100 text-pink-800';
+        case 'R&B': return 'bg-purple-100 text-purple-800';
+        case 'Jazz': return 'bg-indigo-100 text-indigo-800';
+        case 'Country': return 'bg-green-100 text-green-800';
+        case 'Classical': return 'bg-gray-100 text-gray-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    return (
+      <div className="space-y-8">
+        {/* Status Overview Cards */}
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Release Status Overview</h2>
+            {hoveredStatus && (
+              <div className="flex items-center space-x-3">
+                <div className="text-sm text-blue-600 font-medium">
+                  Filtering by: {getStatusLabel(hoveredStatus)}
+                </div>
+                <button
+                  onClick={() => setHoveredStatus(null)}
+                  className="text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {statusItems.map((item) => (
+              <div 
+                key={item.status} 
+                className={`bg-white rounded-lg shadow p-6 text-center relative cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === item.status 
+                    ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50 scale-105' 
+                    : 'hover:shadow-lg hover:scale-105'
+                }`}
+                onMouseEnter={() => setHoveredStatus(item.status)}
+              >
+                <div className={`w-16 h-16 ${item.color} rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl`}>
+                  <item.icon className="w-8 h-8" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">{item.label}</h3>
+                <p className="text-3xl font-bold text-gray-900">{item.count}</p>
+                <p className="text-sm text-gray-500 mt-1">releases</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Priority Releases - Releases needing attention */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Priority Releases</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedReleasesForBoard
+              .filter(release => [RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.UNDER_REVIEW, RELEASE_STATUSES.APPROVAL_REQUIRED].includes(release.status))
+              .map((release) => (
+                <div key={release.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-all duration-200 hover:scale-105">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-4xl">🎵</div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
+                        {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{release.projectName}</h3>
+                    <p className="text-gray-600 mb-3">{release.artist}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getReleaseTypeColor(release.releaseType)}`}>
+                        {release.releaseType}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getGenreColor(release.genre)}`}>
+                        {release.genre}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 space-y-1 mb-4">
+                      <p>📁 {release.trackListing.length} tracks</p>
+                      <p>📅 Expected: {release.expectedReleaseDate}</p>
+                      <p>📊 Assets: {release.assets}</p>
+                      {release.feedback && (
+                        <p className="text-amber-600">💬 {release.feedback.substring(0, 50)}...</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setShowReleaseDetails(true);
+                        }}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingRelease(release);
+                          setShowEditModal(true);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="space-y-4">
+              {displayedReleasesForBoard
+                .filter(release => release.status === RELEASE_STATUSES.COMPLETED || release.status === RELEASE_STATUSES.LIVE)
+                .slice(0, 5)
+                .map((release) => (
+                  <div key={release.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-2xl">🎵</div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{release.projectName}</h4>
+                        <p className="text-sm text-gray-500">{release.artist} • {release.releaseType}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
+                        {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setShowReleaseDetails(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
             </div>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderEditRequests = () => (
     <div className="space-y-6">
@@ -929,6 +1189,8 @@ export default function DistributionPartnerDashboard() {
     });
   };
 
+
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
@@ -940,9 +1202,7 @@ export default function DistributionPartnerDashboard() {
                 <h1 className="text-2xl font-bold text-gray-900">Distribution Partner Dashboard</h1>
                 <p className="text-sm text-gray-500">Manage and review all releases</p>
               </div>
-              <div className="text-sm text-gray-500">
-                Code Group Distribution
-              </div>
+
             </div>
           </div>
         </div>
@@ -969,7 +1229,7 @@ export default function DistributionPartnerDashboard() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Sync Board
+                Release Board
               </button>
               <button
                 onClick={() => setActiveTab('edit-requests')}
@@ -981,6 +1241,7 @@ export default function DistributionPartnerDashboard() {
               >
                 Edit Requests
               </button>
+
             </nav>
           </div>
         </div>
@@ -1158,7 +1419,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mood Description (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.moodDescription}
+                        defaultValue={editingRelease?.moodDescription || ''}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1166,14 +1427,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Tags (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.tags}
+                        defaultValue={editingRelease?.tags}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700">Lyrics (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.lyrics}
+                        defaultValue={editingRelease?.lyrics}
                         rows={4}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -1189,7 +1450,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Format (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.format}
+                        defaultValue={editingRelease?.format}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1197,7 +1458,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Product Type (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.productType}
+                        defaultValue={editingRelease?.productType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1205,7 +1466,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Catalogue No. (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.catalogueNo}
+                        defaultValue={editingRelease?.catalogueNo}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1213,7 +1474,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Barcode (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.barcode}
+                        defaultValue={editingRelease?.barcode}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1221,7 +1482,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Tunecode (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.tunecode}
+                        defaultValue={editingRelease?.tunecode}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1229,7 +1490,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ICE Work Key (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.iceWorkKey}
+                        defaultValue={editingRelease?.iceWorkKey}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1237,7 +1498,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ISWC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.iswc}
+                        defaultValue={editingRelease?.iswc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1245,7 +1506,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ISRC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.isrc}
+                        defaultValue={editingRelease?.isrc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1253,7 +1514,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">UPC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.upc}
+                        defaultValue={editingRelease?.upc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1736,90 +1997,96 @@ export default function DistributionPartnerDashboard() {
         {/* Edit Modal */}
         {showEditModal && editingRelease && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
-                <h3 className="text-lg font-semibold text-gray-900">Edit Release Metadata - {editingRelease.projectName}</h3>
-                <div className="flex items-center space-x-3">
-                  {/* Excel Upload Feature */}
-                  <div className="relative">
-                    <input
-                      type="file"
-                      id="excel-upload"
-                      accept=".xlsx,.xls"
-                      onChange={(e) => handleExcelUpload(e)}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="excel-upload"
-                      className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-colors ${
-                        uploadStatus === 'processing' 
-                          ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
-                          : uploadStatus === 'success'
-                          ? 'bg-green-600 text-white hover:bg-green-700'
-                          : uploadStatus === 'error'
-                          ? 'bg-red-600 text-white hover:bg-red-700'
-                          : 'bg-green-600 text-white hover:bg-green-700'
-                      }`}
-                    >
-                      {uploadStatus === 'processing' ? (
-                        <>
-                          <Clock className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : uploadStatus === 'success' ? (
-                        <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Uploaded
-                        </>
-                      ) : uploadStatus === 'error' ? (
-                        <>
-                          <AlertCircle className="w-4 h-4 mr-2" />
-                          Error
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4 mr-2" />
-                          Upload Excel
-                        </>
-                      )}
-                    </label>
-                    {uploadedData && (
-                      <div className="absolute top-full left-0 mt-1 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                        Data loaded from Excel
+            <div className="relative mx-auto p-0 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[95vh] overflow-y-auto">
+              {/* Header - Fixed at top */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900">Edit Release Metadata - {editingRelease?.projectName || 'Release'}</h3>
+                    <div className="flex items-center space-x-3 mt-3">
+                      {/* Excel Upload Feature */}
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="excel-upload"
+                          accept=".xlsx,.xls"
+                          onChange={(e) => handleExcelUpload(e)}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="excel-upload"
+                          className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-colors ${
+                            uploadStatus === 'processing' 
+                              ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                              : uploadStatus === 'success'
+                              ? 'bg-green-600 text-white hover:bg-green-700'
+                              : uploadStatus === 'error'
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          {uploadStatus === 'processing' ? (
+                            <>
+                              <Clock className="w-4 h-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : uploadStatus === 'success' ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Uploaded
+                            </>
+                          ) : uploadStatus === 'error' ? (
+                            <>
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Error
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 mr-2" />
+                              Upload Excel
+                            </>
+                          )}
+                        </label>
+                        {uploadedData && (
+                          <div className="absolute top-full left-0 mt-1 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                            Data loaded from Excel
+                          </div>
+                        )}
                       </div>
-                    )}
+                      
+                      {/* Download Template Button */}
+                      <button
+                        onClick={() => {
+                          // Download a template Excel file for the current release
+                          downloadSingleReleaseExcel(editingRelease);
+                        }}
+                        className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                        title="Download Excel template for this release"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Template
+                      </button>
+                      
+                      {/* Clear Uploaded Data Button */}
+                      {uploadedData && (
+                        <button
+                          onClick={() => {
+                            setUploadedData(null);
+                            setUploadStatus(null);
+                            // Reset the editing release to original data
+                            setEditingRelease(mockAllReleases.find(r => r.id === editingRelease?.id));
+                            alert('Uploaded data cleared. Form reset to original values.');
+                          }}
+                          className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          <FaTimes className="w-4 h-4 mr-2" />
+                          Clear Data
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
-                  {/* Download Template Button */}
-                  <button
-                    onClick={() => {
-                      // Download a template Excel file for the current release
-                      downloadSingleReleaseExcel(editingRelease);
-                    }}
-                    className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                    title="Download Excel template for this release"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Template
-                  </button>
-                  
-                  {/* Clear Uploaded Data Button */}
-                  {uploadedData && (
-                    <button
-                      onClick={() => {
-                        setUploadedData(null);
-                        setUploadStatus(null);
-                        // Reset the editing release to original data
-                        setEditingRelease(mockAllReleases.find(r => r.id === editingRelease.id));
-                        alert('Uploaded data cleared. Form reset to original values.');
-                      }}
-                      className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      <FaTimes className="w-4 h-4 mr-2" />
-                      Clear Data
-                    </button>
-                  )}
-                  
+                  {/* Close Button - Top Right */}
                   <button
                     onClick={() => {
                       setShowEditModal(false);
@@ -1827,14 +2094,14 @@ export default function DistributionPartnerDashboard() {
                       setUploadedData(null);
                       setUploadStatus(null);
                     }}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 ml-4"
                   >
-                    <FaTimes className="w-5 h-5" />
+                    <FaTimes className="w-6 h-6" />
                   </button>
                 </div>
                 
                 {/* Excel Upload Instructions */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                   <h4 className="text-sm font-semibold text-blue-900 mb-2">📋 Excel Upload Instructions</h4>
                   <div className="text-xs text-blue-800 space-y-1">
                     <p>• Click "Download Template" to get the correct Excel format for this release</p>
@@ -1848,7 +2115,7 @@ export default function DistributionPartnerDashboard() {
                 </div>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-6 px-6 py-4">
                 {/* Basic Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
@@ -1857,14 +2124,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Project Name (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.projectName}
+                        defaultValue={editingRelease?.projectName}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Genre (Editable)</label>
                       <select
-                        defaultValue={editingRelease.genre}
+                        defaultValue={editingRelease?.genre}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         {GENRES.map(genre => (
@@ -1875,7 +2142,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Release Type (Editable)</label>
                       <select
-                        defaultValue={editingRelease.releaseType}
+                        defaultValue={editingRelease?.releaseType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         {RELEASE_TYPES.map(type => (
@@ -1885,35 +2152,35 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Song Title (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.songTitle || 'N/A'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.songTitle || 'N/A'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Company Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.companyName || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.companyName || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Legal Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.legalName || editingRelease.artist}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.legalName || editingRelease.artist}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Artist Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artist}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.artist}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Product Title (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.projectName}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.projectName}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Track Position (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.trackPosition || 'N/A'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.trackPosition || 'N/A'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Featuring Artists (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.featuringArtists || 'N/A'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.featuringArtists || 'N/A'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Background Vocalists (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.backgroundVocalists || 'N/A'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.backgroundVocalists || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -1926,7 +2193,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Duration (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.duration}
+                        defaultValue={editingRelease?.duration}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1934,7 +2201,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">BPM (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.bpm}
+                        defaultValue={editingRelease?.bpm}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1942,7 +2209,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Song Key (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.songKey}
+                        defaultValue={editingRelease?.songKey}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1950,14 +2217,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Version (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.version}
+                        defaultValue={editingRelease?.version}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Explicit (Editable)</label>
                       <select
-                        defaultValue={editingRelease.explicit}
+                        defaultValue={editingRelease?.explicit}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="Yes">Yes</option>
@@ -1966,13 +2233,13 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Language (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.language || 'English'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.language || 'English'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Vocal Type (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.vocalType}
+                        defaultValue={editingRelease?.vocalType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1980,17 +2247,17 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">File Type (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.fileType}
+                        defaultValue={editingRelease?.fileType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Audio File Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.audioFileName || 'To be set by DP'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.audioFileName || 'To be set by DP'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Cover File Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coverFileName || 'To be set by DP'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.coverFileName || 'To be set by DP'}</p>
                     </div>
                   </div>
                 </div>
@@ -2003,7 +2270,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mood Description (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.moodDescription}
+                        defaultValue={editingRelease?.moodDescription || ''}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2011,14 +2278,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Tags (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.tags}
+                        defaultValue={editingRelease?.tags}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700">Lyrics (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.lyrics}
+                        defaultValue={editingRelease?.lyrics}
                         rows={4}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -2034,7 +2301,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Format (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.format}
+                        defaultValue={editingRelease?.format}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2042,7 +2309,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Product Type (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.productType}
+                        defaultValue={editingRelease?.productType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2050,7 +2317,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Catalogue No. (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.catalogueNo}
+                        defaultValue={editingRelease?.catalogueNo}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2058,7 +2325,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Barcode (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.barcode}
+                        defaultValue={editingRelease?.barcode}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2066,7 +2333,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Tunecode (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.tunecode}
+                        defaultValue={editingRelease?.tunecode}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2074,7 +2341,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ICE Work Key (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.iceWorkKey}
+                        defaultValue={editingRelease?.iceWorkKey}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2082,7 +2349,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ISWC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.iswc}
+                        defaultValue={editingRelease?.iswc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2090,7 +2357,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ISRC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.isrc}
+                        defaultValue={editingRelease?.isrc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2098,7 +2365,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">UPC (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.upc}
+                        defaultValue={editingRelease?.upc}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2112,7 +2379,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">BOWI Previously Released (Editable)</label>
                       <select
-                        defaultValue={editingRelease.bowiPreviouslyReleased}
+                        defaultValue={editingRelease?.bowiPreviouslyReleased}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="Yes">Yes</option>
@@ -2123,7 +2390,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Previous Release Date (Editable)</label>
                       <input
                         type="date"
-                        defaultValue={editingRelease.previousReleaseDate}
+                        defaultValue={editingRelease?.previousReleaseDate}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2131,7 +2398,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Recording Country (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.recordingCountry}
+                        defaultValue={editingRelease?.recordingCountry}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2139,7 +2406,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Pre-Release Date (Editable)</label>
                       <input
                         type="date"
-                        defaultValue={editingRelease.preReleaseDate}
+                        defaultValue={editingRelease?.preReleaseDate}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2147,7 +2414,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Pre-Release URL (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.preReleaseUrl}
+                        defaultValue={editingRelease?.preReleaseUrl}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2155,7 +2422,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Release Date (Editable)</label>
                       <input
                         type="date"
-                        defaultValue={editingRelease.releaseDate}
+                        defaultValue={editingRelease?.releaseDate}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2163,7 +2430,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Release URL (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.releaseUrl}
+                        defaultValue={editingRelease?.releaseUrl}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2171,13 +2438,13 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Release Label (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.releaseLabel}
+                        defaultValue={editingRelease?.releaseLabel}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Distribution Company (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.distributionCompany || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.distributionCompany || 'YHWH MSC'}</p>
                     </div>
                   </div>
                 </div>
@@ -2188,17 +2455,17 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Copyright Year (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.copyrightYear || new Date().getFullYear()}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.copyrightYear || new Date().getFullYear()}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Copyright Owner (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.copyrightOwner || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.copyrightOwner || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">℗ P Line (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.pLine}
+                        defaultValue={editingRelease?.pLine}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2206,7 +2473,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">© C Line (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.cLine}
+                        defaultValue={editingRelease?.cLine}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2219,13 +2486,13 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Composer / Author (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.composerAuthor || editingRelease.artist}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.composerAuthor || editingRelease.artist}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Role (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.role}
+                        defaultValue={editingRelease?.role}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2233,7 +2500,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">PRO (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.pro}
+                        defaultValue={editingRelease?.pro}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2241,31 +2508,31 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">CAE/IPI (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.caeIpi}
+                        defaultValue={editingRelease?.caeIpi}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishing || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishing || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publisher IPI (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publisherIpi || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publisherIpi || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing Admin (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishingAdmin || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdmin || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing Admin IPI (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.publishingAdminIpi || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdminIpi || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Mechanical (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.mechanical}
+                        defaultValue={editingRelease?.mechanical}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2273,7 +2540,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">BMI Work # (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.bmiWorkNumber}
+                        defaultValue={editingRelease?.bmiWorkNumber}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2281,7 +2548,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ASCAP Work # (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.ascapWorkNumber}
+                        defaultValue={editingRelease?.ascapWorkNumber}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2289,7 +2556,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">ISNI (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.isni}
+                        defaultValue={editingRelease?.isni}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2297,7 +2564,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Sub-Publisher (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.subPublisher}
+                        defaultValue={editingRelease?.subPublisher}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2305,7 +2572,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Publishing Type (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.publishingType}
+                        defaultValue={editingRelease?.publishingType}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2313,7 +2580,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Territory (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.territory}
+                        defaultValue={editingRelease?.territory}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2326,13 +2593,13 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Executive Producer (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.executiveProducer || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Producer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.producer}
+                        defaultValue={editingRelease?.producer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2340,7 +2607,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mixing Engineer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.mixingEngineer}
+                        defaultValue={editingRelease?.mixingEngineer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2348,7 +2615,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mastering Engineer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.masteringEngineer}
+                        defaultValue={editingRelease?.masteringEngineer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2356,7 +2623,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Co-Producer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.coProducer}
+                        defaultValue={editingRelease?.coProducer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2364,7 +2631,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Assistant Producer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.assistantProducer}
+                        defaultValue={editingRelease?.assistantProducer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2372,7 +2639,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Engineer / Editing (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.engineerEditing}
+                        defaultValue={editingRelease?.engineerEditing}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2380,7 +2647,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mastering Studio (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.masteringStudio}
+                        defaultValue={editingRelease?.masteringStudio}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2388,7 +2655,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Recording Engineer (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.recordingEngineer}
+                        defaultValue={editingRelease?.recordingEngineer}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2396,7 +2663,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Additional Production (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.additionalProduction}
+                        defaultValue={editingRelease?.additionalProduction}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2404,7 +2671,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Recording Studio (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.recordingStudio}
+                        defaultValue={editingRelease?.recordingStudio}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2419,7 +2686,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Keyboards (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.keyboards}
+                        defaultValue={editingRelease?.keyboards}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2427,7 +2694,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Programming (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.programming}
+                        defaultValue={editingRelease?.programming}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2435,7 +2702,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Bass (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.bass}
+                        defaultValue={editingRelease?.bass}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2443,7 +2710,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Drums (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.drums}
+                        defaultValue={editingRelease?.drums}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2451,7 +2718,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Guitars (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.guitars}
+                        defaultValue={editingRelease?.guitars}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2459,7 +2726,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Organ (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.organ}
+                        defaultValue={editingRelease?.organ}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2467,7 +2734,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Percussion (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.percussion}
+                        defaultValue={editingRelease?.percussion}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2475,7 +2742,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Strings (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.strings}
+                        defaultValue={editingRelease?.strings}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2483,7 +2750,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Additional Instrumentation (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.additionalInstrumentation}
+                        defaultValue={editingRelease?.additionalInstrumentation}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2496,13 +2763,13 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Design / Art Direction (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.designArtDirection || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Management (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.management}
+                        defaultValue={editingRelease?.management}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2510,7 +2777,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Booking Agent (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.bookingAgent}
+                        defaultValue={editingRelease?.bookingAgent}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2518,25 +2785,25 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Press Contact (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.pressContact}
+                        defaultValue={editingRelease?.pressContact}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Primary Contact Email (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactEmail || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.primaryContactEmail || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Artist Email (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artistEmail || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.artistEmail || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Primary Contact # (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactNumber || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.primaryContactNumber || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Secondary Contact # (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.secondaryContactNumber || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.secondaryContactNumber || 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
@@ -2549,7 +2816,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Wikipedia (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.wikipedia}
+                        defaultValue={editingRelease?.wikipedia}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2557,7 +2824,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Social Media (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.socialMediaLink}
+                        defaultValue={editingRelease?.socialMediaLink}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2565,7 +2832,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Shazam (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.shazam}
+                        defaultValue={editingRelease?.shazam}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2573,7 +2840,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">TikTok (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.tiktok}
+                        defaultValue={editingRelease?.tiktok}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2581,7 +2848,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Instagram (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.instagram}
+                        defaultValue={editingRelease?.instagram}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2589,7 +2856,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Genius (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.genius}
+                        defaultValue={editingRelease?.genius}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2597,7 +2864,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">AllMusic (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.allMusic}
+                        defaultValue={editingRelease?.allMusic}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2605,7 +2872,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Discogs (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.discogs}
+                        defaultValue={editingRelease?.discogs}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2613,7 +2880,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Musicbrainz (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.musicbrainz}
+                        defaultValue={editingRelease?.musicbrainz}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2621,7 +2888,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">IMDb (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.imdb}
+                        defaultValue={editingRelease?.imdb}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2629,7 +2896,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Jaxsta (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.jaxsta}
+                        defaultValue={editingRelease?.jaxsta}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2637,7 +2904,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Website (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.website}
+                        defaultValue={editingRelease?.website}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2645,7 +2912,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">YouTube (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.youtube}
+                        defaultValue={editingRelease?.youtube}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2653,7 +2920,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">YouTube Music (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.youtubeMusic}
+                        defaultValue={editingRelease?.youtubeMusic}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2661,7 +2928,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Knowledge Panel (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.knowledgePanel}
+                        defaultValue={editingRelease?.knowledgePanel}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2669,7 +2936,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Tour Dates (Editable)</label>
                       <input
                         type="url"
-                        defaultValue={editingRelease.tourDates}
+                        defaultValue={editingRelease?.tourDates}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2677,7 +2944,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Spotify URI (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.spotifyUri}
+                        defaultValue={editingRelease?.spotifyUri}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2685,7 +2952,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Apple ID (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.appleId}
+                        defaultValue={editingRelease?.appleId}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2700,14 +2967,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Digital Assets Folder (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.digitalAssetsFolder}
+                        defaultValue={editingRelease?.digitalAssetsFolder}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Metadata Approved (Editable)</label>
                       <select
-                        defaultValue={editingRelease.metadataApproved}
+                        defaultValue={editingRelease?.metadataApproved}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="Yes">Yes</option>
@@ -2719,14 +2986,14 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Initials (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.initials}
+                        defaultValue={editingRelease?.initials}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Submitted to Stores? (Editable)</label>
                       <select
-                        defaultValue={editingRelease.submittedToStores}
+                        defaultValue={editingRelease?.submittedToStores}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="Yes">Yes</option>
@@ -2738,7 +3005,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Luminate (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.luminate}
+                        defaultValue={editingRelease?.luminate}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2746,7 +3013,7 @@ export default function DistributionPartnerDashboard() {
                       <label className="block text-sm font-medium text-gray-700">Mediabase (Editable)</label>
                       <input
                         type="text"
-                        defaultValue={editingRelease.mediabase}
+                        defaultValue={editingRelease?.mediabase}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -2767,7 +3034,7 @@ export default function DistributionPartnerDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {editingRelease.trackListing.map((track, index) => (
+                        {editingRelease?.trackListing?.map((track, index) => (
                           <tr key={index}>
                             <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
@@ -2792,7 +3059,7 @@ export default function DistributionPartnerDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {editingRelease.credits.map((credit, index) => (
+                        {editingRelease?.credits?.map((credit, index) => (
                           <tr key={index}>
                             <td className="px-3 py-2 text-sm text-gray-900">{credit.role}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">{credit.name}</td>
@@ -2810,7 +3077,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Feedback (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.feedback}
+                        defaultValue={editingRelease?.feedback}
                         rows={3}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -2818,7 +3085,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Marketing Plan (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.marketingPlan}
+                        defaultValue={editingRelease?.marketingPlan}
                         rows={3}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -2826,7 +3093,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing Notes (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.publishingNotes}
+                        defaultValue={editingRelease?.publishingNotes}
                         rows={3}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -2834,7 +3101,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Notes (Editable)</label>
                       <textarea
-                        defaultValue={editingRelease.notes}
+                        defaultValue={editingRelease?.notes}
                         rows={3}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
@@ -2848,119 +3115,119 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Composer / Author</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.composer || editingRelease.artist}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.composer || editingRelease.artist}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Executive Producer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.executiveProducer || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Producer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.producer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.producer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Mixing Engineer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.mixingEngineer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.mixingEngineer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Mastering Engineer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.masteringEngineer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.masteringEngineer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Co-Producer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.coProducer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.coProducer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Assistant Producer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.assistantProducer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.assistantProducer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Engineer / Editing</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.engineer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.engineer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Mastering Studio</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.masteringStudio || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.masteringStudio || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Recording Engineer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.recordingEngineer || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.recordingEngineer || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Additional Production</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.additionalProduction || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.additionalProduction || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Recording Studio</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.recordingStudio || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.recordingStudio || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Keyboards</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.keyboards || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.keyboards || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Programming</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.programming || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.programming || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Bass</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.bass || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.bass || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Drums</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.drums || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.drums || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Guitars</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.guitars || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.guitars || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Organ</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.organ || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.organ || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Percussion</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.percussion || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.percussion || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Strings</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.strings || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.strings || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Additional Instrumentation</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.additionalInstrumentation || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.additionalInstrumentation || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Design/Art Direction</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.designArtDirection || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'YHWH MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Management</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.management || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.management || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Booking Agent</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.bookingAgent || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.bookingAgent || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Press Contact</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.pressContact || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.pressContact || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Primary Contact Email</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactEmail || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.primaryContactEmail || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Artist Email</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.artistEmail || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.artistEmail || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Primary Contact #</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.primaryContactNumber || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.primaryContactNumber || 'Not specified'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Secondary Contact #</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease.secondaryContactNumber || 'Not specified'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.secondaryContactNumber || 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
@@ -2970,7 +3237,7 @@ export default function DistributionPartnerDashboard() {
                   <button
                     onClick={() => {
                       // Save changes logic would go here
-                      console.log('Saving changes to release:', editingRelease.id);
+                      console.log('Saving changes to release:', editingRelease?.id);
                       setShowEditModal(false);
                       setEditingRelease(null);
                     }}
@@ -2987,6 +3254,118 @@ export default function DistributionPartnerDashboard() {
                   >
                     Cancel
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profile Settings Modal */}
+        {showProfileModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Profile Settings</h2>
+                <button
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    setIsEditingProfile(false);
+                    setEditProfileData({ ...profileData });
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <FaTimes className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Profile Content */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
+                    {!isEditingProfile ? (
+                      <button
+                        onClick={() => setIsEditingProfile(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Edit Profile
+                      </button>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleProfileSave}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleProfileCancel}
+                          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        First Name
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="text"
+                          value={editProfileData.firstName}
+                          onChange={(e) => setEditProfileData({ ...editProfileData, firstName: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <p className="text-gray-900 py-2">{profileData.firstName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Last Name
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="text"
+                          value={editProfileData.lastName}
+                          onChange={(e) => setEditProfileData({ ...editProfileData, lastName: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <p className="text-gray-900 py-2">{profileData.lastName}</p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="email"
+                          value={editProfileData.email}
+                          onChange={(e) => setEditProfileData({ ...editProfileData, email: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <p className="text-gray-900 py-2">{profileData.email}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Company Information</h4>
+                      <p className="text-sm text-gray-600">Code Group</p>
+                      <p className="text-sm text-gray-600">Distribution Partner</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

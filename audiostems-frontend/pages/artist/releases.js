@@ -6,7 +6,7 @@ import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEd
 import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
 import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
-import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, isStatusEditableByArtist, isStatusRequiringApproval } from '../../lib/constants';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon, isStatusEditableByArtist, isStatusRequiringApproval } from '../../lib/constants';
 
 /*
  * Distribution Partner Workflow:
@@ -30,7 +30,7 @@ const mockReleases = [
     genre: 'Electronic',
     status: 'submitted',
     submissionDate: '2024-01-15',
-    expectedReleaseDate: '2024-02-15',
+    expectedReleaseDate: '2025-03-15',
     assets: 4,
     earnings: 2340,
     streams: 45678,
@@ -61,7 +61,7 @@ const mockReleases = [
     genre: 'Hip Hop',
     status: 'under_review',
     submissionDate: '2024-01-12',
-    expectedReleaseDate: '2024-03-20',
+    expectedReleaseDate: '2025-02-20',
     assets: 6,
     earnings: 0,
     streams: 0,
@@ -90,7 +90,7 @@ const mockReleases = [
     genre: 'Acoustic',
     status: 'draft',
     submissionDate: '2024-01-10',
-    expectedReleaseDate: '2024-02-01',
+    expectedReleaseDate: '2025-04-01',
     assets: 1,
     earnings: 0,
     streams: 0,
@@ -116,7 +116,7 @@ const mockReleases = [
     genre: 'Hip Hop',
     status: 'draft',
     submissionDate: '2024-01-08',
-    expectedReleaseDate: '2024-02-20',
+    expectedReleaseDate: '2025-05-20',
     assets: 3,
     earnings: 0,
     streams: 0,
@@ -144,7 +144,7 @@ const mockReleases = [
     genre: 'Electronic',
     status: 'completed',
     submissionDate: '2024-01-05',
-    expectedReleaseDate: '2024-01-15',
+    expectedReleaseDate: '2025-06-15',
     assets: 8,
     earnings: 5670,
     streams: 89012,
@@ -171,7 +171,7 @@ const mockReleases = [
     genre: 'Pop',
     status: 'live',
     submissionDate: '2024-01-03',
-    expectedReleaseDate: '2024-01-10',
+    expectedReleaseDate: '2025-07-10',
     assets: 1,
     earnings: 1234,
     streams: 15678,
@@ -196,7 +196,7 @@ const mockReleases = [
     genre: 'Hip Hop',
     status: 'completed',
     submissionDate: '2023-11-20',
-    expectedReleaseDate: '2024-01-10',
+    expectedReleaseDate: '2025-07-10',
     actualReleaseDate: '2024-01-10',
     assets: 3,
     earnings: 890,
@@ -281,7 +281,7 @@ const mockReleases = [
     genre: 'Electronic',
     status: RELEASE_STATUSES.APPROVAL_REQUIRED,
     submissionDate: '2024-01-15',
-    expectedReleaseDate: '2024-03-01',
+    expectedReleaseDate: '2025-08-01',
     musicFiles: ['track1.wav', 'track2.wav', 'track3.wav'],
     artworkFile: 'ep-cover.jpg',
     trackListing: [
@@ -746,22 +746,22 @@ export default function ArtistReleases() {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Earnings:</span>
-                      <span className="font-medium text-green-600">${release.earnings.toLocaleString()}</span>
+                      <span className="font-medium text-green-600">${(release.earnings || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Streams:</span>
-                      <span className="font-medium">{release.streams.toLocaleString()}</span>
+                      <span className="font-medium">{(release.streams || 0).toLocaleString()}</span>
                     </div>
                   </>
                 )}
                 {release.expectedReleaseDate && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Release Date:</span>
+                    <span className="text-gray-600">Expected:</span>
                     <span className="font-medium">{new Date(release.expectedReleaseDate).toLocaleDateString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Updated:</span>
+                  <span className="text-gray-600">Last Updated:</span>
                   <span className="font-medium">{new Date(release.lastUpdated).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -937,18 +937,18 @@ export default function ArtistReleases() {
       <div>
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Release Status Overview</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
             {statusItems.map((item) => (
               <div 
                 key={item.status} 
-                className={`bg-white rounded-lg shadow p-4 text-center relative cursor-pointer transition-all duration-200 ${
+                className={`bg-white rounded-lg shadow p-3 text-center relative cursor-pointer transition-all duration-200 ${
                   hoveredStatus === item.status 
                     ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' 
                     : 'hover:shadow-lg'
                 }`}
                 onMouseEnter={() => setHoveredStatus(item.status)}
               >
-                <div className={`w-12 h-12 ${item.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl`}>
+                <div className={`w-8 h-8 ${item.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white text-sm`}>
                   {getStatusIcon(item.status)}
                 </div>
                 <h3 className="font-semibold text-gray-900">{item.label}</h3>
@@ -991,11 +991,12 @@ export default function ArtistReleases() {
                     </>
                   ) : (
                     <>
-                      <p>Earnings: ${release.earnings.toLocaleString()}</p>
-                      <p>Streams: {release.streams.toLocaleString()}</p>
+                      <p>Earnings: ${(release.earnings || 0).toLocaleString()}</p>
+                      <p>Streams: {(release.streams || 0).toLocaleString()}</p>
                     </>
                   )}
                   <p>Expected: {release.expectedReleaseDate ? new Date(release.expectedReleaseDate).toLocaleDateString() : 'TBD'}</p>
+                  <p>Last Updated: {new Date(release.lastUpdated).toLocaleDateString()}</p>
                 </div>
                 
                 <div className="mt-4 flex space-x-2">
@@ -1193,7 +1194,10 @@ export default function ArtistReleases() {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-gray-900">{release.projectName}</h4>
-                  <p className="text-sm text-gray-600">{release.artist} • {release.releaseType}</p>
+                  <p className="text-sm text-gray-600">{release.artist} • {release.releaseType} • {release.genre}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Number of Tracks: {release.trackListing.length} • Last Updated: {new Date(release.lastUpdated).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">
@@ -1328,6 +1332,64 @@ export default function ArtistReleases() {
               </div>
             </div>
           ))}
+        
+        {filteredReleases.filter(release => release.expectedReleaseDate && new Date(release.expectedReleaseDate) > new Date()).length === 0 && (
+          <div className="text-center py-6">
+            <p className="text-gray-500">No upcoming releases scheduled</p>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Releases */}
+      <div className="space-y-4 mt-8">
+        <h3 className="text-lg font-semibold text-gray-900">Recent Releases (Last 6 Months)</h3>
+        {filteredReleases
+          .filter(release => {
+            if (!release.expectedReleaseDate) return false;
+            const releaseDate = new Date(release.expectedReleaseDate);
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            return releaseDate <= new Date() && releaseDate >= sixMonthsAgo;
+          })
+          .sort((a, b) => new Date(b.expectedReleaseDate) - new Date(a.expectedReleaseDate))
+          .map((release) => (
+            <div key={release.id} className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">{release.projectName}</h4>
+                  <p className="text-sm text-gray-600">{release.artist} • {release.releaseType} • {release.genre}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Number of Tracks: {release.trackListing.length} • Last Updated: {new Date(release.lastUpdated).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">
+                    Released: {new Date(release.expectedReleaseDate).toLocaleDateString()}
+                  </p>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
+                    {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                  </span>
+                  {(release.earnings || release.streams) && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      ${(release.earnings || 0).toLocaleString()} • {(release.streams || 0).toLocaleString()} streams
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        
+        {filteredReleases.filter(release => {
+          if (!release.expectedReleaseDate) return false;
+          const releaseDate = new Date(release.expectedReleaseDate);
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+          return releaseDate <= new Date() && releaseDate >= sixMonthsAgo;
+        }).length === 0 && (
+          <div className="text-center py-6">
+            <p className="text-gray-500">No recent releases in the last 6 months</p>
+          </div>
+        )}
       </div>
     </div>
   );

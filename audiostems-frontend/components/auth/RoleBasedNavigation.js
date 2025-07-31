@@ -33,9 +33,7 @@ export default function RoleBasedNavigation() {
       fetch('/api/artist/get-profile')
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            setProfileData(data.profile);
-          }
+          setProfileData(data);
         })
         .catch(err => console.error('Error fetching profile:', err));
     }
@@ -80,14 +78,16 @@ export default function RoleBasedNavigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <img
-                src="/logos/msc-logo.png"
-                alt="MSC & Co"
-                className="h-8 w-auto"
-                onError={(e) => {
-                  e.target.src = '/logos/msc-logo.svg';
-                }}
-              />
+              <Link href="/distribution-partner">
+                <img
+                  src="/logos/msc-logo.png"
+                  alt="MSC & Co"
+                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  onError={(e) => {
+                    e.target.src = '/logos/msc-logo.svg';
+                  }}
+                />
+              </Link>
             </div>
 
             {/* Center Navigation */}
@@ -97,19 +97,19 @@ export default function RoleBasedNavigation() {
                   href="/distribution-partner/dashboard"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Dashboard
+                  Content Management
                 </Link>
                 <Link
-                  href="/distribution-partner/releases"
+                  href="/partner/analytics"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  All Releases
+                  Analytics
                 </Link>
                 <Link
-                  href="/distribution-partner/sync-board"
+                  href="/partner/reports"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Sync Board
+                  Earnings
                 </Link>
               </div>
             </div>
@@ -132,6 +132,18 @@ export default function RoleBasedNavigation() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/partner/analytics"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Analytics
+                    </Link>
+                    <Link
+                      href="/partner/reports"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Earnings
                     </Link>
                     <Link
                       href="/billing"
@@ -457,11 +469,11 @@ export default function RoleBasedNavigation() {
         <div className="flex-1 flex justify-center">
           <Link href="/dashboard" className="flex items-center">
             <img 
-              src="/logos/msc-logo.png" 
-              alt="MSC & Co" 
+              src="/logos/yhwh-msc-logo.png" 
+              alt="YHWH MSC" 
               className="h-8 w-auto"
               onError={(e) => {
-                e.target.src = '/logos/msc-logo.svg';
+                e.target.src = '/logos/yhwh-msc-logo.svg';
                 e.target.onerror = () => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
@@ -485,9 +497,6 @@ export default function RoleBasedNavigation() {
           )}
 
           <div className="flex items-center space-x-4">
-            <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900">
-              Prices
-            </Link>
             <Link href="/about" className="text-sm text-gray-500 hover:text-gray-900">
               About
             </Link>

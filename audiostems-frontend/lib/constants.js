@@ -1,5 +1,6 @@
 import { performancePricing, recordingPricing } from "@/pages/pricing";
 import { COMPANY_INFO } from "@/lib/brand-config";
+import { FileText, Send, Eye, Check, CheckCircle, Play } from 'lucide-react';
 
 // Company and platform constants
 export const COMPANY_NAME = COMPANY_INFO.name;
@@ -100,6 +101,26 @@ export const getStatusLabel = (status) => {
 // Helper function to get status color
 export const getStatusColor = (status) => {
   return RELEASE_STATUS_COLORS[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Helper function to get status icon
+export const getStatusIcon = (status) => {
+  switch (status) {
+    case RELEASE_STATUSES.DRAFT:
+      return <FileText className="w-4 h-4" />;
+    case RELEASE_STATUSES.SUBMITTED:
+      return <Send className="w-4 h-4" />;
+    case RELEASE_STATUSES.UNDER_REVIEW:
+      return <Eye className="w-4 h-4" />;
+    case RELEASE_STATUSES.APPROVAL_REQUIRED:
+      return <Check className="w-4 h-4" />;
+    case RELEASE_STATUSES.COMPLETED:
+      return <CheckCircle className="w-4 h-4" />;
+    case RELEASE_STATUSES.LIVE:
+      return <Play className="w-4 h-4" />;
+    default:
+      return <FileText className="w-4 h-4" />;
+  }
 };
 
 // Helper function to check if status is editable by artist

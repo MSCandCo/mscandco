@@ -261,7 +261,7 @@ export default function RoleBasedDashboard() {
               title: 'Content Management',
               description: 'Manage distributed content and releases',
               icon: '📁',
-              href: '/partner/content',
+              href: '/distribution-partner/dashboard',
               stats: { content: 234, releases: 45 }
             },
             {
@@ -272,11 +272,11 @@ export default function RoleBasedDashboard() {
               stats: { views: 56789, revenue: 23456 }
             },
             {
-              title: 'Reports',
-              description: 'Generate distribution reports',
-              icon: '📋',
+              title: 'Earnings',
+              description: 'View earnings from all distributed releases',
+              icon: '💰',
               href: '/partner/reports',
-              stats: { reports: 12, partners: 8 }
+              stats: { earnings: '$24,587', releases: 6 }
             }
           ]
         };

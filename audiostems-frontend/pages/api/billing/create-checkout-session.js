@@ -6,11 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { plan, billingCycle = 'monthly', customerId } = req.body;
-
-    if (!plan) {
-      return res.status(400).json({ message: 'Plan is required' });
-    }
+    const { plan, priceId, billingCycle = 'monthly', customerId, successUrl, cancelUrl } = req.body;
 
     // Check if Stripe is configured
     if (!STRIPE_CONFIG.isConfigured) {
@@ -19,17 +15,28 @@ export default async function handler(req, res) {
       });
     }
 
-    const priceId = getPriceId(plan, billingCycle);
+    // Support both priceId (direct) and plan (lookup) approaches
+    let finalPriceId;
     
-    if (!priceId) {
+    if (priceId) {
+      // If priceId is provided directly, use the lookup function
+      finalPriceId = getPriceId(priceId, billingCycle);
+    } else if (plan) {
+      // Legacy support for plan parameter
+      finalPriceId = getPriceId(plan, billingCycle);
+    } else {
+      return res.status(400).json({ message: 'Plan or priceId is required' });
+    }
+    
+    if (!finalPriceId) {
       return res.status(400).json({ message: 'Invalid plan or billing cycle' });
     }
 
     const session = await createCheckoutSession(
-      priceId,
+      finalPriceId,
       customerId, // Can be null for new customers
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/billing?success=true`,
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/billing?canceled=true`
+      successUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/billing?success=true`,
+      cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/billing?canceled=true`
     );
 
     res.status(200).json({ url: session.url });
