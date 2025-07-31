@@ -123,7 +123,7 @@ export default function PartnerAnalytics() {
     { id: 'remixes', name: 'Remixes' }
   ];
 
-  // Comprehensive analytics data
+  // Comprehensive analytics data with Other Platforms
   const platformData = {
     spotify: { name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954' },
     apple: { name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C' },
@@ -131,7 +131,15 @@ export default function PartnerAnalytics() {
     amazon: { name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900' },
     deezer: { name: 'Deezer', streams: 187634, revenue: 750.54, growth: 9.3, color: '#FEAA2D' },
     tidal: { name: 'TIDAL', streams: 98234, revenue: 392.94, growth: 7.1, color: '#000000' },
-    soundcloud: { name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300' }
+    soundcloud: { name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300' },
+    other: { 
+      name: 'Other Platforms', 
+      streams: 245678, 
+      revenue: 1123.45, 
+      growth: 11.2, 
+      color: '#6B7280',
+      description: 'Includes Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, and 15+ other services'
+    }
   };
 
   const countryData = {
@@ -506,31 +514,52 @@ export default function PartnerAnalytics() {
                 {/* Platform Multi-Select */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Platforms</label>
-                  <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                  <div className="max-h-36 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                    {/* All Platforms Option */}
+                    <label className="flex items-center p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                      <input
+                        type="checkbox"
+                        checked={selectedPlatforms.includes('all')}
+                        onChange={(e) => {
+                          setSelectedPlatforms(e.target.checked ? ['all'] : []);
+                        }}
+                        className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="w-3 h-3 rounded-full mr-2 inline-block bg-blue-500"></span>
+                      <span className="text-sm font-medium">All Platforms</span>
+                    </label>
+                    
+                    {/* Individual Platform Options */}
                     {Object.entries(platformData).map(([key, platform]) => (
-                      <label key={key} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                      <label key={key} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer group">
                         <input
                           type="checkbox"
                           checked={selectedPlatforms.includes('all') || selectedPlatforms.includes(key)}
                           onChange={(e) => {
-                            if (key === 'all') {
-                              setSelectedPlatforms(e.target.checked ? ['all'] : []);
-                            } else {
-                              setSelectedPlatforms(prev => {
-                                const filtered = prev.filter(p => p !== 'all');
-                                if (e.target.checked) {
-                                  return [...filtered, key];
-                                } else {
-                                  return filtered.filter(p => p !== key);
-                                }
-                              });
-                            }
+                            setSelectedPlatforms(prev => {
+                              const filtered = prev.filter(p => p !== 'all');
+                              if (e.target.checked) {
+                                return [...filtered, key];
+                              } else {
+                                return filtered.filter(p => p !== key);
+                              }
+                            });
                           }}
                           className="mr-2 rounded text-blue-600 focus:ring-blue-500"
                         />
-                        <span style={{ color: platform.color }} className="w-3 h-3 rounded-full mr-2 inline-block" 
+                        <span className="w-3 h-3 rounded-full mr-2 inline-block" 
                               style={{ backgroundColor: platform.color }}></span>
-                        <span className="text-sm">{platform.name}</span>
+                        <div className="flex-1">
+                          <span className="text-sm">{platform.name}</span>
+                          {key === 'other' && (
+                            <div className="text-xs text-gray-500 mt-1 group-hover:text-gray-700">
+                              {platform.description}
+                            </div>
+                          )}
+                        </div>
+                        {key === 'other' && (
+                          <span className="text-xs text-gray-400 ml-2">20+</span>
+                        )}
                       </label>
                     ))}
                   </div>

@@ -97,6 +97,50 @@ export const RELEASE_TYPES = [
   'Soundtrack'
 ];
 
+// Standardized streaming platforms for the entire application
+export const STREAMING_PLATFORMS = {
+  SPOTIFY: 'spotify',
+  APPLE_MUSIC: 'apple_music',
+  YOUTUBE_MUSIC: 'youtube_music',
+  AMAZON_MUSIC: 'amazon_music',
+  DEEZER: 'deezer',
+  TIDAL: 'tidal',
+  SOUNDCLOUD: 'soundcloud',
+  OTHER: 'other_platforms'
+};
+
+export const STREAMING_PLATFORM_LABELS = {
+  [STREAMING_PLATFORMS.SPOTIFY]: 'Spotify',
+  [STREAMING_PLATFORMS.APPLE_MUSIC]: 'Apple Music',
+  [STREAMING_PLATFORMS.YOUTUBE_MUSIC]: 'YouTube Music',
+  [STREAMING_PLATFORMS.AMAZON_MUSIC]: 'Amazon Music',
+  [STREAMING_PLATFORMS.DEEZER]: 'Deezer',
+  [STREAMING_PLATFORMS.TIDAL]: 'TIDAL',
+  [STREAMING_PLATFORMS.SOUNDCLOUD]: 'SoundCloud',
+  [STREAMING_PLATFORMS.OTHER]: 'Other Platforms'
+};
+
+export const STREAMING_PLATFORM_COLORS = {
+  [STREAMING_PLATFORMS.SPOTIFY]: '#1DB954',
+  [STREAMING_PLATFORMS.APPLE_MUSIC]: '#FA243C',
+  [STREAMING_PLATFORMS.YOUTUBE_MUSIC]: '#FF0000',
+  [STREAMING_PLATFORMS.AMAZON_MUSIC]: '#FF9900',
+  [STREAMING_PLATFORMS.DEEZER]: '#FEAA2D',
+  [STREAMING_PLATFORMS.TIDAL]: '#000000',
+  [STREAMING_PLATFORMS.SOUNDCLOUD]: '#FF3300',
+  [STREAMING_PLATFORMS.OTHER]: '#6B7280'
+};
+
+export const OTHER_PLATFORMS_DESCRIPTION = 'Includes Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, JioSaavn, Anghami, Boomplay, NetEase, QQ Music, KKBox, Joox, Yandex Music, VK Music, Gaana, Wynk, Saavn, Hungama, TikTok Music, Instagram Music, Facebook Music, and 15+ other streaming services worldwide';
+
+export const OTHER_PLATFORMS_LIST = [
+  'Pandora', 'iHeartRadio', 'Napster', 'Audiomack', 'Bandcamp', 
+  'JioSaavn', 'Anghami', 'Boomplay', 'NetEase', 'QQ Music', 
+  'KKBox', 'Joox', 'Yandex Music', 'VK Music', 'Gaana', 
+  'Wynk', 'Saavn', 'Hungama', 'TikTok Music', 'Instagram Music', 
+  'Facebook Music', 'Shazam', 'MusicMatch', 'Last.fm', 'Groove Music'
+];
+
 // Helper function to get status label
 export const getStatusLabel = (status) => {
   return RELEASE_STATUS_LABELS[status] || status;

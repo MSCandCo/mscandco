@@ -106,7 +106,7 @@ export default function PartnerReports() {
     }
   };
 
-  // Platform earnings breakdown
+  // Platform earnings breakdown with Other Platforms
   const platformEarnings = {
     spotify: { 
       name: 'Spotify', 
@@ -115,7 +115,7 @@ export default function PartnerReports() {
       growth: 18.5, 
       color: '#1DB954',
       royaltyRate: 0.004,
-      marketShare: 40.2
+      marketShare: 35.8
     },
     apple: { 
       name: 'Apple Music', 
@@ -124,7 +124,7 @@ export default function PartnerReports() {
       growth: 22.3, 
       color: '#FA243C',
       royaltyRate: 0.0045,
-      marketShare: 29.4
+      marketShare: 26.3
     },
     youtube: { 
       name: 'YouTube Music', 
@@ -133,7 +133,7 @@ export default function PartnerReports() {
       growth: 15.7, 
       color: '#FF0000',
       royaltyRate: 0.003,
-      marketShare: 14.1
+      marketShare: 12.6
     },
     amazon: { 
       name: 'Amazon Music', 
@@ -142,7 +142,7 @@ export default function PartnerReports() {
       growth: 12.8, 
       color: '#FF9900',
       royaltyRate: 0.004,
-      marketShare: 9.5
+      marketShare: 8.5
     },
     deezer: { 
       name: 'Deezer', 
@@ -151,7 +151,7 @@ export default function PartnerReports() {
       growth: 9.2, 
       color: '#FEAA2D',
       royaltyRate: 0.0035,
-      marketShare: 5.0
+      marketShare: 4.5
     },
     tidal: { 
       name: 'TIDAL', 
@@ -160,7 +160,18 @@ export default function PartnerReports() {
       growth: 7.4, 
       color: '#000000',
       royaltyRate: 0.0052,
-      marketShare: 1.9
+      marketShare: 1.7
+    },
+    other: { 
+      name: 'Other Platforms', 
+      earnings: 2987.58, 
+      streams: 876543, 
+      growth: 13.6, 
+      color: '#6B7280',
+      royaltyRate: 0.0034,
+      marketShare: 10.6,
+      description: 'Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, and 15+ other services',
+      platforms: ['Pandora', 'iHeartRadio', 'Napster', 'Audiomack', 'Bandcamp', 'JioSaavn', 'Anghami', 'Boomplay', 'NetEase', 'QQ Music', 'KKBox', 'Joox', 'Yandex Music', 'VK Music', 'Gaana', 'Wynk', 'Saavn', 'Hungama', 'TikTok Music', 'Instagram Music', 'Facebook Music']
     }
   };
 
@@ -174,7 +185,7 @@ export default function PartnerReports() {
     performanceEarnings: [187.10, 187.10, 242.34, 264.00, 220.74, 244.59]
   };
 
-  // Artist earnings breakdown
+  // Artist earnings breakdown with Other Platforms
   const artistEarningsData = [
     {
       artist: 'YHWH MSC',
@@ -187,9 +198,20 @@ export default function PartnerReports() {
         apple: 3456.78,
         youtube: 2134.56,
         amazon: 987.65,
-        other: 532.12
+        deezer: 423.89,
+        tidal: 198.77,
+        soundcloud: 267.34,
+        other: 642.12
       },
-      growth: 24.5
+      growth: 24.5,
+      otherPlatformBreakdown: {
+        pandora: 156.78,
+        iheart: 123.45,
+        napster: 89.67,
+        audiomack: 67.89,
+        bandcamp: 45.23,
+        others: 159.10
+      }
     },
     {
       artist: 'Audio MSC',
@@ -202,9 +224,20 @@ export default function PartnerReports() {
         apple: 2456.78,
         youtube: 1523.67,
         amazon: 678.90,
-        other: 316.63
+        deezer: 287.45,
+        tidal: 134.56,
+        soundcloud: 178.92,
+        other: 415.70
       },
-      growth: 19.2
+      growth: 19.2,
+      otherPlatformBreakdown: {
+        pandora: 98.45,
+        iheart: 87.23,
+        napster: 65.34,
+        audiomack: 54.21,
+        bandcamp: 32.18,
+        others: 78.29
+      }
     },
     {
       artist: 'Independent Artists',
@@ -217,13 +250,24 @@ export default function PartnerReports() {
         apple: 976.32,
         youtube: 634.21,
         amazon: 234.56,
-        other: 108.06
+        deezer: 123.45,
+        tidal: 67.89,
+        soundcloud: 89.12,
+        other: 127.60
       },
-      growth: 16.8
+      growth: 16.8,
+      otherPlatformBreakdown: {
+        pandora: 34.56,
+        iheart: 29.78,
+        napster: 21.34,
+        audiomack: 18.67,
+        bandcamp: 11.25,
+        others: 12.00
+      }
     }
   ];
 
-  // Detailed mock earnings data for export
+  // Detailed mock earnings data for export with Other Platforms
   const detailedEarningsData = [
     {
       month: 'January 2024',
@@ -268,46 +312,49 @@ export default function PartnerReports() {
       totalEarnings: 492.72
     },
     {
-      month: 'February 2024',
-      artist: 'Independent Artists',
-      release: 'Rock Anthem',
-      track: 'Thunder Road',
-      platform: 'Amazon Music',
-      streams: 23567,
-      downloads: 345,
-      streamingRevenue: 94.27,
-      downloadRevenue: 345.00,
-      mechanicalRevenue: 28.40,
-      performanceRevenue: 41.80,
-      totalEarnings: 509.47
-    },
-    {
-      month: 'March 2024',
-      artist: 'Audio MSC',
-      release: 'Electronic Fusion EP',
-      track: 'Digital Dreams',
-      platform: 'Deezer',
-      streams: 34567,
-      downloads: 278,
-      streamingRevenue: 138.27,
-      downloadRevenue: 278.00,
-      mechanicalRevenue: 41.50,
-      performanceRevenue: 55.20,
-      totalEarnings: 512.97
-    },
-    {
       month: 'March 2024',
       artist: 'YHWH MSC',
-      release: 'Midnight Sessions',
-      track: 'Eternal Night',
-      platform: 'Spotify',
-      streams: 56789,
-      downloads: 234,
-      streamingRevenue: 227.16,
-      downloadRevenue: 234.00,
-      mechanicalRevenue: 62.10,
-      performanceRevenue: 89.30,
-      totalEarnings: 612.56
+      release: 'Lost in Time - Single',
+      track: 'Lost in Time',
+      platform: 'Other Platforms',
+      streams: 18234,
+      downloads: 145,
+      streamingRevenue: 156.78,
+      downloadRevenue: 145.00,
+      mechanicalRevenue: 28.90,
+      performanceRevenue: 34.50,
+      totalEarnings: 365.18,
+      platformBreakdown: 'Pandora (35%), iHeartRadio (25%), Napster (15%), Audiomack (10%), Others (15%)'
+    },
+    {
+      month: 'April 2024',
+      artist: 'Audio MSC',
+      release: 'Summer Vibes EP',
+      track: 'Beach Dreams',
+      platform: 'Other Platforms',
+      streams: 12456,
+      downloads: 89,
+      streamingRevenue: 98.45,
+      downloadRevenue: 89.00,
+      mechanicalRevenue: 19.60,
+      performanceRevenue: 23.40,
+      totalEarnings: 230.45,
+      platformBreakdown: 'Pandora (40%), iHeartRadio (20%), Bandcamp (15%), Audiomack (12%), Others (13%)'
+    },
+    {
+      month: 'May 2024',
+      artist: 'Independent Artists',
+      release: 'Indie Collection',
+      track: 'Thunder Road',
+      platform: 'Other Platforms',
+      streams: 8934,
+      downloads: 56,
+      streamingRevenue: 67.89,
+      downloadRevenue: 56.00,
+      mechanicalRevenue: 14.20,
+      performanceRevenue: 16.80,
+      totalEarnings: 154.89,
+      platformBreakdown: 'Bandcamp (45%), Audiomack (20%), Napster (15%), iHeartRadio (10%), Others (10%)'
     }
   ];
 
@@ -334,6 +381,18 @@ export default function PartnerReports() {
     { id: 'albums', name: 'Albums' },
     { id: 'eps', name: 'EPs' },
     { id: 'remixes', name: 'Remixes' }
+  ];
+
+  const mockPlatforms = [
+    { id: 'all', name: 'All Platforms' },
+    { id: 'spotify', name: 'Spotify' },
+    { id: 'apple', name: 'Apple Music' },
+    { id: 'youtube', name: 'YouTube Music' },
+    { id: 'amazon', name: 'Amazon Music' },
+    { id: 'deezer', name: 'Deezer' },
+    { id: 'tidal', name: 'TIDAL' },
+    { id: 'soundcloud', name: 'SoundCloud' },
+    { id: 'other', name: 'Other Platforms' }
   ];
 
   // Filter and search functions
@@ -1033,9 +1092,9 @@ export default function PartnerReports() {
             </div>
             
             {/* Platform Details Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {Object.entries(platformEarnings).map(([key, platform]) => (
-                <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div key={key} className={`bg-gray-50 rounded-lg p-4 border border-gray-200 ${key === 'other' ? 'md:col-span-2 lg:col-span-1 xl:col-span-2' : ''}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div 
@@ -1043,11 +1102,17 @@ export default function PartnerReports() {
                         style={{ backgroundColor: platform.color }}
                       ></div>
                       <span className="font-medium text-gray-900">{platform.name}</span>
+                      {key === 'other' && (
+                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                          {platform.platforms?.length}+ services
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
                       +{platform.growth}%
                     </span>
                   </div>
+                  
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Earnings:</span>
@@ -1066,6 +1131,23 @@ export default function PartnerReports() {
                       <span className="font-medium">{platform.marketShare}%</span>
                     </div>
                   </div>
+
+                  {/* Other Platforms Breakdown */}
+                  {key === 'other' && platform.platforms && (
+                    <div className="mt-4 pt-3 border-t border-gray-300">
+                      <h5 className="text-xs font-medium text-gray-700 mb-2">Includes:</h5>
+                      <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                        {platform.platforms.slice(0, 10).map((p, index) => (
+                          <div key={index} className="truncate">• {p}</div>
+                        ))}
+                        {platform.platforms.length > 10 && (
+                          <div className="text-gray-500 italic col-span-2 text-center pt-1">
+                            +{platform.platforms.length - 10} more platforms
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
