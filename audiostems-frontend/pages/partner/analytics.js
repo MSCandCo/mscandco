@@ -8,6 +8,12 @@ export default function PartnerAnalytics() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('all-time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  
+  // Filter states
+  const [selectedArtist, setSelectedArtist] = useState('all');
+  const [selectedRelease, setSelectedRelease] = useState('all');
+  const [selectedAsset, setSelectedAsset] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (isLoading) {
     return (
@@ -55,6 +61,31 @@ export default function PartnerAnalytics() {
     }).format(amount);
   };
 
+  // Mock data for filters
+  const mockArtists = [
+    { id: 'all', name: 'All Artists' },
+    { id: 'yhwh_msc', name: 'YHWH MSC' },
+    { id: 'audio_msc', name: 'Audio MSC' },
+    { id: 'independent', name: 'Independent Artists' }
+  ];
+
+  const mockReleases = [
+    { id: 'all', name: 'All Releases' },
+    { id: 'midnight_sessions', name: 'Midnight Sessions' },
+    { id: 'summer_vibes', name: 'Summer Vibes' },
+    { id: 'urban_beats', name: 'Urban Beats Collection' },
+    { id: 'rock_anthem', name: 'Rock Anthem' },
+    { id: 'electronic_fusion', name: 'Electronic Fusion EP' }
+  ];
+
+  const mockAssets = [
+    { id: 'all', name: 'All Assets/Tracks' },
+    { id: 'singles', name: 'Singles' },
+    { id: 'albums', name: 'Albums' },
+    { id: 'eps', name: 'EPs' },
+    { id: 'remixes', name: 'Remixes' }
+  ];
+
   // Simple mock data
   const analyticsData = {
     totalReleases: 6,
@@ -62,6 +93,26 @@ export default function PartnerAnalytics() {
     totalDownloads: 45827,
     totalRevenue: 12450.75,
     monthlyGrowth: 18.5
+  };
+
+  // Filter and search functions
+  const clearAllFilters = () => {
+    setSelectedArtist('all');
+    setSelectedRelease('all');
+    setSelectedAsset('all');
+    setSearchQuery('');
+  };
+
+  const applyFilters = () => {
+    console.log('Applying filters:', {
+      artist: selectedArtist,
+      release: selectedRelease,
+      asset: selectedAsset,
+      search: searchQuery,
+      timeframe: selectedTimeframe,
+      customDates: selectedTimeframe === 'custom' ? { start: customStartDate, end: customEndDate } : null
+    });
+    // Here you would typically call your API with the filter parameters
   };
 
   return (
@@ -131,6 +182,110 @@ export default function PartnerAnalytics() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Filters Section */}
+          <div className="mb-6 bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Search</h3>
+            
+            {/* Search Field */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search releases, artists, or tracks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Artist Filter */}
+              <div>
+                <label htmlFor="artist-filter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by Artist
+                </label>
+                <select
+                  id="artist-filter"
+                  value={selectedArtist}
+                  onChange={(e) => setSelectedArtist(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {mockArtists.map((artist) => (
+                    <option key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Release Filter */}
+              <div>
+                <label htmlFor="release-filter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by Release
+                </label>
+                <select
+                  id="release-filter"
+                  value={selectedRelease}
+                  onChange={(e) => setSelectedRelease(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {mockReleases.map((release) => (
+                    <option key={release.id} value={release.id}>
+                      {release.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Asset/Track Filter */}
+              <div>
+                <label htmlFor="asset-filter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by Asset Type
+                </label>
+                <select
+                  id="asset-filter"
+                  value={selectedAsset}
+                  onChange={(e) => setSelectedAsset(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {mockAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Filter Actions */}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={applyFilters}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Apply Filters
+              </button>
+              <button
+                onClick={clearAllFilters}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Clear All
+              </button>
+              <div className="text-sm text-gray-500">
+                {(selectedArtist !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) && (
+                  <span>
+                    Filters active: {[
+                      selectedArtist !== 'all' && 'Artist',
+                      selectedRelease !== 'all' && 'Release', 
+                      selectedAsset !== 'all' && 'Asset',
+                      searchQuery && 'Search'
+                    ].filter(Boolean).join(', ')}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
