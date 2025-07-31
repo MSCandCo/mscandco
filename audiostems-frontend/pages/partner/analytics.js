@@ -50,7 +50,7 @@ export default function PartnerAnalytics() {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   const [viewMode, setViewMode] = useState('overview'); // overview, detailed, comparison
   const [chartType, setChartType] = useState('line');
-  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(false);
+
   
   // Comparison mode specific states
   const [comparisonType, setComparisonType] = useState('industry');
@@ -512,18 +512,7 @@ export default function PartnerAnalytics() {
                   <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 animate-pulse"></span>
                   Advanced Analytics Filters
                 </h3>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setIsRealTimeEnabled(!isRealTimeEnabled)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all duration-200 ${
-                      isRealTimeEnabled 
-                        ? 'bg-green-100 text-green-800 border-green-300' 
-                        : 'bg-gray-100 text-gray-600 border-gray-300'
-                    }`}
-                  >
-                    {isRealTimeEnabled ? '🟢 Real-time' : '⚪ Static'}
-                  </button>
-                </div>
+
               </div>
             </div>
 
@@ -858,10 +847,7 @@ export default function PartnerAnalytics() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Platform Performance</h3>
-                <div className="flex items-center space-x-2">
-                  <span className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-                  <span className="text-xs text-gray-500">{isRealTimeEnabled ? 'Live' : 'Static'}</span>
-                </div>
+
               </div>
               <div className="h-80">
                 {chartType === 'bar' && <Bar data={platformChartData} options={chartOptions} />}
