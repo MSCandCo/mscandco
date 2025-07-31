@@ -54,6 +54,13 @@ export default function RoleBasedNavigation() {
     return user.email || 'User';
   };
 
+  const getDistributionPartnerDisplayName = () => {
+    if (profileData?.firstName) {
+      return `${profileData.firstName} from Code Group`;
+    }
+    return `${user.email || 'User'} from Code Group`;
+  };
+
   const handleLogout = () => {
     setIsDropdownOpen(false);
     logout({
@@ -121,7 +128,7 @@ export default function RoleBasedNavigation() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <span className="text-gray-700">Hi, {getDistributionPartnerDisplayName()}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
