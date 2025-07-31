@@ -3701,18 +3701,18 @@ export default function DistributionPartnerDashboard() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-100">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-16">Position</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-1/2">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-20">Duration</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">ISRC</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {editingRelease?.trackListing?.map((track, index) => (
                           <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-gray-900 font-medium">{index + 1}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900">{track.title}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900">{track.duration}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 font-medium w-16">{index + 1}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 w-1/2 break-words">{track.title}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 w-20 whitespace-nowrap">{track.duration}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">
                               {editingIsrc?.releaseId === editingRelease.id && editingIsrc?.trackIndex === index ? (
                                 <div className="flex items-center space-x-1">
