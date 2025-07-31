@@ -619,6 +619,9 @@ export default function DistributionPartnerDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [releaseTypeFilter, setReleaseTypeFilter] = useState('all');
   
+  // Convert mockAllReleases to state for dynamic updates
+  const [allReleases, setAllReleases] = useState(mockAllReleases);
+  
   // ISRC editing state
   const [editingIsrc, setEditingIsrc] = useState(null); // { releaseId, trackIndex }
   const [tempIsrc, setTempIsrc] = useState('');
@@ -630,9 +633,53 @@ export default function DistributionPartnerDashboard() {
   };
   
   const saveIsrc = () => {
-    // In a real app, this would save to the backend
-    console.log('Saving ISRC:', tempIsrc, 'for release:', editingIsrc.releaseId, 'track:', editingIsrc.trackIndex);
-    // Here you would update the release data
+    if (!editingIsrc || !tempIsrc.trim()) return;
+    
+    // Update the release data
+    setAllReleases(prevReleases => 
+      prevReleases.map(release => {
+        if (release.id === editingIsrc.releaseId) {
+          // Update the track listing
+          const updatedTrackListing = release.trackListing.map((track, index) => {
+            if (index === editingIsrc.trackIndex) {
+              return { ...track, isrc: tempIsrc.trim() };
+            }
+            return track;
+          });
+          
+          return { ...release, trackListing: updatedTrackListing };
+        }
+        return release;
+      })
+    );
+    
+    // Update editingRelease if it's the same release being edited
+    if (editingRelease && editingRelease.id === editingIsrc.releaseId) {
+      setEditingRelease(prevEditingRelease => ({
+        ...prevEditingRelease,
+        trackListing: prevEditingRelease.trackListing.map((track, index) => {
+          if (index === editingIsrc.trackIndex) {
+            return { ...track, isrc: tempIsrc.trim() };
+          }
+          return track;
+        })
+      }));
+    }
+    
+    // Update selectedRelease if it's the same release being edited
+    if (selectedRelease && selectedRelease.id === editingIsrc.releaseId) {
+      setSelectedRelease(prevSelectedRelease => ({
+        ...prevSelectedRelease,
+        trackListing: prevSelectedRelease.trackListing.map((track, index) => {
+          if (index === editingIsrc.trackIndex) {
+            return { ...track, isrc: tempIsrc.trim() };
+          }
+          return track;
+        })
+      }));
+    }
+    
+    console.log('ISRC updated:', tempIsrc, 'for release:', editingIsrc.releaseId, 'track:', editingIsrc.trackIndex);
     setEditingIsrc(null);
     setTempIsrc('');
   };
@@ -661,9 +708,9 @@ export default function DistributionPartnerDashboard() {
   // Memoize displayed releases based on hovered status for Release Board
   const displayedReleasesForBoard = useMemo(() => {
     return hoveredStatus 
-      ? mockAllReleases.filter(release => release.status === hoveredStatus)
-      : mockAllReleases;
-  }, [hoveredStatus]);
+      ? allReleases.filter(release => release.status === hoveredStatus)
+      : allReleases;
+  }, [hoveredStatus, allReleases]);
 
   // Profile handlers
   const handleProfileSave = () => {
@@ -712,7 +759,7 @@ export default function DistributionPartnerDashboard() {
   }
 
   // Filter releases based on search and filters
-  const filteredReleases = mockAllReleases.filter(release => {
+  const filteredReleases = allReleases.filter(release => {
     const matchesSearch = release.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          release.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          release.label.toLowerCase().includes(searchTerm.toLowerCase());
@@ -956,12 +1003,12 @@ export default function DistributionPartnerDashboard() {
 
   const renderSyncBoard = () => {
     const statusItems = [
-      { status: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length, color: 'bg-yellow-500', icon: FileText },
-      { status: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length, color: 'bg-blue-500', icon: FileText },
-      { status: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length, color: 'bg-amber-500', icon: Eye },
-      { status: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length, color: 'bg-orange-500', icon: AlertCircle },
-      { status: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length, color: 'bg-green-500', icon: CheckCircle },
-      { status: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: mockAllReleases.filter(r => r.status === RELEASE_STATUSES.LIVE).length, color: 'bg-purple-500', icon: Play }
+      { status: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: allReleases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length, color: 'bg-yellow-500', icon: FileText },
+      { status: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length, color: 'bg-blue-500', icon: FileText },
+      { status: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: allReleases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length, color: 'bg-amber-500', icon: Eye },
+      { status: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length, color: 'bg-orange-500', icon: AlertCircle },
+      { status: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length, color: 'bg-green-500', icon: CheckCircle },
+      { status: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: allReleases.filter(r => r.status === RELEASE_STATUSES.LIVE).length, color: 'bg-purple-500', icon: Play }
     ];
 
     const getReleaseTypeColor = (type) => {
@@ -1229,7 +1276,7 @@ export default function DistributionPartnerDashboard() {
                       request.originalStatus === 'live' ? 'bg-purple-100 text-purple-800' :
                       'bg-amber-100 text-amber-800'
                     }`}>
-                      {request.originalStatus.replace('_', ' ')}
+                      {request.originalStatus ? request.originalStatus.replace('_', ' ') : 'N/A'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.requestDate}</td>
@@ -2285,7 +2332,7 @@ export default function DistributionPartnerDashboard() {
                             setUploadedData(null);
                             setUploadStatus(null);
                             // Reset the editing release to original data
-                            setEditingRelease(mockAllReleases.find(r => r.id === editingRelease?.id));
+                            setEditingRelease(allReleases.find(r => r.id === editingRelease?.id));
                             alert('Uploaded data cleared. Form reset to original values.');
                           }}
                           className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
