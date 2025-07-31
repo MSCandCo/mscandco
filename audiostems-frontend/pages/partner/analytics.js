@@ -1,7 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
+import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+  Filler
+);
 
 export default function PartnerAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -14,6 +43,14 @@ export default function PartnerAnalytics() {
   const [selectedRelease, setSelectedRelease] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Advanced filter states
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['all']);
+  const [selectedCountries, setSelectedCountries] = useState(['all']);
+  const [selectedMetric, setSelectedMetric] = useState('revenue');
+  const [viewMode, setViewMode] = useState('overview'); // overview, detailed, comparison
+  const [chartType, setChartType] = useState('line');
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(false);
 
   if (isLoading) {
     return (
@@ -86,13 +123,216 @@ export default function PartnerAnalytics() {
     { id: 'remixes', name: 'Remixes' }
   ];
 
-  // Simple mock data
-  const analyticsData = {
-    totalReleases: 6,
-    totalStreams: 2847293,
-    totalDownloads: 45827,
-    totalRevenue: 12450.75,
-    monthlyGrowth: 18.5
+  // Comprehensive analytics data
+  const platformData = {
+    spotify: { name: 'Spotify', streams: 1247893, revenue: 4991.57, growth: 23.4, color: '#1DB954' },
+    apple: { name: 'Apple Music', streams: 896547, revenue: 3586.19, growth: 18.7, color: '#FA243C' },
+    youtube: { name: 'YouTube Music', streams: 563721, revenue: 1691.16, growth: 15.2, color: '#FF0000' },
+    amazon: { name: 'Amazon Music', streams: 298456, revenue: 1194.18, growth: 12.8, color: '#FF9900' },
+    deezer: { name: 'Deezer', streams: 187634, revenue: 750.54, growth: 9.3, color: '#FEAA2D' },
+    tidal: { name: 'TIDAL', streams: 98234, revenue: 392.94, growth: 7.1, color: '#000000' },
+    soundcloud: { name: 'SoundCloud', streams: 156789, revenue: 471.67, growth: 14.6, color: '#FF3300' }
+  };
+
+  const countryData = {
+    us: { name: 'United States', streams: 1145632, revenue: 4582.53, percentage: 32.1 },
+    uk: { name: 'United Kingdom', streams: 523789, revenue: 2095.16, percentage: 14.7 },
+    canada: { name: 'Canada', streams: 398234, revenue: 1592.94, percentage: 11.2 },
+    germany: { name: 'Germany', streams: 456123, revenue: 1824.49, percentage: 12.8 },
+    france: { name: 'France', streams: 234567, revenue: 938.27, percentage: 6.6 },
+    australia: { name: 'Australia', streams: 198745, revenue: 794.98, percentage: 5.6 },
+    other: { name: 'Other Countries', streams: 612178, revenue: 2448.71, percentage: 17.0 }
+  };
+
+  const timeSeriesData = {
+    labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024'],
+    revenue: [8947.23, 9234.56, 10456.78, 11234.91, 12450.75, 13678.92],
+    streams: [1847293, 2134567, 2456789, 2678912, 2847293, 3123456],
+    downloads: [32847, 38456, 42789, 45827, 48234, 52678],
+    growth: [12.3, 15.7, 18.2, 21.4, 18.5, 16.8]
+  };
+
+  const artistPerformance = [
+    { artist: 'YHWH MSC', streams: 1234567, revenue: 4938.27, growth: 25.4, releases: 3, topTrack: 'Lost in Time' },
+    { artist: 'Audio MSC', streams: 987654, revenue: 3950.62, growth: 18.9, releases: 2, topTrack: 'Beach Dreams' },
+    { artist: 'Independent Artists', streams: 625072, revenue: 2500.29, growth: 22.1, releases: 1, topTrack: 'Thunder Road' }
+  ];
+
+  // Advanced filtering logic
+  const getFilteredData = useMemo(() => {
+    let filteredPlatforms = { ...platformData };
+    let filteredCountries = { ...countryData };
+    let filteredArtists = [...artistPerformance];
+
+    // Apply platform filters
+    if (!selectedPlatforms.includes('all')) {
+      const filtered = {};
+      selectedPlatforms.forEach(platform => {
+        if (filteredPlatforms[platform]) {
+          filtered[platform] = filteredPlatforms[platform];
+        }
+      });
+      filteredPlatforms = filtered;
+    }
+
+    // Apply country filters
+    if (!selectedCountries.includes('all')) {
+      const filtered = {};
+      selectedCountries.forEach(country => {
+        if (filteredCountries[country]) {
+          filtered[country] = filteredCountries[country];
+        }
+      });
+      filteredCountries = filtered;
+    }
+
+    // Apply artist filters
+    if (selectedArtist !== 'all') {
+      const artistMap = {
+        'yhwh_msc': 'YHWH MSC',
+        'audio_msc': 'Audio MSC',
+        'independent': 'Independent Artists'
+      };
+      filteredArtists = filteredArtists.filter(artist => 
+        artist.artist === artistMap[selectedArtist]
+      );
+    }
+
+    return { filteredPlatforms, filteredCountries, filteredArtists };
+  }, [selectedPlatforms, selectedCountries, selectedArtist, platformData, countryData, artistPerformance]);
+
+  // Chart configurations
+  const platformChartData = {
+    labels: Object.values(getFilteredData.filteredPlatforms).map(p => p.name),
+    datasets: [{
+      label: selectedMetric === 'revenue' ? 'Revenue ($)' : 'Streams',
+      data: Object.values(getFilteredData.filteredPlatforms).map(p => 
+        selectedMetric === 'revenue' ? p.revenue : p.streams
+      ),
+      backgroundColor: Object.values(getFilteredData.filteredPlatforms).map(p => p.color),
+      borderColor: Object.values(getFilteredData.filteredPlatforms).map(p => p.color),
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  };
+
+  const timeSeriesChartData = {
+    labels: timeSeriesData.labels,
+    datasets: [
+      {
+        label: 'Revenue ($)',
+        data: timeSeriesData.revenue,
+        borderColor: '#4F46E5',
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#4F46E5',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+      },
+      {
+        label: 'Streams',
+        data: timeSeriesData.streams.map(s => s / 1000), // Scale for visibility
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#10B981',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        yAxisID: 'y1',
+      }
+    ]
+  };
+
+  const countryChartData = {
+    labels: Object.values(getFilteredData.filteredCountries).map(c => c.name),
+    datasets: [{
+      data: Object.values(getFilteredData.filteredCountries).map(c => c.percentage),
+      backgroundColor: [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+      ],
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12,
+            weight: '500'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#4F46E5',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            if (selectedMetric === 'revenue') {
+              return `${context.dataset.label}: $${context.parsed.y?.toLocaleString() || context.parsed}`;
+            }
+            return `${context.dataset.label}: ${(context.parsed.y || context.parsed)?.toLocaleString()}`;
+          }
+        }
+      }
+    },
+    scales: chartType === 'line' ? {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          callback: function(value) {
+            return selectedMetric === 'revenue' ? `$${value.toLocaleString()}` : value.toLocaleString();
+          }
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        grid: {
+          drawOnChartArea: false,
+        },
+        ticks: {
+          callback: function(value) {
+            return `${value}K`;
+          }
+        }
+      }
+    } : {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          callback: function(value) {
+            return selectedMetric === 'revenue' ? `$${value.toLocaleString()}` : value.toLocaleString();
+          }
+        }
+      }
+    }
   };
 
   // Filter and search functions
@@ -101,14 +341,20 @@ export default function PartnerAnalytics() {
     setSelectedRelease('all');
     setSelectedAsset('all');
     setSearchQuery('');
+    setSelectedPlatforms(['all']);
+    setSelectedCountries(['all']);
   };
 
   const applyFilters = () => {
-    console.log('Applying filters:', {
+    console.log('Applying advanced filters:', {
       artist: selectedArtist,
       release: selectedRelease,
       asset: selectedAsset,
       search: searchQuery,
+      platforms: selectedPlatforms,
+      countries: selectedCountries,
+      metric: selectedMetric,
+      viewMode: viewMode,
       timeframe: selectedTimeframe,
       customDates: selectedTimeframe === 'custom' ? { start: customStartDate, end: customEndDate } : null
     });
@@ -185,194 +431,401 @@ export default function PartnerAnalytics() {
             </div>
           </div>
 
-          {/* Filters Section */}
-          <div className="mb-6 bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Search</h3>
-            
-            {/* Search Field */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search releases, artists, or tracks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Filter Dropdowns */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              {/* Artist Filter */}
-              <div>
-                <label htmlFor="artist-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Artist
-                </label>
-                <select
-                  id="artist-filter"
-                  value={selectedArtist}
-                  onChange={(e) => setSelectedArtist(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {mockArtists.map((artist) => (
-                    <option key={artist.id} value={artist.id}>
-                      {artist.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Release Filter */}
-              <div>
-                <label htmlFor="release-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Release
-                </label>
-                <select
-                  id="release-filter"
-                  value={selectedRelease}
-                  onChange={(e) => setSelectedRelease(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {mockReleases.map((release) => (
-                    <option key={release.id} value={release.id}>
-                      {release.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Asset/Track Filter */}
-              <div>
-                <label htmlFor="asset-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Asset Type
-                </label>
-                <select
-                  id="asset-filter"
-                  value={selectedAsset}
-                  onChange={(e) => setSelectedAsset(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {mockAssets.map((asset) => (
-                    <option key={asset.id} value={asset.id}>
-                      {asset.name}
-                    </option>
-                  ))}
-                </select>
+          {/* Advanced Filters Section */}
+          <div className="mb-6 bg-white rounded-xl shadow-lg border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 animate-pulse"></span>
+                  Advanced Analytics Filters
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setIsRealTimeEnabled(!isRealTimeEnabled)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all duration-200 ${
+                      isRealTimeEnabled 
+                        ? 'bg-green-100 text-green-800 border-green-300' 
+                        : 'bg-gray-100 text-gray-600 border-gray-300'
+                    }`}
+                  >
+                    {isRealTimeEnabled ? '🟢 Real-time' : '⚪ Static'}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Filter Actions */}
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={applyFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Apply Filters
-              </button>
-              <button
-                onClick={clearAllFilters}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Clear All
-              </button>
-              <div className="text-sm text-gray-500">
-                {(selectedArtist !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) && (
-                  <span>
-                    Filters active: {[
-                      selectedArtist !== 'all' && 'Artist',
-                      selectedRelease !== 'all' && 'Release', 
-                      selectedAsset !== 'all' && 'Asset',
-                      searchQuery && 'Search'
-                    ].filter(Boolean).join(', ')}
-                  </span>
-                )}
+            <div className="p-6 space-y-6">
+              {/* View Mode Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="flex space-x-2">
+                  {['overview', 'detailed', 'comparison'].map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        viewMode === mode
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <label className="text-sm font-medium text-gray-700">Chart Type:</label>
+                  <select
+                    value={chartType}
+                    onChange={(e) => setChartType(e.target.value)}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="line">Line</option>
+                    <option value="bar">Bar</option>
+                    <option value="doughnut">Doughnut</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Smart Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="🔍 Smart search: artists, releases, tracks, platforms..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                />
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  🎯
+                </div>
+              </div>
+
+              {/* Multi-Select Filters */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+                {/* Platform Multi-Select */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Platforms</label>
+                  <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                    {Object.entries(platformData).map(([key, platform]) => (
+                      <label key={key} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedPlatforms.includes('all') || selectedPlatforms.includes(key)}
+                          onChange={(e) => {
+                            if (key === 'all') {
+                              setSelectedPlatforms(e.target.checked ? ['all'] : []);
+                            } else {
+                              setSelectedPlatforms(prev => {
+                                const filtered = prev.filter(p => p !== 'all');
+                                if (e.target.checked) {
+                                  return [...filtered, key];
+                                } else {
+                                  return filtered.filter(p => p !== key);
+                                }
+                              });
+                            }
+                          }}
+                          className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <span style={{ color: platform.color }} className="w-3 h-3 rounded-full mr-2 inline-block" 
+                              style={{ backgroundColor: platform.color }}></span>
+                        <span className="text-sm">{platform.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Country Multi-Select */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Countries</label>
+                  <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                    {Object.entries(countryData).map(([key, country]) => (
+                      <label key={key} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedCountries.includes('all') || selectedCountries.includes(key)}
+                          onChange={(e) => {
+                            if (key === 'all') {
+                              setSelectedCountries(e.target.checked ? ['all'] : []);
+                            } else {
+                              setSelectedCountries(prev => {
+                                const filtered = prev.filter(c => c !== 'all');
+                                if (e.target.checked) {
+                                  return [...filtered, key];
+                                } else {
+                                  return filtered.filter(c => c !== key);
+                                }
+                              });
+                            }
+                          }}
+                          className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm">{country.name}</span>
+                        <span className="text-xs text-gray-500 ml-auto">{country.percentage}%</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Metric Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Metric</label>
+                  <div className="space-y-2">
+                    {['revenue', 'streams', 'downloads', 'growth'].map((metric) => (
+                      <label key={metric} className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="metric"
+                          value={metric}
+                          checked={selectedMetric === metric}
+                          onChange={(e) => setSelectedMetric(e.target.value)}
+                          className="mr-2 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm capitalize">{metric}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Legacy Filters */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Legacy Filters</label>
+                  <div className="space-y-2">
+                    <select
+                      value={selectedArtist}
+                      onChange={(e) => setSelectedArtist(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
+                    >
+                      {mockArtists.map((artist) => (
+                        <option key={artist.id} value={artist.id}>{artist.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={selectedAsset}
+                      onChange={(e) => setSelectedAsset(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
+                    >
+                      {mockAssets.map((asset) => (
+                        <option key={asset.id} value={asset.id}>{asset.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex flex-wrap items-center justify-between pt-4 border-t border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={applyFilters}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg"
+                  >
+                    🚀 Apply Filters
+                  </button>
+                  <button
+                    onClick={clearAllFilters}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                  >
+                    🔄 Reset All
+                  </button>
+                </div>
+
+                <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                  {(() => {
+                    const activeFilters = [
+                      selectedArtist !== 'all' && '👤 Artist',
+                      !selectedPlatforms.includes('all') && `📱 ${selectedPlatforms.length} Platforms`,
+                      !selectedCountries.includes('all') && `🌍 ${selectedCountries.length} Countries`,
+                      searchQuery && '🔍 Search',
+                      selectedMetric !== 'revenue' && `📊 ${selectedMetric}`
+                    ].filter(Boolean);
+                    
+                    return activeFilters.length > 0 
+                      ? `Active: ${activeFilters.join(', ')}` 
+                      : '✨ No filters active';
+                  })()}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Key Metrics */}
+          {/* Enhanced Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">R</span>
-                  </div>
+            {/* Total Revenue Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-6 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-600 mb-1">Total Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ${Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.revenue, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    ↗ +{(Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.growth, 0) / Object.values(getFilteredData.filteredPlatforms).length).toFixed(1)}%
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Releases</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatNumber(analyticsData.totalReleases)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">S</span>
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Streams</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatNumber(analyticsData.totalStreams)}</p>
-                  <p className="text-sm text-green-600">+{analyticsData.monthlyGrowth}% this month</p>
+                <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">💰</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">D</span>
-                  </div>
+            {/* Total Streams Card */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl shadow-lg p-6 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-600 mb-1">Total Streams</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.streams, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    📈 Across {Object.keys(getFilteredData.filteredPlatforms).length} platforms
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Downloads</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatNumber(analyticsData.totalDownloads)}</p>
+                <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🎵</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-orange-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">$</span>
-                  </div>
+            {/* Platform Performance */}
+            <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl shadow-lg p-6 border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-600 mb-1">Top Platform</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    {Object.values(getFilteredData.filteredPlatforms).sort((a, b) => b.revenue - a.revenue)[0]?.name || 'Spotify'}
+                  </p>
+                  <p className="text-xs text-purple-600 font-medium mt-1">
+                    🏆 Best performer
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatCurrency(analyticsData.totalRevenue)}</p>
+                <div className="h-12 w-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🚀</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Growth Metric */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-100 rounded-xl shadow-lg p-6 border border-yellow-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-yellow-600 mb-1">Avg Growth</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.growth, 0) / Object.values(getFilteredData.filteredPlatforms).length).toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-yellow-600 font-medium mt-1">
+                    📊 Month over month
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">📈</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Simple Content */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Analytics Overview</h3>
-            <p className="text-gray-600 mb-4">
-              This dashboard provides analytics for all distributed releases. Detailed charts and breakdowns will be available soon.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Performance Summary</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Total active releases: {analyticsData.totalReleases}</li>
-                  <li>• Average streams per release: {formatNumber(Math.round(analyticsData.totalStreams / analyticsData.totalReleases))}</li>
-                  <li>• Monthly growth rate: {analyticsData.monthlyGrowth}%</li>
-                </ul>
+          {/* Interactive Charts Dashboard */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+            {/* Platform Performance Chart */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Platform Performance</h3>
+                <div className="flex items-center space-x-2">
+                  <span className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+                  <span className="text-xs text-gray-500">{isRealTimeEnabled ? 'Live' : 'Static'}</span>
+                </div>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Revenue Insights</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Total revenue generated: {formatCurrency(analyticsData.totalRevenue)}</li>
-                  <li>• Average revenue per release: {formatCurrency(analyticsData.totalRevenue / analyticsData.totalReleases)}</li>
-                  <li>• Revenue per stream: {formatCurrency(analyticsData.totalRevenue / analyticsData.totalStreams)}</li>
-                </ul>
+              <div className="h-80">
+                {chartType === 'bar' && <Bar data={platformChartData} options={chartOptions} />}
+                {chartType === 'line' && Object.keys(getFilteredData.filteredPlatforms).length > 1 && (
+                  <Line data={timeSeriesChartData} options={chartOptions} />
+                )}
+                {chartType === 'doughnut' && <Doughnut data={platformChartData} options={chartOptions} />}
               </div>
             </div>
+
+            {/* Geographic Distribution */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Geographic Distribution</h3>
+                <div className="text-sm text-gray-500">
+                  {Object.keys(getFilteredData.filteredCountries).length} countries
+                </div>
+              </div>
+              <div className="h-80">
+                <Doughnut data={countryChartData} options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    tooltip: {
+                      ...chartOptions.plugins.tooltip,
+                      callbacks: {
+                        label: function(context) {
+                          return `${context.label}: ${context.parsed}%`;
+                        }
+                      }
+                    }
+                  }
+                }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Breakdown Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Object.entries(getFilteredData.filteredPlatforms).map(([key, platform]) => (
+              <div key={key} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: platform.color }}
+                    ></div>
+                    <h4 className="font-semibold text-gray-900">{platform.name}</h4>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    platform.growth > 15 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    +{platform.growth}%
+                  </span>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm text-gray-600">Streams</span>
+                      <span className="text-sm font-medium">{platform.streams.toLocaleString()}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full" 
+                        style={{ 
+                          backgroundColor: platform.color,
+                          width: `${(platform.streams / Math.max(...Object.values(getFilteredData.filteredPlatforms).map(p => p.streams))) * 100}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm text-gray-600">Revenue</span>
+                      <span className="text-sm font-medium">${platform.revenue.toLocaleString()}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full opacity-75" 
+                        style={{ 
+                          backgroundColor: platform.color,
+                          width: `${(platform.revenue / Math.max(...Object.values(getFilteredData.filteredPlatforms).map(p => p.revenue))) * 100}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

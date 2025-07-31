@@ -1,10 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+  Filler
+);
 
 export default function PartnerReports() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -60,13 +89,139 @@ export default function PartnerReports() {
     }).format(amount);
   };
 
-  // Simple mock data
+  // Enhanced earnings summary
   const earningsData = {
     totalEarnings: 24587.92,
     monthlyEarnings: 3245.67,
     pendingPayouts: 1240.50,
-    paidOut: 23347.42
+    paidOut: 23347.42,
+    averagePerStream: 0.00394,
+    topEarningMonth: { month: 'March 2024', amount: 4234.56 },
+    revenueStreams: {
+      streaming: 14752.75,
+      downloads: 5634.21,
+      mechanical: 2100.48,
+      performance: 1567.32,
+      licensing: 533.16
+    }
   };
+
+  // Platform earnings breakdown
+  const platformEarnings = {
+    spotify: { 
+      name: 'Spotify', 
+      earnings: 9847.23, 
+      streams: 2456789, 
+      growth: 18.5, 
+      color: '#1DB954',
+      royaltyRate: 0.004,
+      marketShare: 40.2
+    },
+    apple: { 
+      name: 'Apple Music', 
+      earnings: 7234.56, 
+      streams: 1634521, 
+      growth: 22.3, 
+      color: '#FA243C',
+      royaltyRate: 0.0045,
+      marketShare: 29.4
+    },
+    youtube: { 
+      name: 'YouTube Music', 
+      earnings: 3456.78, 
+      streams: 1123456, 
+      growth: 15.7, 
+      color: '#FF0000',
+      royaltyRate: 0.003,
+      marketShare: 14.1
+    },
+    amazon: { 
+      name: 'Amazon Music', 
+      earnings: 2345.67, 
+      streams: 567890, 
+      growth: 12.8, 
+      color: '#FF9900',
+      royaltyRate: 0.004,
+      marketShare: 9.5
+    },
+    deezer: { 
+      name: 'Deezer', 
+      earnings: 1234.56, 
+      streams: 345678, 
+      growth: 9.2, 
+      color: '#FEAA2D',
+      royaltyRate: 0.0035,
+      marketShare: 5.0
+    },
+    tidal: { 
+      name: 'TIDAL', 
+      earnings: 469.12, 
+      streams: 89012, 
+      growth: 7.4, 
+      color: '#000000',
+      royaltyRate: 0.0052,
+      marketShare: 1.9
+    }
+  };
+
+  // Time series earnings data
+  const monthlyEarningsData = {
+    labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024'],
+    totalEarnings: [3456.78, 3789.45, 4234.56, 3967.23, 4123.87, 4345.92],
+    streamingEarnings: [2134.56, 2367.89, 2634.21, 2445.67, 2567.34, 2689.12],
+    downloadEarnings: [789.45, 856.23, 934.56, 867.89, 923.45, 976.32],
+    mechanicalEarnings: [345.67, 378.23, 423.45, 389.67, 412.34, 435.89],
+    performanceEarnings: [187.10, 187.10, 242.34, 264.00, 220.74, 244.59]
+  };
+
+  // Artist earnings breakdown
+  const artistEarningsData = [
+    {
+      artist: 'YHWH MSC',
+      totalEarnings: 12345.67,
+      monthlyEarnings: 2045.32,
+      topTrack: 'Lost in Time',
+      trackEarnings: 3456.78,
+      platforms: {
+        spotify: 5234.56,
+        apple: 3456.78,
+        youtube: 2134.56,
+        amazon: 987.65,
+        other: 532.12
+      },
+      growth: 24.5
+    },
+    {
+      artist: 'Audio MSC',
+      totalEarnings: 8765.43,
+      monthlyEarnings: 1456.89,
+      topTrack: 'Beach Dreams',
+      trackEarnings: 2345.67,
+      platforms: {
+        spotify: 3789.45,
+        apple: 2456.78,
+        youtube: 1523.67,
+        amazon: 678.90,
+        other: 316.63
+      },
+      growth: 19.2
+    },
+    {
+      artist: 'Independent Artists',
+      totalEarnings: 3476.82,
+      monthlyEarnings: 743.76,
+      topTrack: 'Thunder Road',
+      trackEarnings: 987.65,
+      platforms: {
+        spotify: 1523.67,
+        apple: 976.32,
+        youtube: 634.21,
+        amazon: 234.56,
+        other: 108.06
+      },
+      growth: 16.8
+    }
+  ];
 
   // Detailed mock earnings data for export
   const detailedEarningsData = [
@@ -414,6 +569,122 @@ export default function PartnerReports() {
     }
   };
 
+  // Chart configurations for earnings visualization
+  const earningsTimeSeriesData = {
+    labels: monthlyEarningsData.labels,
+    datasets: [
+      {
+        label: 'Total Earnings',
+        data: monthlyEarningsData.totalEarnings,
+        borderColor: '#4F46E5',
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#4F46E5',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+      },
+      {
+        label: 'Streaming Revenue',
+        data: monthlyEarningsData.streamingEarnings,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#10B981',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+      },
+      {
+        label: 'Download Revenue',
+        data: monthlyEarningsData.downloadEarnings,
+        borderColor: '#F59E0B',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        fill: false,
+        tension: 0.4,
+        pointBackgroundColor: '#F59E0B',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+      }
+    ]
+  };
+
+  const platformEarningsData = {
+    labels: Object.values(platformEarnings).map(p => p.name),
+    datasets: [{
+      label: 'Platform Earnings ($)',
+      data: Object.values(platformEarnings).map(p => p.earnings),
+      backgroundColor: Object.values(platformEarnings).map(p => p.color),
+      borderColor: Object.values(platformEarnings).map(p => p.color),
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  };
+
+  const revenueStreamData = {
+    labels: Object.keys(earningsData.revenueStreams).map(key => 
+      key.charAt(0).toUpperCase() + key.slice(1)
+    ),
+    datasets: [{
+      data: Object.values(earningsData.revenueStreams),
+      backgroundColor: [
+        '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'
+      ],
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12,
+            weight: '500'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#4F46E5',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label}: $${context.parsed.y?.toLocaleString() || context.parsed?.toLocaleString()}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          callback: function(value) {
+            return `$${value.toLocaleString()}`;
+          }
+        }
+      }
+    }
+  };
+
   const handleExportReport = (format) => {
     console.log(`Exporting ${format} report for period: ${selectedPeriod}`);
     
@@ -622,88 +893,247 @@ export default function PartnerReports() {
             </div>
           </div>
 
-          {/* Earnings Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">$</span>
-                  </div>
+          {/* Enhanced Earnings Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            {/* Total Earnings */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl shadow-lg p-6 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-600 mb-1">Total Earnings</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    💰 All time revenue
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Earnings</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">M</span>
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">This Month</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatCurrency(earningsData.monthlyEarnings)}</p>
+                <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">💵</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-orange-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">P</span>
-                  </div>
+            {/* Monthly Earnings */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-6 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-600 mb-1">This Month</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.monthlyEarnings)}</p>
+                  <p className="text-xs text-blue-600 font-medium mt-1">
+                    📅 {earningsData.topEarningMonth.month.split(' ')[0]} earnings
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Pending Payouts</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatCurrency(earningsData.pendingPayouts)}</p>
+                <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">📊</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 bg-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">✓</span>
-                  </div>
+            {/* Average Per Stream */}
+            <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl shadow-lg p-6 border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-600 mb-1">Avg Per Stream</p>
+                  <p className="text-2xl font-bold text-gray-900">${earningsData.averagePerStream.toFixed(5)}</p>
+                  <p className="text-xs text-purple-600 font-medium mt-1">
+                    🎵 Revenue rate
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Paid Out</p>
-                  <p className="text-2xl font-semibold text-gray-900">{formatCurrency(earningsData.paidOut)}</p>
+                <div className="h-12 w-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🎯</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Payouts */}
+            <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl shadow-lg p-6 border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-600 mb-1">Pending</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.pendingPayouts)}</p>
+                  <p className="text-xs text-orange-600 font-medium mt-1">
+                    ⏳ Awaiting payout
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">⏰</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Paid Out */}
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-100 rounded-xl shadow-lg p-6 border border-teal-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-teal-600 mb-1">Paid Out</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.paidOut)}</p>
+                  <p className="text-xs text-teal-600 font-medium mt-1">
+                    ✅ {Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100)}% completed
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-teal-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">✨</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Reports Content */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Earnings Reports</h3>
-            <p className="text-gray-600 mb-4">
-              This section provides detailed earnings reports for all distributed releases. Use the export buttons above to download reports in Excel or PDF format.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Earnings Summary</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Total earnings to date: {formatCurrency(earningsData.totalEarnings)}</li>
-                  <li>• Average monthly earnings: {formatCurrency(earningsData.monthlyEarnings)}</li>
-                  <li>• Payout completion rate: {Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100)}%</li>
-                </ul>
+          {/* Interactive Charts Dashboard */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+            {/* Earnings Timeline */}
+            <div className="xl:col-span-2 bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Earnings Timeline</h3>
+                <div className="text-sm text-gray-500">
+                  Last 6 months
+                </div>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Payment Status</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Amount paid out: {formatCurrency(earningsData.paidOut)}</li>
-                  <li>• Pending payments: {formatCurrency(earningsData.pendingPayouts)}</li>
-                  <li>• Next payout date: End of current month</li>
-                </ul>
+              <div className="h-80">
+                <Line data={earningsTimeSeriesData} options={chartOptions} />
               </div>
+            </div>
+
+            {/* Revenue Streams Breakdown */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Revenue Streams</h3>
+                <div className="text-sm text-gray-500">
+                  Breakdown
+                </div>
+              </div>
+              <div className="h-80">
+                <Doughnut data={revenueStreamData} options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    tooltip: {
+                      ...chartOptions.plugins.tooltip,
+                      callbacks: {
+                        label: function(context) {
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = ((context.parsed / total) * 100).toFixed(1);
+                          return `${context.label}: $${context.parsed.toLocaleString()} (${percentage}%)`;
+                        }
+                      }
+                    }
+                  }
+                }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Earnings Analysis */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Platform Earnings Analysis</h3>
+              <div className="text-sm text-gray-500">
+                {Object.keys(platformEarnings).length} platforms
+              </div>
+            </div>
+            <div className="h-96 mb-6">
+              <Bar data={platformEarningsData} options={chartOptions} />
+            </div>
+            
+            {/* Platform Details Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(platformEarnings).map(([key, platform]) => (
+                <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: platform.color }}
+                      ></div>
+                      <span className="font-medium text-gray-900">{platform.name}</span>
+                    </div>
+                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                      +{platform.growth}%
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Earnings:</span>
+                      <span className="font-medium">${platform.earnings.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Streams:</span>
+                      <span className="font-medium">{platform.streams.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Royalty Rate:</span>
+                      <span className="font-medium">${platform.royaltyRate.toFixed(4)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Market Share:</span>
+                      <span className="font-medium">{platform.marketShare}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Artist Earnings Breakdown */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Artist Earnings Breakdown</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earnings</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top Track</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Growth</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top Platform</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {artistEarningsData.map((artist, index) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors duration-200">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">{artist.artist.charAt(0)}</span>
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${artist.totalEarnings.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${artist.monthlyEarnings.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{artist.topTrack}</div>
+                        <div className="text-xs text-gray-500">${artist.trackEarnings.toLocaleString()}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          artist.growth > 20 
+                            ? 'bg-green-100 text-green-800' 
+                            : artist.growth > 15 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          +{artist.growth}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].charAt(0).toUpperCase() + Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].slice(1)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ${Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][1].toLocaleString()}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
