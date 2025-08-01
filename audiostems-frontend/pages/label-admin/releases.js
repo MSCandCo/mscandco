@@ -7,7 +7,7 @@ import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search } from 'lucide-r
 
 // Import centralized mock data
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
-import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 
 // Excel download functions
@@ -26,10 +26,8 @@ export default function LabelAdminReleases() {
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [genreFilter, setGenreFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
-  const [editingIsrc, setEditingIsrc] = useState(null);
-  const [tempIsrc, setTempIsrc] = useState('');
+
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -60,10 +58,9 @@ export default function LabelAdminReleases() {
                          release.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          release.genre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
-    const matchesGenre = genreFilter === 'all' || release.genre === genreFilter;
     const matchesArtist = artistFilter === 'all' || release.artist === artistFilter;
     
-    return matchesSearch && matchesStatus && matchesGenre && matchesArtist;
+    return matchesSearch && matchesStatus && matchesArtist;
   });
 
   // Calculate label totals using centralized stats
@@ -77,28 +74,195 @@ export default function LabelAdminReleases() {
   // Get unique artists for filter
   const uniqueArtists = [...new Set(labelReleases.map(release => release.artist))];
 
-  // ISRC editing functions
-  const startEditingIsrc = (releaseId, trackIndex, currentIsrc) => {
-    setEditingIsrc({ releaseId, trackIndex });
-    setTempIsrc(currentIsrc);
-  };
 
-  const saveIsrc = () => {
-    // In a real app, this would save to backend
-    console.log('Saving ISRC:', tempIsrc);
-    setEditingIsrc(null);
-    setTempIsrc('');
-  };
-
-  const cancelEditingIsrc = () => {
-    setEditingIsrc(null);
-    setTempIsrc('');
-  };
 
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          
+          {/* Release Details Modal */}
+          {showReleaseDetails && selectedRelease && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+              <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div className="mt-3">
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between pb-4 border-b">
+                    <h3 className="text-2xl font-bold text-gray-900">{selectedRelease.projectName}</h3>
+                    <button
+                      onClick={() => {
+                        setShowReleaseDetails(false);
+                        setSelectedRelease(null);
+                      }}
+                      className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Release Information */}
+                  <div className="py-6 space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Release Information</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Artist:</span>
+                            <span className="text-gray-900">{selectedRelease.artist}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Release Type:</span>
+                            <span className="text-gray-900">{selectedRelease.releaseType}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Genre:</span>
+                            <span className="text-gray-900">{selectedRelease.genre}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Status:</span>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedRelease.status)}`}>
+                              {getStatusIcon(selectedRelease.status)}
+                              <span className="ml-1">{getStatusLabel(selectedRelease.status)}</span>
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Total Tracks:</span>
+                            <span className="text-gray-900">{selectedRelease.trackListing?.length || 1}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Dates & Timeline</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Submission Date:</span>
+                            <span className="text-gray-900">{selectedRelease.submissionDate}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Expected Release:</span>
+                            <span className="text-gray-900">{selectedRelease.expectedReleaseDate}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Created:</span>
+                            <span className="text-gray-900">{selectedRelease.createdAt || 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">Last Updated:</span>
+                            <span className="text-gray-900">{selectedRelease.updatedAt || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Performance Metrics */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Performance Metrics</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">{selectedRelease.totalStreams?.toLocaleString() || '0'}</div>
+                            <div className="text-sm text-blue-700">Total Streams</div>
+                          </div>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">£{selectedRelease.totalRevenue?.toLocaleString() || '0'}</div>
+                            <div className="text-sm text-green-700">Total Revenue</div>
+                          </div>
+                        </div>
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-purple-600">{selectedRelease.platformCount || '8'}</div>
+                            <div className="text-sm text-purple-700">Platforms</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Track Listing */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Track Listing</h4>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">BPM</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {(selectedRelease.trackListing || [{ title: selectedRelease.projectName, duration: '3:30', bpm: '120', songKey: 'C Major', isrc: selectedRelease.isrc }]).map((track, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{index + 1}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{track.title}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{track.duration || 'N/A'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{track.bpm || 'N/A'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{track.songKey || 'N/A'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900 font-mono text-xs">{track.isrc || selectedRelease.isrc || 'N/A'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Additional Information */}
+                    {(selectedRelease.description || selectedRelease.marketingPlan || selectedRelease.feedback) && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Additional Information</h4>
+                        <div className="space-y-4">
+                          {selectedRelease.description && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <p className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{selectedRelease.description}</p>
+                            </div>
+                          )}
+                          {selectedRelease.marketingPlan && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Marketing Plan</label>
+                              <p className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{selectedRelease.marketingPlan}</p>
+                            </div>
+                          )}
+                          {selectedRelease.feedback && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Feedback</label>
+                              <p className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{selectedRelease.feedback}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <button
+                      onClick={() => downloadReleaseExcel(selectedRelease)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Download Excel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowReleaseDetails(false);
+                        setSelectedRelease(null);
+                      }}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">All Releases</h1>
@@ -152,7 +316,7 @@ export default function LabelAdminReleases() {
 
           {/* Filters */}
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
                 <div className="relative">
@@ -182,20 +346,6 @@ export default function LabelAdminReleases() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
-                <select
-                  value={genreFilter}
-                  onChange={(e) => setGenreFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">All Genres</option>
-                  {GENRES.map(genre => (
-                    <option key={genre} value={genre}>{genre}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Artist</label>
                 <select
                   value={artistFilter}
@@ -214,7 +364,6 @@ export default function LabelAdminReleases() {
                   onClick={() => {
                     setSearchTerm('');
                     setStatusFilter('all');
-                    setGenreFilter('all');
                     setArtistFilter('all');
                   }}
                   className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
@@ -297,43 +446,7 @@ export default function LabelAdminReleases() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.bpm || 'N/A'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.songKey || 'N/A'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {editingIsrc?.releaseId === release.id && editingIsrc?.trackIndex === trackIndex ? (
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="text"
-                                  value={tempIsrc}
-                                  onChange={(e) => setTempIsrc(e.target.value)}
-                                  className="px-2 py-1 border border-gray-300 rounded text-xs font-mono w-32"
-                                  placeholder="USRC12345678"
-                                  maxLength="12"
-                                />
-                                <button
-                                  onClick={saveIsrc}
-                                  className="text-green-600 hover:text-green-800 text-xs"
-                                  title="Save ISRC"
-                                >
-                                  ✓
-                                </button>
-                                <button
-                                  onClick={cancelEditingIsrc}
-                                  className="text-red-600 hover:text-red-800 text-xs"
-                                  title="Cancel"
-                                >
-                                  ✗
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center space-x-1 group">
-                                <span className="font-mono text-xs">{track.isrc || release.isrc || 'N/A'}</span>
-                                <button
-                                  onClick={() => startEditingIsrc(release.id, trackIndex, track.isrc || release.isrc)}
-                                  className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 transition-opacity text-xs"
-                                  title="Edit ISRC"
-                                >
-                                  ✏️
-                                </button>
-                              </div>
-                            )}
+                            <span className="font-mono text-xs">{track.isrc || release.isrc || 'N/A'}</span>
                           </td>
                         </tr>
                       ))}
@@ -348,7 +461,7 @@ export default function LabelAdminReleases() {
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Releases Found</h3>
                 <p className="text-gray-500">
-                  {searchTerm || statusFilter !== 'all' || genreFilter !== 'all' || artistFilter !== 'all'
+                  {searchTerm || statusFilter !== 'all' || artistFilter !== 'all'
                     ? 'No releases match your current filters.'
                     : 'No releases available for this label.'}
                 </p>
