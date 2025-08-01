@@ -427,6 +427,12 @@ export default function RoleBasedNavigation() {
                 >
                   Earnings
                 </Link>
+                <Link
+                  href="/label-admin/analytics"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Analytics
+                </Link>
               </div>
             </div>
 

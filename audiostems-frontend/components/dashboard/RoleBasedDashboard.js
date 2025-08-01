@@ -211,7 +211,7 @@ export default function RoleBasedDashboard() {
               title: 'Revenue Tracking',
               description: 'Monitor label earnings and artist royalties',
               icon: '💰',
-              href: '/label-admin/revenue',
+              href: '/label-admin/earnings',
               stats: { revenue: DASHBOARD_STATS.labelAdmin.labelRevenue, releases: DASHBOARD_STATS.labelAdmin.labelReleases }
             },
             {
@@ -220,6 +220,13 @@ export default function RoleBasedDashboard() {
               icon: '📊',
               href: '/label-admin/analytics',
               stats: { streams: DASHBOARD_STATS.labelAdmin.labelStreams, countries: DASHBOARD_STATS.labelAdmin.labelCountries }
+            },
+            {
+              title: 'All Releases',
+              description: 'Manage all label releases and assets',
+              icon: '🎵',
+              href: '/label-admin/releases',
+              stats: { releases: DASHBOARD_STATS.labelAdmin.labelReleases, tracks: DASHBOARD_STATS.labelAdmin.totalTracks || 45 }
             }
           ]
         };
