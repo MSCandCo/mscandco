@@ -6,9 +6,14 @@ import { FaChevronDown } from 'react-icons/fa';
 import { ChevronDown } from 'lucide-react';
 
 const CURRENCIES = [
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
   { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' }
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
+  { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' },
+  { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi' }
 ];
 
 export default function CurrencySelector({ 
@@ -113,11 +118,16 @@ export const formatCurrency = (amount, currency = 'GBP', options = {}) => {
   return `${symbol}${formattedAmount}${code}`;
 };
 
-// 🔄 Conversion utilities (mock rates for demo)
+// 🔄 Conversion utilities (realistic rates for demo)
 const EXCHANGE_RATES = {
-  GBP: { USD: 1.27, EUR: 1.17, GBP: 1 },
-  USD: { GBP: 0.79, EUR: 0.92, USD: 1 },
-  EUR: { GBP: 0.85, USD: 1.09, EUR: 1 }
+  USD: { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.35, ZAR: 18.2, KES: 129, ZMW: 27.5, GHS: 15.6 },
+  EUR: { USD: 1.09, EUR: 1, GBP: 0.85, CAD: 1.47, ZAR: 19.8, KES: 140.7, ZMW: 30.0, GHS: 17.0 },
+  GBP: { USD: 1.27, EUR: 1.17, GBP: 1, CAD: 1.72, ZAR: 23.1, KES: 164, ZMW: 35.0, GHS: 19.8 },
+  CAD: { USD: 0.74, EUR: 0.68, GBP: 0.58, CAD: 1, ZAR: 13.5, KES: 95.6, ZMW: 20.4, GHS: 11.6 },
+  ZAR: { USD: 0.055, EUR: 0.050, GBP: 0.043, CAD: 0.074, ZAR: 1, KES: 7.1, ZMW: 1.5, GHS: 0.86 },
+  KES: { USD: 0.0078, EUR: 0.0071, GBP: 0.0061, CAD: 0.0105, ZAR: 0.14, KES: 1, ZMW: 0.21, GHS: 0.12 },
+  ZMW: { USD: 0.036, EUR: 0.033, GBP: 0.029, CAD: 0.049, ZAR: 0.67, KES: 4.7, ZMW: 1, GHS: 0.57 },
+  GHS: { USD: 0.064, EUR: 0.059, GBP: 0.050, CAD: 0.086, ZAR: 1.16, KES: 8.2, ZMW: 1.75, GHS: 1 }
 };
 
 export const convertCurrency = (amount, fromCurrency, toCurrency) => {
