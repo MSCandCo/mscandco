@@ -216,7 +216,7 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
-                  href="/admin/dashboard"
+                  href="/dashboard"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Dashboard
@@ -404,7 +404,7 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
-                  href="/label-admin/dashboard"
+                  href="/dashboard"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Dashboard
@@ -549,10 +549,7 @@ export default function RoleBasedNavigation() {
               }
               dismissOnClick={false}
             >
-              <Link href={userRole === 'super_admin' ? '/admin/dashboard' : 
-                          userRole === 'company_admin' ? '/admin/dashboard' : 
-                          userRole === 'distribution_partner' ? '/distribution-partner/dashboard' : 
-                          '/dashboard'}>
+              <Link href="/dashboard">
                 <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
               </Link>
               <Link href="/artist/profile">
