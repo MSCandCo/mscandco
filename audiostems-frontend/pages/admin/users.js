@@ -2,6 +2,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import Head from 'next/head';
 import { AdminRoute } from '@/components/auth/RoleProtectedRoute';
 import { Card, Button, Badge } from 'flowbite-react';
+import { useState } from 'react';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 export default function AdminUsersPage() {
   return (
@@ -13,6 +15,7 @@ export default function AdminUsersPage() {
 
 function AdminUsersContent() {
   const { user } = useAuth0();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Comprehensive mock user data - includes all artists and roles from our database
   const mockUsers = [
@@ -50,6 +53,7 @@ function AdminUsersContent() {
       lastLogin: '2024-01-16T09:20:00Z',
       releases: 6,
       totalStreams: 125000,
+      totalEarnings: 2840,
       permissions: ['releases', 'earnings', 'analytics']
     },
     {
@@ -62,6 +66,7 @@ function AdminUsersContent() {
       lastLogin: '2024-01-16T11:15:00Z',
       releases: 21,
       totalStreams: 15000000,
+      totalEarnings: 180000,
       permissions: ['release_management', 'analytics', 'reports']
     },
     {
@@ -74,6 +79,7 @@ function AdminUsersContent() {
       lastLogin: '2024-01-15T14:30:00Z',
       releases: 1,
       totalStreams: 2800000,
+      totalEarnings: 45600,
       permissions: ['releases', 'earnings', 'analytics']
     },
     {
@@ -228,6 +234,11 @@ function AdminUsersContent() {
               </div>
               
               <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
                 <Button color="blue">
                   + Add New User
                 </Button>
@@ -261,8 +272,14 @@ function AdminUsersContent() {
               
               <Card>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">8</div>
-                  <div className="text-sm text-gray-600">Admins</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {formatCurrency(
+                      mockUsers.reduce((sum, user) => sum + (user.totalEarnings || 0), 0), 
+                      selectedCurrency, 
+                      { compact: true }
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Revenue</div>
                 </div>
               </Card>
             </div>

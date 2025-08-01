@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS, RELEASES, DASHBOARD_STATS } from '../../lib/mockData';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -42,7 +43,7 @@ export default function LabelAdminAnalytics() {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   const [viewMode, setViewMode] = useState('overview');
   const [chartType, setChartType] = useState('line');
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -295,15 +296,11 @@ export default function LabelAdminAnalytics() {
                     </button>
                   </>
                 )}
-                <select
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
               </div>
             </div>
           </div>

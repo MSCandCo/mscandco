@@ -1,6 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { Card, Badge } from "flowbite-react";
@@ -8,10 +8,12 @@ import { HiUsers, HiDownload, HiMusicNote, HiCreditCard } from "lucide-react";
 import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";
+import CurrencySelector, { formatCurrency, useCurrencySync } from "@/components/shared/CurrencySelector";
 
 function AdminAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Check if user is admin (example: email ends with @mscandco.com)
   useEffect(() => {
@@ -36,21 +38,24 @@ function AdminAnalytics() {
   ];
 
   const mockUserStats = [
-    { id: 1, name: 'YHWH MSC', role: 'artist', status: 'active', releases: 6, streams: 125000 },
-    { id: 2, name: 'Global Superstar', role: 'artist', status: 'active', releases: 1, streams: 2800000 },
-    { id: 3, name: 'Seoul Stars', role: 'artist', status: 'active', releases: 1, streams: 4500000 },
-    { id: 4, name: 'Rock Legends', role: 'artist', status: 'active', releases: 1, streams: 1200000 },
-    { id: 5, name: 'Code Group Distribution', role: 'distribution_partner', status: 'active', releases: 21, streams: 15000000 },
-    { id: 6, name: 'DJ Phoenix', role: 'artist', status: 'pending', releases: 1, streams: 0 },
-    { id: 7, name: 'Carlos Mendez', role: 'artist', status: 'active', releases: 1, streams: 280000 },
-    { id: 8, name: 'Emma Rodriguez', role: 'artist', status: 'pending', releases: 1, streams: 0 },
-    { id: 9, name: 'Marcus Williams Quartet', role: 'artist', status: 'inactive', releases: 1, streams: 0 },
-    { id: 10, name: 'The Basement Band', role: 'artist', status: 'pending', releases: 1, streams: 0 },
-    { id: 11, name: 'Film Composer Orchestra', role: 'artist', status: 'pending', releases: 1, streams: 0 },
-    { id: 12, name: 'Nashville Dreams', role: 'artist', status: 'inactive', releases: 1, streams: 0 },
-    { id: 13, name: 'Super Admin User', role: 'super_admin', status: 'active', releases: 0, streams: 0 },
-    { id: 14, name: 'Company Admin User', role: 'company_admin', status: 'active', releases: 0, streams: 0 }
+    { id: 1, name: 'YHWH MSC', role: 'artist', status: 'active', releases: 6, streams: 125000, earnings: 2840 },
+    { id: 2, name: 'Global Superstar', role: 'artist', status: 'active', releases: 1, streams: 2800000, earnings: 45600 },
+    { id: 3, name: 'Seoul Stars', role: 'artist', status: 'active', releases: 1, streams: 4500000, earnings: 67200 },
+    { id: 4, name: 'Rock Legends', role: 'artist', status: 'active', releases: 1, streams: 1200000, earnings: 18400 },
+    { id: 5, name: 'Code Group Distribution', role: 'distribution_partner', status: 'active', releases: 21, streams: 15000000, earnings: 180000 },
+    { id: 6, name: 'DJ Phoenix', role: 'artist', status: 'pending', releases: 1, streams: 0, earnings: 0 },
+    { id: 7, name: 'Carlos Mendez', role: 'artist', status: 'active', releases: 1, streams: 280000, earnings: 4120 },
+    { id: 8, name: 'Emma Rodriguez', role: 'artist', status: 'pending', releases: 1, streams: 0, earnings: 0 },
+    { id: 9, name: 'Marcus Williams Quartet', role: 'artist', status: 'inactive', releases: 1, streams: 0, earnings: 0 },
+    { id: 10, name: 'The Basement Band', role: 'artist', status: 'pending', releases: 1, streams: 0, earnings: 0 },
+    { id: 11, name: 'Film Composer Orchestra', role: 'artist', status: 'pending', releases: 1, streams: 0, earnings: 0 },
+    { id: 12, name: 'Nashville Dreams', role: 'artist', status: 'inactive', releases: 1, streams: 0, earnings: 0 },
+    { id: 13, name: 'Super Admin User', role: 'super_admin', status: 'active', releases: 0, streams: 0, earnings: 0 },
+    { id: 14, name: 'Company Admin User', role: 'company_admin', status: 'active', releases: 0, streams: 0, earnings: 0 }
   ];
+
+  // Calculate platform totals with currency support
+  const totalRevenue = mockUserStats.reduce((sum, user) => sum + user.earnings, 0);
 
   const mockSongStats = [
     { id: 1, title: 'Urban Beat', artist: 'YHWH MSC', streams: 45000, downloads: 234, status: 'active' },
@@ -104,10 +109,17 @@ function AdminAnalytics() {
       <SEO pageTitle="Admin Analytics" />
       <div className="py-8 md:py-12">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-8">Admin Analytics</h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">Admin Analytics</h1>
+            <CurrencySelector 
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+              compact={true}
+            />
+          </div>
           
           {/* Stats Cards */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="grid md:grid-cols-5 gap-6 mb-8">
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 rounded-full">
@@ -152,6 +164,18 @@ function AdminAnalytics() {
                 <div>
                   <p className="text-sm text-gray-600">Total Stems</p>
                   <p className="text-2xl font-bold">{totalStems}</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <HiCreditCard className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalRevenue, selectedCurrency)}</p>
                 </div>
               </div>
             </Card>

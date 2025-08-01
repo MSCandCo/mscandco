@@ -5,6 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { FaDollarSign, FaChartLine, FaTrendingUp, FaTrendingDown, FaCalendar, FaFilter } from 'react-icons/fa';
 import { DollarSign, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 // Calculate earnings data from centralized RELEASES and ARTISTS data
 const calculateEarningsData = (userBrand) => {
@@ -138,7 +139,7 @@ export default function LabelAdminEarnings() {
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -231,15 +232,11 @@ export default function LabelAdminEarnings() {
                     </button>
                   </>
                 )}
-                <select
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="GBP">GBP</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import * as XLSX from 'xlsx';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 // Excel download functions using template
 const downloadReleaseExcel = async (release) => {
@@ -1026,6 +1027,7 @@ const mockEditRequests = [
 
 export default function DistributionPartnerDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [activeTab, setActiveTab] = useState('all-releases');
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
@@ -1851,7 +1853,14 @@ export default function DistributionPartnerDashboard() {
                 <h1 className="text-2xl font-bold text-gray-900">Distribution Partner Dashboard</h1>
                 <p className="text-sm text-gray-500">Manage and review all releases</p>
               </div>
-
+              
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Play, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 // Video component for artist dashboard
 const ArtistVideoSection = () => {
@@ -86,6 +87,7 @@ const ArtistVideoSection = () => {
 
 export default function RoleBasedDashboard() {
   const { user, isAuthenticated } = useAuth0();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   if (!isAuthenticated || !user) {
     return (
@@ -122,7 +124,7 @@ export default function RoleBasedDashboard() {
           stats: [
             { label: 'Total Users', value: DASHBOARD_STATS.superAdmin.totalUsers.toLocaleString(), change: '+12%', changeType: 'positive' },
             { label: 'Active Projects', value: DASHBOARD_STATS.superAdmin.activeProjects.toString(), change: '+5%', changeType: 'positive' },
-            { label: 'Revenue', value: `$${DASHBOARD_STATS.superAdmin.totalRevenue.toLocaleString()}`, change: '+8%', changeType: 'positive' },
+            { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.superAdmin.totalRevenue, selectedCurrency), change: '+8%', changeType: 'positive' },
             { label: 'Total Artists', value: ARTISTS.length.toString(), change: `${RELEASES.length} releases`, changeType: 'neutral' }
           ],
           cards: [
@@ -159,7 +161,7 @@ export default function RoleBasedDashboard() {
           stats: [
             { label: 'Brand Artists', value: ARTISTS.filter(a => a.brand === displayBrand?.displayName).length.toString(), change: '+8%', changeType: 'positive' },
             { label: 'Active Projects', value: DASHBOARD_STATS.companyAdmin.activeProjects.toString(), change: '+3%', changeType: 'positive' },
-            { label: 'Revenue', value: `$${DASHBOARD_STATS.companyAdmin.brandRevenue.toLocaleString()}`, change: '+6%', changeType: 'positive' },
+            { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.companyAdmin.brandRevenue, selectedCurrency), change: '+6%', changeType: 'positive' },
             { label: 'Content Items', value: DASHBOARD_STATS.companyAdmin.contentItems.toString(), change: '+12%', changeType: 'positive' }
           ],
           cards: [
@@ -196,7 +198,7 @@ export default function RoleBasedDashboard() {
           stats: [
             { label: 'Label Artists', value: DASHBOARD_STATS.labelAdmin.labelArtists.toString(), change: '+3 this quarter', changeType: 'positive' },
             { label: 'Active Releases', value: DASHBOARD_STATS.labelAdmin.labelReleases.toString(), change: '+12%', changeType: 'positive' },
-            { label: 'Label Revenue', value: `$${DASHBOARD_STATS.labelAdmin.labelRevenue.toLocaleString()}`, change: '+18%', changeType: 'positive' },
+            { label: 'Label Revenue', value: formatCurrency(DASHBOARD_STATS.labelAdmin.labelRevenue, selectedCurrency), change: '+18%', changeType: 'positive' },
             { label: 'Total Streams', value: `${(DASHBOARD_STATS.labelAdmin.labelStreams / 1000).toFixed(0)}K`, change: '+25%', changeType: 'positive' }
           ],
           cards: [
@@ -239,7 +241,7 @@ export default function RoleBasedDashboard() {
           description: 'Manage content distribution and partner relationships',
           stats: [
             { label: 'Distributed Content', value: DASHBOARD_STATS.distributionPartner.distributedContent.toString(), change: '+15%', changeType: 'positive' },
-            { label: 'Partner Revenue', value: `$${DASHBOARD_STATS.distributionPartner.partnerRevenue.toLocaleString()}`, change: '+12%', changeType: 'positive' },
+            { label: 'Partner Revenue', value: formatCurrency(DASHBOARD_STATS.distributionPartner.partnerRevenue, selectedCurrency), change: '+12%', changeType: 'positive' },
             { label: 'Active Artists', value: DASHBOARD_STATS.distributionPartner.totalArtists.toString(), change: `${RELEASES.length} total releases`, changeType: 'positive' },
             { label: 'Success Rate', value: `${DASHBOARD_STATS.distributionPartner.successRate}%`, change: '+2%', changeType: 'positive' }
           ],
@@ -263,7 +265,7 @@ export default function RoleBasedDashboard() {
               description: 'View earnings from all distributed releases',
               icon: '💰',
               href: '/partner/reports',
-              stats: { earnings: `$${DASHBOARD_STATS.distributionPartner.partnerRevenue.toLocaleString()}`, releases: DASHBOARD_STATS.distributionPartner.totalReleases }
+              stats: { earnings: formatCurrency(DASHBOARD_STATS.distributionPartner.partnerRevenue, selectedCurrency), releases: DASHBOARD_STATS.distributionPartner.totalReleases }
             }
           ]
         };
@@ -316,7 +318,7 @@ export default function RoleBasedDashboard() {
           stats: [
             { label: 'Total Releases', value: DASHBOARD_STATS.artist.totalReleases.toString(), change: '+2 this month', changeType: 'positive' },
             { label: 'Total Streams', value: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, change: `+${DASHBOARD_STATS.artist.growth}%`, changeType: 'positive' },
-            { label: 'Total Earnings', value: `£${DASHBOARD_STATS.artist.totalEarnings.toLocaleString()}`, change: `+£${DASHBOARD_STATS.artist.thisMonthEarnings}`, changeType: 'positive' },
+            { label: 'Total Earnings', value: formatCurrency(DASHBOARD_STATS.artist.totalEarnings, selectedCurrency), change: `+${formatCurrency(DASHBOARD_STATS.artist.thisMonthEarnings, selectedCurrency)}`, changeType: 'positive' },
             { label: 'Active Projects', value: DASHBOARD_STATS.artist.activeProjects.toString(), change: '3 in review', changeType: 'neutral' }
           ],
           cards: [
@@ -341,9 +343,9 @@ export default function RoleBasedDashboard() {
               icon: '💰',
               href: '/artist/earnings',
               stats: { 
-                thisMonth: `£${DASHBOARD_STATS.artist.thisMonthEarnings.toLocaleString()}`, 
-                lastMonth: `£${DASHBOARD_STATS.artist.lastMonthEarnings.toLocaleString()}`,
-                held: `£${DASHBOARD_STATS.artist.heldEarnings.toLocaleString()}`,
+                thisMonth: formatCurrency(DASHBOARD_STATS.artist.thisMonthEarnings, selectedCurrency), 
+                lastMonth: formatCurrency(DASHBOARD_STATS.artist.lastMonthEarnings, selectedCurrency),
+                held: formatCurrency(DASHBOARD_STATS.artist.heldEarnings, selectedCurrency),
                 platforms: DASHBOARD_STATS.artist.platforms
               }
             },
@@ -394,11 +396,23 @@ export default function RoleBasedDashboard() {
           <div className="relative mb-8 px-4 sm:px-0">
             <ArtistVideoSection />
             {/* Overlapping Dashboard Header */}
-            <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
+            <div className="absolute top-1/2 left-8 right-8 transform -translate-y-1/2 z-10">
               <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white">
-                <h1 className="text-4xl font-bold mb-2">{dashboardContent.title}</h1>
-                <p className="text-lg opacity-90">{dashboardContent.subtitle}</p>
-                <p className="text-sm opacity-75">{dashboardContent.description}</p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className="text-4xl font-bold mb-2">{dashboardContent.title}</h1>
+                    <p className="text-lg opacity-90">{dashboardContent.subtitle}</p>
+                    <p className="text-sm opacity-75">{dashboardContent.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <CurrencySelector 
+                      selectedCurrency={selectedCurrency}
+                      onCurrencyChange={updateCurrency}
+                      compact={true}
+                      className="text-white"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -407,9 +421,20 @@ export default function RoleBasedDashboard() {
         {/* Header (only show for non-artist roles or if no video) */}
         {userRole !== 'artist' && (
           <div className="px-4 py-6 sm:px-0">
-            <h1 className="text-3xl font-bold text-gray-900">{dashboardContent.title}</h1>
-            <p className="mt-2 text-lg text-gray-600">{dashboardContent.subtitle}</p>
-            <p className="mt-1 text-sm text-gray-500">{dashboardContent.description}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">{dashboardContent.title}</h1>
+                <p className="mt-2 text-lg text-gray-600">{dashboardContent.subtitle}</p>
+                <p className="mt-1 text-sm text-gray-500">{dashboardContent.description}</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
+              </div>
+            </div>
           </div>
         )}
 
