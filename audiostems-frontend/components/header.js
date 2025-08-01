@@ -1,6 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Dropdown } from 'flowbite-react';
-import { HiUser, HiDownload, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
+import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
+import { HiDownload } from 'react-icons/hi';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';

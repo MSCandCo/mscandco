@@ -3,16 +3,16 @@ import Link from 'next/link';
 import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { Dropdown } from "flowbite-react";
 import {
-  HiArrowLeftOnRectangle,
-  HiUser,
-  HiDownload,
-  HiCog6Tooth,
   FileText,
   BarChart3,
   DollarSign,
   Users,
   Wallet,
   ChevronDown,
+  User,
+  Download,
+  Settings,
+  LogOut,
 } from "lucide-react";
 import { openCustomerPortal } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -583,17 +583,17 @@ export default function RoleBasedNavigation() {
               dismissOnClick={false}
             >
               <Link href="/dashboard">
-                <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
+                <Dropdown.Item icon={User}>Dashboard</Dropdown.Item>
               </Link>
               <Link href="/artist/profile">
-                <Dropdown.Item icon={HiUser}>Profile</Dropdown.Item>
+                <Dropdown.Item icon={User}>Profile</Dropdown.Item>
               </Link>
               <Link href="/billing">
-                <Dropdown.Item icon={HiCog6Tooth}>Billing</Dropdown.Item>
+                <Dropdown.Item icon={Settings}>Billing</Dropdown.Item>
               </Link>
               <Dropdown.Divider />
               <Dropdown.Item
-                icon={HiArrowLeftOnRectangle}
+                icon={LogOut}
                 onClick={() => logout({ 
                   logoutParams: { 
                     returnTo: window.location.origin 
