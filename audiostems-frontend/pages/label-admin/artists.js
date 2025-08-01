@@ -75,6 +75,7 @@ export default function LabelAdminArtists() {
   const [showAddArtist, setShowAddArtist] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [artistFilter, setArtistFilter] = useState('all');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -93,8 +94,9 @@ export default function LabelAdminArtists() {
                          artist.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.genre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || artist.status === statusFilter;
+    const matchesArtist = artistFilter === 'all' || artist.name === artistFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesArtist;
   });
 
   // Calculate label totals
@@ -185,7 +187,7 @@ export default function LabelAdminArtists() {
 
           {/* Filters */}
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
                 <input
@@ -210,11 +212,26 @@ export default function LabelAdminArtists() {
                 </select>
               </div>
               
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Artist</label>
+                <select
+                  value={artistFilter}
+                  onChange={(e) => setArtistFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Artists</option>
+                  {mockArtists.map(artist => (
+                    <option key={artist.id} value={artist.name}>{artist.name}</option>
+                  ))}
+                </select>
+              </div>
+              
               <div className="flex items-end">
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setStatusFilter('all');
+                    setArtistFilter('all');
                   }}
                   className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
