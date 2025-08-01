@@ -1,4 +1,3 @@
-import { performancePricing, recordingPricing } from "@/pages/pricing";
 import { COMPANY_INFO } from "@/lib/brand-config";
 import { FileText, Send, Eye, Check, CheckCircle, Play } from 'lucide-react';
 
@@ -19,12 +18,6 @@ export const PRODUCT_BY_ID = {
   "prod_NYBiJqWIBiBgFf": {
     name: "Performance Premium",
   },
-};
-
-export const getStripeProductById = (productId) => {
-  return [...performancePricing, ...recordingPricing].find(
-    (product) => product.stripeId === productId
-  );
 };
 
 // Standardized status options for the entire application

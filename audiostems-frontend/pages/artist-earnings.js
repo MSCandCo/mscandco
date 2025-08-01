@@ -6,7 +6,6 @@ import SEO from "@/components/seo";
 import { Card, Button, Badge, Modal, TextInput, Label, Select, Tabs, Table } from "flowbite-react";
 import { 
   FaDollarSign, 
-  FaTrendingUp, 
   FaTrendingDown, 
   FaChartBar, 
   FaCalendar, 
@@ -14,13 +13,13 @@ import {
   FaMoneyBill,
   FaGlobe,
   FaMusic,
-  FaFileText,
   FaCog,
   FaFilter,
   FaEye,
   FaPrint,
   FaEnvelope
 } from "react-icons/fa";
+import { TrendingUp, FileText } from "lucide-react";
 
 // Chart.js imports
 import {
@@ -238,7 +237,7 @@ function ArtistEarnings() {
             <Card className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FaTrendingUp className="h-8 w-8 text-purple-600" />
+                  <TrendingUp className="h-8 w-8 text-purple-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Growth Rate</p>
@@ -354,7 +353,7 @@ function ArtistEarnings() {
                 </div>
               </Tabs.Item>
 
-              <Tabs.Item title="Statements" icon={FaFileText}>
+              <Tabs.Item title="Statements" icon={FileText}>
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Earnings Statements</h3>
