@@ -5,87 +5,20 @@ import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaFilter, FaSearch } from 'react-icons/fa';
 import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search } from 'lucide-react';
 
-// Mock data for label admin releases
-const mockReleases = [
-  {
-    id: 1,
-    projectName: 'Summer Vibes EP',
-    artist: 'YHWH MSC',
-    releaseType: 'EP',
-    genre: 'Electronic',
-    status: 'live',
-    submissionDate: '2024-01-15',
-    releaseDate: '2024-02-15',
-    earnings: 2340,
-    streams: 45678,
-    cover: '🎵'
-  },
-  {
-    id: 2,
-    projectName: 'Midnight Sessions',
-    artist: 'YHWH MSC',
-    releaseType: 'Album',
-    genre: 'Hip Hop',
-    status: 'completed',
-    submissionDate: '2024-01-12',
-    releaseDate: '2024-03-20',
-    earnings: 0,
-    streams: 0,
-    cover: '🎵'
-  },
-  {
-    id: 3,
-    projectName: 'Acoustic Dreams',
-    artist: 'MC Flow',
-    releaseType: 'Single',
-    genre: 'Acoustic',
-    status: 'live',
-    submissionDate: '2024-01-10',
-    releaseDate: '2024-02-01',
-    earnings: 890,
-    streams: 12345,
-    cover: '🎵'
-  },
-  {
-    id: 4,
-    projectName: 'Electronic Fusion',
-    artist: 'Studio Pro',
-    releaseType: 'EP',
-    genre: 'Electronic',
-    status: 'live',
-    submissionDate: '2024-01-08',
-    releaseDate: '2024-01-25',
-    earnings: 1560,
-    streams: 23456,
-    cover: '🎵'
-  },
-  {
-    id: 5,
-    projectName: 'Urban Nights',
-    artist: 'MC Flow',
-    releaseType: 'Single',
-    genre: 'Hip Hop',
-    status: 'under_review',
-    submissionDate: '2024-01-20',
-    releaseDate: '2024-03-01',
-    earnings: 0,
-    streams: 0,
-    cover: '🎵'
-  },
-  {
-    id: 6,
-    projectName: 'Digital Dreams',
-    artist: 'Studio Pro',
-    releaseType: 'Album',
-    genre: 'Electronic',
-    status: 'submitted',
-    submissionDate: '2024-01-25',
-    releaseDate: '2024-04-15',
-    earnings: 0,
-    streams: 0,
-    cover: '🎵'
+// Import centralized mock data
+import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
+import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
+
+// Excel download functions
+const downloadReleaseExcel = async (release) => {
+  try {
+    await downloadSingleReleaseExcel(release);
+  } catch (error) {
+    console.error('Error downloading release:', error);
+    alert('Error downloading release data. Please try again.');
   }
-];
+};
 
 export default function LabelAdminReleases() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -95,6 +28,8 @@ export default function LabelAdminReleases() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [genreFilter, setGenreFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
+  const [editingIsrc, setEditingIsrc] = useState(null);
+  const [tempIsrc, setTempIsrc] = useState('');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -107,10 +42,23 @@ export default function LabelAdminReleases() {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 
-  // Filter releases based on search and filters
-  const filteredReleases = mockReleases.filter(release => {
+  // Get approved artists for this label
+  const approvedArtists = ARTISTS.filter(artist => 
+    artist.status === 'active' && 
+    (artist.label === userBrand?.displayName || artist.brand === userBrand?.displayName || 'MSC & Co')
+  );
+
+  // Filter releases for label admin - only approved artists under this label
+  const labelReleases = RELEASES.filter(release => {
+    const approvedArtistIds = approvedArtists.map(artist => artist.id);
+    return approvedArtistIds.includes(release.artistId);
+  });
+
+  // Apply search and filter logic
+  const filteredReleases = labelReleases.filter(release => {
     const matchesSearch = release.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         release.artist.toLowerCase().includes(searchTerm.toLowerCase());
+                         release.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         release.genre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
     const matchesGenre = genreFilter === 'all' || release.genre === genreFilter;
     const matchesArtist = artistFilter === 'all' || release.artist === artistFilter;
@@ -118,56 +66,49 @@ export default function LabelAdminReleases() {
     return matchesSearch && matchesStatus && matchesGenre && matchesArtist;
   });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'under_review': return 'bg-amber-100 text-amber-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'live': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'submitted': return <FileText className="w-4 h-4" />;
-      case 'under_review': return <Eye className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'live': return <Play className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
-  };
-
-  // Calculate label totals
+  // Calculate label totals using centralized stats
   const labelTotals = {
-    totalReleases: mockReleases.length,
-    totalEarnings: mockReleases.reduce((sum, release) => sum + release.earnings, 0),
-    totalStreams: mockReleases.reduce((sum, release) => sum + release.streams, 0),
-    liveReleases: mockReleases.filter(r => r.status === 'live').length,
-    pendingReleases: mockReleases.filter(r => r.status === 'submitted' || r.status === 'under_review').length
+    totalReleases: labelReleases.length,
+    totalEarnings: DASHBOARD_STATS.labelAdmin.labelRevenue,
+    totalStreams: DASHBOARD_STATS.labelAdmin.labelStreams,
+    activeArtists: approvedArtists.length
   };
 
   // Get unique artists for filter
-  const uniqueArtists = [...new Set(mockReleases.map(release => release.artist))];
+  const uniqueArtists = [...new Set(labelReleases.map(release => release.artist))];
+
+  // ISRC editing functions
+  const startEditingIsrc = (releaseId, trackIndex, currentIsrc) => {
+    setEditingIsrc({ releaseId, trackIndex });
+    setTempIsrc(currentIsrc);
+  };
+
+  const saveIsrc = () => {
+    // In a real app, this would save to backend
+    console.log('Saving ISRC:', tempIsrc);
+    setEditingIsrc(null);
+    setTempIsrc('');
+  };
+
+  const cancelEditingIsrc = () => {
+    setEditingIsrc(null);
+    setTempIsrc('');
+  };
 
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">All Releases</h1>
-                <p className="text-sm text-gray-500">Manage all releases across your label</p>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">All Releases</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Manage and track all releases from your label artists
+            </p>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
@@ -181,20 +122,10 @@ export default function LabelAdminReleases() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Live Releases</p>
-                  <p className="text-2xl font-bold text-gray-900">{labelTotals.liveReleases}</p>
+                  <p className="text-sm font-medium text-gray-600">Active Artists</p>
+                  <p className="text-2xl font-bold text-gray-900">{labelTotals.activeArtists}</p>
                 </div>
-                <Play className="w-8 h-8 text-purple-600" />
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Releases</p>
-                  <p className="text-2xl font-bold text-gray-900">{labelTotals.pendingReleases}</p>
-                </div>
-                <Eye className="w-8 h-8 text-amber-600" />
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
             </div>
             
@@ -244,10 +175,9 @@ export default function LabelAdminReleases() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="completed">Completed</option>
-                  <option value="live">Live</option>
+                  {Object.entries(RELEASE_STATUSES).map(([key, value]) => (
+                    <option key={value} value={value}>{getStatusLabel(value)}</option>
+                  ))}
                 </select>
               </div>
               
@@ -259,11 +189,9 @@ export default function LabelAdminReleases() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Genres</option>
-                  <option value="Electronic">Electronic</option>
-                  <option value="Hip Hop">Hip Hop</option>
-                  <option value="Acoustic">Acoustic</option>
-                  <option value="Rock">Rock</option>
-                  <option value="Pop">Pop</option>
+                  {GENRES.map(genre => (
+                    <option key={genre} value={genre}>{genre}</option>
+                  ))}
                 </select>
               </div>
               
@@ -297,76 +225,138 @@ export default function LabelAdminReleases() {
             </div>
           </div>
 
-          {/* Releases Table */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">All Releases ({filteredReleases.length})</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredReleases.map((release) => (
-                    <tr key={release.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-lg mr-3">
-                            {release.cover}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{release.projectName}</div>
-                            <div className="text-sm text-gray-500">{release.releaseType} • {release.genre}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
+          {/* Releases with Individual Tables (Same as Distribution Partner) */}
+          <div className="space-y-8">
+            {filteredReleases.map((release) => (
+              <div key={release.id} className="bg-white rounded-lg shadow-sm border">
+                {/* Release Header */}
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4">
+                        <h3 className="text-xl font-semibold text-gray-900">{release.projectName}</h3>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
                           {getStatusIcon(release.status)}
-                          <span className="ml-1">{release.status.replace('_', ' ')}</span>
+                          <span className="ml-1">{getStatusLabel(release.status)}</span>
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">£{release.earnings.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.streams.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.releaseDate}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedRelease(release);
-                              setShowReleaseDetails(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="View Details"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="text-gray-600 hover:text-gray-900"
-                            title="Edit Release"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <span className="font-medium">{release.artist}</span> • {release.releaseType} • {release.genre} • {release.trackListing?.length || 1} tracks
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        Submitted: {release.submissionDate} • Expected Release: {release.expectedReleaseDate}
+                      </div>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => downloadReleaseExcel(release)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                        title="Download all assets for this release"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>Download Release</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedRelease(release);
+                          setShowReleaseDetails(true);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                        title="View release details"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assets Table for this Release */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track Position</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Song Title</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BPM</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {(release.trackListing || [{ title: release.projectName, duration: '3:30', bpm: '120', songKey: 'C Major', isrc: release.isrc }]).map((track, trackIndex) => (
+                        <tr key={trackIndex} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span className="bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-sm font-bold">
+                              {trackIndex + 1}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{track.title}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.duration || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.bpm || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{track.songKey || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {editingIsrc?.releaseId === release.id && editingIsrc?.trackIndex === trackIndex ? (
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="text"
+                                  value={tempIsrc}
+                                  onChange={(e) => setTempIsrc(e.target.value)}
+                                  className="px-2 py-1 border border-gray-300 rounded text-xs font-mono w-32"
+                                  placeholder="USRC12345678"
+                                  maxLength="12"
+                                />
+                                <button
+                                  onClick={saveIsrc}
+                                  className="text-green-600 hover:text-green-800 text-xs"
+                                  title="Save ISRC"
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={cancelEditingIsrc}
+                                  className="text-red-600 hover:text-red-800 text-xs"
+                                  title="Cancel"
+                                >
+                                  ✗
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-1 group">
+                                <span className="font-mono text-xs">{track.isrc || release.isrc || 'N/A'}</span>
+                                <button
+                                  onClick={() => startEditingIsrc(release.id, trackIndex, track.isrc || release.isrc)}
+                                  className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 transition-opacity text-xs"
+                                  title="Edit ISRC"
+                                >
+                                  ✏️
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+            
+            {filteredReleases.length === 0 && (
+              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Releases Found</h3>
+                <p className="text-gray-500">
+                  {searchTerm || statusFilter !== 'all' || genreFilter !== 'all' || artistFilter !== 'all'
+                    ? 'No releases match your current filters.'
+                    : 'No releases available for this label.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </Layout>
   );
-} 
+}
