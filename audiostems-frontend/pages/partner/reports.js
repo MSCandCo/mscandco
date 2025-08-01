@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
+import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -48,7 +49,7 @@ export default function PartnerReports() {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Currency state
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   if (isLoading) {
     return (
@@ -85,10 +86,7 @@ export default function PartnerReports() {
     );
   }
 
-  const formatCurrency = (amount) => {
-    const symbol = selectedCurrency === 'GBP' ? '£' : selectedCurrency === 'EUR' ? '€' : '$';
-    return `${symbol}${amount.toLocaleString()}`;
-  };
+
 
   // Enhanced earnings summary
   const earningsData = {
@@ -594,7 +592,7 @@ export default function PartnerReports() {
         item.platform,
         item.streams.toLocaleString(),
         item.downloads.toLocaleString(),
-        formatCurrency(item.totalEarnings)
+        sharedFormatCurrency(item.totalEarnings, selectedCurrency)
       ]);
 
       // Add summary row
@@ -606,7 +604,7 @@ export default function PartnerReports() {
         'TOTAL', '', '', '', '',
         totalStreams.toLocaleString(),
         totalDownloads.toLocaleString(),
-        formatCurrency(totalEarnings)
+        sharedFormatCurrency(totalEarnings, selectedCurrency)
       ]);
 
       // Add the table
@@ -789,18 +787,11 @@ export default function PartnerReports() {
               </div>
               <div className="flex items-center space-x-6">
                 {/* Currency Selector */}
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm font-medium text-gray-700">Currency:</label>
-                  <select
-                    value={selectedCurrency}
-                    onChange={(e) => setSelectedCurrency(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="GBP">GBP (£)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                />
                 
                 {/* Export Buttons */}
                 <div className="flex space-x-3">
@@ -998,7 +989,7 @@ export default function PartnerReports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-green-600 mb-1">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.totalEarnings, selectedCurrency)}</p>
                   <p className="text-xs text-green-600 font-medium mt-1">
                     💰 All time revenue
                   </p>
@@ -1014,7 +1005,7 @@ export default function PartnerReports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-blue-600 mb-1">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.monthlyEarnings)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.monthlyEarnings, selectedCurrency)}</p>
                   <p className="text-xs text-blue-600 font-medium mt-1">
                     📅 {earningsData.topEarningMonth.month.split(' ')[0]} earnings
                   </p>
@@ -1046,7 +1037,7 @@ export default function PartnerReports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-orange-600 mb-1">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.pendingPayouts)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.pendingPayouts, selectedCurrency)}</p>
                   <p className="text-xs text-orange-600 font-medium mt-1">
                     ⏳ Awaiting payout
                   </p>
@@ -1062,7 +1053,7 @@ export default function PartnerReports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-teal-600 mb-1">Paid Out</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.paidOut)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.paidOut, selectedCurrency)}</p>
                   <p className="text-xs text-teal-600 font-medium mt-1">
                     ✅ {Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100)}% completed
                   </p>

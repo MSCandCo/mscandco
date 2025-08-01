@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
+import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 export default function ArtistEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -10,98 +11,8 @@ export default function ArtistEarnings() {
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP'); // Default to GBP
-  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
-  const currencyDropdownRef = useRef(null);
-  
-  // Load saved currency preference from localStorage
-  useEffect(() => {
-    const savedCurrency = localStorage.getItem('artist-earnings-currency');
-    if (savedCurrency && currencies.find(c => c.code === savedCurrency)) {
-      setSelectedCurrency(savedCurrency);
-    } else {
-      // Auto-detect currency based on user's location if no saved preference
-      detectUserCurrency();
-    }
-  }, []);
-  
-  // Save currency preference to localStorage when changed
-  const handleCurrencyChange = (currencyCode) => {
-    setSelectedCurrency(currencyCode);
-    setShowCurrencyDropdown(false);
-    localStorage.setItem('artist-earnings-currency', currencyCode);
-    
-    // Trigger storage event to sync currency across components
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'artist-earnings-currency',
-      newValue: currencyCode,
-      oldValue: selectedCurrency,
-      storageArea: localStorage
-    }));
-  };
-  
-  // Auto-detect currency based on user's location
-  const detectUserCurrency = async () => {
-    try {
-      // Try to get user's location from IP
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      
-      if (data.country_code === 'GB') {
-        handleCurrencyChange('GBP');
-      } else {
-        // Check if the country's currency is in our list
-        const countryCurrency = data.currency;
-        const hasCurrency = currencies.find(c => c.code === countryCurrency);
-        
-        if (hasCurrency) {
-          handleCurrencyChange(countryCurrency);
-        } else {
-          // Default to USD for countries not in our list
-          handleCurrencyChange('USD');
-        }
-      }
-    } catch (error) {
-      console.log('Could not detect user location, defaulting to GBP');
-      handleCurrencyChange('GBP');
-    }
-  };
-  
-  // Handle clicking outside the currency dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
-        setShowCurrencyDropdown(false);
-      }
-    };
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-  
-  // Major international currencies with exchange rates (simplified - in production, use real-time rates)
-  const currencies = [
-    { code: 'GBP', name: 'British Pound', symbol: '£', rate: 1.0 }, // Base currency
-    { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.27 },
-    { code: 'EUR', name: 'Euro', symbol: '€', rate: 1.17 },
-    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', rate: 1.72 },
-    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', rate: 1.92 },
-    { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rate: 185.0 },
-    { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', rate: 1.10 },
-    { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', rate: 2.08 },
-    { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', rate: 13.2 },
-    { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', rate: 13.5 },
-    { code: 'DKK', name: 'Danish Krone', symbol: 'kr', rate: 8.7 },
-    { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', rate: 1.72 },
-    { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$', rate: 9.9 },
-    { code: 'KRW', name: 'South Korean Won', symbol: '₩', rate: 1700.0 },
-    { code: 'INR', name: 'Indian Rupee', symbol: '₹', rate: 105.0 },
-    { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', rate: 6.3 },
-    { code: 'MXN', name: 'Mexican Peso', symbol: '$', rate: 21.5 },
-    { code: 'ZAR', name: 'South African Rand', symbol: 'R', rate: 23.8 }
-  ];
 
   const [earningsData] = useState({
     totalEarnings: 12450,
@@ -172,31 +83,7 @@ export default function ArtistEarnings() {
     ]
   });
 
-  // Get current currency object
-  const getCurrentCurrency = () => {
-    return currencies.find(c => c.code === selectedCurrency) || currencies[0];
-  };
 
-  // Convert amount from GBP to selected currency
-  const convertCurrency = (amount) => {
-    const currency = getCurrentCurrency();
-    return amount * currency.rate;
-  };
-
-  // Format amount with currency symbol
-  const formatCurrency = (amount) => {
-    const currency = getCurrentCurrency();
-    const convertedAmount = convertCurrency(amount);
-    
-    // Format based on currency
-    if (currency.code === 'JPY' || currency.code === 'KRW') {
-      return `${currency.symbol}${Math.round(convertedAmount).toLocaleString()}`;
-    } else if (currency.code === 'INR') {
-      return `${currency.symbol}${Math.round(convertedAmount).toLocaleString()}`;
-    } else {
-      return `${currency.symbol}${convertedAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-    }
-  };
 
   // Calculate available for withdrawal dynamically
   const getAvailableForWithdrawal = () => {
@@ -341,51 +228,11 @@ export default function ArtistEarnings() {
             </div>
             
             {/* Currency Selector */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Display Currency:</span>
-              <div className="relative" ref={currencyDropdownRef}>
-                <button
-                  onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <Globe className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium">{getCurrentCurrency().symbol} {getCurrentCurrency().code}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                </button>
-                
-                {showCurrencyDropdown && (
-                  <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-80 overflow-y-auto">
-                    <div className="p-2">
-                      <div className="text-xs font-medium text-gray-500 px-3 py-1 mb-2">Select Currency</div>
-                      {currencies.map((currency) => (
-                        <button
-                          key={currency.code}
-                          onClick={() => handleCurrencyChange(currency.code)}
-                          className={`w-full flex items-center justify-between px-3 py-2 text-left rounded hover:bg-gray-100 ${
-                            selectedCurrency === currency.code ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{currency.symbol}</span>
-                            <span className="text-sm">{currency.name}</span>
-                          </div>
-                          <span className="text-xs text-gray-500">{currency.code}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Exchange Rate Info */}
-              {selectedCurrency !== 'GBP' && (
-                <div className="text-xs text-gray-500">
-                  <span>
-                    1 GBP = {getCurrentCurrency().symbol}{getCurrentCurrency().rate.toFixed(2)}
-                  </span>
-                </div>
-              )}
-            </div>
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+              showLabel={true}
+            />
           </div>
         </div>
 
@@ -422,7 +269,7 @@ export default function ArtistEarnings() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Earnings</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(earningsData.totalEarnings)}
+                  {sharedFormatCurrency(earningsData.totalEarnings, selectedCurrency)}
                 </p>
               </div>
             </div>
@@ -436,7 +283,7 @@ export default function ArtistEarnings() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Current Period</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(getCurrentPeriodEarnings())}
+                  {sharedFormatCurrency(getCurrentPeriodEarnings(), selectedCurrency)}
                 </p>
                 <p className={`text-sm ${getPercentageChange() > 0 ? 'text-green-600' : 'text-amber-600'}`}>
                   {getPercentageChange()}% vs previous period
@@ -453,7 +300,7 @@ export default function ArtistEarnings() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(earningsData.pendingEarnings)}
+                  {sharedFormatCurrency(earningsData.pendingEarnings, selectedCurrency)}
                 </p>
               </div>
             </div>
@@ -480,21 +327,21 @@ export default function ArtistEarnings() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(earningsData.heldEarnings)}
+                {sharedFormatCurrency(earningsData.heldEarnings, selectedCurrency)}
               </div>
               <div className="text-sm text-gray-600">Available Balance</div>
-              <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance)} held in account</div>
+              <div className="text-xs text-gray-500 mt-1">Minimum {sharedFormatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(getAvailableForWithdrawal())}
+                {sharedFormatCurrency(getAvailableForWithdrawal(), selectedCurrency)}
               </div>
               <div className="text-sm text-gray-600">Available for Withdrawal</div>
-              <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(earningsData.minimumBalance)} minimum</div>
+              <div className="text-xs text-gray-500 mt-1">Amount above {sharedFormatCurrency(earningsData.minimumBalance, selectedCurrency)} minimum</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-amber-600">
-                {formatCurrency(earningsData.pendingWithdrawal)}
+                {sharedFormatCurrency(earningsData.pendingWithdrawal, selectedCurrency)}
               </div>
               <div className="text-sm text-gray-600">Pending Withdrawal</div>
               <div className="text-xs text-gray-500 mt-1">In transit to your account</div>
@@ -569,7 +416,7 @@ export default function ArtistEarnings() {
                       {transaction.platform}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      {formatCurrency(transaction.amount)}
+                      {sharedFormatCurrency(transaction.amount, selectedCurrency)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(transaction.date).toLocaleDateString()}
