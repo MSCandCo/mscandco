@@ -5,7 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { FaUsers, FaMusic, FaChartLine, FaDollarSign, FaCalendar, FaEye, FaEdit, FaPlus, FaDownload, FaTimes, FaSearch, FaFilter } from 'react-icons/fa';
 import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Download, Search, Filter } from 'lucide-react';
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
-import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
+import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 
 // Excel download functions
@@ -36,7 +36,7 @@ export default function LabelAdminDashboard() {
   // Table filtering and search states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [releaseTypeFilter, setReleaseTypeFilter] = useState('all');
+  const [artistFilter, setArtistFilter] = useState('all');
   const [editingIsrc, setEditingIsrc] = useState(null);
   const [tempIsrc, setTempIsrc] = useState('');
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
@@ -45,23 +45,26 @@ export default function LabelAdminDashboard() {
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
 
-  // Filter releases for label admin - only approved artists under this label
-  const labelReleases = useMemo(() => {
+  // Get approved artists for this label
+  const approvedArtists = useMemo(() => {
     const labelName = userBrand?.displayName || 'MSC & Co';
     
     // Get artists approved for this label (status: active, and associated with label)
-    const approvedArtists = ARTISTS.filter(artist => 
+    return ARTISTS.filter(artist => 
       artist.status === 'active' && 
       (artist.label === labelName || artist.brand === labelName)
     );
-    
+  }, [userBrand]);
+
+  // Filter releases for label admin - only approved artists under this label
+  const labelReleases = useMemo(() => {
     const approvedArtistIds = approvedArtists.map(artist => artist.id);
     
     // Filter releases by approved artists
     return RELEASES.filter(release => 
       approvedArtistIds.includes(release.artistId)
     );
-  }, [userBrand]);
+  }, [approvedArtists]);
 
   // Apply search and filter logic
   const filteredReleases = useMemo(() => {
@@ -81,13 +84,13 @@ export default function LabelAdminDashboard() {
       filtered = filtered.filter(release => release.status === statusFilter);
     }
 
-    // Release type filter
-    if (releaseTypeFilter !== 'all') {
-      filtered = filtered.filter(release => release.releaseType === releaseTypeFilter);
+    // Artist filter
+    if (artistFilter !== 'all') {
+      filtered = filtered.filter(release => release.artist === artistFilter);
     }
 
     return filtered;
-  }, [labelReleases, searchTerm, statusFilter, releaseTypeFilter]);
+  }, [labelReleases, searchTerm, statusFilter, artistFilter]);
 
   // Calculate label totals using centralized stats
   const labelTotals = {
@@ -200,15 +203,15 @@ export default function LabelAdminDashboard() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Release Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Approved Artists</label>
             <select
-              value={releaseTypeFilter}
-              onChange={(e) => setReleaseTypeFilter(e.target.value)}
+              value={artistFilter}
+              onChange={(e) => setArtistFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Release Types</option>
-              {RELEASE_TYPES.map(type => (
-                <option key={type} value={type}>{type}</option>
+              <option value="all">All Approved Artists</option>
+              {approvedArtists.map(artist => (
+                <option key={artist.id} value={artist.name}>{artist.name}</option>
               ))}
             </select>
           </div>
@@ -218,7 +221,7 @@ export default function LabelAdminDashboard() {
               onClick={() => {
                 setSearchTerm('');
                 setStatusFilter('all');
-                setReleaseTypeFilter('all');
+                setArtistFilter('all');
               }}
               className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
@@ -348,7 +351,7 @@ export default function LabelAdminDashboard() {
             <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Releases Found</h3>
             <p className="text-gray-500">
-              {searchTerm || statusFilter !== 'all' || releaseTypeFilter !== 'all'
+              {searchTerm || statusFilter !== 'all' || artistFilter !== 'all'
                 ? 'No releases match your current filters.'
                 : 'No approved releases available for this label.'}
             </p>
