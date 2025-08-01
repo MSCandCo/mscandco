@@ -4,43 +4,7 @@ import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
 import { useState, useEffect } from 'react';
 import { Play, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
-
-// Comprehensive video mock data based on YHWH MSC releases from database
-const mockVideos = {
-  highestPerforming: {
-    id: 'hp-001',
-    title: 'Urban Beat - Official Music Video',
-    url: '/videos/urban-beat.mp4', // Replace with actual video file
-    views: '125K',
-    likes: '8.5K',
-    releaseDate: '2024-09-15',
-    performance: 'trending',
-    streams: '125,000',
-    revenue: '£8,750'
-  },
-  newestReleased: {
-    id: 'nr-001',
-    title: 'Urban Beat (Club Remix) - Behind the Studio',
-    url: '/videos/urban-beat-remix.mp4', // Replace with actual video file
-    views: '45K',
-    likes: '3.2K',
-    releaseDate: '2025-01-15',
-    performance: 'new',
-    streams: '12,500',
-    revenue: '£2,800'
-  },
-  upcoming: {
-    id: 'up-001',
-    title: 'Movie Epic Soundtrack - Teaser Trailer',
-    url: '/videos/movie-soundtrack-teaser.mp4',
-    views: '8.9K',
-    likes: '567',
-    releaseDate: '2025-04-05',
-    performance: 'upcoming',
-    expectedStreams: 'TBD',
-    status: 'Under Review'
-  }
-};
+import { DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
 
 // Video component for artist dashboard
 const ArtistVideoSection = () => {
@@ -51,14 +15,14 @@ const ArtistVideoSection = () => {
   useEffect(() => {
     // Randomly choose between highest performing and newest video
     const isHighestPerforming = Math.random() > 0.5;
-    const video = isHighestPerforming ? mockVideos.highestPerforming : mockVideos.newestReleased;
+    const video = isHighestPerforming ? MOCK_VIDEOS.highestPerforming : MOCK_VIDEOS.newestReleased;
     setCurrentVideo(video);
     setVideoType(isHighestPerforming ? 'highest' : 'newest');
     
     // Switch videos every 30 seconds
     const interval = setInterval(() => {
       const newIsHighestPerforming = Math.random() > 0.5;
-      const newVideo = newIsHighestPerforming ? mockVideos.highestPerforming : mockVideos.newestReleased;
+      const newVideo = newIsHighestPerforming ? MOCK_VIDEOS.highestPerforming : MOCK_VIDEOS.newestReleased;
       setCurrentVideo(newVideo);
       setVideoType(newIsHighestPerforming ? 'highest' : 'newest');
     }, 30000);
@@ -156,10 +120,10 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Company Overview`,
           description: 'Manage all brands, users, and platform settings',
           stats: [
-            { label: 'Total Users', value: '1,247', change: '+12%', changeType: 'positive' },
-            { label: 'Active Projects', value: '89', change: '+5%', changeType: 'positive' },
-            { label: 'Revenue', value: '$124,567', change: '+8%', changeType: 'positive' },
-            { label: 'Brands', value: '2', change: 'YHWH MSC, Audio MSC', changeType: 'neutral' }
+            { label: 'Total Users', value: DASHBOARD_STATS.superAdmin.totalUsers.toLocaleString(), change: '+12%', changeType: 'positive' },
+            { label: 'Active Projects', value: DASHBOARD_STATS.superAdmin.activeProjects.toString(), change: '+5%', changeType: 'positive' },
+            { label: 'Revenue', value: `$${DASHBOARD_STATS.superAdmin.totalRevenue.toLocaleString()}`, change: '+8%', changeType: 'positive' },
+            { label: 'Total Artists', value: ARTISTS.length.toString(), change: `${RELEASES.length} releases`, changeType: 'neutral' }
           ],
           cards: [
             {
@@ -167,21 +131,21 @@ export default function RoleBasedDashboard() {
               description: 'Manage all platform users and roles',
               icon: '👥',
               href: '/admin/users',
-              stats: { users: 1247, roles: 5 }
+              stats: { users: DASHBOARD_STATS.superAdmin.totalUsers, roles: DASHBOARD_STATS.superAdmin.totalRoles }
             },
             {
               title: 'Content Management',
               description: 'Oversee all platform content',
               icon: '📁',
               href: '/admin/content',
-              stats: { songs: 1247, projects: 89 }
+              stats: { songs: DASHBOARD_STATS.superAdmin.totalSongs, projects: DASHBOARD_STATS.superAdmin.activeProjects }
             },
             {
               title: 'System Settings',
               description: 'Configure platform settings',
               icon: '⚙️',
               href: '/admin/settings',
-              stats: { brands: 2, features: 15 }
+              stats: { brands: DASHBOARD_STATS.superAdmin.totalBrands, features: DASHBOARD_STATS.superAdmin.systemFeatures }
             }
           ]
         };
@@ -193,10 +157,10 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Brand Management`,
           description: 'Manage your brand users and content',
           stats: [
-            { label: 'Brand Users', value: '456', change: '+8%', changeType: 'positive' },
-            { label: 'Active Projects', value: '34', change: '+3%', changeType: 'positive' },
-            { label: 'Revenue', value: '$67,890', change: '+6%', changeType: 'positive' },
-            { label: 'Content Items', value: '234', change: '+12%', changeType: 'positive' }
+            { label: 'Brand Artists', value: ARTISTS.filter(a => a.brand === displayBrand?.displayName).length.toString(), change: '+8%', changeType: 'positive' },
+            { label: 'Active Projects', value: DASHBOARD_STATS.companyAdmin.activeProjects.toString(), change: '+3%', changeType: 'positive' },
+            { label: 'Revenue', value: `$${DASHBOARD_STATS.companyAdmin.brandRevenue.toLocaleString()}`, change: '+6%', changeType: 'positive' },
+            { label: 'Content Items', value: DASHBOARD_STATS.companyAdmin.contentItems.toString(), change: '+12%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -204,58 +168,58 @@ export default function RoleBasedDashboard() {
               description: 'Manage brand users and permissions',
               icon: '👥',
               href: '/admin/users',
-              stats: { users: 456, roles: 3 }
+              stats: { users: DASHBOARD_STATS.companyAdmin.brandUsers, roles: DASHBOARD_STATS.companyAdmin.brandRoles }
             },
             {
               title: 'Content Management',
               description: 'Manage brand content and projects',
               icon: '📁',
               href: '/admin/content',
-              stats: { songs: 234, projects: 34 }
+              stats: { songs: DASHBOARD_STATS.companyAdmin.contentItems, projects: DASHBOARD_STATS.companyAdmin.activeProjects }
             },
             {
               title: 'Analytics',
               description: 'View brand performance metrics',
               icon: '📈',
               href: '/admin/analytics',
-              stats: { views: 12345, engagement: 78 }
+              stats: { views: DASHBOARD_STATS.companyAdmin.totalViews, engagement: DASHBOARD_STATS.companyAdmin.engagement }
             }
           ]
         };
 
-      case 'artist':
-        console.log('Rendering Artist dashboard');
+      case 'label_admin':
+        console.log('Rendering Label Admin dashboard');
         return {
-          title: 'Artist Dashboard',
-          subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Your Music Journey`,
-          description: 'Track your projects, earnings, and performance',
+          title: 'Label Admin Dashboard',
+          subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Label Management`,
+          description: 'Manage label artists, contracts, and revenue streams',
           stats: [
-            { label: 'My Releases', value: '12', change: '+2', changeType: 'positive' },
-            { label: 'Total Earnings', value: '$8,456', change: '+15%', changeType: 'positive' },
-            { label: 'Streams', value: '45,678', change: '+23%', changeType: 'positive' },
-            { label: 'Social Footprint', value: '45,678', change: '+12%', changeType: 'positive' }
+            { label: 'Label Artists', value: DASHBOARD_STATS.labelAdmin.labelArtists.toString(), change: '+3 this quarter', changeType: 'positive' },
+            { label: 'Active Releases', value: DASHBOARD_STATS.labelAdmin.labelReleases.toString(), change: '+12%', changeType: 'positive' },
+            { label: 'Label Revenue', value: `$${DASHBOARD_STATS.labelAdmin.labelRevenue.toLocaleString()}`, change: '+18%', changeType: 'positive' },
+            { label: 'Total Streams', value: `${(DASHBOARD_STATS.labelAdmin.labelStreams / 1000).toFixed(0)}K`, change: '+25%', changeType: 'positive' }
           ],
           cards: [
             {
-              title: 'My Releases',
-              description: 'Manage your music releases and track their performance',
-              icon: '🎵',
-              href: '/artist/releases',
-              stats: { releases: 12, assets: 8 }
+              title: 'Artist Management',
+              description: 'Manage label artists and their contracts',
+              icon: '🎤',
+              href: '/label-admin/artists',
+              stats: { artists: DASHBOARD_STATS.labelAdmin.labelArtists, contracts: DASHBOARD_STATS.labelAdmin.activeContracts }
             },
             {
-              title: 'Earnings',
-              description: 'Track your revenue and payments',
+              title: 'Revenue Tracking',
+              description: 'Monitor label earnings and artist royalties',
               icon: '💰',
-              href: '/artist/earnings',
-              stats: { earnings: 8456, pending: 1234 }
+              href: '/label-admin/revenue',
+              stats: { revenue: DASHBOARD_STATS.labelAdmin.labelRevenue, releases: DASHBOARD_STATS.labelAdmin.labelReleases }
             },
             {
-              title: 'Analytics',
-              description: 'View your performance metrics and social footprint',
-              icon: '📈',
-              href: '/artist/analytics',
-              stats: { streams: 45678, footprint: 45678 }
+              title: 'Performance Analytics',
+              description: 'View label-wide performance metrics',
+              icon: '📊',
+              href: '/label-admin/analytics',
+              stats: { streams: DASHBOARD_STATS.labelAdmin.labelStreams, countries: DASHBOARD_STATS.labelAdmin.labelCountries }
             }
           ]
         };
@@ -267,10 +231,10 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Content Distribution`,
           description: 'Manage content distribution and partner relationships',
           stats: [
-            { label: 'Distributed Content', value: '234', change: '+15%', changeType: 'positive' },
-            { label: 'Partner Revenue', value: '$23,456', change: '+12%', changeType: 'positive' },
-            { label: 'Active Partners', value: '8', change: '+1', changeType: 'positive' },
-            { label: 'Success Rate', value: '94%', change: '+2%', changeType: 'positive' }
+            { label: 'Distributed Content', value: DASHBOARD_STATS.distributionPartner.distributedContent.toString(), change: '+15%', changeType: 'positive' },
+            { label: 'Partner Revenue', value: `$${DASHBOARD_STATS.distributionPartner.partnerRevenue.toLocaleString()}`, change: '+12%', changeType: 'positive' },
+            { label: 'Active Artists', value: DASHBOARD_STATS.distributionPartner.totalArtists.toString(), change: `${RELEASES.length} total releases`, changeType: 'positive' },
+            { label: 'Success Rate', value: `${DASHBOARD_STATS.distributionPartner.successRate}%`, change: '+2%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -278,21 +242,21 @@ export default function RoleBasedDashboard() {
               description: 'Manage distributed content and releases',
               icon: '📁',
               href: '/distribution-partner/dashboard',
-              stats: { content: 234, releases: 45 }
+              stats: { content: DASHBOARD_STATS.distributionPartner.distributedContent, releases: DASHBOARD_STATS.distributionPartner.totalReleases }
             },
             {
               title: 'Analytics',
               description: 'Track distribution performance',
               icon: '📈',
               href: '/partner/analytics',
-              stats: { views: 56789, revenue: 23456 }
+              stats: { views: DASHBOARD_STATS.distributionPartner.totalViews, revenue: DASHBOARD_STATS.distributionPartner.partnerRevenue }
             },
             {
               title: 'Earnings',
               description: 'View earnings from all distributed releases',
               icon: '💰',
               href: '/partner/reports',
-              stats: { earnings: '$24,587', releases: 6 }
+              stats: { earnings: `$${DASHBOARD_STATS.distributionPartner.partnerRevenue.toLocaleString()}`, releases: DASHBOARD_STATS.distributionPartner.totalReleases }
             }
           ]
         };
@@ -336,15 +300,17 @@ export default function RoleBasedDashboard() {
 
       case 'artist':
         console.log('Rendering Artist dashboard');
+        const artistData = ARTISTS.find(a => a.id === 'yhwh_msc') || ARTISTS[0];
+        const artistReleases = RELEASES.filter(r => r.artistId === artistData.id);
         return {
           title: 'Artist Dashboard',
-          subtitle: `Welcome to YHWH MSC - Your Music Career Hub`,
+          subtitle: `Welcome to ${artistData.brand} - Your Music Career Hub`,
           description: 'Manage your releases, track earnings, and grow your audience',
           stats: [
-            { label: 'Total Releases', value: '8', change: '+2 this month', changeType: 'positive' },
-            { label: 'Total Streams', value: '125K', change: '+15%', changeType: 'positive' },
-            { label: 'Total Earnings', value: '£8,750', change: '+£2,800', changeType: 'positive' },
-            { label: 'Active Projects', value: '5', change: '3 in review', changeType: 'neutral' }
+            { label: 'Total Releases', value: DASHBOARD_STATS.artist.totalReleases.toString(), change: '+2 this month', changeType: 'positive' },
+            { label: 'Total Streams', value: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, change: `+${DASHBOARD_STATS.artist.growth}%`, changeType: 'positive' },
+            { label: 'Total Earnings', value: `£${DASHBOARD_STATS.artist.totalEarnings.toLocaleString()}`, change: `+£${DASHBOARD_STATS.artist.thisMonthEarnings}`, changeType: 'positive' },
+            { label: 'Active Projects', value: DASHBOARD_STATS.artist.activeProjects.toString(), change: '3 in review', changeType: 'neutral' }
           ],
           cards: [
             {
@@ -353,13 +319,13 @@ export default function RoleBasedDashboard() {
               icon: '🎵',
               href: '/artist/releases',
               stats: { 
-                total: 8, 
-                draft: 2, 
-                submitted: 1,
-                underReview: 2, 
-                approvalRequired: 1,
-                live: 1,
-                completed: 1
+                total: artistReleases.length, 
+                draft: artistReleases.filter(r => r.status === 'DRAFT').length, 
+                submitted: artistReleases.filter(r => r.status === 'SUBMITTED').length,
+                underReview: artistReleases.filter(r => r.status === 'UNDER_REVIEW').length, 
+                approvalRequired: artistReleases.filter(r => r.status === 'APPROVAL_REQUIRED').length,
+                live: artistReleases.filter(r => r.status === 'LIVE').length,
+                completed: artistReleases.filter(r => r.status === 'COMPLETED').length
               }
             },
             {
@@ -368,10 +334,10 @@ export default function RoleBasedDashboard() {
               icon: '💰',
               href: '/artist/earnings',
               stats: { 
-                thisMonth: '£2,800', 
-                lastMonth: '£5,950',
-                held: '£8,750',
-                platforms: 7
+                thisMonth: `£${DASHBOARD_STATS.artist.thisMonthEarnings.toLocaleString()}`, 
+                lastMonth: `£${DASHBOARD_STATS.artist.lastMonthEarnings.toLocaleString()}`,
+                held: `£${DASHBOARD_STATS.artist.heldEarnings.toLocaleString()}`,
+                platforms: DASHBOARD_STATS.artist.platforms
               }
             },
             {
@@ -380,10 +346,10 @@ export default function RoleBasedDashboard() {
               icon: '📈',
               href: '/artist/analytics',
               stats: { 
-                streams: '125K', 
-                countries: 45,
-                topTrack: 'Urban Beat',
-                growth: '+15%'
+                streams: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, 
+                countries: DASHBOARD_STATS.artist.countries,
+                topTrack: DASHBOARD_STATS.artist.topTrack,
+                growth: `+${DASHBOARD_STATS.artist.growth}%`
               }
             }
           ]
