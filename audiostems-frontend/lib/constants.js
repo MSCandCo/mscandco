@@ -185,3 +185,9 @@ export const isStatusControlledByDistributionPartner = (status) => {
 export const isStatusRequiringApproval = (status) => {
   return status === RELEASE_STATUSES.APPROVAL_REQUIRED;
 };
+
+// Helper function to check if status is editable by label admin
+export const isStatusEditableByLabelAdmin = (status) => {
+  // Label admins have broader permissions than artists but not full distribution partner control
+  return [RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.UNDER_REVIEW, RELEASE_STATUSES.APPROVAL_REQUIRED].includes(status);
+};

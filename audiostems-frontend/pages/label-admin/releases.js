@@ -3,12 +3,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaFilter, FaSearch } from 'react-icons/fa';
-import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search } from 'lucide-react';
+import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search, Plus } from 'lucide-react';
 
 // Import centralized mock data
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
+import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
 
 // Excel download functions
 const downloadReleaseExcel = async (release) => {
@@ -24,6 +25,7 @@ export default function LabelAdminReleases() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
@@ -265,10 +267,21 @@ export default function LabelAdminReleases() {
           )}
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">All Releases</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Manage and track all releases from your label artists
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">All Releases</h1>
+                <p className="mt-2 text-sm text-gray-600">
+                  Manage and track all releases from your label artists
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Release
+              </button>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -470,6 +483,13 @@ export default function LabelAdminReleases() {
           </div>
         </div>
       </div>
+
+      {/* Create Release Modal */}
+      <CreateReleaseModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        userRole={userRole}
+      />
     </Layout>
   );
 }
