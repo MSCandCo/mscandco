@@ -549,8 +549,7 @@ export default function RoleBasedNavigation() {
               }
               dismissOnClick={false}
             >
-              <Link href={userRole === 'label_admin' ? '/label-admin/dashboard' : 
-                          userRole === 'super_admin' ? '/admin/dashboard' : 
+              <Link href={userRole === 'super_admin' ? '/admin/dashboard' : 
                           userRole === 'company_admin' ? '/admin/dashboard' : 
                           userRole === 'distribution_partner' ? '/distribution-partner/dashboard' : 
                           '/dashboard'}>
