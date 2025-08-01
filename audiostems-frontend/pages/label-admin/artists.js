@@ -25,6 +25,8 @@ export default function LabelAdminArtists() {
     console.log('userBrand:', userBrand);
     console.log('labelName:', labelName);
     console.log('Total ARTISTS in database:', ARTISTS.length);
+    console.log('All ARTISTS sample:', ARTISTS.slice(0, 3).map(a => ({ name: a.name, label: a.label, brand: a.brand, status: a.status })));
+    console.log('All MSC & Co related artists:', ARTISTS.filter(a => a.label?.includes('MSC') || a.brand?.includes('MSC')).map(a => ({ name: a.name, label: a.label, brand: a.brand, status: a.status })));
     
     const filteredArtists = ARTISTS.filter(artist => 
       artist.status === 'active' && 
