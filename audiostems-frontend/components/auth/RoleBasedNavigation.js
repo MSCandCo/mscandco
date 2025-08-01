@@ -549,7 +549,11 @@ export default function RoleBasedNavigation() {
               }
               dismissOnClick={false}
             >
-              <Link href="/dashboard">
+              <Link href={userRole === 'label_admin' ? '/label-admin/dashboard' : 
+                          userRole === 'super_admin' ? '/admin/dashboard' : 
+                          userRole === 'company_admin' ? '/admin/dashboard' : 
+                          userRole === 'distribution_partner' ? '/distribution-partner/dashboard' : 
+                          '/dashboard'}>
                 <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
               </Link>
               <Link href="/artist/profile">
