@@ -1,9 +1,10 @@
 // 🎯 SHARED CURRENCY SELECTOR COMPONENT
 // Provides consistent currency formatting and selection across the platform
+// Base currency: GBP - All amounts are stored in GBP and converted using live rates
 
 import { useState, useEffect } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -17,13 +18,103 @@ const CURRENCIES = [
   { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' }
 ];
 
+// Exchange rates store (GBP as base currency = 1.0)
+let exchangeRates = {
+  GBP: 1.0,
+  USD: 1.27,
+  EUR: 1.17, 
+  CAD: 1.72,
+  NGN: 1580,
+  GHS: 19.8,
+  KES: 164,
+  ZAR: 23.1,
+  ZMW: 35.0
+};
+
+let lastFetchTime = 0;
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+// Fetch live exchange rates from a free API
+const fetchLiveRates = async () => {
+  const now = Date.now();
+  if (now - lastFetchTime < CACHE_DURATION) {
+    return exchangeRates;
+  }
+
+  try {
+    // Using exchangerate-api.com (free tier: 1500 requests/month)
+    const response = await fetch('https://api.exchangerate-api.com/v4/latest/GBP');
+    
+    if (response.ok) {
+      const data = await response.json();
+      const newRates = { GBP: 1.0 };
+      
+      // Map our supported currencies
+      CURRENCIES.forEach(currency => {
+        if (currency.code !== 'GBP' && data.rates[currency.code]) {
+          newRates[currency.code] = data.rates[currency.code];
+        }
+      });
+      
+      exchangeRates = newRates;
+      lastFetchTime = now;
+      
+      // Store in localStorage for offline fallback
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('exchangeRates', JSON.stringify({
+          rates: exchangeRates,
+          timestamp: now
+        }));
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch live exchange rates, using cached/fallback rates');
+    
+    // Try to load from localStorage
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('exchangeRates');
+      if (cached) {
+        const parsedCache = JSON.parse(cached);
+        // Use cached rates if less than 24 hours old
+        if (now - parsedCache.timestamp < 24 * 60 * 60 * 1000) {
+          exchangeRates = parsedCache.rates;
+        }
+      }
+    }
+  }
+  
+  return exchangeRates;
+};
+
+// Get current exchange rate with live updates
+export const getExchangeRate = (fromCurrency = 'GBP', toCurrency = 'GBP') => {
+  if (fromCurrency === toCurrency) return 1.0;
+  if (fromCurrency === 'GBP') return exchangeRates[toCurrency] || 1.0;
+  if (toCurrency === 'GBP') return 1.0 / (exchangeRates[fromCurrency] || 1.0);
+  
+  // Convert via GBP: from -> GBP -> to
+  const gbpValue = 1.0 / (exchangeRates[fromCurrency] || 1.0);
+  return gbpValue * (exchangeRates[toCurrency] || 1.0);
+};
+
 export default function CurrencySelector({ 
   selectedCurrency, 
   onCurrencyChange, 
   showLabel = true,
   compact = false,
-  className = ""
+  className = "",
+  showExchangeRate = true
 }) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  useEffect(() => {
+    // Fetch rates on mount
+    fetchLiveRates().then(() => {
+      setLastUpdated(new Date());
+    });
+  }, []);
+
   const handleCurrencyChange = (newCurrency) => {
     if (onCurrencyChange) {
       onCurrencyChange(newCurrency);
@@ -39,53 +130,98 @@ export default function CurrencySelector({
     }
   };
 
+  const handleRefreshRates = async () => {
+    setIsRefreshing(true);
+    lastFetchTime = 0; // Force refresh
+    await fetchLiveRates();
+    setLastUpdated(new Date());
+    setIsRefreshing(false);
+    
+    // Trigger a re-render of all currency displays
+    window.dispatchEvent(new CustomEvent('exchangeRatesUpdated'));
+  };
+
   const currentCurrency = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
+  const exchangeRate = getExchangeRate('GBP', selectedCurrency);
+  const isBaseCurrency = selectedCurrency === 'GBP';
 
   if (compact) {
     return (
-      <div className={`relative ${className}`}>
-        <select
-          value={selectedCurrency}
-          onChange={(e) => handleCurrencyChange(e.target.value)}
-          className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {CURRENCIES.map(currency => (
-            <option key={currency.code} value={currency.code}>
-              {currency.symbol} {currency.code}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+      <div className={`flex items-center space-x-2 ${className}`}>
+        <div className="relative">
+          <select
+            value={selectedCurrency}
+            onChange={(e) => handleCurrencyChange(e.target.value)}
+            className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {CURRENCIES.map(currency => (
+              <option key={currency.code} value={currency.code}>
+                {currency.symbol} {currency.code}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+        </div>
+        {showExchangeRate && !isBaseCurrency && (
+          <span className="text-xs text-gray-500">
+            1 GBP = {currentCurrency.symbol}{exchangeRate.toFixed(2)}
+          </span>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
+    <div className={`flex items-center space-x-4 ${className}`}>
       {showLabel && (
         <label className="text-sm font-medium text-gray-700">Currency:</label>
       )}
-      <div className="relative">
-        <select
-          value={selectedCurrency}
-          onChange={(e) => handleCurrencyChange(e.target.value)}
-          className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      <div className="flex items-center space-x-2">
+        <div className="relative">
+          <select
+            value={selectedCurrency}
+            onChange={(e) => handleCurrencyChange(e.target.value)}
+            className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {CURRENCIES.map(currency => (
+              <option key={currency.code} value={currency.code}>
+                {currency.symbol} {currency.code} - {currency.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
+        
+        {showExchangeRate && !isBaseCurrency && (
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <span>1 GBP = {currentCurrency.symbol}{exchangeRate.toFixed(2)}</span>
+          </div>
+        )}
+        
+        <button
+          onClick={handleRefreshRates}
+          disabled={isRefreshing}
+          className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 focus:outline-none"
+          title="Refresh exchange rates"
         >
-          {CURRENCIES.map(currency => (
-            <option key={currency.code} value={currency.code}>
-              {currency.symbol} {currency.code} - {currency.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
+        </button>
       </div>
+      
+      {lastUpdated && (
+        <div className="text-xs text-gray-400">
+          Updated: {lastUpdated.toLocaleTimeString()}
+        </div>
+      )}
     </div>
   );
 }
 
 // 💰 Currency formatting utility functions
-export const formatCurrency = (amount, currency = 'GBP', options = {}) => {
-  if (amount === null || amount === undefined) return formatCurrency(0, currency, options);
+// All amounts are assumed to be in GBP (base currency) and converted as needed
+export const formatCurrency = (gbpAmount, displayCurrency = 'GBP', options = {}) => {
+  if (gbpAmount === null || gbpAmount === undefined) return formatCurrency(0, displayCurrency, options);
   
   const { 
     showSymbol = true, 
@@ -94,13 +230,16 @@ export const formatCurrency = (amount, currency = 'GBP', options = {}) => {
     compact = false 
   } = options;
   
-  const currencyInfo = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0];
+  const currencyInfo = CURRENCIES.find(c => c.code === displayCurrency) || CURRENCIES[0];
+  
+  // Convert from GBP to display currency
+  const convertedAmount = convertCurrency(gbpAmount, 'GBP', displayCurrency);
   
   // Format large numbers in compact mode (K, M, B)
-  if (compact && Math.abs(amount) >= 1000) {
+  if (compact && Math.abs(convertedAmount) >= 1000) {
     const units = ['', 'K', 'M', 'B', 'T'];
-    const unitIndex = Math.floor(Math.log10(Math.abs(amount)) / 3);
-    const shortAmount = amount / Math.pow(1000, unitIndex);
+    const unitIndex = Math.floor(Math.log10(Math.abs(convertedAmount)) / 3);
+    const shortAmount = convertedAmount / Math.pow(1000, unitIndex);
     const formattedAmount = shortAmount.toFixed(shortAmount < 10 ? 1 : 0);
     const symbol = showSymbol ? currencyInfo.symbol : '';
     const code = showCode ? ` ${currencyInfo.code}` : '';
@@ -108,7 +247,7 @@ export const formatCurrency = (amount, currency = 'GBP', options = {}) => {
   }
   
   // Standard formatting
-  const formattedAmount = amount.toLocaleString('en-US', {
+  const formattedAmount = convertedAmount.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
   });
@@ -119,25 +258,12 @@ export const formatCurrency = (amount, currency = 'GBP', options = {}) => {
   return `${symbol}${formattedAmount}${code}`;
 };
 
-// 🔄 Conversion utilities (realistic rates for demo)
-const EXCHANGE_RATES = {
-  USD: { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.35, NGN: 1244, ZAR: 18.2, KES: 129, ZMW: 27.5, GHS: 15.6 },
-  EUR: { USD: 1.09, EUR: 1, GBP: 0.85, CAD: 1.47, NGN: 1357, ZAR: 19.8, KES: 140.7, ZMW: 30.0, GHS: 17.0 },
-  GBP: { USD: 1.27, EUR: 1.17, GBP: 1, CAD: 1.72, NGN: 1580, ZAR: 23.1, KES: 164, ZMW: 35.0, GHS: 19.8 },
-  CAD: { USD: 0.74, EUR: 0.68, GBP: 0.58, CAD: 1, NGN: 920, ZAR: 13.5, KES: 95.6, ZMW: 20.4, GHS: 11.6 },
-  NGN: { USD: 0.0008, EUR: 0.0007, GBP: 0.0006, CAD: 0.0011, NGN: 1, ZAR: 0.015, KES: 0.10, ZMW: 0.022, GHS: 0.013 },
-  ZAR: { USD: 0.055, EUR: 0.050, GBP: 0.043, CAD: 0.074, NGN: 68.4, ZAR: 1, KES: 7.1, ZMW: 1.5, GHS: 0.86 },
-  KES: { USD: 0.0078, EUR: 0.0071, GBP: 0.0061, CAD: 0.0105, NGN: 9.6, ZAR: 0.14, KES: 1, ZMW: 0.21, GHS: 0.12 },
-  ZMW: { USD: 0.036, EUR: 0.033, GBP: 0.029, CAD: 0.049, NGN: 45.2, ZAR: 0.67, KES: 4.7, ZMW: 1, GHS: 0.57 },
-  GHS: { USD: 0.064, EUR: 0.059, GBP: 0.050, CAD: 0.086, NGN: 79.7, ZAR: 1.16, KES: 8.2, ZMW: 1.75, GHS: 1 }
-};
-
-export const convertCurrency = (amount, fromCurrency, toCurrency) => {
+// 🔄 Convert currency using live exchange rates (GBP as base)
+export const convertCurrency = (amount, fromCurrency = 'GBP', toCurrency = 'GBP') => {
   if (fromCurrency === toCurrency) return amount;
   
-  const rate = EXCHANGE_RATES[fromCurrency]?.[toCurrency];
-  if (!rate) return amount; // Fallback if rate not found
-  
+  // Use the live exchange rate function
+  const rate = getExchangeRate(fromCurrency, toCurrency);
   return amount * rate;
 };
 
@@ -197,6 +323,7 @@ export function CurrencyRange({
 // 🔗 Hook for currency synchronization across components
 export function useCurrencySync(initialCurrency = 'GBP') {
   const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
+  const [, forceUpdate] = useState({});
 
   useEffect(() => {
     // Load from localStorage on mount
@@ -207,14 +334,27 @@ export function useCurrencySync(initialCurrency = 'GBP') {
       }
     }
 
+    // Fetch initial exchange rates
+    fetchLiveRates();
+
     // Listen for currency changes from other components
     const handleCurrencyChange = (event) => {
       setSelectedCurrency(event.detail.currency);
     };
 
+    // Listen for exchange rate updates to trigger re-renders
+    const handleExchangeRatesUpdated = () => {
+      forceUpdate({});
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('currencyChange', handleCurrencyChange);
-      return () => window.removeEventListener('currencyChange', handleCurrencyChange);
+      window.addEventListener('exchangeRatesUpdated', handleExchangeRatesUpdated);
+      
+      return () => {
+        window.removeEventListener('currencyChange', handleCurrencyChange);
+        window.removeEventListener('exchangeRatesUpdated', handleExchangeRatesUpdated);
+      };
     }
   }, []);
 
