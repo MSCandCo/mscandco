@@ -1,73 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaEye, FaEdit, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
 import { Plus, Eye, Edit, Music, TrendingUp, DollarSign } from 'lucide-react';
-
-// Mock data for label admin artists
-const mockArtists = [
-  {
-    id: 1,
-    name: 'YHWH MSC',
-    email: 'yhwh@mscandco.com',
-    releases: 8,
-    totalEarnings: 15420,
-    totalStreams: 234567,
-    followers: 12500,
-    status: 'active',
-    lastRelease: '2024-01-15',
-    avatar: '🎤',
-    genre: 'Electronic',
-    location: 'London, UK',
-    joinDate: '2023-01-15'
-  },
-  {
-    id: 2,
-    name: 'MC Flow',
-    email: 'mcflow@mscandco.com',
-    releases: 3,
-    totalEarnings: 5670,
-    totalStreams: 89012,
-    followers: 3400,
-    status: 'active',
-    lastRelease: '2024-01-10',
-    avatar: '🎵',
-    genre: 'Hip Hop',
-    location: 'Manchester, UK',
-    joinDate: '2023-06-20'
-  },
-  {
-    id: 3,
-    name: 'Studio Pro',
-    email: 'studiopro@mscandco.com',
-    releases: 5,
-    totalEarnings: 8920,
-    totalStreams: 145678,
-    followers: 7800,
-    status: 'active',
-    lastRelease: '2024-01-08',
-    avatar: '🎧',
-    genre: 'Electronic',
-    location: 'Birmingham, UK',
-    joinDate: '2023-03-10'
-  },
-  {
-    id: 4,
-    name: 'Acoustic Dreams',
-    email: 'acoustic@mscandco.com',
-    releases: 2,
-    totalEarnings: 2340,
-    totalStreams: 45678,
-    followers: 2100,
-    status: 'inactive',
-    lastRelease: '2023-11-15',
-    avatar: '🎸',
-    genre: 'Acoustic',
-    location: 'Liverpool, UK',
-    joinDate: '2023-09-05'
-  }
-];
+import { ARTISTS, RELEASES } from '../../lib/mockData';
 
 export default function LabelAdminArtists() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -80,6 +17,32 @@ export default function LabelAdminArtists() {
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
 
+  // Get label artists from centralized data
+  const labelArtists = useMemo(() => {
+    const labelName = userBrand?.displayName || 'MSC & Co';
+    return ARTISTS.filter(artist => 
+      artist.status === 'active' && 
+      (artist.label === labelName || artist.brand === labelName)
+    ).map(artist => {
+      // Calculate artist releases and earnings
+      const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
+      const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+      const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+      
+      return {
+        ...artist,
+        releases: artistReleases.length,
+        totalEarnings,
+        totalStreams,
+        followers: artist.followers || 0,
+        lastRelease: artistReleases.length > 0 ? 
+          artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
+          null,
+        avatar: artist.avatar || '🎤'
+      };
+    });
+  }, [userBrand]);
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -89,7 +52,7 @@ export default function LabelAdminArtists() {
   }
 
   // Filter artists based on search and filters
-  const filteredArtists = mockArtists.filter(artist => {
+  const filteredArtists = labelArtists.filter(artist => {
     const matchesSearch = artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.genre.toLowerCase().includes(searchTerm.toLowerCase());
@@ -101,12 +64,12 @@ export default function LabelAdminArtists() {
 
   // Calculate label totals
   const labelTotals = {
-    totalArtists: mockArtists.length,
-    activeArtists: mockArtists.filter(a => a.status === 'active').length,
-    totalEarnings: mockArtists.reduce((sum, artist) => sum + artist.totalEarnings, 0),
-    totalStreams: mockArtists.reduce((sum, artist) => sum + artist.totalStreams, 0),
-    totalFollowers: mockArtists.reduce((sum, artist) => sum + artist.followers, 0),
-    totalReleases: mockArtists.reduce((sum, artist) => sum + artist.releases, 0)
+    totalArtists: labelArtists.length,
+    activeArtists: labelArtists.filter(a => a.status === 'active').length,
+    totalEarnings: labelArtists.reduce((sum, artist) => sum + artist.totalEarnings, 0),
+    totalStreams: labelArtists.reduce((sum, artist) => sum + artist.totalStreams, 0),
+    totalFollowers: labelArtists.reduce((sum, artist) => sum + artist.followers, 0),
+    totalReleases: labelArtists.reduce((sum, artist) => sum + artist.releases, 0)
   };
 
   return (
@@ -221,7 +184,7 @@ export default function LabelAdminArtists() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Artists</option>
-                  {mockArtists.map(artist => (
+                  {labelArtists.map(artist => (
                     <option key={artist.id} value={artist.name}>{artist.name}</option>
                   ))}
                 </select>

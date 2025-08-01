@@ -7,6 +7,7 @@ import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Downlo
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
+import Link from 'next/link';
 
 // Excel download functions
 const downloadReleaseExcel = async (release) => {
@@ -53,7 +54,24 @@ export default function LabelAdminDashboard() {
     return ARTISTS.filter(artist => 
       artist.status === 'active' && 
       (artist.label === labelName || artist.brand === labelName)
-    );
+    ).map(artist => {
+      // Calculate artist releases and earnings
+      const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
+      const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+      const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+      
+      return {
+        ...artist,
+        releases: artistReleases.length,
+        totalEarnings,
+        totalStreams,
+        followers: artist.followers || 0,
+        lastRelease: artistReleases.length > 0 ? 
+          artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
+          'No releases',
+        avatar: artist.avatar || '🎤'
+      };
+    });
   }, [userBrand]);
 
   // Filter releases for label admin - only approved artists under this label
@@ -99,6 +117,41 @@ export default function LabelAdminDashboard() {
     totalReleases: labelReleases.length,
     activeArtists: DASHBOARD_STATS.labelAdmin.labelArtists
   };
+
+  // Calculate earnings data from releases
+  const earningsData = useMemo(() => {
+    const totalEarnings = labelReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+    const totalStreams = labelReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+    
+    // Calculate artist breakdown
+    const artistBreakdown = approvedArtists.map(artist => {
+      const artistReleases = labelReleases.filter(release => release.artistId === artist.id);
+      const artistEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+      const artistStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+      
+      return {
+        artist: artist.name,
+        earnings: artistEarnings,
+        streams: artistStreams,
+        releases: artistReleases.length
+      };
+    }).sort((a, b) => b.earnings - a.earnings);
+
+    // Get top earning releases
+    const topReleases = labelReleases
+      .filter(release => release.earnings > 0)
+      .sort((a, b) => b.earnings - a.earnings)
+      .slice(0, 5);
+
+    return {
+      totalEarnings,
+      totalStreams,
+      artistBreakdown,
+      topReleases,
+      avgEarningsPerRelease: totalEarnings / Math.max(labelReleases.length, 1),
+      avgStreamsPerRelease: totalStreams / Math.max(labelReleases.length, 1)
+    };
+  }, [labelReleases, approvedArtists]);
 
   // ISRC editing functions
   const startEditingIsrc = (releaseId, trackIndex, currentIsrc) => {
@@ -377,7 +430,7 @@ export default function LabelAdminDashboard() {
 
       {/* Artists Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockArtists.map((artist) => (
+        {approvedArtists.map((artist) => (
           <div key={artist.id} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -428,6 +481,174 @@ export default function LabelAdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+
+  const renderEarnings = () => (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900">£{earningsData.totalEarnings.toLocaleString()}</p>
+            </div>
+            <DollarSign className="w-8 h-8 text-green-600" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg Per Release</p>
+              <p className="text-2xl font-bold text-gray-900">£{Math.round(earningsData.avgEarningsPerRelease).toLocaleString()}</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-blue-600" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Streams</p>
+              <p className="text-2xl font-bold text-gray-900">{earningsData.totalStreams.toLocaleString()}</p>
+            </div>
+            <Music className="w-8 h-8 text-purple-600" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg Streams/Release</p>
+              <p className="text-2xl font-bold text-gray-900">{Math.round(earningsData.avgStreamsPerRelease).toLocaleString()}</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-orange-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link href="/label-admin/earnings" className="block">
+          <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Detailed Earnings</h3>
+                <p className="text-sm text-gray-500">View transactions, withdrawals & analytics</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/label-admin/artists" className="block">
+          <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Artist Management</h3>
+                <p className="text-sm text-gray-500">Manage artist contracts & royalties</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/label-admin/releases" className="block">
+          <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center">
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <Music className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Release Performance</h3>
+                <p className="text-sm text-gray-500">Track release revenues & streams</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Top Earning Artists */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Top Earning Artists</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Releases</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {earningsData.artistBreakdown.slice(0, 5).map((artist, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">£{artist.earnings.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <Link href={`/label-admin/artists?search=${encodeURIComponent(artist.artist)}`} className="text-blue-600 hover:text-blue-900">
+                      View Details
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Top Earning Releases */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Top Earning Releases</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {earningsData.topReleases.map((release, index) => (
+                <tr key={release.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{release.projectName}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.releaseType}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">£{release.earnings.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.streams.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <Link href={`/label-admin/releases?search=${encodeURIComponent(release.projectName)}`} className="text-blue-600 hover:text-blue-900">
+                      View Details
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -503,7 +724,7 @@ export default function LabelAdminDashboard() {
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'artists' && renderMyArtists()}
           {activeTab === 'releases' && <div>All Releases Content</div>}
-          {activeTab === 'earnings' && <div>Earnings Content</div>}
+          {activeTab === 'earnings' && renderEarnings()}
         </div>
       </div>
     </Layout>
