@@ -75,7 +75,6 @@ export default function LabelAdminArtists() {
   const [showAddArtist, setShowAddArtist] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [genreFilter, setGenreFilter] = useState('all');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -94,9 +93,8 @@ export default function LabelAdminArtists() {
                          artist.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.genre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || artist.status === statusFilter;
-    const matchesGenre = genreFilter === 'all' || artist.genre === genreFilter;
     
-    return matchesSearch && matchesStatus && matchesGenre;
+    return matchesSearch && matchesStatus;
   });
 
   // Calculate label totals
@@ -187,7 +185,7 @@ export default function LabelAdminArtists() {
 
           {/* Filters */}
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
                 <input
@@ -212,28 +210,11 @@ export default function LabelAdminArtists() {
                 </select>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
-                <select
-                  value={genreFilter}
-                  onChange={(e) => setGenreFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">All Genres</option>
-                  <option value="Electronic">Electronic</option>
-                  <option value="Hip Hop">Hip Hop</option>
-                  <option value="Acoustic">Acoustic</option>
-                  <option value="Rock">Rock</option>
-                  <option value="Pop">Pop</option>
-                </select>
-              </div>
-              
               <div className="flex items-end">
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setStatusFilter('all');
-                    setGenreFilter('all');
                   }}
                   className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
