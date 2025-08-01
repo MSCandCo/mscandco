@@ -11,10 +11,10 @@ const CURRENCIES = [
   { code: 'GBP', symbol: '£', name: 'British Pound' },
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
   { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
-  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi' },
   { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
-  { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' },
-  { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi' }
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' }
 ];
 
 export default function CurrencySelector({ 
