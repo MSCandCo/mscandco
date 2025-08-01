@@ -4,6 +4,7 @@ import { HiUser, HiDownload, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-i
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
+import { getUserRole, getUserBrand } from '@/lib/auth0-config';
 import { useState, useEffect } from 'react';
 
 function Header({ largeLogo = false }) {
@@ -51,12 +52,40 @@ function Header({ largeLogo = false }) {
     return router.pathname === path;
   };
 
-  // Get display name from profile data or fallback to email
+  // Get display name with role and label information
   const getDisplayName = () => {
-    if (profileData?.firstName && profileData?.lastName) {
-      return `${profileData.firstName} ${profileData.lastName}`;
+    const userRole = getUserRole(user);
+    const userBrandInfo = getUserBrand(user);
+    
+    // Get first and last name
+    const firstName = profileData?.firstName || user?.given_name || 'User';
+    const lastName = profileData?.lastName || user?.family_name || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    // Role display mapping
+    const roleDisplayMap = {
+      'label_admin': 'Label Admin',
+      'artist': 'Artist',
+      'distribution_partner': 'Distribution Partner',
+      'super_admin': 'Super Admin',
+      'company_admin': 'Company Admin'
+    };
+    
+    const roleDisplay = roleDisplayMap[userRole] || 'User';
+    const labelName = userBrandInfo?.displayName || userBrandInfo?.name || 'Platform';
+    
+    // For label admin, show "Hi First Last, Label Admin at Label Name"
+    if (userRole === 'label_admin') {
+      return `${fullName}, ${roleDisplay} at ${labelName}`;
     }
-    return user?.email || 'User';
+    
+    // For other roles, show "Hi First Last, Role"
+    if (userRole && userRole !== 'artist') {
+      return `${fullName}, ${roleDisplay}`;
+    }
+    
+    // For artists or fallback, just show name
+    return fullName || user?.email || 'User';
   };
 
   return (

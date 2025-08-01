@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import Link from 'next/link';
-import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
+import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { Dropdown } from "flowbite-react";
 import {
   HiArrowLeftOnRectangle,
@@ -76,12 +76,39 @@ export default function RoleBasedNavigation() {
   const userRole = getUserRole(user);
   const displayBrand = getDefaultDisplayBrand(user);
 
-  // Get display name from profile data or fallback to email
+  // Get display name with role and label information
   const getDisplayName = () => {
-    if (profileData?.firstName && profileData?.lastName) {
-      return `${profileData.firstName} ${profileData.lastName}`;
+    const userBrandInfo = getUserBrand(user);
+    
+    // Get first and last name
+    const firstName = profileData?.firstName || user?.given_name || 'User';
+    const lastName = profileData?.lastName || user?.family_name || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    // Role display mapping
+    const roleDisplayMap = {
+      'label_admin': 'Label Admin',
+      'artist': 'Artist',
+      'distribution_partner': 'Distribution Partner',
+      'super_admin': 'Super Admin',
+      'company_admin': 'Company Admin'
+    };
+    
+    const roleDisplay = roleDisplayMap[userRole] || 'User';
+    const labelName = userBrandInfo?.displayName || userBrandInfo?.name || 'Platform';
+    
+    // For label admin, show "First Last, Label Admin at Label Name"
+    if (userRole === 'label_admin') {
+      return `${fullName}, ${roleDisplay} at ${labelName}`;
     }
-    return user.email || 'User';
+    
+    // For other roles, show "First Last, Role"
+    if (userRole && userRole !== 'artist') {
+      return `${fullName}, ${roleDisplay}`;
+    }
+    
+    // For artists or fallback, just show name
+    return fullName || user?.email || 'User';
   };
 
   const getDistributionPartnerDisplayName = () => {
