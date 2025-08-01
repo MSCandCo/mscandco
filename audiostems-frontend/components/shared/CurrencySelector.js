@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
-import { ChevronDown, RefreshCw } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -105,14 +105,19 @@ export default function CurrencySelector({
   className = "",
   showExchangeRate = true
 }) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
-
   useEffect(() => {
-    // Fetch rates on mount
-    fetchLiveRates().then(() => {
-      setLastUpdated(new Date());
-    });
+    // Fetch rates on mount and set up auto-refresh
+    fetchLiveRates();
+    
+    // Auto-refresh every 10 minutes
+    const interval = setInterval(() => {
+      fetchLiveRates().then(() => {
+        // Trigger a re-render of all currency displays
+        window.dispatchEvent(new CustomEvent('exchangeRatesUpdated'));
+      });
+    }, 10 * 60 * 1000); // 10 minutes
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleCurrencyChange = (newCurrency) => {
@@ -128,17 +133,6 @@ export default function CurrencySelector({
         detail: { currency: newCurrency } 
       }));
     }
-  };
-
-  const handleRefreshRates = async () => {
-    setIsRefreshing(true);
-    lastFetchTime = 0; // Force refresh
-    await fetchLiveRates();
-    setLastUpdated(new Date());
-    setIsRefreshing(false);
-    
-    // Trigger a re-render of all currency displays
-    window.dispatchEvent(new CustomEvent('exchangeRatesUpdated'));
   };
 
   const currentCurrency = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
@@ -172,47 +166,29 @@ export default function CurrencySelector({
   }
 
   return (
-    <div className={`flex items-center space-x-4 ${className}`}>
+    <div className={`flex items-center space-x-2 ${className}`}>
       {showLabel && (
         <label className="text-sm font-medium text-gray-700">Currency:</label>
       )}
-      <div className="flex items-center space-x-2">
-        <div className="relative">
-          <select
-            value={selectedCurrency}
-            onChange={(e) => handleCurrencyChange(e.target.value)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {CURRENCIES.map(currency => (
-              <option key={currency.code} value={currency.code}>
-                {currency.symbol} {currency.code} - {currency.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-        </div>
-        
-        {showExchangeRate && !isBaseCurrency && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <span>1 GBP = {currentCurrency.symbol}{exchangeRate.toFixed(2)}</span>
-          </div>
-        )}
-        
-        <button
-          onClick={handleRefreshRates}
-          disabled={isRefreshing}
-          className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 focus:outline-none"
-          title="Refresh exchange rates"
+      <div className="relative">
+        <select
+          value={selectedCurrency}
+          onChange={(e) => handleCurrencyChange(e.target.value)}
+          className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+          {CURRENCIES.map(currency => (
+            <option key={currency.code} value={currency.code}>
+              {currency.symbol} {currency.code} - {currency.name}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       </div>
       
-      {lastUpdated && (
-        <div className="text-xs text-gray-400">
-          Updated: {lastUpdated.toLocaleTimeString()}
-        </div>
+      {showExchangeRate && !isBaseCurrency && (
+        <span className="text-sm text-gray-600">
+          1 GBP = {currentCurrency.symbol}{exchangeRate.toFixed(2)}
+        </span>
       )}
     </div>
   );
