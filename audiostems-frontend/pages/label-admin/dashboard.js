@@ -55,10 +55,10 @@ export default function LabelAdminDashboard() {
     console.log('labelName:', labelName);
     console.log('Total ARTISTS in database:', ARTISTS.length);
     
-    // Get artists approved for this label (status: active, and associated with label)
+    // Get artists approved for this label (approvalStatus: approved, and associated with label)
     const filteredArtists = ARTISTS.filter(artist => 
-      artist.status === 'active' && 
-      (artist.label === labelName || artist.brand === labelName)
+      artist.approvalStatus === 'approved' && 
+      artist.label === labelName
     );
     
     console.log('Dashboard filtered artists for label:', filteredArtists.length);

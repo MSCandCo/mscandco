@@ -29,8 +29,8 @@ export default function LabelAdminArtists() {
     console.log('All MSC & Co related artists:', ARTISTS.filter(a => a.label?.includes('MSC') || a.brand?.includes('MSC')).map(a => ({ name: a.name, label: a.label, brand: a.brand, status: a.status })));
     
     const filteredArtists = ARTISTS.filter(artist => 
-      artist.status === 'active' && 
-      (artist.label === labelName || artist.brand === labelName)
+      artist.approvalStatus === 'approved' && 
+      artist.label === labelName
     );
     
     console.log('Filtered artists for label:', filteredArtists.length);

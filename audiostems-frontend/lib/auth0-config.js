@@ -78,9 +78,6 @@ export const getUserRole = (user) => {
 export const getUserBrand = (user) => {
   if (!user) return null;
 
-  // Get the user role first to determine appropriate brand
-  const userRole = getUserRole(user);
-
   // Check multiple possible locations for brand metadata
   const userBrand = user['https://mscandco.com/brand'] || 
                    user.user_metadata?.brand || 
@@ -88,16 +85,9 @@ export const getUserBrand = (user) => {
   
   console.log('=== getUserBrand Debug ===');
   console.log('User:', user);
-  console.log('UserRole:', userRole);
   console.log('Raw brand from custom claim:', user['https://mscandco.com/brand']);
   console.log('Raw brand from user_metadata:', user.user_metadata?.brand);
   console.log('UserBrand after fallback:', userBrand);
-  
-  // Label admin should get the parent company brand (MSC & Co)
-  if (userRole === 'label_admin') {
-    console.log('Label admin detected - returning MSC_AND_CO brand');
-    return BRANDS.MSC_AND_CO;
-  }
   
   // Handle the parent company brand
   if (userBrand === 'mscandco') {
