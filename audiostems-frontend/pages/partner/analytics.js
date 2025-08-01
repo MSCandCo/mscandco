@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
+import { ARTISTS, RELEASES } from '../../lib/mockData';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -107,41 +108,31 @@ export default function PartnerAnalytics() {
 
 
 
-  // Comprehensive mock data based on actual database - ALL ARTISTS with detailed analytics
+  // 🎯 CLEANED UP - Using centralized data from lib/mockData.js
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
-    { id: 'yhwh_msc', name: 'YHWH MSC', releases: 6, totalStreams: 6975000, totalRevenue: 42850, genres: ['Hip Hop', 'Classical', 'Electronic'], topTrack: 'Urban Beat' },
-    { id: 'global_superstar', name: 'Global Superstar', releases: 1, totalStreams: 2800000, totalRevenue: 25400, genres: ['Pop'], topTrack: 'Hit Single #1' },
-    { id: 'seoul_stars', name: 'Seoul Stars', releases: 1, totalStreams: 4500000, totalRevenue: 31200, genres: ['Pop'], topTrack: 'Starlight' },
-    { id: 'rock_legends', name: 'Rock Legends', releases: 1, totalStreams: 1200000, totalRevenue: 18750, genres: ['Rock'], topTrack: 'Opening Anthem (Live)' },
-    { id: 'dj_phoenix', name: 'DJ Phoenix', releases: 1, totalStreams: 450000, totalRevenue: 8200, genres: ['Electronic'], topTrack: 'Digital Sunrise' },
-    { id: 'emma_rodriguez', name: 'Emma Rodriguez', releases: 1, totalStreams: 25000, totalRevenue: 180, genres: ['Pop'], topTrack: 'New Dreams' },
-    { id: 'marcus_williams', name: 'Marcus Williams Quartet', releases: 1, totalStreams: 15000, totalRevenue: 95, genres: ['Jazz'], topTrack: 'City Nights' },
-    { id: 'basement_band', name: 'The Basement Band', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Rock'], topTrack: 'Basement Blues' },
-    { id: 'carlos_mendez', name: 'Carlos Mendez', releases: 1, totalStreams: 280000, totalRevenue: 5600, genres: ['Latin'], topTrack: 'Fuego' },
-    { id: 'film_composer', name: 'Film Composer Orchestra', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Classical'], topTrack: 'Main Theme' },
-    { id: 'nashville_dreams', name: 'Nashville Dreams', releases: 1, totalStreams: 0, totalRevenue: 0, genres: ['Country'], topTrack: 'Back Home' }
+    ...ARTISTS.map(artist => ({
+      id: artist.id,
+      name: artist.name,
+      releases: artist.releases,
+      totalStreams: artist.totalStreams,
+      totalRevenue: artist.totalRevenue,
+      genres: artist.genres,
+      topTrack: artist.topTrack
+    }))
   ];
 
   const mockReleases = [
     { id: 'all', name: 'All Releases' },
-    // YHWH MSC releases
-    { id: 'urban_beats_collection', name: 'Urban Beats Collection', artist: 'YHWH MSC', status: 'under_review', type: 'EP', streams: 0, revenue: 0 },
-    { id: 'remix_package', name: 'Urban Beat (Remix Package)', artist: 'YHWH MSC', status: 'completed', type: 'Remix', streams: 125000, revenue: 2800 },
-    { id: 'movie_soundtrack', name: 'Movie Epic Soundtrack', artist: 'YHWH MSC', status: 'under_review', type: 'Soundtrack', streams: 0, revenue: 0 },
-    { id: 'future_sounds', name: 'Future Sounds EP', artist: 'YHWH MSC', status: 'draft', type: 'EP', streams: 0, revenue: 0 },
-    { id: 'classic_hits', name: 'Classic Hits Single', artist: 'YHWH MSC', status: 'live', type: 'Single', streams: 125000, revenue: 8750 },
-    { id: 'collaborative_single', name: 'Collaborative Single', artist: 'YHWH MSC', status: 'approval_required', type: 'Single', streams: 0, revenue: 0 },
-    // Other artists
-    { id: 'chart_topper_hits', name: 'Chart Topper Hits', artist: 'Global Superstar', status: 'live', type: 'Compilation', streams: 2800000, revenue: 25400 },
-    { id: 'kpop_sensation', name: 'K-Pop Sensation', artist: 'Seoul Stars', status: 'live', type: 'EP', streams: 4500000, revenue: 31200 },
-    { id: 'madison_square_live', name: 'Madison Square Garden Live', artist: 'Rock Legends', status: 'live', type: 'Live Album', streams: 1200000, revenue: 18750 },
-    { id: 'electronic_horizons', name: 'Electronic Horizons', artist: 'DJ Phoenix', status: 'submitted', type: 'Album', streams: 0, revenue: 0 },
-    { id: 'indie_rock_revival', name: 'Indie Rock Revival', artist: 'The Basement Band', status: 'approval_required', type: 'EP', streams: 0, revenue: 0 },
-    { id: 'reggaeton_fuego', name: 'Reggaeton Fuego', artist: 'Carlos Mendez', status: 'completed', type: 'Single', streams: 280000, revenue: 5600 },
-    { id: 'new_dreams_single', name: 'New Dreams Single', artist: 'Emma Rodriguez', status: 'draft', type: 'Single', streams: 0, revenue: 0 },
-    { id: 'jazz_fusion_mixtape', name: 'Jazz Fusion Mixtape', artist: 'Marcus Williams Quartet', status: 'draft', type: 'Mixtape', streams: 0, revenue: 0 },
-    { id: 'country_roads', name: 'Country Roads Album', artist: 'Nashville Dreams', status: 'submitted', type: 'Album', streams: 0, revenue: 0 }
+    ...RELEASES.map(release => ({
+      id: release.id,
+      name: release.projectName,
+      artist: release.artist,
+      status: release.status,
+      type: release.releaseType,
+      streams: release.streams || 0,
+      revenue: release.earnings || 0
+    }))
   ];
 
   const mockAssets = [
