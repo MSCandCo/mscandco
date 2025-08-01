@@ -50,11 +50,23 @@ export default function LabelAdminDashboard() {
   const approvedArtists = useMemo(() => {
     const labelName = userBrand?.displayName || 'MSC & Co';
     
+    console.log('=== Label Admin Dashboard Debug ===');
+    console.log('userBrand:', userBrand);
+    console.log('labelName:', labelName);
+    console.log('Total ARTISTS in database:', ARTISTS.length);
+    
     // Get artists approved for this label (status: active, and associated with label)
-    return ARTISTS.filter(artist => 
+    const filteredArtists = ARTISTS.filter(artist => 
       artist.status === 'active' && 
       (artist.label === labelName || artist.brand === labelName)
-    ).map(artist => {
+    );
+    
+    console.log('Dashboard filtered artists for label:', filteredArtists.length);
+    filteredArtists.forEach(artist => {
+      console.log(`- ${artist.name}: label="${artist.label}", brand="${artist.brand}", status="${artist.status}"`);
+    });
+    
+    return filteredArtists.map(artist => {
       // Calculate artist releases and earnings
       const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
       const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);

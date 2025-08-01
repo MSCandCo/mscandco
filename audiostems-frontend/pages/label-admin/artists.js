@@ -20,10 +20,24 @@ export default function LabelAdminArtists() {
   // Get label artists from centralized data
   const labelArtists = useMemo(() => {
     const labelName = userBrand?.displayName || 'MSC & Co';
-    return ARTISTS.filter(artist => 
+    
+    console.log('=== Label Admin Artists Debug ===');
+    console.log('userBrand:', userBrand);
+    console.log('labelName:', labelName);
+    console.log('Total ARTISTS in database:', ARTISTS.length);
+    
+    const filteredArtists = ARTISTS.filter(artist => 
       artist.status === 'active' && 
       (artist.label === labelName || artist.brand === labelName)
-    ).map(artist => {
+    );
+    
+    console.log('Filtered artists for label:', filteredArtists.length);
+    console.log('Artists details:');
+    filteredArtists.forEach(artist => {
+      console.log(`- ${artist.name}: label="${artist.label}", brand="${artist.brand}", status="${artist.status}"`);
+    });
+    
+    return filteredArtists.map(artist => {
       // Calculate artist releases and earnings
       const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
       const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
