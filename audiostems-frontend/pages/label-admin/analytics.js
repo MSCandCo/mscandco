@@ -36,6 +36,8 @@ ChartJS.register(
 export default function LabelAdminAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedTimeframe, setSelectedTimeframe] = useState('6-months');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [selectedArtist, setSelectedArtist] = useState('all');
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   const [viewMode, setViewMode] = useState('overview');
@@ -245,16 +247,54 @@ export default function LabelAdminAnalytics() {
                 <h1 className="text-2xl font-bold text-gray-900">Performance Analytics</h1>
                 <p className="text-sm text-gray-500">Comprehensive analytics for {userBrand?.displayName || 'MSC & Co'}</p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 flex-wrap">
                 <select
                   value={selectedTimeframe}
                   onChange={(e) => setSelectedTimeframe(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
+                  <option value="7-days">Last 7 Days</option>
+                  <option value="30-days">Last 30 Days</option>
                   <option value="6-months">Last 6 Months</option>
                   <option value="12-months">Last 12 Months</option>
                   <option value="year">This Year</option>
+                  <option value="custom">Custom Range</option>
                 </select>
+                {selectedTimeframe === 'custom' && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">From:</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">To:</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (customStartDate && customEndDate) {
+                          console.log(`Applying custom date range: ${customStartDate} to ${customEndDate}`);
+                          // Refresh analytics data with custom date range
+                        } else {
+                          alert('Please select both start and end dates');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </>
+                )}
                 <select
                   value={selectedCurrency}
                   onChange={(e) => setSelectedCurrency(e.target.value)}

@@ -1,48 +1,152 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaDollarSign, FaChartLine, FaTrendingUp, FaTrendingDown, FaCalendar, FaFilter } from 'react-icons/fa';
 import { DollarSign, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
+import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
 
-// Mock data for label admin earnings
-const mockEarningsData = {
-  totalEarnings: 29990,
-  thisMonth: 5670,
-  lastMonth: 4890,
-  growth: 15.9,
-  minimumBalance: 1000,
-  pendingWithdrawal: 2500,
-  heldEarnings: 8500,
-  monthlyBreakdown: [
-    { month: 'Jan 2024', earnings: 4200, streams: 89000 },
-    { month: 'Feb 2024', earnings: 4890, streams: 102000 },
-    { month: 'Mar 2024', earnings: 5670, streams: 115000 },
-    { month: 'Apr 2024', earnings: 5230, streams: 98000 },
-    { month: 'May 2024', earnings: 6120, streams: 125000 },
-    { month: 'Jun 2024', earnings: 5890, streams: 118000 }
-  ],
-  artistBreakdown: [
-    { artist: 'YHWH MSC', earnings: 15420, streams: 234567, releases: 8 },
-    { artist: 'MC Flow', earnings: 5670, streams: 89012, releases: 3 },
-    { artist: 'Studio Pro', earnings: 8920, streams: 145678, releases: 5 }
-  ],
-  recentTransactions: [
-    { id: 1, type: 'earnings', amount: 890, description: 'Acoustic Dreams - Spotify', date: '2024-01-15', status: 'completed' },
-    { id: 2, type: 'earnings', amount: 1560, description: 'Electronic Fusion - Apple Music', date: '2024-01-14', status: 'completed' },
-    { id: 3, type: 'withdrawal', amount: -2500, description: 'Withdrawal to bank account', date: '2024-01-10', status: 'pending' },
-    { id: 4, type: 'earnings', amount: 2340, description: 'Summer Vibes EP - All platforms', date: '2024-01-08', status: 'completed' },
-    { id: 5, type: 'earnings', amount: 720, description: 'Midnight Sessions - YouTube', date: '2024-01-05', status: 'completed' }
-  ]
+// Calculate earnings data from centralized RELEASES and ARTISTS data
+const calculateEarningsData = (userBrand) => {
+  const labelName = userBrand?.displayName || 'MSC & Co';
+  
+  // Get approved artists for this label
+  const labelArtists = ARTISTS.filter(artist => 
+    artist.status === 'active' && 
+    (artist.label === labelName || artist.brand === labelName)
+  );
+  
+  // Get releases for label artists
+  const labelArtistIds = labelArtists.map(artist => artist.id);
+  const labelReleases = RELEASES.filter(release => 
+    labelArtistIds.includes(release.artistId)
+  );
+  
+  // Calculate total earnings from releases
+  const totalEarnings = labelReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+  
+  // Calculate total streams
+  const totalStreams = labelReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+  
+  // Generate monthly breakdown (last 6 months)
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentDate = new Date();
+  const monthlyBreakdown = [];
+  
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const monthName = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    
+    // Calculate earnings for this month (simplified distribution)
+    const monthEarnings = Math.round(totalEarnings * (0.15 + Math.random() * 0.1));
+    const monthStreams = Math.round(totalStreams * (0.15 + Math.random() * 0.1));
+    
+    monthlyBreakdown.push({
+      month: `${monthName} ${year}`,
+      earnings: monthEarnings,
+      streams: monthStreams
+    });
+  }
+  
+  // Calculate artist breakdown
+  const artistBreakdown = labelArtists.map(artist => {
+    const artistReleases = labelReleases.filter(release => release.artistId === artist.id);
+    const artistEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+    const artistStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+    
+    return {
+      artist: artist.name,
+      earnings: artistEarnings,
+      streams: artistStreams,
+      releases: artistReleases.length
+    };
+  }).sort((a, b) => b.earnings - a.earnings);
+  
+  // Generate recent transactions from releases
+  const recentTransactions = [];
+  let transactionId = 1;
+  
+  // Add earnings transactions from recent releases
+  labelReleases
+    .filter(release => release.earnings > 0)
+    .slice(0, 8)
+    .forEach(release => {
+      // Split earnings into platform-specific transactions
+      const platforms = ['Spotify', 'Apple Music', 'YouTube Music', 'Amazon Music'];
+      const platformEarnings = release.earnings / platforms.length;
+      
+      platforms.slice(0, Math.min(2, platforms.length)).forEach(platform => {
+        recentTransactions.push({
+          id: transactionId++,
+          type: 'earnings',
+          amount: Math.round(platformEarnings),
+          description: `${release.projectName} - ${platform}`,
+          date: release.lastUpdated,
+          status: 'completed'
+        });
+      });
+    });
+  
+  // Add some withdrawal transactions
+  recentTransactions.push(
+    {
+      id: transactionId++,
+      type: 'withdrawal',
+      amount: -2500,
+      description: 'Withdrawal to bank account',
+      date: '2024-01-10',
+      status: 'pending'
+    },
+    {
+      id: transactionId++,
+      type: 'withdrawal',
+      amount: -3500,
+      description: 'Withdrawal to bank account',
+      date: '2024-01-01',
+      status: 'completed'
+    }
+  );
+  
+  // Sort by date (most recent first)
+  recentTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  const thisMonth = monthlyBreakdown[monthlyBreakdown.length - 1]?.earnings || 0;
+  const lastMonth = monthlyBreakdown[monthlyBreakdown.length - 2]?.earnings || 0;
+  const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth * 100) : 0;
+  
+  const minimumBalance = 1000;
+  const pendingWithdrawal = 2500;
+  const heldEarnings = Math.round(totalEarnings * 0.3); // 30% of total earnings held
+  
+  return {
+    totalEarnings,
+    thisMonth,
+    lastMonth,
+    growth: parseFloat(growth.toFixed(1)),
+    minimumBalance,
+    pendingWithdrawal,
+    heldEarnings,
+    monthlyBreakdown,
+    artistBreakdown,
+    recentTransactions: recentTransactions.slice(0, 10)
+  };
 };
 
 export default function LabelAdminEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
+
+  // Calculate earnings data from centralized sources
+  const earningsData = useMemo(() => {
+    return calculateEarningsData(userBrand);
+  }, [userBrand]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -53,7 +157,7 @@ export default function LabelAdminEarnings() {
   }
 
   const getAvailableForWithdrawal = () => {
-    return Math.max(0, mockEarningsData.heldEarnings - mockEarningsData.minimumBalance - mockEarningsData.pendingWithdrawal);
+    return Math.max(0, earningsData.heldEarnings - earningsData.minimumBalance - earningsData.pendingWithdrawal);
   };
 
   const formatCurrency = (amount) => {
@@ -79,16 +183,54 @@ export default function LabelAdminEarnings() {
                 <h1 className="text-2xl font-bold text-gray-900">Label Earnings</h1>
                 <p className="text-sm text-gray-500">Track earnings across all your artists</p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 flex-wrap">
                 <select
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
+                  <option value="7days">Last 7 Days</option>
+                  <option value="30days">Last 30 Days</option>
                   <option value="6months">Last 6 Months</option>
                   <option value="12months">Last 12 Months</option>
                   <option value="year">This Year</option>
+                  <option value="custom">Custom Range</option>
                 </select>
+                {selectedPeriod === 'custom' && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">From:</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">To:</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (customStartDate && customEndDate) {
+                          console.log(`Applying custom date range for earnings: ${customStartDate} to ${customEndDate}`);
+                          // Refresh earnings data with custom date range
+                        } else {
+                          alert('Please select both start and end dates');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </>
+                )}
                 <select
                   value={selectedCurrency}
                   onChange={(e) => setSelectedCurrency(e.target.value)}
@@ -110,11 +252,11 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockEarningsData.totalEarnings)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
                   <div className="flex items-center mt-2">
-                    {getGrowthIcon(mockEarningsData.growth)}
-                    <span className={`text-sm font-medium ml-1 ${getGrowthColor(mockEarningsData.growth)}`}>
-                      {mockEarningsData.growth}% from last month
+                    {getGrowthIcon(earningsData.growth)}
+                    <span className={`text-sm font-medium ml-1 ${getGrowthColor(earningsData.growth)}`}>
+                      {earningsData.growth}% from last month
                     </span>
                   </div>
                 </div>
@@ -126,8 +268,8 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockEarningsData.thisMonth)}</p>
-                  <p className="text-sm text-gray-500 mt-1">vs £4,890 last month</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth)}</p>
+                  <p className="text-sm text-gray-500 mt-1">vs {formatCurrency(earningsData.lastMonth)} last month</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-blue-600" />
               </div>
@@ -137,8 +279,8 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Available Balance</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockEarningsData.heldEarnings)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Minimum £1,000 held in account</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.heldEarnings)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance)} held in account</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-purple-600" />
               </div>
@@ -156,6 +298,39 @@ export default function LabelAdminEarnings() {
             </div>
           </div>
 
+          {/* Revenue Trends Chart */}
+          <div className="bg-white rounded-lg shadow-sm border mb-8">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Revenue Trends</h3>
+              <p className="text-sm text-gray-500">Monthly earnings over the last 6 months</p>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {earningsData.monthlyBreakdown.map((month, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 text-sm font-medium text-gray-700">{month.month}</div>
+                      <div className="flex-1">
+                        <div className="bg-gray-200 rounded-full h-3 w-48">
+                          <div 
+                            className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${Math.min(100, (month.earnings / Math.max(...earningsData.monthlyBreakdown.map(m => m.earnings))) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.earnings)}</div>
+                      <div className="text-xs text-gray-500">{month.streams.toLocaleString()} streams</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* My Funds */}
           <div className="bg-white rounded-lg shadow-sm border mb-8">
             <div className="p-6 border-b border-gray-200">
@@ -165,21 +340,21 @@ export default function LabelAdminEarnings() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(mockEarningsData.heldEarnings)}
+                    {formatCurrency(earningsData.heldEarnings)}
                   </div>
                   <div className="text-sm text-gray-600">Available Balance</div>
-                  <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(mockEarningsData.minimumBalance)} held in account</div>
+                  <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance)} held in account</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(getAvailableForWithdrawal())}
                   </div>
                   <div className="text-sm text-gray-600">Available for Withdrawal</div>
-                  <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(mockEarningsData.minimumBalance)} minimum</div>
+                  <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(earningsData.minimumBalance)} minimum</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-amber-600">
-                    {formatCurrency(mockEarningsData.pendingWithdrawal)}
+                    {formatCurrency(earningsData.pendingWithdrawal)}
                   </div>
                   <div className="text-sm text-gray-600">Pending Withdrawal</div>
                   <div className="text-xs text-gray-500 mt-1">In transit to your account</div>
@@ -220,7 +395,7 @@ export default function LabelAdminEarnings() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mockEarningsData.artistBreakdown.map((artist, index) => (
+                  {earningsData.artistBreakdown.map((artist, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
@@ -254,7 +429,7 @@ export default function LabelAdminEarnings() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mockEarningsData.recentTransactions.map((transaction) => (
+                  {earningsData.recentTransactions.map((transaction) => (
                     <tr key={transaction.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.date}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.description}</td>

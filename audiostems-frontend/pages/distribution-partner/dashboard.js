@@ -1200,6 +1200,19 @@ export default function DistributionPartnerDashboard() {
   const handleStatusChange = (releaseId, newStatus) => {
     // In a real app, this would update the database
     console.log(`Changing release ${releaseId} status to ${newStatus}`);
+    
+    // Show confirmation message
+    const statusLabel = getStatusLabel(newStatus);
+    alert(`Release status updated to: ${statusLabel}`);
+    
+    // In a real implementation, you would:
+    // 1. Call the API to update the status
+    // 2. Update local state or refetch data
+    // 3. Show success/error notification
+    // 4. Potentially refresh the release list
+    
+    // For now, we'll just log the change
+    console.log(`Status change confirmed: Release ${releaseId} → ${statusLabel}`);
   };
 
   // Helper function to calculate total assets across all releases
@@ -2821,6 +2834,18 @@ export default function DistributionPartnerDashboard() {
                       >
                         {RELEASE_TYPES.map(type => (
                           <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Status (Editable)</label>
+                      <select
+                        defaultValue={editingRelease?.status}
+                        onChange={(e) => handleStatusChange(editingRelease?.id, e.target.value)}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        {Object.entries(RELEASE_STATUSES).map(([key, value]) => (
+                          <option key={value} value={value}>{getStatusLabel(value)}</option>
                         ))}
                       </select>
                     </div>
