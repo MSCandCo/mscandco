@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { openCustomerPortal } from "@/lib/utils";
 import { useState, useEffect } from 'react';
+import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 export default function RoleBasedNavigation() {
   const { user, isAuthenticated, logout } = useAuth0();
@@ -25,37 +26,10 @@ export default function RoleBasedNavigation() {
     availableForCashout: 890,
     minimumCashoutThreshold: 100
   });
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP'); // Default to GBP
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Load currency preference from localStorage and sync across tabs
-  useEffect(() => {
-    const savedCurrency = localStorage.getItem('artist-earnings-currency');
-    if (savedCurrency) {
-      setSelectedCurrency(savedCurrency);
-    }
-
-    // Listen for currency changes from other tabs/pages
-    const handleStorageChange = (e) => {
-      if (e.key === 'artist-earnings-currency' && e.newValue) {
-        setSelectedCurrency(e.newValue);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Format currency based on selected currency
-  const formatCurrency = (amount) => {
-    const symbols = {
-      'GBP': '£',
-      'USD': '$',
-      'EUR': '€'
-    };
-    const symbol = symbols[selectedCurrency] || '£';
-    return `${symbol}${amount.toLocaleString()}`;
-  };
+  // Use shared currency formatting
 
   // Fetch profile data to get first and last name
   useEffect(() => {
@@ -556,7 +530,7 @@ export default function RoleBasedNavigation() {
           {userRole === 'artist' && (
             <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
               <Wallet className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-medium text-gray-900">{formatCurrency(fundsData.heldEarnings)}</span>
+                                      <span className="text-xs font-medium text-gray-900">{sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}</span>
             </div>
           )}
 

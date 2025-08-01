@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
 import { ARTISTS, RELEASES } from '../../lib/mockData';
+import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -58,14 +59,8 @@ export default function PartnerAnalytics() {
   const [comparisonPeriod, setComparisonPeriod] = useState('current_month');
   const [selectedCompetitor, setSelectedCompetitor] = useState('market_average');
   
-  // Currency state
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
-  
-  // Currency formatting function
-  const formatCurrency = (amount) => {
-    const symbol = selectedCurrency === 'GBP' ? '£' : selectedCurrency === 'EUR' ? '€' : '$';
-    return `${symbol}${amount.toLocaleString()}`;
-  };
+  // Currency sync hook
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   if (isLoading) {
     return (
@@ -525,18 +520,12 @@ export default function PartnerAnalytics() {
                 </div>
                 
                 {/* Currency Selector */}
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm font-medium text-gray-700">Currency:</label>
-                  <select
-                    value={selectedCurrency}
-                    onChange={(e) => setSelectedCurrency(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="GBP">GBP (£)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  showLabel={true}
+                  compact={true}
+                />
               </div>
             </div>
           </div>
@@ -890,7 +879,7 @@ export default function PartnerAnalytics() {
                 <>
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-sm text-blue-600 font-medium">Total Revenue</div>
-                    <div className="text-xl font-bold text-blue-900">{formatCurrency(getFilteredData.viewModeInfo.metrics.totalRevenue)}</div>
+                                            <div className="text-xl font-bold text-blue-900">{sharedFormatCurrency(getFilteredData.viewModeInfo.metrics.totalRevenue, selectedCurrency)}</div>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-sm text-green-600 font-medium">Total Streams</div>
@@ -996,7 +985,7 @@ export default function PartnerAnalytics() {
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm text-gray-600">Revenue</span>
-                      <span className="text-sm font-medium">{formatCurrency(platform.revenue)}</span>
+                                                <span className="text-sm font-medium">{sharedFormatCurrency(platform.revenue, selectedCurrency)}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
