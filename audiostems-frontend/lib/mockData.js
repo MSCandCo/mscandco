@@ -252,6 +252,167 @@ export const ARTISTS = [
     topTrack: 'Back Home',
     label: 'Country Music Nashville',
     permissions: ['releases']
+  },
+  // Additional MSC & Co Artists
+  {
+    id: 'mc_flow',
+    name: 'MC Flow',
+    email: 'mcflow@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-15T16:45:00Z',
+    primaryGenre: 'Hip Hop',
+    genres: ['Hip Hop', 'Rap'],
+    releases: 3,
+    totalStreams: 89012,
+    totalRevenue: 5670,
+    topTrack: 'Street Chronicles',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 3400,
+    avatar: '🎵',
+    joinDate: '2023-06-20'
+  },
+  {
+    id: 'studio_pro',
+    name: 'Studio Pro',
+    email: 'studiopro@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-14T12:30:00Z',
+    primaryGenre: 'Electronic',
+    genres: ['Electronic', 'House'],
+    releases: 5,
+    totalStreams: 145678,
+    totalRevenue: 8920,
+    topTrack: 'Digital Pulse',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 7800,
+    avatar: '🎧',
+    joinDate: '2023-03-10'
+  },
+  {
+    id: 'acoustic_dreams',
+    name: 'Acoustic Dreams',
+    email: 'acoustic@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-13T14:20:00Z',
+    primaryGenre: 'Acoustic',
+    genres: ['Acoustic', 'Folk'],
+    releases: 2,
+    totalStreams: 45678,
+    totalRevenue: 2340,
+    topTrack: 'Mountain Sunrise',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 2100,
+    avatar: '🎸',
+    joinDate: '2023-09-05'
+  },
+  {
+    id: 'vocal_harmony',
+    name: 'Vocal Harmony',
+    email: 'harmony@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-16T11:15:00Z',
+    primaryGenre: 'R&B',
+    genres: ['R&B', 'Soul'],
+    releases: 4,
+    totalStreams: 156234,
+    totalRevenue: 12490,
+    topTrack: 'Soulful Nights',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 8950,
+    avatar: '🎤',
+    joinDate: '2023-04-15'
+  },
+  {
+    id: 'gospel_voices',
+    name: 'Gospel Voices Collective',
+    email: 'gospel@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-15T18:30:00Z',
+    primaryGenre: 'Gospel',
+    genres: ['Gospel', 'Contemporary Christian'],
+    releases: 6,
+    totalStreams: 234567,
+    totalRevenue: 18750,
+    topTrack: 'Praise & Glory',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 12340,
+    avatar: '⛪',
+    joinDate: '2023-02-20'
+  },
+  {
+    id: 'jazz_ensemble',
+    name: 'MSC Jazz Ensemble',
+    email: 'jazz@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-14T15:45:00Z',
+    primaryGenre: 'Jazz',
+    genres: ['Jazz', 'Smooth Jazz'],
+    releases: 3,
+    totalStreams: 78901,
+    totalRevenue: 6720,
+    topTrack: 'Midnight Groove',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 4560,
+    avatar: '🎺',
+    joinDate: '2023-07-10'
+  },
+  {
+    id: 'new_talent',
+    name: 'New Talent Rising',
+    email: 'newtalent@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'pending',
+    lastLogin: '2024-01-16T10:20:00Z',
+    primaryGenre: 'Pop',
+    genres: ['Pop', 'Dance'],
+    releases: 1,
+    totalStreams: 12340,
+    totalRevenue: 456,
+    topTrack: 'First Steps',
+    label: 'MSC & Co',
+    permissions: ['releases'],
+    followers: 890,
+    avatar: '⭐',
+    joinDate: '2024-01-01'
+  },
+  {
+    id: 'indie_vibes',
+    name: 'Indie Vibes',
+    email: 'indie@mscandco.com',
+    role: 'artist',
+    brand: 'MSC & Co',
+    status: 'active',
+    lastLogin: '2024-01-15T13:10:00Z',
+    primaryGenre: 'Indie',
+    genres: ['Indie', 'Alternative'],
+    releases: 4,
+    totalStreams: 123456,
+    totalRevenue: 9870,
+    topTrack: 'Underground Sound',
+    label: 'MSC & Co',
+    permissions: ['releases', 'earnings', 'analytics'],
+    followers: 6780,
+    avatar: '🎶',
+    joinDate: '2023-05-30'
   }
 ];
 
@@ -587,6 +748,301 @@ export const RELEASES = [
     trackListing: [
       { title: 'Fuego', duration: '3:28', isrc: 'USRC12345744', bpm: '95', songKey: 'A Minor' }
     ]
+  },
+
+  // MC FLOW RELEASES
+  {
+    id: 26,
+    projectName: 'Street Chronicles EP',
+    artist: 'MC Flow',
+    artistId: 'mc_flow',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'Hip Hop',
+    status: 'live',
+    submissionDate: '2023-08-15',
+    expectedReleaseDate: '2023-10-01',
+    assets: 4,
+    earnings: 3420,
+    streams: 67890,
+    lastUpdated: '2023-10-01',
+    cover: '🏙️',
+    trackListing: [
+      { title: 'Street Life', duration: '3:45', isrc: 'USRC12345755', bpm: '95', songKey: 'D Minor' },
+      { title: 'City Nights', duration: '4:12', isrc: 'USRC12345756', bpm: '88', songKey: 'F Major' },
+      { title: 'Rise Up', duration: '3:28', isrc: 'USRC12345757', bpm: '102', songKey: 'G Minor' },
+      { title: 'Real Talk', duration: '3:55', isrc: 'USRC12345758', bpm: '91', songKey: 'A Minor' }
+    ]
+  },
+  {
+    id: 27,
+    projectName: 'Flow State Single',
+    artist: 'MC Flow',
+    artistId: 'mc_flow',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Hip Hop',
+    status: 'under_review',
+    submissionDate: '2024-01-10',
+    expectedReleaseDate: '2024-03-15',
+    assets: 1,
+    earnings: 1250,
+    streams: 21122,
+    lastUpdated: '2024-01-15',
+    cover: '🌊',
+    trackListing: [
+      { title: 'Flow State', duration: '3:33', isrc: 'USRC12345759', bpm: '98', songKey: 'E Minor' }
+    ]
+  },
+
+  // STUDIO PRO RELEASES
+  {
+    id: 28,
+    projectName: 'Digital Pulse Album',
+    artist: 'Studio Pro',
+    artistId: 'studio_pro',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'Electronic',
+    status: 'live',
+    submissionDate: '2023-05-20',
+    expectedReleaseDate: '2023-07-15',
+    assets: 12,
+    earnings: 5680,
+    streams: 98765,
+    lastUpdated: '2023-07-15',
+    cover: '💫',
+    trackListing: [
+      { title: 'Digital Pulse', duration: '4:22', isrc: 'USRC12345760', bpm: '128', songKey: 'A Minor' },
+      { title: 'Synthetic Dreams', duration: '5:15', isrc: 'USRC12345761', bpm: '125', songKey: 'C Major' },
+      { title: 'Binary Code', duration: '3:58', isrc: 'USRC12345762', bpm: '130', songKey: 'D Minor' }
+    ]
+  },
+  {
+    id: 29,
+    projectName: 'House Vibes EP',
+    artist: 'Studio Pro',
+    artistId: 'studio_pro',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'Electronic',
+    status: 'completed',
+    submissionDate: '2024-01-05',
+    expectedReleaseDate: '2024-02-28',
+    assets: 5,
+    earnings: 3240,
+    streams: 46913,
+    lastUpdated: '2024-01-20',
+    cover: '🏠',
+    trackListing: [
+      { title: 'House Party', duration: '4:44', isrc: 'USRC12345763', bpm: '124', songKey: 'F Major' },
+      { title: 'Deep Groove', duration: '5:32', isrc: 'USRC12345764', bpm: '122', songKey: 'G Minor' }
+    ]
+  },
+
+  // ACOUSTIC DREAMS RELEASES
+  {
+    id: 30,
+    projectName: 'Mountain Sunrise Album',
+    artist: 'Acoustic Dreams',
+    artistId: 'acoustic_dreams',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'Acoustic',
+    status: 'live',
+    submissionDate: '2023-11-10',
+    expectedReleaseDate: '2024-01-15',
+    assets: 8,
+    earnings: 2340,
+    streams: 45678,
+    lastUpdated: '2024-01-15',
+    cover: '🏔️',
+    trackListing: [
+      { title: 'Mountain Sunrise', duration: '4:15', isrc: 'USRC12345765', bpm: '72', songKey: 'D Major' },
+      { title: 'Forest Path', duration: '3:48', isrc: 'USRC12345766', bpm: '68', songKey: 'G Major' },
+      { title: 'River Song', duration: '4:32', isrc: 'USRC12345767', bpm: '75', songKey: 'C Major' }
+    ]
+  },
+
+  // VOCAL HARMONY RELEASES
+  {
+    id: 31,
+    projectName: 'Soulful Nights EP',
+    artist: 'Vocal Harmony',
+    artistId: 'vocal_harmony',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'R&B',
+    status: 'live',
+    submissionDate: '2023-07-20',
+    expectedReleaseDate: '2023-09-10',
+    assets: 6,
+    earnings: 7245,
+    streams: 89123,
+    lastUpdated: '2023-09-10',
+    cover: '🌙',
+    trackListing: [
+      { title: 'Soulful Nights', duration: '4:05', isrc: 'USRC12345768', bpm: '85', songKey: 'F Minor' },
+      { title: 'Velvet Voice', duration: '3:52', isrc: 'USRC12345769', bpm: '82', songKey: 'Bb Major' },
+      { title: 'Midnight Love', duration: '4:28', isrc: 'USRC12345770', bpm: '78', songKey: 'Eb Major' }
+    ]
+  },
+  {
+    id: 32,
+    projectName: 'Harmony Sessions Vol 1',
+    artist: 'Vocal Harmony',
+    artistId: 'vocal_harmony',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'R&B',
+    status: 'submitted',
+    submissionDate: '2024-01-12',
+    expectedReleaseDate: '2024-04-20',
+    assets: 10,
+    earnings: 5245,
+    streams: 67111,
+    lastUpdated: '2024-01-15',
+    cover: '🎭',
+    trackListing: [
+      { title: 'Beautiful Day', duration: '3:58', isrc: 'USRC12345771', bpm: '92', songKey: 'C Major' },
+      { title: 'Soul Connection', duration: '4:22', isrc: 'USRC12345772', bpm: '88', songKey: 'F Major' }
+    ]
+  },
+
+  // GOSPEL VOICES RELEASES
+  {
+    id: 33,
+    projectName: 'Praise & Glory Album',
+    artist: 'Gospel Voices Collective',
+    artistId: 'gospel_voices',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'Gospel',
+    status: 'live',
+    submissionDate: '2023-03-15',
+    expectedReleaseDate: '2023-05-01',
+    assets: 12,
+    earnings: 12560,
+    streams: 156789,
+    lastUpdated: '2023-05-01',
+    cover: '✨',
+    trackListing: [
+      { title: 'Praise & Glory', duration: '5:12', isrc: 'USRC12345773', bpm: '76', songKey: 'G Major' },
+      { title: 'Amazing Grace (Modern)', duration: '4:45', isrc: 'USRC12345774', bpm: '72', songKey: 'D Major' },
+      { title: 'Blessed Assurance', duration: '4:18', isrc: 'USRC12345775', bpm: '80', songKey: 'A Major' }
+    ]
+  },
+  {
+    id: 34,
+    projectName: 'Sunday Morning Worship',
+    artist: 'Gospel Voices Collective',
+    artistId: 'gospel_voices',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'Gospel',
+    status: 'completed',
+    submissionDate: '2024-01-08',
+    expectedReleaseDate: '2024-03-31',
+    assets: 5,
+    earnings: 6190,
+    streams: 77778,
+    lastUpdated: '2024-01-20',
+    cover: '⛪',
+    trackListing: [
+      { title: 'Sunday Morning', duration: '4:33', isrc: 'USRC12345776', bpm: '74', songKey: 'F Major' },
+      { title: 'Higher Ground', duration: '4:08', isrc: 'USRC12345777', bpm: '82', songKey: 'C Major' }
+    ]
+  },
+
+  // JAZZ ENSEMBLE RELEASES
+  {
+    id: 35,
+    projectName: 'Midnight Groove Sessions',
+    artist: 'MSC Jazz Ensemble',
+    artistId: 'jazz_ensemble',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'Jazz',
+    status: 'live',
+    submissionDate: '2023-09-10',
+    expectedReleaseDate: '2023-11-20',
+    assets: 9,
+    earnings: 4560,
+    streams: 56789,
+    lastUpdated: '2023-11-20',
+    cover: '🎷',
+    trackListing: [
+      { title: 'Midnight Groove', duration: '6:22', isrc: 'USRC12345778', bpm: '120', songKey: 'Bb Major' },
+      { title: 'Smooth Operator', duration: '5:45', isrc: 'USRC12345779', bpm: '108', songKey: 'F Major' },
+      { title: 'Jazz Café', duration: '7:12', isrc: 'USRC12345780', bpm: '95', songKey: 'Eb Major' }
+    ]
+  },
+
+  // NEW TALENT RISING RELEASES
+  {
+    id: 36,
+    projectName: 'First Steps Single',
+    artist: 'New Talent Rising',
+    artistId: 'new_talent',
+    label: 'MSC & Co',
+    releaseType: 'Single',
+    genre: 'Pop',
+    status: 'draft',
+    submissionDate: '2024-01-15',
+    expectedReleaseDate: '2024-05-01',
+    assets: 1,
+    earnings: 456,
+    streams: 12340,
+    lastUpdated: '2024-01-16',
+    cover: '🌟',
+    trackListing: [
+      { title: 'First Steps', duration: '3:28', isrc: 'USRC12345781', bpm: '115', songKey: 'C Major' }
+    ]
+  },
+
+  // INDIE VIBES RELEASES
+  {
+    id: 37,
+    projectName: 'Underground Sound EP',
+    artist: 'Indie Vibes',
+    artistId: 'indie_vibes',
+    label: 'MSC & Co',
+    releaseType: 'EP',
+    genre: 'Indie',
+    status: 'live',
+    submissionDate: '2023-08-25',
+    expectedReleaseDate: '2023-10-31',
+    assets: 6,
+    earnings: 5630,
+    streams: 78456,
+    lastUpdated: '2023-10-31',
+    cover: '🎸',
+    trackListing: [
+      { title: 'Underground Sound', duration: '3:42', isrc: 'USRC12345782', bpm: '110', songKey: 'E Minor' },
+      { title: 'Alternative Reality', duration: '4:15', isrc: 'USRC12345783', bpm: '105', songKey: 'A Minor' },
+      { title: 'Indie Dreams', duration: '3:58', isrc: 'USRC12345784', bpm: '98', songKey: 'D Minor' }
+    ]
+  },
+  {
+    id: 38,
+    projectName: 'Broken Hearts & Guitar Strings',
+    artist: 'Indie Vibes',
+    artistId: 'indie_vibes',
+    label: 'MSC & Co',
+    releaseType: 'Album',
+    genre: 'Indie',
+    status: 'approval_required',
+    submissionDate: '2024-01-18',
+    expectedReleaseDate: '2024-06-15',
+    assets: 8,
+    earnings: 4240,
+    streams: 45000,
+    lastUpdated: '2024-01-20',
+    cover: '💔',
+    trackListing: [
+      { title: 'Broken Strings', duration: '4:05', isrc: 'USRC12345785', bpm: '92', songKey: 'F Minor' },
+      { title: 'Heart on My Sleeve', duration: '3:48', isrc: 'USRC12345786', bpm: '88', songKey: 'C Minor' }
+    ]
   }
 ];
 
@@ -791,13 +1247,14 @@ export const getDashboardStats = () => {
     
     // Label admin stats
     labelAdmin: {
-      labelArtists: ARTISTS.filter(a => a.status === 'active' && a.label.includes('MSC')).length,
-      labelReleases: RELEASES.filter(r => r.label.includes('MSC')).length,
-      labelRevenue: RELEASES.filter(r => r.label.includes('MSC')).reduce((sum, r) => sum + (r.earnings || 0), 0),
+      labelArtists: ARTISTS.filter(a => a.status === 'active' && (a.label === 'MSC & Co' || a.brand === 'MSC & Co')).length,
+      labelReleases: RELEASES.filter(r => r.label === 'MSC & Co').length,
+      labelRevenue: RELEASES.filter(r => r.label === 'MSC & Co').reduce((sum, r) => sum + (r.earnings || 0), 0),
       activeContracts: ARTISTS.filter(a => a.status === 'active').length,
-      labelStreams: RELEASES.filter(r => r.label.includes('MSC')).reduce((sum, r) => sum + (r.streams || 0), 0),
+      labelStreams: RELEASES.filter(r => r.label === 'MSC & Co').reduce((sum, r) => sum + (r.streams || 0), 0),
       labelCountries: 28,
-      labelProjects: RELEASES.filter(r => r.label.includes('MSC')).length
+      labelProjects: RELEASES.filter(r => r.label === 'MSC & Co').length,
+      totalTracks: RELEASES.filter(r => r.label === 'MSC & Co').reduce((sum, r) => sum + (r.assets || 0), 0)
     }
   };
 };
