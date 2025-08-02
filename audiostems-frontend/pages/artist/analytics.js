@@ -4,9 +4,11 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 export default function ArtistAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
@@ -140,34 +142,44 @@ export default function ArtistAnalytics() {
           <p className="text-gray-600">Track your performance, audience, and growth metrics</p>
         </div>
 
-        {/* Period Selector */}
+        {/* Period and Currency Selectors */}
         <div className="mb-6">
-          <div className="flex space-x-2">
-            {[
-              { id: 'month', label: 'This Month' },
-              { id: 'quarter', label: 'This Quarter' },
-              { id: 'year', label: 'This Year' },
-              { id: 'custom', label: 'Custom Range' }
-            ].map((period) => (
-              <button
-                key={period.id}
-                onClick={() => {
-                  setSelectedPeriod(period.id);
-                  if (period.id === 'custom') {
-                    setShowCustomDateRange(true);
-                  } else {
-                    setShowCustomDateRange(false);
-                  }
-                }}
-                className={`px-4 py-2 rounded-lg font-medium ${
-                  selectedPeriod === period.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {period.label}
-              </button>
-            ))}
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-2">
+              {[
+                { id: 'month', label: 'This Month' },
+                { id: 'quarter', label: 'This Quarter' },
+                { id: 'year', label: 'This Year' },
+                { id: 'custom', label: 'Custom Range' }
+              ].map((period) => (
+                <button
+                  key={period.id}
+                  onClick={() => {
+                    setSelectedPeriod(period.id);
+                    if (period.id === 'custom') {
+                      setShowCustomDateRange(true);
+                    } else {
+                      setShowCustomDateRange(false);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    selectedPeriod === period.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Currency Selector */}
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+              showLabel={true}
+              compact={true}
+            />
           </div>
         </div>
 
@@ -252,7 +264,7 @@ export default function ArtistAnalytics() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${analyticsData.totalRevenue.toLocaleString()}
+                  {formatCurrency(analyticsData.totalRevenue, selectedCurrency)}
                 </p>
                 <p className="text-sm text-green-600">
                   +{getPercentageChange(getCurrentPeriodData().revenue, getPreviousPeriodData().revenue)}% vs last month
@@ -363,7 +375,7 @@ export default function ArtistAnalytics() {
                               {track.streams.toLocaleString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                              ${track.revenue.toLocaleString()}
+                              {formatCurrency(track.revenue, selectedCurrency)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

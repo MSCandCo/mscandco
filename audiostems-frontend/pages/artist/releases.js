@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
 import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
@@ -37,6 +38,7 @@ import { getReleasesByArtist, getArtistById } from '../../lib/mockData';
 
 export default function ArtistReleases() {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [releases, setReleases] = useState([]);
   const [profileData, setProfileData] = useState(null);
   const [activeTab, setActiveTab] = useState('all-projects');
@@ -164,7 +166,7 @@ export default function ArtistReleases() {
           </div>
           <div>
             <span className="text-gray-500">Earnings:</span>
-            <span className="ml-2 text-gray-900">£{(release.earnings || 0).toLocaleString()}</span>
+            <span className="ml-2 text-gray-900">{formatCurrency(release.earnings || 0, selectedCurrency)}</span>
           </div>
           <div>
             <span className="text-gray-500">Streams:</span>
@@ -283,7 +285,7 @@ export default function ArtistReleases() {
                 <div className="text-sm text-green-700">Live</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-gray-900">£{stats.totalEarnings.toLocaleString()}</div>
+                <div className="text-lg font-bold text-gray-900">{formatCurrency(stats.totalEarnings, selectedCurrency)}</div>
                 <div className="text-sm text-gray-600">Earnings</div>
               </div>
             </div>
@@ -350,7 +352,13 @@ export default function ArtistReleases() {
                 </select>
               </div>
               
-              <div className="flex items-end space-x-2">
+              <div className="flex flex-col items-start space-y-2">
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  showLabel={true}
+                  compact={true}
+                />
                 <button
                   onClick={() => {
                     setSearchTerm('');
@@ -358,9 +366,9 @@ export default function ArtistReleases() {
                     setGenreFilter('all');
                     setTypeFilter('all');
                   }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
                 >
-                  Clear Filters
+                  Clear
                 </button>
               </div>
             </div>
