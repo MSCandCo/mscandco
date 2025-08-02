@@ -7,6 +7,7 @@ import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Downlo
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import Link from 'next/link';
 
 // Excel download functions
@@ -45,6 +46,9 @@ export default function LabelAdminDashboard() {
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
+  
+  // Currency system integration
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Get approved artists for this label
   const approvedArtists = useMemo(() => {
@@ -189,7 +193,7 @@ export default function LabelAdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-              <p className="text-2xl font-bold text-gray-900">${labelTotals.totalEarnings.toLocaleString()}</p>
+                              <p className="text-2xl font-bold text-gray-900">{formatCurrency(labelTotals.totalEarnings, selectedCurrency)}</p>
             </div>
             <DollarSign className="w-8 h-8 text-green-600" />
           </div>
@@ -458,7 +462,7 @@ export default function LabelAdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Earnings</p>
-                <p className="text-lg font-semibold text-gray-900">£{artist.totalEarnings.toLocaleString()}</p>
+                <p className="text-lg font-semibold text-gray-900">{formatCurrency(artist.totalEarnings, selectedCurrency)}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Streams</p>
@@ -495,7 +499,7 @@ export default function LabelAdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">£{earningsData.totalEarnings.toLocaleString()}</p>
+                              <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings, selectedCurrency)}</p>
             </div>
             <DollarSign className="w-8 h-8 text-green-600" />
           </div>
@@ -505,7 +509,7 @@ export default function LabelAdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Avg Per Release</p>
-              <p className="text-2xl font-bold text-gray-900">£{Math.round(earningsData.avgEarningsPerRelease).toLocaleString()}</p>
+                              <p className="text-2xl font-bold text-gray-900">{formatCurrency(Math.round(earningsData.avgEarningsPerRelease), selectedCurrency)}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-blue-600" />
           </div>
@@ -600,7 +604,7 @@ export default function LabelAdminDashboard() {
                     <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">£{artist.earnings.toLocaleString()}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings, selectedCurrency)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Link href={`/label-admin/artists?search=${encodeURIComponent(artist.artist)}`} className="text-blue-600 hover:text-blue-900">
@@ -639,7 +643,7 @@ export default function LabelAdminDashboard() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.artist}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.releaseType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">£{release.earnings.toLocaleString()}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(release.earnings, selectedCurrency)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.streams.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Link href={`/label-admin/releases?search=${encodeURIComponent(release.projectName)}`} className="text-blue-600 hover:text-blue-900">
@@ -666,8 +670,16 @@ export default function LabelAdminDashboard() {
                 <h1 className="text-2xl font-bold text-gray-900">Label Admin Dashboard</h1>
                 <p className="text-sm text-gray-500">Manage your artists and releases</p>
               </div>
-              <div className="text-sm text-gray-500">
-                {userBrand?.displayName || 'Label Admin'}
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                  showLabel={false}
+                />
+                <div className="text-sm text-gray-500">
+                  {userBrand?.displayName || 'Label Admin'}
+                </div>
               </div>
             </div>
           </div>
