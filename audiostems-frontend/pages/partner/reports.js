@@ -502,11 +502,11 @@ export default function PartnerReports() {
         'Platform': item.platform,
         'Streams': item.streams.toLocaleString(),
         'Downloads': item.downloads.toLocaleString(),
-        'Streaming Revenue': `$${item.streamingRevenue.toFixed(2)}`,
-        'Download Revenue': `$${item.downloadRevenue.toFixed(2)}`,
-        'Mechanical Revenue': `$${item.mechanicalRevenue.toFixed(2)}`,
-        'Performance Revenue': `$${item.performanceRevenue.toFixed(2)}`,
-        'Total Earnings': `$${item.totalEarnings.toFixed(2)}`
+        'Streaming Revenue': sharedFormatCurrency(item.streamingRevenue, selectedCurrency),
+        'Download Revenue': sharedFormatCurrency(item.downloadRevenue, selectedCurrency),
+        'Mechanical Revenue': sharedFormatCurrency(item.mechanicalRevenue, selectedCurrency),
+        'Performance Revenue': sharedFormatCurrency(item.performanceRevenue, selectedCurrency),
+        'Total Earnings': sharedFormatCurrency(item.totalEarnings, selectedCurrency)
       }));
 
       // Add summary row
@@ -526,7 +526,7 @@ export default function PartnerReports() {
         'Download Revenue': '',
         'Mechanical Revenue': '',
         'Performance Revenue': '',
-        'Total Earnings': `$${totalEarnings.toFixed(2)}`
+        'Total Earnings': sharedFormatCurrency(totalEarnings, selectedCurrency)
       });
 
       // Create worksheet
@@ -744,7 +744,7 @@ export default function PartnerReports() {
         displayColors: true,
         callbacks: {
           label: function(context) {
-            return `${context.dataset.label}: $${context.parsed.y?.toLocaleString() || context.parsed?.toLocaleString()}`;
+            return `${context.dataset.label}: ${sharedFormatCurrency(context.parsed.y || context.parsed, selectedCurrency)}`;
           }
         }
       }
@@ -757,7 +757,7 @@ export default function PartnerReports() {
         },
         ticks: {
           callback: function(value) {
-            return `$${value.toLocaleString()}`;
+            return sharedFormatCurrency(value, selectedCurrency);
           }
         }
       }
@@ -1021,7 +1021,7 @@ export default function PartnerReports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-purple-600 mb-1">Avg Per Stream</p>
-                  <p className="text-2xl font-bold text-gray-900">${earningsData.averagePerStream.toFixed(5)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.averagePerStream, selectedCurrency)}</p>
                   <p className="text-xs text-purple-600 font-medium mt-1">
                     🎵 Revenue rate
                   </p>
@@ -1099,7 +1099,7 @@ export default function PartnerReports() {
                         label: function(context) {
                           const total = context.dataset.data.reduce((a, b) => a + b, 0);
                           const percentage = ((context.parsed / total) * 100).toFixed(1);
-                          return `${context.label}: $${context.parsed.toLocaleString()} (${percentage}%)`;
+                          return `${context.label}: ${sharedFormatCurrency(context.parsed, selectedCurrency)} (${percentage}%)`;
                         }
                       }
                     }
@@ -1146,7 +1146,7 @@ export default function PartnerReports() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Earnings:</span>
-                      <span className="font-medium">${platform.earnings.toLocaleString()}</span>
+                      <span className="font-medium">{sharedFormatCurrency(platform.earnings, selectedCurrency)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Streams:</span>
@@ -1154,7 +1154,7 @@ export default function PartnerReports() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Royalty Rate:</span>
-                      <span className="font-medium">${platform.royaltyRate.toFixed(4)}</span>
+                      <span className="font-medium">{sharedFormatCurrency(platform.royaltyRate, selectedCurrency)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Market Share:</span>
@@ -1214,14 +1214,14 @@ export default function PartnerReports() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${artist.totalEarnings.toLocaleString()}
+                        {sharedFormatCurrency(artist.totalEarnings, selectedCurrency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${artist.monthlyEarnings.toLocaleString()}
+                        {sharedFormatCurrency(artist.monthlyEarnings, selectedCurrency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{artist.topTrack}</div>
-                        <div className="text-xs text-gray-500">${artist.trackEarnings.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">{sharedFormatCurrency(artist.trackEarnings, selectedCurrency)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -1239,7 +1239,7 @@ export default function PartnerReports() {
                           {Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].charAt(0).toUpperCase() + Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].slice(1)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          ${Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][1].toLocaleString()}
+                          {sharedFormatCurrency(Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][1], selectedCurrency)}
                         </div>
                       </td>
                     </tr>

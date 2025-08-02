@@ -350,7 +350,7 @@ export default function PartnerAnalytics() {
   const platformChartData = {
     labels: Object.values(getFilteredData.filteredPlatforms).map(p => p.name),
     datasets: [{
-      label: selectedMetric === 'revenue' ? 'Revenue ($)' : 'Streams',
+              label: selectedMetric === 'revenue' ? `Revenue (${selectedCurrency})` : 'Streams',
       data: Object.values(getFilteredData.filteredPlatforms).map(p => 
         selectedMetric === 'revenue' ? p.revenue : p.streams
       ),
