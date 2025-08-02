@@ -349,41 +349,32 @@ export default function RoleBasedDashboard() {
           ],
           cards: [
             {
-              title: 'Releases',
+              title: 'Release Management',
               description: 'Manage your music releases and track submissions',
               icon: '🎵',
               href: '/artist/releases',
               stats: { 
                 total: artistReleases.length, 
-                draft: artistReleases.filter(r => r.status === 'DRAFT').length, 
-                submitted: artistReleases.filter(r => r.status === 'SUBMITTED').length,
-                underReview: artistReleases.filter(r => r.status === 'UNDER_REVIEW').length, 
-                approvalRequired: artistReleases.filter(r => r.status === 'APPROVAL_REQUIRED').length,
-                live: artistReleases.filter(r => r.status === 'LIVE').length,
-                completed: artistReleases.filter(r => r.status === 'COMPLETED').length
+                live: artistReleases.filter(r => r.status === 'LIVE').length
               }
             },
             {
-              title: 'Earnings',
+              title: 'Revenue Tracking',
               description: 'Track your revenue from streaming platforms',
               icon: '💰',
               href: '/artist/earnings',
               stats: { 
                 thisMonth: formatCurrency(DASHBOARD_STATS.artist.thisMonthEarnings, selectedCurrency), 
-                lastMonth: formatCurrency(DASHBOARD_STATS.artist.lastMonthEarnings, selectedCurrency),
-                held: formatCurrency(DASHBOARD_STATS.artist.heldEarnings, selectedCurrency),
-                platforms: DASHBOARD_STATS.artist.platforms
+                totalEarnings: formatCurrency(DASHBOARD_STATS.artist.totalEarnings, selectedCurrency)
               }
             },
             {
-              title: 'Analytics',
+              title: 'Performance Analytics',
               description: 'View detailed performance analytics',
-              icon: '📈',
+              icon: '📊',
               href: '/artist/analytics',
               stats: { 
                 streams: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, 
-                countries: DASHBOARD_STATS.artist.countries,
-                topTrack: DASHBOARD_STATS.artist.topTrack,
                 growth: `+${DASHBOARD_STATS.artist.growth}%`
               }
             }
