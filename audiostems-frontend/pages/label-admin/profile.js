@@ -82,7 +82,11 @@ export default function LabelAdminProfile() {
     // Metadata
     joinDate: '',
     lastLogin: '',
-    profileCompletion: 0
+    profileCompletion: 0,
+    
+    // Registration Tracking
+    isCompanyInfoSet: false,
+    registrationDate: null
   });
 
   const [formData, setFormData] = useState({ ...profile });
@@ -106,18 +110,18 @@ export default function LabelAdminProfile() {
         phone: '+44 20 7946 0958',
         
         labelName: userBrand?.displayName || 'MSC & Co',
-        companyName: 'MSC & Co Entertainment Ltd',
-        position: 'Label Manager',
-        department: 'A&R and Artist Development',
+        companyName: '',
+        position: '',
+        department: '',
         
-        officeAddress: '123 Music House, Soho',
-        city: 'London',
-        country: 'United Kingdom',
-        postalCode: 'W1F 8AB',
-        timezone: 'GMT+0',
+        officeAddress: '',
+        city: '',
+        country: '',
+        postalCode: '',
+        timezone: '',
         
-        businessType: 'Record Label',
-        taxId: 'GB123456789',
+        businessType: '',
+        taxId: '',
         vatNumber: 'GB987654321',
         registrationNumber: 'RC12345678',
         foundedYear: '2018',
@@ -161,7 +165,11 @@ export default function LabelAdminProfile() {
         
         joinDate: '2023-06-15T00:00:00Z',
         lastLogin: '2024-01-16T11:15:00Z',
-        profileCompletion: 95
+        profileCompletion: 95,
+        
+        // Registration tracking - company info not set yet
+        isCompanyInfoSet: false,
+        registrationDate: null
       };
 
       setProfile(mockProfile);
@@ -232,17 +240,42 @@ export default function LabelAdminProfile() {
       return;
     }
 
+    // Check if this is the first time setting company info
+    const isFirstTimeSetup = !profile.isCompanyInfoSet && 
+      (formData.companyName || formData.position || formData.department || 
+       formData.officeAddress || formData.businessType || formData.taxId);
+
+    if (isFirstTimeSetup) {
+      // Validate that required company info is provided
+      if (!formData.companyName?.trim()) {
+        alert('Company name is required for first-time setup.');
+        return;
+      }
+    }
+
     setIsSaving(true);
     
     try {
       // In real app, this would be an API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setProfile(formData);
+      const updatedProfile = { ...formData };
+      
+      // If this is first time setup, mark company info as set
+      if (isFirstTimeSetup) {
+        updatedProfile.isCompanyInfoSet = true;
+        updatedProfile.registrationDate = new Date().toISOString();
+      }
+      
+      setProfile(updatedProfile);
       setIsEditing(false);
       
       // Show success message
-      alert('Profile updated successfully!');
+      if (isFirstTimeSetup) {
+        alert('Company information has been set successfully! This information cannot be changed in the future.');
+      } else {
+        alert('Profile updated successfully!');
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Error saving profile. Please try again.');
@@ -400,6 +433,30 @@ export default function LabelAdminProfile() {
               {/* Company Information */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Information</h2>
+                
+                {/* Company Info Set Notice */}
+                {profile.isCompanyInfoSet && (
+                  <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-amber-800">
+                          Company Information Locked
+                        </h3>
+                        <div className="mt-2 text-sm text-amber-700">
+                          <p>
+                            Company information was set on {new Date(profile.registrationDate).toLocaleDateString()} and cannot be modified. 
+                            Please contact support if you need to update this information.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Label Name</label>
@@ -420,11 +477,14 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange('companyName', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
+                    {!formData.companyName && !profile.isCompanyInfoSet && (
+                      <p className="text-amber-600 text-sm mt-1">Required for first-time setup</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
@@ -432,9 +492,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.position}
                       onChange={(e) => handleInputChange('position', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
@@ -444,9 +504,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.department}
                       onChange={(e) => handleInputChange('department', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
@@ -463,9 +523,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.officeAddress}
                       onChange={(e) => handleInputChange('officeAddress', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
@@ -475,9 +535,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
@@ -487,9 +547,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
@@ -499,9 +559,9 @@ export default function LabelAdminProfile() {
                       type="text"
                       value={formData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || profile.isCompanyInfoSet}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        !isEditing ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        (!isEditing || profile.isCompanyInfoSet) ? 'bg-gray-50' : 'focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       } border-gray-300`}
                     />
                   </div>
