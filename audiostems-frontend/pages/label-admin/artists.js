@@ -23,6 +23,9 @@ export default function LabelAdminArtists() {
   // Available artists data for the dropdown
   const availableArtists = {
     'gospel-collective': {
+      firstName: 'Marcus',
+      lastName: 'Johnson',
+      artistName: 'Gospel Voices Collective',
       name: 'Gospel Voices Collective',
       email: 'contact@gospelvoices.com',
       genre: 'Gospel',
@@ -32,6 +35,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'harmony-group': {
+      firstName: 'Sophia',
+      lastName: 'Williams',
+      artistName: 'Vocal Harmony',
       name: 'Vocal Harmony',
       email: 'bookings@vocalharmony.com',
       genre: 'R&B/Soul',
@@ -41,6 +47,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'jazz-ensemble': {
+      firstName: 'Antoine',
+      lastName: 'Baptiste',
+      artistName: 'Jazz Ensemble Pro',
       name: 'Jazz Ensemble Pro',
       email: 'info@jazzensemblepro.com',
       genre: 'Jazz',
@@ -50,6 +59,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'hip-hop-artist': {
+      firstName: 'Jaylen',
+      lastName: 'Rodriguez',
+      artistName: 'Urban Flow Artist',
       name: 'Urban Flow Artist',
       email: 'contact@urbanflow.com',
       genre: 'Hip Hop',
@@ -59,6 +71,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'classical-performer': {
+      firstName: 'Elena',
+      lastName: 'Petrov',
+      artistName: 'Classical Symphony',
       name: 'Classical Symphony',
       email: 'bookings@classicalsymphony.com',
       genre: 'Classical',
@@ -68,6 +83,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'rnb-singer': {
+      firstName: 'Keisha',
+      lastName: 'Thompson',
+      artistName: 'R&B Soul Singer',
       name: 'R&B Soul Singer',
       email: 'management@rnbsoul.com',
       genre: 'R&B',
@@ -77,6 +95,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'pop-artist': {
+      firstName: 'Madison',
+      lastName: 'Carter',
+      artistName: 'Pop Star Rising',
       name: 'Pop Star Rising',
       email: 'team@popstarrising.com',
       genre: 'Pop',
@@ -86,6 +107,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'rock-band': {
+      firstName: 'Jake',
+      lastName: 'Morrison',
+      artistName: 'Rock Revolution',
       name: 'Rock Revolution',
       email: 'contact@rockrevolution.com',
       genre: 'Rock',
@@ -95,6 +119,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'electronic-producer': {
+      firstName: 'Carlos',
+      lastName: 'Mendez',
+      artistName: 'Electronic Beats',
       name: 'Electronic Beats',
       email: 'bookings@electronicbeats.com',
       genre: 'Electronic',
@@ -104,6 +131,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'indie-artist': {
+      firstName: 'Luna',
+      lastName: 'Mitchell',
+      artistName: 'Indie Folk Artist',
       name: 'Indie Folk Artist',
       email: 'hello@indiefolk.com',
       genre: 'Indie Folk',
@@ -113,6 +143,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'country-singer': {
+      firstName: 'Blake',
+      lastName: 'Henderson',
+      artistName: 'Country Roads Singer',
       name: 'Country Roads Singer',
       email: 'booking@countryroads.com',
       genre: 'Country',
@@ -122,6 +155,9 @@ export default function LabelAdminArtists() {
       status: 'Available'
     },
     'reggae-band': {
+      firstName: 'Damian',
+      lastName: 'Brown',
+      artistName: 'Reggae Vibes Band',
       name: 'Reggae Vibes Band',
       email: 'contact@reggaevibes.com',
       genre: 'Reggae',
@@ -456,9 +492,21 @@ export default function LabelAdminArtists() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Artist Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-600">Name</label>
+                        <label className="block text-sm font-medium text-gray-600">First Name</label>
                         <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
-                          {availableArtists[selectedArtistForForm].name}
+                          {availableArtists[selectedArtistForForm].firstName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Last Name</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Artist Name</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].artistName}
                         </p>
                       </div>
                       <div>
