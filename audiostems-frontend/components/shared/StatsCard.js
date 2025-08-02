@@ -3,6 +3,7 @@
 
 import { FaArrowUp, FaArrowDown, FaMinus } from 'react-icons/fa';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { formatCurrency } from './CurrencySelector';
 
 export default function StatsCard({ 
   title, 
@@ -23,8 +24,7 @@ export default function StatsCard({
     
     switch (format) {
       case 'currency':
-        const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
-        return `${symbol}${val.toLocaleString()}`;
+        return formatCurrency(val, currency);
       case 'percentage':
         return `${val.toFixed(1)}%`;
       case 'number':

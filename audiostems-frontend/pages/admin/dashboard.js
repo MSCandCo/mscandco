@@ -6,6 +6,7 @@ import {
   Play, Pause, CheckCircle, Clock, AlertTriangle,
   Globe, Calendar, Database, Settings, Shield
 } from 'lucide-react';
+import { formatCurrency } from '../components/shared/CurrencySelector';
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth0();
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${mockAdminData.overview.totalRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockAdminData.overview.totalRevenue, 'GBP')}</p>
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
@@ -376,11 +377,11 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Total Revenue</span>
-              <span className="text-lg font-bold text-gray-900">${mockAdminData.revenue.total.toLocaleString()}</span>
+              <span className="text-lg font-bold text-gray-900">{formatCurrency(mockAdminData.revenue.total, 'GBP')}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">This Month</span>
-              <span className="text-sm font-medium text-green-600">${mockAdminData.revenue.thisMonth.toLocaleString()}</span>
+              <span className="text-sm font-medium text-green-600">{formatCurrency(mockAdminData.revenue.thisMonth, 'GBP')}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Growth</span>

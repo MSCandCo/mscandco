@@ -38,7 +38,7 @@ export const MOCK_VIDEOS = {
     releaseDate: '2024-09-15',
     performance: 'trending',
     streams: '125,000',
-    revenue: '£8,750'
+    revenue: 8750
   },
   latest: {
     id: 'video-002', 
@@ -49,7 +49,7 @@ export const MOCK_VIDEOS = {
     releaseDate: '2025-01-15',
     performance: 'new',
     streams: '12,500',
-    revenue: '£2,800'
+    revenue: 2800
   },
   upcoming: {
     id: 'video-003',

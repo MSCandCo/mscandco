@@ -1,6 +1,7 @@
 import { FaTimes, FaMusic, FaCalendar, FaUser, FaTag, FaFileAlt } from 'react-icons/fa';
+import { formatCurrency } from '../shared/CurrencySelector';
 
-export default function ViewReleaseDetailsModal({ isOpen, onClose, release }) {
+export default function ViewReleaseDetailsModal({ isOpen, onClose, release, currency = 'GBP' }) {
   if (!isOpen || !release) return null;
 
   const getStatusColor = (status) => {
@@ -121,7 +122,7 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release }) {
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-500">Earnings</p>
-              <p className="text-2xl font-bold text-gray-900">${release.earnings?.toLocaleString() || '0'}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(release.earnings || 0, currency)}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-500">Streams</p>

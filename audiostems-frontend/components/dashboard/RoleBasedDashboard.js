@@ -304,7 +304,7 @@ export default function RoleBasedDashboard() {
           description: 'Manage content distribution and platform settings',
           stats: [
             { label: 'Distributed Content', value: '567', change: '+18%', changeType: 'positive' },
-            { label: 'Platform Revenue', value: '$45,678', change: '+14%', changeType: 'positive' },
+            { label: 'Platform Revenue', value: formatCurrency(45678, selectedCurrency), change: '+14%', changeType: 'positive' },
             { label: 'Active Platforms', value: '12', change: '+2', changeType: 'positive' },
             { label: 'Success Rate', value: '96%', change: '+1%', changeType: 'positive' }
           ],

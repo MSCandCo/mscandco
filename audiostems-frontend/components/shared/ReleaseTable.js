@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { FaEye, FaEdit, FaDownload, FaPlay, FaCheck, FaTimes } from 'react-icons/fa';
 import { Eye, Edit, Download, Play, Check, X } from 'lucide-react';
 import { getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
+import { formatCurrency } from './CurrencySelector';
 
 export default function ReleaseTable({ 
   releases, 
@@ -20,12 +21,10 @@ export default function ReleaseTable({
   onSaveIsrc,
   onCancelEditingIsrc,
   compact = false,
-  roleFilter = null // 'artist', 'distribution_partner', 'admin', etc.
+  roleFilter = null, // 'artist', 'distribution_partner', 'admin', etc.
+  currency = 'GBP' // Currency for formatting earnings
 }) {
-  const formatCurrency = (amount, currency = 'GBP') => {
-    const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
-    return `${symbol}${amount.toLocaleString()}`;
-  };
+
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
@@ -87,7 +86,7 @@ export default function ReleaseTable({
               </div>
               <div>
                 <span className="text-gray-500">Earnings:</span>
-                <span className="ml-2 font-medium">{formatCurrency(release.earnings || 0)}</span>
+                <span className="ml-2 font-medium">{formatCurrency(release.earnings || 0, currency)}</span>
               </div>
             </div>
             
@@ -170,7 +169,7 @@ export default function ReleaseTable({
                   {formatNumber(release.streams || 0)}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-900 w-24">
-                  {formatCurrency(release.earnings || 0)}
+                  {formatCurrency(release.earnings || 0, currency)}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-900 w-28">
                   {release.expectedReleaseDate || 'TBD'}

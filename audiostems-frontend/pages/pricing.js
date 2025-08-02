@@ -120,9 +120,9 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Artist Starter',
-          monthlyPrice: '$9.99',
-          yearlyPrice: '$99.99',
-          yearlySavings: '$19.89',
+          monthlyPrice: 9.99,
+          yearlyPrice: 99.99,
+          yearlySavings: 19.89,
           stripeProductKey: 'artist_starter',
           features: [
             'Up to 10 releases per year',
@@ -135,9 +135,9 @@ const getRoleSpecificPlans = (role) => {
         },
         {
           name: 'Artist Pro',
-          monthlyPrice: '$19.99',
-          yearlyPrice: '$199.99',
-          yearlySavings: '$39.89',
+          monthlyPrice: 19.99,
+          yearlyPrice: 199.99,
+          yearlySavings: 39.89,
           stripeProductKey: 'artist_pro',
           features: [
             'Unlimited releases per year',
@@ -199,9 +199,9 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Label Admin',
-          monthlyPrice: '$29.99',
-          yearlyPrice: '$299.99',
-          yearlySavings: '$59.89',
+          monthlyPrice: 29.99,
+          yearlyPrice: 299.99,
+          yearlySavings: 59.89,
           stripeProductKey: 'label_admin',
           features: [
             'Unlimited Artists Management',
@@ -232,9 +232,9 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Platform Basic',
-          monthlyPrice: '£499.99',
-          yearlyPrice: '£4,999.99',
-          yearlySavings: '£999.89',
+          monthlyPrice: 499.99,
+          yearlyPrice: 4999.99,
+          yearlySavings: 999.89,
           features: [
             'Single Brand Management',
             'Basic Platform Analytics',
@@ -244,9 +244,9 @@ const getRoleSpecificPlans = (role) => {
         },
         {
           name: 'Platform Enterprise',
-          monthlyPrice: '£999.99',
-          yearlyPrice: '£9,999.99',
-          yearlySavings: '£1,999.89',
+          monthlyPrice: 999.99,
+          yearlyPrice: 9999.99,
+          yearlySavings: 1999.89,
           features: [
             'Multi-Brand Management',
             'Platform Analytics',
@@ -259,9 +259,9 @@ const getRoleSpecificPlans = (role) => {
         },
         {
           name: 'Platform Ultimate',
-          monthlyPrice: '£1,999.99',
-          yearlyPrice: '£19,999.99',
-          yearlySavings: '£3,999.89',
+          monthlyPrice: 1999.99,
+          yearlyPrice: 19999.99,
+          yearlySavings: 3999.89,
           features: [
             'Unlimited Brands',
             'Advanced Platform Analytics',
@@ -302,9 +302,9 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Basic Plan',
-          monthlyPrice: '£9.99',
-          yearlyPrice: '£99.99',
-          yearlySavings: '£19.89',
+          monthlyPrice: 9.99,
+          yearlyPrice: 99.99,
+          yearlySavings: 19.89,
           features: [
             'Basic Features',
             'Email Support'
