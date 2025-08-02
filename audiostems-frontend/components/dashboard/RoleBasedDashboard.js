@@ -520,16 +520,9 @@ export default function RoleBasedDashboard() {
           <div className="mt-8 px-4 sm:px-0">
             <div className="bg-white rounded-lg shadow-sm border">
               <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Approved Artists</h3>
-                    <p className="text-sm text-gray-500">Artists under {userBrand?.displayName || 'YHWH MSC'} label</p>
-                  </div>
-                  <Link href="/label-admin/artists">
-                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                      View All →
-                    </button>
-                  </Link>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Approved Artists</h3>
+                  <p className="text-sm text-gray-500">Artists under {userBrand?.displayName || 'YHWH MSC'} label</p>
                 </div>
               </div>
               
