@@ -398,14 +398,7 @@ export default function RoleBasedDashboard() {
                     <p className="text-lg opacity-90">{dashboardContent.subtitle}</p>
                     <p className="text-sm opacity-75">{dashboardContent.description}</p>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <CurrencySelector 
-                      selectedCurrency={selectedCurrency}
-                      onCurrencyChange={updateCurrency}
-                      compact={true}
-                      className="text-white"
-                    />
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -421,13 +414,7 @@ export default function RoleBasedDashboard() {
                 <p className="mt-2 text-lg text-gray-600">{dashboardContent.subtitle}</p>
                 <p className="mt-1 text-sm text-gray-500">{dashboardContent.description}</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <CurrencySelector 
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  compact={true}
-                />
-              </div>
+
             </div>
           </div>
         )}

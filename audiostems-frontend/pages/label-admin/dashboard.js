@@ -670,16 +670,8 @@ export default function LabelAdminDashboard() {
                 <h1 className="text-2xl font-bold text-gray-900">Label Admin Dashboard</h1>
                 <p className="text-sm text-gray-500">Manage your artists and releases</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <CurrencySelector 
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  compact={true}
-                  showLabel={false}
-                />
-                <div className="text-sm text-gray-500">
-                  {userBrand?.displayName || 'Label Admin'}
-                </div>
+              <div className="text-sm text-gray-500">
+                {userBrand?.displayName || 'Label Admin'}
               </div>
             </div>
           </div>
