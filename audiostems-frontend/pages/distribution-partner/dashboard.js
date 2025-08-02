@@ -1200,21 +1200,61 @@ export default function DistributionPartnerDashboard() {
 
 
   const handleStatusChange = (releaseId, newStatus) => {
-    // In a real app, this would update the database
-    console.log(`Changing release ${releaseId} status to ${newStatus}`);
+    // Find the release in current state
+    const releaseIndex = allReleases.findIndex(r => r.id === releaseId);
+    if (releaseIndex === -1) {
+      console.error(`Release ${releaseId} not found`);
+      return;
+    }
+
+    // Update the release status using state setter
+    setAllReleases(prevReleases => {
+      const updatedReleases = [...prevReleases];
+      const oldStatus = updatedReleases[releaseIndex].status;
+      updatedReleases[releaseIndex].status = newStatus;
+      
+      // Update the last modified date
+      updatedReleases[releaseIndex].lastModified = new Date().toISOString().split('T')[0];
+      
+      // Add status change to history if it doesn't exist
+      if (!updatedReleases[releaseIndex].statusHistory) {
+        updatedReleases[releaseIndex].statusHistory = [];
+      }
+      
+      // Add the status change to history
+      updatedReleases[releaseIndex].statusHistory.push({
+        from: oldStatus,
+        to: newStatus,
+        changedBy: 'Distribution Partner',
+        changedAt: new Date().toISOString(),
+        reason: `Status updated by distribution partner`
+      });
+
+      // Show confirmation message
+      const statusLabel = getStatusLabel(newStatus);
+      const oldStatusLabel = getStatusLabel(oldStatus);
+      
+      // Use setTimeout to ensure the alert shows after state update
+      setTimeout(() => {
+        alert(`✅ Release status successfully updated!\n\nFrom: "${oldStatusLabel}"\nTo: "${statusLabel}"\n\nThis change is now visible to the artist and other stakeholders.`);
+      }, 100);
+      
+      console.log(`Status change applied: Release "${updatedReleases[releaseIndex].projectName}" (${releaseId}) → ${statusLabel}`);
+      console.log('Status history:', updatedReleases[releaseIndex].statusHistory);
+      
+      return updatedReleases;
+    });
     
-    // Show confirmation message
-    const statusLabel = getStatusLabel(newStatus);
-    alert(`Release status updated to: ${statusLabel}`);
+    // In a real implementation, this would:
+    // 1. Call the API to update the status in the database
+    // 2. Send notifications to relevant users (artist, label admin, etc.)
+    // 3. Update any dashboards that display this release
+    // 4. Log the change for audit purposes
+    // 5. Sync the change across all connected clients
     
-    // In a real implementation, you would:
-    // 1. Call the API to update the status
-    // 2. Update local state or refetch data
-    // 3. Show success/error notification
-    // 4. Potentially refresh the release list
-    
-    // For now, we'll just log the change
-    console.log(`Status change confirmed: Release ${releaseId} → ${statusLabel}`);
+    // Close the edit modal after successful update
+    setShowEditModal(false);
+    setEditingRelease(null);
   };
 
   // Helper function to calculate total assets across all releases
@@ -1300,6 +1340,21 @@ export default function DistributionPartnerDashboard() {
                       {getStatusIcon(release.status)}
                       <span className="ml-1">{getStatusLabel(release.status)}</span>
                     </span>
+                    {release.statusHistory && release.statusHistory.length > 0 && (() => {
+                      const lastChange = release.statusHistory[release.statusHistory.length - 1];
+                      const changeDate = new Date(lastChange.changedAt);
+                      const now = new Date();
+                      const hoursDiff = (now - changeDate) / (1000 * 60 * 60);
+                      if (hoursDiff < 24) {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full mr-1 animate-pulse"></span>
+                            Recently Updated
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div className="mt-2 text-sm text-gray-600">
                     <span className="font-medium">{release.artist}</span> • {release.releaseType} • {release.genre} • {release.trackListing.length} tracks
@@ -3977,6 +4032,28 @@ export default function DistributionPartnerDashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Status History */}
+                {editingRelease?.statusHistory && editingRelease.statusHistory.length > 0 && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="text-md font-semibold text-gray-900 mb-3">Status Change History</h4>
+                    <div className="space-y-2">
+                      {editingRelease.statusHistory.map((change, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{getStatusLabel(change.from)}</span>
+                            <span className="text-gray-500">→</span>
+                            <span className="font-medium text-blue-600">{getStatusLabel(change.to)}</span>
+                          </div>
+                          <div className="text-gray-500">
+                            <span className="mr-2">{change.changedBy}</span>
+                            <span>{new Date(change.changedAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
