@@ -1,7 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Card, Badge } from 'flowbite-react';
-import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
-import { useState, useEffect } from 'react';
+import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -101,6 +101,38 @@ export default function RoleBasedDashboard() {
 
   const userRole = getUserRole(user);
   const displayBrand = getDefaultDisplayBrand(user);
+  const userBrand = getUserBrand(user);
+
+  // Calculate approved artists for label admin
+  const approvedArtists = useMemo(() => {
+    if (userRole !== 'label_admin') return [];
+    
+    const labelName = userBrand?.displayName || 'YHWH MSC';
+    
+    const filteredArtists = ARTISTS.filter(artist => 
+      artist.approvalStatus === 'approved' && 
+      artist.label === labelName
+    );
+    
+    return filteredArtists.map(artist => {
+      // Calculate artist releases and earnings
+      const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
+      const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+      const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+      
+      return {
+        ...artist,
+        releases: artistReleases.length,
+        totalEarnings,
+        totalStreams,
+        followers: artist.followers || 0,
+        lastRelease: artistReleases.length > 0 ? 
+          artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
+          null,
+        avatar: artist.avatar || '🎤'
+      };
+    });
+  }, [userRole, userBrand?.displayName]);
 
 
 
@@ -482,6 +514,63 @@ export default function RoleBasedDashboard() {
             ))}
           </div>
         </div>
+
+        {/* Approved Artists Section - Only for Label Admin */}
+        {userRole === 'label_admin' && approvedArtists.length > 0 && (
+          <div className="mt-8 px-4 sm:px-0">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Approved Artists</h3>
+                    <p className="text-sm text-gray-500">Artists under {userBrand?.displayName || 'YHWH MSC'} label</p>
+                  </div>
+                  <Link href="/label-admin/artists">
+                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                      View All →
+                    </button>
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {approvedArtists.map((artist) => (
+                    <div key={artist.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                        {artist.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">{artist.name}</h4>
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 truncate">{artist.primaryGenre}</p>
+                        <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                          <span>{artist.releases} releases</span>
+                          <span>{formatCurrency(artist.totalEarnings, selectedCurrency)}</span>
+                          <span>{artist.totalStreams.toLocaleString()} streams</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {approvedArtists.length > 4 && (
+                  <div className="mt-4 text-center">
+                    <Link href="/label-admin/artists">
+                      <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View {approvedArtists.length - 4} more artists →
+                      </button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
