@@ -218,9 +218,9 @@ export default function RoleBasedDashboard() {
       case 'label_admin':
     
         return {
-          title: 'Label Admin Dashboard',
-          subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Label Management`,
-          description: 'Manage label artists, contracts, and revenue streams',
+          title: `${displayBrand?.displayName || 'YHWH MSC'} - Label Management Dashboard`,
+          subtitle: 'Manage label artists, contracts, and revenue streams',
+          description: 'Complete label administration and artist management platform',
           stats: [
             { label: 'Label Artists', value: DASHBOARD_STATS.labelAdmin.labelArtists.toString(), change: '+3 this quarter', changeType: 'positive' },
             { label: 'Active Releases', value: DASHBOARD_STATS.labelAdmin.labelReleases.toString(), change: '+12%', changeType: 'positive' },

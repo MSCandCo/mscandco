@@ -667,11 +667,10 @@ export default function LabelAdminDashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Label Admin Dashboard</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {userBrand?.displayName || 'YHWH MSC'} - Label Management Dashboard
+                </h1>
                 <p className="text-sm text-gray-500">Manage your artists and releases</p>
-              </div>
-              <div className="text-sm text-gray-500">
-                {userBrand?.displayName || 'Label Admin'}
               </div>
             </div>
           </div>
