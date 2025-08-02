@@ -307,123 +307,75 @@ export default function LabelAdminArtists() {
               </div>
 
               <form className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Artist Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter artist name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="artist@example.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Genre
-                    </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                      <option value="">Select Genre</option>
-                      <option value="Gospel">Gospel</option>
-                      <option value="Hip Hop">Hip Hop</option>
-                      <option value="Jazz">Jazz</option>
-                      <option value="R&B">R&B</option>
-                      <option value="Classical">Classical</option>
-                      <option value="Pop">Pop</option>
-                      <option value="Rock">Rock</option>
-                      <option value="Electronic">Electronic</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="City, Country"
-                    />
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Website/Social Media
-                    </label>
-                    <input
-                      type="url"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="https://instagram.com/artist"
-                    />
-                  </div>
+                {/* Artist Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Artist *
+                  </label>
+                  <select 
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Choose an artist to add to your label</option>
+                    <option value="gospel-collective">Gospel Voices Collective</option>
+                    <option value="harmony-group">Vocal Harmony</option>
+                    <option value="jazz-ensemble">Jazz Ensemble Pro</option>
+                    <option value="hip-hop-artist">Urban Flow Artist</option>
+                    <option value="classical-performer">Classical Symphony</option>
+                    <option value="rnb-singer">R&B Soul Singer</option>
+                    <option value="pop-artist">Pop Star Rising</option>
+                    <option value="rock-band">Rock Revolution</option>
+                    <option value="electronic-producer">Electronic Beats</option>
+                    <option value="indie-artist">Indie Folk Artist</option>
+                    <option value="country-singer">Country Roads Singer</option>
+                    <option value="reggae-band">Reggae Vibes Band</option>
+                  </select>
                 </div>
 
                 {/* Contract Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contract Type
+                      Contract Type *
                     </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <select 
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    >
                       <option value="">Select Contract Type</option>
                       <option value="recording">Recording Contract</option>
                       <option value="distribution">Distribution Deal</option>
                       <option value="management">Management Contract</option>
                       <option value="publishing">Publishing Deal</option>
+                      <option value="360">360 Deal</option>
+                      <option value="licensing">Licensing Agreement</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Royalty Rate (%)
+                      Royalty Split (%) *
                     </label>
                     <input
                       type="number"
                       min="0"
                       max="100"
                       step="0.1"
+                      required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                       placeholder="50.0"
                     />
                   </div>
                 </div>
 
-                {/* Bio */}
+                {/* Other Information */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Artist Bio
+                    Other Information
                   </label>
                   <textarea
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Tell us about the artist..."
+                    placeholder="Additional notes, contract details, special terms, or other relevant information..."
                   ></textarea>
                 </div>
 
@@ -440,8 +392,8 @@ export default function LabelAdminArtists() {
                     type="submit"
                     onClick={(e) => {
                       e.preventDefault();
-                      // Here you would normally submit the form data
-                      alert('Artist added successfully! (This is a demo)');
+                      // Here you would normally submit the form data to assign artist to label
+                      alert('Artist successfully added to your label! (This is a demo)');
                       setShowAddArtist(false);
                     }}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
