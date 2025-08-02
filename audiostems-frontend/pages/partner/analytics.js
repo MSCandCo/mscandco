@@ -433,7 +433,7 @@ export default function PartnerAnalytics() {
         callbacks: {
           label: function(context) {
             if (selectedMetric === 'revenue') {
-              return `${context.dataset.label}: $${context.parsed.y?.toLocaleString() || context.parsed}`;
+              return `${context.dataset.label}: ${sharedFormatCurrency(context.parsed.y || context.parsed, selectedCurrency)}`;
             }
             return `${context.dataset.label}: ${(context.parsed.y || context.parsed)?.toLocaleString()}`;
           }
@@ -448,7 +448,7 @@ export default function PartnerAnalytics() {
         },
         ticks: {
           callback: function(value) {
-            return selectedMetric === 'revenue' ? `$${value.toLocaleString()}` : value.toLocaleString();
+            return selectedMetric === 'revenue' ? sharedFormatCurrency(value, selectedCurrency) : value.toLocaleString();
           }
         }
       },
@@ -473,7 +473,7 @@ export default function PartnerAnalytics() {
         },
         ticks: {
           callback: function(value) {
-            return selectedMetric === 'revenue' ? `$${value.toLocaleString()}` : value.toLocaleString();
+            return selectedMetric === 'revenue' ? sharedFormatCurrency(value, selectedCurrency) : value.toLocaleString();
           }
         }
       }
@@ -794,7 +794,7 @@ export default function PartnerAnalytics() {
                 <div>
                   <p className="text-sm font-medium text-blue-600 mb-1">Total Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.revenue, 0).toLocaleString()}
+                    {sharedFormatCurrency(Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.revenue, 0), selectedCurrency)}
                   </p>
                   <p className="text-xs text-green-600 font-medium mt-1">
                     ↗ +{(Object.values(getFilteredData.filteredPlatforms).reduce((sum, p) => sum + p.growth, 0) / Object.values(getFilteredData.filteredPlatforms).length).toFixed(1)}%
