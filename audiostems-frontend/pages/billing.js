@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { getUserRole } from '@/lib/auth0-config';
 import { getStripe } from '@/lib/stripe';
+import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { 
   CreditCard, 
   Calendar, 
@@ -292,14 +293,12 @@ export default function Billing() {
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
-  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
-  const currencyDropdownRef = useRef(null);
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [autoRenew, setAutoRenew] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Auto-detect currency based on user's location
+  // Auto-detect currency based on user's location (using shared currency system)
   useEffect(() => {
     const detectUserCurrency = async () => {
       try {
@@ -307,78 +306,31 @@ export default function Billing() {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         
+        // Supported currencies in shared system
+        const supportedCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'NGN', 'GHS', 'KES', 'ZAR', 'ZMW'];
+        
         if (data.country_code === 'GB') {
-          setSelectedCurrency('GBP');
+          updateCurrency('GBP');
+        } else if (supportedCurrencies.includes(data.currency)) {
+          updateCurrency(data.currency);
         } else {
-          // Check if the country's currency is in our list
-          const countryCurrency = data.currency;
-          const hasCurrency = currencies.find(c => c.code === countryCurrency);
-          
-          if (hasCurrency) {
-            setSelectedCurrency(countryCurrency);
-          } else {
-            // Default to USD for countries not in our list
-            setSelectedCurrency('USD');
-          }
+          // Default to USD for countries not in our supported list
+          updateCurrency('USD');
         }
       } catch (error) {
         console.log('Could not detect user location, defaulting to GBP');
-        setSelectedCurrency('GBP');
+        updateCurrency('GBP');
       }
     };
 
     detectUserCurrency();
-  }, []);
+  }, [updateCurrency]);
 
-  // Currency helper functions
-  const getCurrentCurrency = () => {
-    return currencies.find(c => c.code === selectedCurrency) || currencies[0];
-  };
+  // Use shared currency formatting functions
 
-  const convertCurrency = (amount, fromCurrency = 'GBP', toCurrency = selectedCurrency) => {
-    if (fromCurrency === toCurrency) return amount;
-    
-    const fromRate = currencies.find(c => c.code === fromCurrency)?.rate || 1;
-    const toRate = currencies.find(c => c.code === toCurrency)?.rate || 1;
-    
-    return (amount * toRate) / fromRate;
-  };
 
-  const formatCurrency = (amount, currency = selectedCurrency) => {
-    const currencyInfo = currencies.find(c => c.code === currency) || currencies[0];
-    const convertedAmount = convertCurrency(parseFloat(amount.replace(/[^0-9.-]+/g, '')), 'GBP', currency);
-    
-    return `${currencyInfo.symbol}${convertedAmount.toFixed(2)}`;
-  };
 
-  // Load currency preference from localStorage
-  useEffect(() => {
-    const savedCurrency = localStorage.getItem('selectedCurrency');
-    if (savedCurrency && currencies.find(c => c.code === savedCurrency)) {
-      setSelectedCurrency(savedCurrency);
-    }
-  }, []);
 
-  // Save currency preference to localStorage
-  const handleCurrencyChange = (currencyCode) => {
-    setSelectedCurrency(currencyCode);
-    localStorage.setItem('selectedCurrency', currencyCode);
-    setShowCurrencyDropdown(false);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
-        setShowCurrencyDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -666,50 +618,13 @@ export default function Billing() {
               </div>
               
               {/* Currency Selector */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">Display Currency:</span>
-                <div className="relative" ref={currencyDropdownRef}>
-                  <button
-                    onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <Globe className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">{getCurrentCurrency().symbol} {getCurrentCurrency().code}</span>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                  </button>
-                  
-                  {showCurrencyDropdown && (
-                    <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-80 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 px-3 py-1 mb-2">Select Currency</div>
-                        {currencies.map((currency) => (
-                          <button
-                            key={currency.code}
-                            onClick={() => handleCurrencyChange(currency.code)}
-                            className={`w-full flex items-center justify-between px-3 py-2 text-left rounded hover:bg-gray-100 ${
-                              selectedCurrency === currency.code ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{currency.symbol}</span>
-                              <span className="text-sm">{currency.name}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{currency.code}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Exchange Rate Info */}
-                {selectedCurrency !== 'GBP' && (
-                  <div className="text-xs text-gray-500">
-                    <span>
-                      1 GBP = {getCurrentCurrency().symbol}{getCurrentCurrency().rate.toFixed(2)}
-                    </span>
-                  </div>
-                )}
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                showLabel={true}
+                showExchangeRate={true}
+                compact={false}
+              />
               </div>
             </div>
           </div>
@@ -734,7 +649,7 @@ export default function Billing() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">{billingData.subscription.plan}</h3>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(billingData.subscription.price)}</p>
+                      <p className="text-3xl font-bold text-gray-900 mb-2">{sharedFormatCurrency(billingData.subscription.price, selectedCurrency)}</p>
                       <p className="text-sm text-gray-500">Next billing: {billingData.subscription.nextBilling}</p>
                       <p className="text-sm text-gray-500 capitalize">Billing cycle: {billingData.subscription.billingCycle}</p>
                       
@@ -860,7 +775,7 @@ export default function Billing() {
                                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
                                       <div className="mb-2">
                                         <span className="text-3xl font-bold text-gray-900">
-                                          {billingCycle === 'monthly' ? formatCurrency(plan.monthlyPrice) : formatCurrency(plan.yearlyPrice)}
+                                          {billingCycle === 'monthly' ? sharedFormatCurrency(plan.monthlyPrice, selectedCurrency) : sharedFormatCurrency(plan.yearlyPrice, selectedCurrency)}
                                         </span>
                                         <span className="text-gray-500">
                                           /{billingCycle === 'monthly' ? 'month' : 'year'}
@@ -869,7 +784,7 @@ export default function Billing() {
                                       {billingCycle === 'yearly' && (
                                         <div className="flex items-center justify-center space-x-2">
                                           <span className="text-sm text-gray-500 line-through">
-                                            {formatCurrency(plan.monthlyPrice)}/month
+                                            {sharedFormatCurrency(plan.monthlyPrice, selectedCurrency)}/month
                                           </span>
                                           <span className="text-sm font-medium text-green-600">
                                             Save {plan.yearlySavings}
@@ -933,7 +848,7 @@ export default function Billing() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className="font-medium text-gray-900">{formatCurrency(invoice.amount)}</span>
+                          <span className="font-medium text-gray-900">{sharedFormatCurrency(invoice.amount, selectedCurrency)}</span>
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             {invoice.status}
                           </span>
