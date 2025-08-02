@@ -268,7 +268,7 @@ export default function ArtistReleases() {
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-8">
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'all' ? 'bg-gray-200 shadow-md transform scale-105' : 'bg-gray-50 hover:bg-gray-100'
+                  hoveredStatus === 'all' || statusFilter === 'all' ? 'bg-gray-200 shadow-md transform scale-105' : 'bg-gray-50 hover:bg-gray-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('all')}
                 onClick={() => {setStatusFilter('all'); setHoveredStatus('all');}}
@@ -278,7 +278,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'DRAFT' ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
+                  hoveredStatus === 'DRAFT' || statusFilter === 'DRAFT' ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('DRAFT')}
                 onClick={() => {setStatusFilter('DRAFT'); setHoveredStatus('DRAFT');}}
@@ -288,7 +288,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'SUBMITTED' ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
+                  hoveredStatus === 'SUBMITTED' || statusFilter === 'SUBMITTED' ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('SUBMITTED')}
                 onClick={() => {setStatusFilter('SUBMITTED'); setHoveredStatus('SUBMITTED');}}
@@ -298,7 +298,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'UNDER_REVIEW' ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
+                  hoveredStatus === 'UNDER_REVIEW' || statusFilter === 'UNDER_REVIEW' ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('UNDER_REVIEW')}
                 onClick={() => {setStatusFilter('UNDER_REVIEW'); setHoveredStatus('UNDER_REVIEW');}}
@@ -308,7 +308,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'APPROVAL_REQUIRED' ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
+                  hoveredStatus === 'APPROVAL_REQUIRED' || statusFilter === 'APPROVAL_REQUIRED' ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('APPROVAL_REQUIRED')}
                 onClick={() => {setStatusFilter('APPROVAL_REQUIRED'); setHoveredStatus('APPROVAL_REQUIRED');}}
@@ -318,7 +318,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'COMPLETED' ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
+                  hoveredStatus === 'COMPLETED' || statusFilter === 'COMPLETED' ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('COMPLETED')}
                 onClick={() => {setStatusFilter('COMPLETED'); setHoveredStatus('COMPLETED');}}
@@ -328,7 +328,7 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'LIVE' ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
+                  hoveredStatus === 'LIVE' || statusFilter === 'LIVE' ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('LIVE')}
                 onClick={() => {setStatusFilter('LIVE'); setHoveredStatus('LIVE');}}
@@ -366,7 +366,10 @@ export default function ArtistReleases() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setHoveredStatus(e.target.value === 'all' ? 'all' : e.target.value);
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Status</option>
