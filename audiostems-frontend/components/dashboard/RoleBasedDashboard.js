@@ -493,11 +493,11 @@ export default function RoleBasedDashboard() {
                 </div>
                 
                 <div className="mt-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2 text-sm">
                     {Object.entries(card.stats).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
-                        <span className="font-medium">
+                      <div key={key} className="flex justify-between items-center">
+                        <span className="text-gray-600 capitalize flex-shrink-0 mr-2">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                        <span className="font-medium text-right">
                           {key === 'revenue' ? formatCurrency(value, selectedCurrency) : value}
                         </span>
                       </div>
