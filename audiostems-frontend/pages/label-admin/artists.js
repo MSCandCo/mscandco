@@ -6,6 +6,7 @@ import { FaPlus, FaEye, FaEdit, FaMusic, FaChartLine, FaDollarSign } from 'react
 import { Plus, Eye, Edit, Music, TrendingUp, DollarSign } from 'lucide-react';
 import { ARTISTS, RELEASES } from '../../lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import SuccessModal from '../../components/shared/SuccessModal';
 
 export default function LabelAdminArtists() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -16,6 +17,8 @@ export default function LabelAdminArtists() {
   const [artistFilter, setArtistFilter] = useState('all');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [selectedArtistForForm, setSelectedArtistForForm] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -468,7 +471,7 @@ export default function LabelAdminArtists() {
                     required
                     value={selectedArtistForForm}
                     onChange={(e) => setSelectedArtistForForm(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-sans"
                   >
                     <option value="">Choose an artist to add to your label</option>
                     <option value="gospel-collective">Gospel Voices Collective</option>
@@ -553,7 +556,7 @@ export default function LabelAdminArtists() {
                     </label>
                     <select 
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-sans"
                     >
                       <option value="">Select Contract Type</option>
                       <option value="recording">Recording Contract</option>
@@ -574,7 +577,7 @@ export default function LabelAdminArtists() {
                       max="100"
                       step="0.1"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-sans"
                       placeholder="50.0"
                     />
                   </div>
@@ -587,7 +590,7 @@ export default function LabelAdminArtists() {
                   </label>
                   <textarea
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-sans"
                     placeholder="Additional notes, contract details, special terms, or other relevant information..."
                   ></textarea>
                 </div>
@@ -600,7 +603,7 @@ export default function LabelAdminArtists() {
                       setShowAddArtist(false);
                       setSelectedArtistForForm('');
                     }}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-sans"
                   >
                     Cancel
                   </button>
@@ -611,14 +614,15 @@ export default function LabelAdminArtists() {
                       // Here you would normally submit the form data to assign artist to label
                       if (selectedArtistForForm) {
                         const artistName = availableArtists[selectedArtistForForm].name;
-                        alert(`${artistName} successfully added to your label! (This is a demo)`);
+                        setSuccessMessage(`${artistName} has been successfully added to your label!`);
                       } else {
-                        alert('Artist successfully added to your label! (This is a demo)');
+                        setSuccessMessage('Artist has been successfully added to your label!');
                       }
                       setShowAddArtist(false);
                       setSelectedArtistForForm('');
+                      setShowSuccessModal(true);
                     }}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-sans"
                   >
                     Add Artist
                   </button>
@@ -628,6 +632,15 @@ export default function LabelAdminArtists() {
           </div>
         </div>
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Success!"
+        message={successMessage}
+        buttonText="Close"
+      />
     </Layout>
   );
 } 
