@@ -78,12 +78,14 @@ export default function ArtistReleases() {
         
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
         const artistReleases = getReleasesByArtist('yhwh_msc');
+        console.log('Loaded releases:', artistReleases.length, artistReleases.map(r => ({id: r.id, name: r.projectName, status: r.status})));
         setReleases(artistReleases);
         setIsLoadingData(false);
       } catch (error) {
         console.error('Error loading data:', error);
         // Fallback to centralized data
         const artistReleases = getReleasesByArtist('yhwh_msc');
+        console.log('Fallback loaded releases:', artistReleases.length, artistReleases.map(r => ({id: r.id, name: r.projectName, status: r.status})));
         setReleases(artistReleases);
         setIsLoadingData(false);
       }
@@ -96,11 +98,13 @@ export default function ArtistReleases() {
 
   // 🔍 ADVANCED FILTERING SYSTEM
   const filteredReleases = useMemo(() => {
+    console.log('Filtering with statusFilter:', statusFilter, 'releases count:', releases.length);
     let filtered = releases;
 
     // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(release => release.status === statusFilter);
+      console.log('After status filter:', filtered.length, 'releases');
     }
 
     // Search filter
@@ -122,6 +126,7 @@ export default function ArtistReleases() {
       filtered = filtered.filter(release => release.releaseType === typeFilter);
     }
 
+    console.log('Final filtered result:', filtered.length, 'releases');
     return filtered;
   }, [releases, statusFilter, searchTerm, genreFilter, typeFilter]);
 
@@ -281,7 +286,12 @@ export default function ArtistReleases() {
                   hoveredStatus === 'DRAFT' || statusFilter === 'DRAFT' ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus('DRAFT')}
-                onClick={() => {setStatusFilter('DRAFT'); setHoveredStatus('DRAFT');}}
+                onClick={() => {
+                  console.log('Clicking DRAFT card, current statusFilter:', statusFilter);
+                  setStatusFilter('DRAFT'); 
+                  setHoveredStatus('DRAFT');
+                  console.log('After click, should be DRAFT');
+                }}
               >
                 <div className="text-2xl font-bold text-yellow-800">{stats.draft}</div>
                 <div className="text-sm text-yellow-700">Draft</div>
@@ -408,12 +418,6 @@ export default function ArtistReleases() {
               </div>
               
               <div className="flex flex-col items-start space-y-2">
-                <CurrencySelector
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  showLabel={true}
-                  compact={true}
-                />
                 <button
                   onClick={() => {
                     setSearchTerm('');
