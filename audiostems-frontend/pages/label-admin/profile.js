@@ -102,10 +102,10 @@ export default function LabelAdminProfile() {
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
 
-  // Calculate label artists count
+  // Calculate approved label artists count
   const labelArtists = ARTISTS.filter(artist => 
-    artist.status === 'active' && 
-    (artist.label === userBrand?.displayName || artist.brand === userBrand?.displayName)
+    artist.approvalStatus === 'approved' && 
+    artist.label === (userBrand?.displayName || 'YHWH MSC')
   );
 
   useEffect(() => {
@@ -177,15 +177,16 @@ export default function LabelAdminProfile() {
         
         joinDate: '2023-06-15T00:00:00Z',
         lastLogin: '2024-01-16T11:15:00Z',
-        profileCompletion: 95,
+        profileCompletion: 0, // Will be calculated dynamically
         
         // Registration tracking - company info not set yet
         isCompanyInfoSet: false,
         registrationDate: null
       };
 
-      // Calculate initial verification status
+      // Calculate initial verification status and profile completion
       mockProfile.isVerified = calculateVerificationStatus(mockProfile);
+      mockProfile.profileCompletion = calculateProfileCompletion(mockProfile);
       
       setProfile(mockProfile);
       setFormData(mockProfile);
@@ -284,8 +285,9 @@ export default function LabelAdminProfile() {
         updatedProfile.registrationDate = new Date().toISOString();
       }
       
-      // Recalculate verification status
+      // Recalculate verification status and profile completion
       updatedProfile.isVerified = calculateVerificationStatus(updatedProfile);
+      updatedProfile.profileCompletion = calculateProfileCompletion(updatedProfile);
       
       setProfile(updatedProfile);
       setIsEditing(false);
@@ -325,6 +327,54 @@ export default function LabelAdminProfile() {
     return (hasEmailVerification || hasPhoneVerification) && hasCompanyInfoSet;
   };
 
+  // Calculate profile completion percentage based on filled fields
+  const calculateProfileCompletion = (profileData) => {
+    const requiredFields = [
+      'firstName', 'lastName', 'email', 'phone', 'labelName',
+      'companyName', 'position', 'department', 'officeAddress', 
+      'city', 'country', 'postalCode', 'timezone', 'businessType',
+      'yearsOfExperience', 'website'
+    ];
+    
+    const arrayFields = [
+      'specialization', 'primaryGenres', 'languages', 
+      'distributionPartners', 'publishingAgreements', 'territories'
+    ];
+    
+    const bankingFields = [
+      'bankInfo.accountName', 'bankInfo.accountNumber', 
+      'bankInfo.bankName', 'bankInfo.swiftCode'
+    ];
+    
+    let filledCount = 0;
+    let totalFields = requiredFields.length + arrayFields.length + bankingFields.length;
+    
+    // Check required fields
+    requiredFields.forEach(field => {
+      if (profileData[field] && profileData[field].toString().trim() !== '') {
+        filledCount++;
+      }
+    });
+    
+    // Check array fields
+    arrayFields.forEach(field => {
+      if (profileData[field] && Array.isArray(profileData[field]) && profileData[field].length > 0) {
+        filledCount++;
+      }
+    });
+    
+    // Check banking fields
+    bankingFields.forEach(field => {
+      const fieldPath = field.split('.');
+      const value = fieldPath.reduce((obj, key) => obj?.[key], profileData);
+      if (value && value.toString().trim() !== '') {
+        filledCount++;
+      }
+    });
+    
+    return Math.round((filledCount / totalFields) * 100);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -362,8 +412,10 @@ export default function LabelAdminProfile() {
                   <h1 className="text-2xl font-bold text-gray-900">
                     {profile.firstName} {profile.lastName}
                   </h1>
-                  <p className="text-gray-600">{profile.position} at {profile.labelName}</p>
-                  <p className="text-sm text-gray-500">Managing {labelArtists.length} active artists</p>
+                  <p className="text-gray-600">
+                    {profile.position ? `${profile.position} at ` : 'Label Admin at '}{profile.labelName}
+                  </p>
+                  <p className="text-sm text-gray-500">Managing {labelArtists.length} approved artists</p>
                   <div className="flex items-center mt-2">
                     <div className="w-32 bg-gray-200 rounded-full h-2">
                       <div 
