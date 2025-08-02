@@ -169,10 +169,29 @@ export default function LabelAdminAnalytics() {
       title: {
         display: false,
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.dataset.label || '';
+            if (label.includes('Earnings') || label.includes('Revenue')) {
+              return `${label}: ${formatCurrency(context.parsed.y || context.parsed, selectedCurrency)}`;
+            }
+            return `${label}: ${(context.parsed.y || context.parsed).toLocaleString()}`;
+          }
+        }
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            if (selectedMetric === 'revenue') {
+              return formatCurrency(value, selectedCurrency);
+            }
+            return value.toLocaleString();
+          }
+        }
       },
     },
   };
@@ -218,6 +237,30 @@ export default function LabelAdminAnalytics() {
     ],
   };
 
+  const artistChartOptions = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `${context.label}: ${formatCurrency(context.parsed.y || context.parsed, selectedCurrency)}`;
+          }
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return formatCurrency(value, selectedCurrency);
+          }
+        }
+      },
+    },
+  };
+
   const platformChart = {
     labels: analyticsData.platformData.map(p => p.name),
     datasets: [
@@ -246,6 +289,12 @@ export default function LabelAdminAnalytics() {
                 <p className="text-sm text-gray-500">Comprehensive analytics for {userBrand?.displayName || 'MSC & Co'}</p>
               </div>
               <div className="flex items-center space-x-4 flex-wrap">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                  showLabel={false}
+                />
                 <select
                   value={selectedTimeframe}
                   onChange={(e) => setSelectedTimeframe(e.target.value)}
@@ -373,7 +422,19 @@ export default function LabelAdminAnalytics() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue Trend</h3>
               <div className="h-64">
-                <Line data={monthlyEarningsChart} options={chartOptions} />
+                <Line data={monthlyEarningsChart} options={{
+                  ...chartOptions,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        callback: function(value) {
+                          return formatCurrency(value, selectedCurrency);
+                        }
+                      }
+                    },
+                  },
+                }} />
               </div>
             </div>
 
@@ -392,7 +453,7 @@ export default function LabelAdminAnalytics() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Artists by Revenue</h3>
               <div className="h-64">
-                <Bar data={artistPerformanceChart} options={chartOptions} />
+                <Bar data={artistPerformanceChart} options={artistChartOptions} />
               </div>
             </div>
 
