@@ -5,6 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaEye, FaEdit, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
 import { Plus, Eye, Edit, Music, TrendingUp, DollarSign } from 'lucide-react';
 import { ARTISTS, RELEASES } from '../../lib/mockData';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 export default function LabelAdminArtists() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -13,6 +14,7 @@ export default function LabelAdminArtists() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
@@ -124,7 +126,7 @@ export default function LabelAdminArtists() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">£{labelTotals.totalEarnings.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(labelTotals.totalEarnings, selectedCurrency)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
@@ -236,7 +238,7 @@ export default function LabelAdminArtists() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Earnings</p>
-                    <p className="text-lg font-semibold text-gray-900">£{artist.totalEarnings.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatCurrency(artist.totalEarnings, selectedCurrency)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Streams</p>
