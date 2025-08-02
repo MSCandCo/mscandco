@@ -1,8 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand } from '@/lib/auth0-config';
-import { useState, useEffect, useMemo } from 'react';
-import { Play, TrendingUp, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -103,20 +102,15 @@ export default function RoleBasedDashboard() {
   const userRole = getUserRole(user);
   const displayBrand = getDefaultDisplayBrand(user);
 
-  // Debug logging
-  console.log('=== Dashboard Debug ===');
-  console.log('User object:', user);
-  console.log('User metadata:', user['https://mscandco.com/role'], user['https://mscandco.com/brand']);
-  console.log('Detected role:', userRole);
-  console.log('Display brand:', displayBrand);
+
 
   // Dashboard content based on role
   const getDashboardContent = () => {
-    console.log('Getting dashboard content for role:', userRole);
+
     
     switch (userRole) {
       case 'super_admin':
-        console.log('Rendering Super Admin dashboard');
+    
         return {
           title: 'Super Admin Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Company Overview`,
@@ -153,7 +147,7 @@ export default function RoleBasedDashboard() {
         };
 
       case 'company_admin':
-        console.log('Rendering Company Admin dashboard');
+    
         return {
           title: 'Company Admin Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Brand Management`,
@@ -190,7 +184,7 @@ export default function RoleBasedDashboard() {
         };
 
       case 'label_admin':
-        console.log('Rendering Label Admin dashboard');
+    
         return {
           title: 'Label Admin Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Label Management`,
@@ -234,7 +228,7 @@ export default function RoleBasedDashboard() {
         };
 
       case 'distribution_partner':
-        console.log('Rendering Distribution Partner dashboard');
+    
         return {
           title: 'Distribution Partner Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Content Distribution`,
@@ -271,7 +265,7 @@ export default function RoleBasedDashboard() {
         };
 
       case 'distributor':
-        console.log('Rendering Distributor dashboard');
+    
         return {
           title: 'Distributor Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Distribution Management`,
@@ -308,7 +302,7 @@ export default function RoleBasedDashboard() {
         };
 
       case 'artist':
-        console.log('Rendering Artist dashboard');
+    
         const artistData = ARTISTS.find(a => a.id === 'yhwh_msc') || ARTISTS[0];
         const artistReleases = RELEASES.filter(r => r.artistId === artistData.id);
         return {
@@ -365,7 +359,7 @@ export default function RoleBasedDashboard() {
         };
 
       default:
-        console.log('Rendering default dashboard for role:', userRole);
+    
         return {
           title: 'Dashboard',
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'}`,

@@ -19,6 +19,7 @@ import {
   FaPrint,
   FaEnvelope
 } from "react-icons/fa";
+import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { TrendingUp, FileText } from "lucide-react";
 
 // Chart.js imports
@@ -75,12 +76,8 @@ function ArtistEarnings() {
     return null;
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-GB', { 
-      style: 'currency', 
-      currency: 'GBP' 
-    }).format(amount);
-  };
+  // Import and use shared currency system
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Mock data for demonstration
   const earningsData = {
@@ -157,7 +154,7 @@ function ArtistEarnings() {
             const label = context.dataset.label || '';
             const value = context.parsed.y;
             if (label.includes('Earnings') || label.includes('Revenue')) {
-              return `${label}: £${value.toFixed(2)}`;
+              return `${label}: ${formatCurrency(value, selectedCurrency)}`;
             } else if (label.includes('Streams')) {
               return `${label}: ${value.toLocaleString()}`;
             }
@@ -204,8 +201,18 @@ function ArtistEarnings() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Artist Earnings</h1>
-            <p className="text-gray-600">Track your earnings, royalties, and revenue performance.</p>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Artist Earnings</h1>
+                <p className="text-gray-600">Track your earnings, royalties, and revenue performance.</p>
+              </div>
+              <CurrencySelector 
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                showLabel={true}
+                className="flex-shrink-0"
+              />
+            </div>
           </div>
 
           {/* Overview Cards */}
@@ -217,7 +224,7 @@ function ArtistEarnings() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings, selectedCurrency)}</p>
                 </div>
               </div>
             </Card>
@@ -229,7 +236,7 @@ function ArtistEarnings() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth, selectedCurrency)}</p>
                 </div>
               </div>
             </Card>
@@ -292,7 +299,7 @@ function ArtistEarnings() {
                         <span className="font-medium text-gray-900">{platform.platform}</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">{formatCurrency(platform.earnings)}</p>
+                        <p className="font-semibold text-gray-900">{formatCurrency(platform.earnings, selectedCurrency)}</p>
                         <p className="text-sm text-gray-600">{platform.percentage}% • {platform.streams.toLocaleString()} streams</p>
                       </div>
                     </div>
@@ -331,7 +338,7 @@ function ArtistEarnings() {
                           </Table.Cell>
                           <Table.Cell>Urban Beats Collection</Table.Cell>
                           <Table.Cell>125,430</Table.Cell>
-                          <Table.Cell>{formatCurrency(145.20)}</Table.Cell>
+                          <Table.Cell>{formatCurrency(145.20, selectedCurrency)}</Table.Cell>
                           <Table.Cell>
                             <Badge color="success">+12%</Badge>
                           </Table.Cell>
@@ -342,7 +349,7 @@ function ArtistEarnings() {
                           </Table.Cell>
                           <Table.Cell>Urban Beats Collection</Table.Cell>
                           <Table.Cell>98,720</Table.Cell>
-                          <Table.Cell>{formatCurrency(98.15)}</Table.Cell>
+                          <Table.Cell>{formatCurrency(98.15, selectedCurrency)}</Table.Cell>
                           <Table.Cell>
                             <Badge color="success">+8%</Badge>
                           </Table.Cell>
@@ -367,7 +374,7 @@ function ArtistEarnings() {
                       <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
                           <h4 className="font-medium text-gray-900">{data.month} 2024 Statement</h4>
-                          <p className="text-sm text-gray-600">Total earnings: {formatCurrency(data.earnings)}</p>
+                          <p className="text-sm text-gray-600">Total earnings: {formatCurrency(data.earnings, selectedCurrency)}</p>
                         </div>
                         <div className="flex space-x-2">
                           <Button size="xs" color="gray">

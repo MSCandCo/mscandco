@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { getUserRole } from '@/lib/auth0-config';
 import { getStripe } from '@/lib/stripe';
+import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { 
   CreditCard, 
@@ -17,105 +18,6 @@ import {
   Globe,
   ChevronDown
 } from 'lucide-react';
-
-// Currency configuration
-const currencies = [
-  { code: 'GBP', name: 'British Pound', symbol: '£', rate: 1.0 },
-  { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.27 },
-  { code: 'EUR', name: 'Euro', symbol: '€', rate: 1.17 },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', rate: 1.72 },
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', rate: 1.95 },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rate: 185.0 },
-  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', rate: 1.10 },
-  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', rate: 13.2 },
-  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', rate: 13.5 },
-  { code: 'DKK', name: 'Danish Krone', symbol: 'kr', rate: 8.8 },
-  { code: 'PLN', name: 'Polish Złoty', symbol: 'zł', rate: 5.1 },
-  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč', rate: 29.8 },
-  { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft', rate: 450.0 },
-  { code: 'RON', name: 'Romanian Leu', symbol: 'lei', rate: 5.9 },
-  { code: 'BGN', name: 'Bulgarian Lev', symbol: 'лв', rate: 2.3 },
-  { code: 'HRK', name: 'Croatian Kuna', symbol: 'kn', rate: 8.7 },
-  { code: 'RUB', name: 'Russian Ruble', symbol: '₽', rate: 115.0 },
-  { code: 'TRY', name: 'Turkish Lira', symbol: '₺', rate: 40.5 },
-  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', rate: 6.3 },
-  { code: 'MXN', name: 'Mexican Peso', symbol: '$', rate: 21.8 },
-  { code: 'ARS', name: 'Argentine Peso', symbol: '$', rate: 1080.0 },
-  { code: 'CLP', name: 'Chilean Peso', symbol: '$', rate: 1200.0 },
-  { code: 'COP', name: 'Colombian Peso', symbol: '$', rate: 5000.0 },
-  { code: 'PEN', name: 'Peruvian Sol', symbol: 'S/', rate: 4.7 },
-  { code: 'UYU', name: 'Uruguayan Peso', symbol: '$', rate: 50.0 },
-  { code: 'VEF', name: 'Venezuelan Bolívar', symbol: 'Bs', rate: 35.0 },
-  { code: 'BOB', name: 'Bolivian Boliviano', symbol: 'Bs', rate: 8.8 },
-  { code: 'PYG', name: 'Paraguayan Guaraní', symbol: '₲', rate: 9200.0 },
-  { code: 'KGS', name: 'Kyrgyzstani Som', symbol: 'с', rate: 110.0 },
-  { code: 'TJS', name: 'Tajikistani Somoni', symbol: 'ЅМ', rate: 13.5 },
-  { code: 'TMT', name: 'Turkmenistani Manat', symbol: 'T', rate: 4.4 },
-  { code: 'AZN', name: 'Azerbaijani Manat', symbol: '₼', rate: 2.2 },
-  { code: 'GEL', name: 'Georgian Lari', symbol: '₾', rate: 3.4 },
-  { code: 'AMD', name: 'Armenian Dram', symbol: '֏', rate: 520.0 },
-  { code: 'BYN', name: 'Belarusian Ruble', symbol: 'Br', rate: 3.2 },
-  { code: 'MDL', name: 'Moldovan Leu', symbol: 'L', rate: 22.5 },
-  { code: 'ALL', name: 'Albanian Lek', symbol: 'L', rate: 120.0 },
-  { code: 'MKD', name: 'Macedonian Denar', symbol: 'ден', rate: 61.0 },
-  { code: 'RSD', name: 'Serbian Dinar', symbol: 'дин', rate: 137.0 },
-  { code: 'BAM', name: 'Bosnia-Herzegovina Convertible Mark', symbol: 'KM', rate: 2.3 },
-  { code: 'MNT', name: 'Mongolian Tögrög', symbol: '₮', rate: 3500.0 },
-  { code: 'KZT', name: 'Kazakhstani Tenge', symbol: '₸', rate: 580.0 },
-  { code: 'KHR', name: 'Cambodian Riel', symbol: '៛', rate: 5200.0 },
-  { code: 'LAK', name: 'Laotian Kip', symbol: '₭', rate: 26000.0 },
-  { code: 'MMK', name: 'Myanmar Kyat', symbol: 'K', rate: 2700.0 },
-  { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳', rate: 140.0 },
-  { code: 'NPR', name: 'Nepalese Rupee', symbol: '₨', rate: 160.0 },
-  { code: 'PKR', name: 'Pakistani Rupee', symbol: '₨', rate: 350.0 },
-  { code: 'LKR', name: 'Sri Lankan Rupee', symbol: '₨', rate: 400.0 },
-  { code: 'MVR', name: 'Maldivian Rufiyaa', symbol: 'Rf', rate: 19.5 },
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹', rate: 105.0 },
-  { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', rate: 20000.0 },
-  { code: 'THB', name: 'Thai Baht', symbol: '฿', rate: 45.0 },
-  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', rate: 6.0 },
-  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', rate: 1.7 },
-  { code: 'PHP', name: 'Philippine Peso', symbol: '₱', rate: 70.0 },
-  { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', rate: 31000.0 },
-  { code: 'KRW', name: 'South Korean Won', symbol: '₩', rate: 1700.0 },
-  { code: 'TWD', name: 'Taiwan New Dollar', symbol: 'NT$', rate: 40.0 },
-  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$', rate: 9.9 },
-  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', rate: 9.2 },
-  { code: 'TND', name: 'Tunisian Dinar', symbol: 'د.ت', rate: 3.9 },
-  { code: 'DZD', name: 'Algerian Dinar', symbol: 'د.ج', rate: 170.0 },
-  { code: 'MAD', name: 'Moroccan Dirham', symbol: 'د.م', rate: 12.8 },
-  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', rate: 40.0 },
-  { code: 'LYD', name: 'Libyan Dinar', symbol: 'ل.د', rate: 6.1 },
-  { code: 'SDG', name: 'Sudanese Pound', symbol: 'ج.س', rate: 600.0 },
-  { code: 'ETB', name: 'Ethiopian Birr', symbol: 'Br', rate: 70.0 },
-  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', rate: 200.0 },
-  { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh', rate: 3200.0 },
-  { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh', rate: 4800.0 },
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', rate: 1600.0 },
-  { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵', rate: 15.0 },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R', rate: 24.0 },
-  { code: 'NAD', name: 'Namibian Dollar', symbol: 'N$', rate: 24.0 },
-  { code: 'BWP', name: 'Botswana Pula', symbol: 'P', rate: 17.0 },
-  { code: 'ZMW', name: 'Zambian Kwacha', symbol: 'ZK', rate: 30.0 },
-  { code: 'MWK', name: 'Malawian Kwacha', symbol: 'MK', rate: 2100.0 },
-  { code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'Z$', rate: 500.0 },
-  { code: 'AOA', name: 'Angolan Kwanza', symbol: 'Kz', rate: 1000.0 },
-  { code: 'MZN', name: 'Mozambican Metical', symbol: 'MT', rate: 80.0 },
-  { code: 'CVE', name: 'Cape Verdean Escudo', symbol: '$', rate: 130.0 },
-  { code: 'STD', name: 'São Tomé and Príncipe Dobra', symbol: 'Db', rate: 28000.0 },
-  { code: 'GMD', name: 'Gambian Dalasi', symbol: 'D', rate: 80.0 },
-  { code: 'GNF', name: 'Guinean Franc', symbol: 'FG', rate: 11000.0 },
-  { code: 'SLL', name: 'Sierra Leonean Leone', symbol: 'Le', rate: 25000.0 },
-  { code: 'LRD', name: 'Liberian Dollar', symbol: 'L$', rate: 200.0 },
-  { code: 'SLE', name: 'Sierra Leonean Leone', symbol: 'Le', rate: 25000.0 },
-  { code: 'GIP', name: 'Gibraltar Pound', symbol: '£', rate: 1.0 },
-  { code: 'FKP', name: 'Falkland Islands Pound', symbol: '£', rate: 1.0 },
-  { code: 'SHP', name: 'Saint Helena Pound', symbol: '£', rate: 1.0 },
-  { code: 'JEP', name: 'Jersey Pound', symbol: '£', rate: 1.0 },
-  { code: 'GGP', name: 'Guernsey Pound', symbol: '£', rate: 1.0 },
-  { code: 'IMP', name: 'Isle of Man Pound', symbol: '£', rate: 1.0 },
-  { code: 'GBP', name: 'British Pound', symbol: '£', rate: 1.0 }
-];
 
 // Mock billing data function
 const getRoleSpecificPlans = (userRole) => {
@@ -134,7 +36,7 @@ const getRoleSpecificPlans = (userRole) => {
   if (userRole === 'label_admin') {
     const labelAdminSubscription = {
       plan: 'Label Admin',
-      price: '£29.99',
+      price: 29.99,
       nextBilling: 'March 15, 2024',
       billingCycle: 'monthly',
       autoRenewDate: 'March 15, 2024',
@@ -158,14 +60,14 @@ const getRoleSpecificPlans = (userRole) => {
         id: 1,
         description: 'Label Admin - Monthly',
         date: 'February 15, 2024',
-        amount: '£29.99',
+        amount: 29.99,
         status: 'Paid'
       },
       {
         id: 2,
         description: 'Label Admin - Monthly',
         date: 'January 15, 2024',
-        amount: '£29.99',
+        amount: 29.99,
         status: 'Paid'
       }
     ];
@@ -173,8 +75,8 @@ const getRoleSpecificPlans = (userRole) => {
     const labelAdminAvailablePlans = [
       {
         name: 'Label Admin',
-        monthlyPrice: '£29.99',
-        yearlyPrice: '£299.99',
+        monthlyPrice: 29.99,
+        yearlyPrice: 299.99,
         yearlySavings: '17%',
         current: true,
         features: [
@@ -205,7 +107,7 @@ const getRoleSpecificPlans = (userRole) => {
   // Default Artist plans
   const baseSubscription = {
     plan: 'Artist Pro',
-    price: '£19.99',
+    price: 19.99,
     nextBilling: 'March 15, 2024',
     billingCycle: 'monthly',
     autoRenewDate: 'March 15, 2024',
@@ -229,14 +131,14 @@ const getRoleSpecificPlans = (userRole) => {
       id: 1,
       description: 'Artist Pro - Monthly',
       date: 'February 15, 2024',
-      amount: '£19.99',
+      amount: 19.99,
       status: 'Paid'
     },
     {
       id: 2,
       description: 'Artist Pro - Monthly',
       date: 'January 15, 2024',
-      amount: '£19.99',
+      amount: 19.99,
       status: 'Paid'
     }
   ];
@@ -244,8 +146,8 @@ const getRoleSpecificPlans = (userRole) => {
   const baseAvailablePlans = [
     {
       name: 'Artist Starter',
-      monthlyPrice: '£9.99',
-      yearlyPrice: '£99.99',
+      monthlyPrice: 9.99,
+      yearlyPrice: 99.99,
       yearlySavings: '17%',
       current: false,
       features: [
@@ -259,8 +161,8 @@ const getRoleSpecificPlans = (userRole) => {
     },
     {
       name: 'Artist Pro',
-      monthlyPrice: '£19.99',
-      yearlyPrice: '£199.99',
+      monthlyPrice: 19.99,
+      yearlyPrice: 199.99,
       yearlySavings: '17%',
       current: true,
       features: [
@@ -325,12 +227,6 @@ export default function Billing() {
 
     detectUserCurrency();
   }, [updateCurrency]);
-
-  // Use shared currency formatting functions
-
-
-
-
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -524,7 +420,7 @@ export default function Billing() {
   // Show no-billing message for admin roles
   if (roleBillingData.noBilling) {
     return (
-      <>
+      <Layout>
         <Head>
           <title>Billing - MSC & Co</title>
         </Head>
@@ -597,12 +493,12 @@ export default function Billing() {
             </div>
           </div>
         </div>
-      </>
+      </Layout>
     );
   }
 
   return (
-    <>
+    <Layout>
       <Head>
         <title>Billing - MSC & Co</title>
       </Head>
@@ -625,7 +521,6 @@ export default function Billing() {
                 showExchangeRate={true}
                 compact={false}
               />
-              </div>
             </div>
           </div>
 
@@ -756,65 +651,65 @@ export default function Billing() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                                {billingData.availablePlans.map((plan, index) => (
-                                  <div
-                                    key={index}
-                                    className={`relative p-6 rounded-lg border-2 transition-all ${
-                                      plan.current
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                  >
-                                    {plan.current && (
-                                      <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                                        Current Plan
-                                      </span>
-                                    )}
-                                    
-                                    <div className="text-center mb-4">
-                                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
-                                      <div className="mb-2">
-                                        <span className="text-3xl font-bold text-gray-900">
-                                          {billingCycle === 'monthly' ? sharedFormatCurrency(plan.monthlyPrice, selectedCurrency) : sharedFormatCurrency(plan.yearlyPrice, selectedCurrency)}
-                                        </span>
-                                        <span className="text-gray-500">
-                                          /{billingCycle === 'monthly' ? 'month' : 'year'}
-                                        </span>
-                                      </div>
-                                      {billingCycle === 'yearly' && (
-                                        <div className="flex items-center justify-center space-x-2">
-                                          <span className="text-sm text-gray-500 line-through">
-                                            {sharedFormatCurrency(plan.monthlyPrice, selectedCurrency)}/month
-                                          </span>
-                                          <span className="text-sm font-medium text-green-600">
-                                            Save {plan.yearlySavings}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-      
-                                    <ul className="space-y-2 mb-6">
-                                      {plan.features.map((feature, featureIndex) => (
-                                        <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                                          {feature}
-                                        </li>
-                                      ))}
-                                    </ul>
-      
-                                    <button
-                                      className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                                        plan.current
-                                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                                      }`}
-                                      disabled={plan.current}
-                                    >
-                                      {plan.current ? 'Current Plan' : 'Select Plan'}
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
+                    {billingData.availablePlans.map((plan, index) => (
+                      <div
+                        key={index}
+                        className={`relative p-6 rounded-lg border-2 transition-all ${
+                          plan.current
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {plan.current && (
+                          <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                            Current Plan
+                          </span>
+                        )}
+                        
+                        <div className="text-center mb-4">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
+                          <div className="mb-2">
+                            <span className="text-3xl font-bold text-gray-900">
+                              {billingCycle === 'monthly' ? sharedFormatCurrency(plan.monthlyPrice, selectedCurrency) : sharedFormatCurrency(plan.yearlyPrice, selectedCurrency)}
+                            </span>
+                            <span className="text-gray-500">
+                              /{billingCycle === 'monthly' ? 'month' : 'year'}
+                            </span>
+                          </div>
+                          {billingCycle === 'yearly' && (
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-sm text-gray-500 line-through">
+                                {sharedFormatCurrency(plan.monthlyPrice, selectedCurrency)}/month
+                              </span>
+                              <span className="text-sm font-medium text-green-600">
+                                Save {plan.yearlySavings}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <ul className="space-y-2 mb-6">
+                          {plan.features.map((feature, featureIndex) => (
+                            <li key={featureIndex} className="flex items-center text-sm text-gray-600">
+                              <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+
+                        <button
+                          className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                            plan.current
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                          disabled={plan.current}
+                        >
+                          {plan.current ? 'Current Plan' : 'Select Plan'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Payment Method */}
@@ -983,6 +878,6 @@ export default function Billing() {
           )}
         </div>
       </div>
-    </>
+    </Layout>
   );
 }

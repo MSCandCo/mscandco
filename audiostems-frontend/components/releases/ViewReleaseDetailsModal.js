@@ -1,4 +1,4 @@
-import { FaTimes, FaMusic, FaImage, FaCalendar, FaUser, FaTag, FaFileAlt } from 'react-icons/fa';
+import { FaTimes, FaMusic, FaCalendar, FaUser, FaTag, FaFileAlt } from 'react-icons/fa';
 
 export default function ViewReleaseDetailsModal({ isOpen, onClose, release }) {
   if (!isOpen || !release) return null;

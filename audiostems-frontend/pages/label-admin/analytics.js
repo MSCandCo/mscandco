@@ -135,10 +135,7 @@ export default function LabelAdminAnalytics() {
     };
   }, [labelData]);
 
-  const formatCurrency = (amount) => {
-    const symbol = selectedCurrency === 'GBP' ? '£' : selectedCurrency === 'EUR' ? '€' : '$';
-    return `${symbol}${amount.toLocaleString()}`;
-  };
+  // Use shared currency formatting function
 
   if (isLoading) {
     return (
@@ -313,7 +310,7 @@ export default function LabelAdminAnalytics() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(analyticsData.totalEarnings)}</p>
+                                      <p className="text-2xl font-bold text-gray-900">{formatCurrency(analyticsData.totalEarnings, selectedCurrency)}</p>
                   <p className="text-sm text-green-600">+12.5% vs last period</p>
                 </div>
                 <div className="ml-4">
@@ -432,7 +429,7 @@ export default function LabelAdminAnalytics() {
                         <div className="text-sm font-medium text-gray-900">{artist.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings, selectedCurrency)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`text-sm font-medium ${artist.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -482,7 +479,7 @@ export default function LabelAdminAnalytics() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(platform.earnings)}
+                        {formatCurrency(platform.earnings, selectedCurrency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">

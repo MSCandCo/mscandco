@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock, FaAlertCircle } from 'react-icons/fa';
+import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock } from 'react-icons/fa';
 import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock, AlertCircle } from 'lucide-react';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
@@ -1165,7 +1165,7 @@ export default function DistributionPartnerDashboard() {
     setIsEditingProfile(false);
     
     // Here you would typically save to an API
-    console.log('Saving profile:', updatedProfile);
+
   };
 
   const handleProfileCancel = () => {
@@ -4090,7 +4090,7 @@ export default function DistributionPartnerDashboard() {
                   <button
                     onClick={() => {
                       // Save changes logic would go here
-                      console.log('Saving changes to release:', editingRelease?.id);
+                
                       setShowEditModal(false);
                       setEditingRelease(null);
                     }}
@@ -4139,7 +4139,7 @@ export default function DistributionPartnerDashboard() {
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
-                        <FaAlertCircle className="h-5 w-5 text-amber-400 mt-0.5" />
+                        <AlertCircle className="h-5 w-5 text-amber-400 mt-0.5" />
                       </div>
                       <div className="ml-3">
                         <h3 className="text-sm font-medium text-amber-800">

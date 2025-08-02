@@ -161,9 +161,7 @@ export default function LabelAdminEarnings() {
     return Math.max(0, earningsData.heldEarnings - earningsData.minimumBalance - earningsData.pendingWithdrawal);
   };
 
-  const formatCurrency = (amount) => {
-    return `£${amount.toLocaleString()}`;
-  };
+  // Use shared currency formatting function
 
   const getGrowthColor = (growth) => {
     return growth >= 0 ? 'text-green-600' : 'text-red-600';
@@ -249,7 +247,7 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings, selectedCurrency)}</p>
                   <div className="flex items-center mt-2">
                     {getGrowthIcon(earningsData.growth)}
                     <span className={`text-sm font-medium ml-1 ${getGrowthColor(earningsData.growth)}`}>
@@ -265,8 +263,8 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth)}</p>
-                  <p className="text-sm text-gray-500 mt-1">vs {formatCurrency(earningsData.lastMonth)} last month</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth, selectedCurrency)}</p>
+                  <p className="text-sm text-gray-500 mt-1">vs {formatCurrency(earningsData.lastMonth, selectedCurrency)} last month</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-blue-600" />
               </div>
@@ -276,8 +274,8 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Available Balance</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.heldEarnings)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance)} held in account</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.heldEarnings, selectedCurrency)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-purple-600" />
               </div>
@@ -287,7 +285,7 @@ export default function LabelAdminEarnings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Available for Withdrawal</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(getAvailableForWithdrawal())}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(getAvailableForWithdrawal(), selectedCurrency)}</p>
                   <p className="text-xs text-gray-500 mt-1">Amount above minimum balance</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-orange-600" />
@@ -319,7 +317,7 @@ export default function LabelAdminEarnings() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.earnings)}</div>
+                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.earnings, selectedCurrency)}</div>
                       <div className="text-xs text-gray-500">{month.streams.toLocaleString()} streams</div>
                     </div>
                   </div>
@@ -337,21 +335,21 @@ export default function LabelAdminEarnings() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(earningsData.heldEarnings)}
+                    {formatCurrency(earningsData.heldEarnings, selectedCurrency)}
                   </div>
                   <div className="text-sm text-gray-600">Available Balance</div>
-                  <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance)} held in account</div>
+                  <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(getAvailableForWithdrawal())}
+                    {formatCurrency(getAvailableForWithdrawal(), selectedCurrency)}
                   </div>
                   <div className="text-sm text-gray-600">Available for Withdrawal</div>
-                  <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(earningsData.minimumBalance)} minimum</div>
+                  <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(earningsData.minimumBalance, selectedCurrency)} minimum</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-amber-600">
-                    {formatCurrency(earningsData.pendingWithdrawal)}
+                    {formatCurrency(earningsData.pendingWithdrawal, selectedCurrency)}
                   </div>
                   <div className="text-sm text-gray-600">Pending Withdrawal</div>
                   <div className="text-xs text-gray-500 mt-1">In transit to your account</div>
@@ -398,7 +396,7 @@ export default function LabelAdminEarnings() {
                         <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings, selectedCurrency)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button className="text-blue-600 hover:text-blue-900">View Details</button>
@@ -434,7 +432,7 @@ export default function LabelAdminEarnings() {
                         <span className={`text-sm font-medium ${
                           transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                          {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount, selectedCurrency)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

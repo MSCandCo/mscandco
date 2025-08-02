@@ -8,9 +8,7 @@ const ExportSettingsModal = ({
   exportType, 
   availableColumns = [], 
   currentFilters = {},
-  onSaveTemplate,
-  onExport,
-  userRole 
+  onExport
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({

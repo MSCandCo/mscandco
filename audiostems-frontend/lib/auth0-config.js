@@ -63,14 +63,8 @@ export const getUserRole = (user) => {
                   user.user_metadata?.role || 
                   'artist';
   
-  console.log('=== getUserRole Debug ===');
-  console.log('User:', user);
-  console.log('Raw role from custom claim:', user['https://mscandco.com/role']);
-  console.log('Raw role from user_metadata:', user.user_metadata?.role);
-  console.log('UserRole after fallback:', userRole);
   
   const result = USER_ROLES[userRole.toUpperCase()] || USER_ROLES.ARTIST;
-  console.log('Returning role:', result);
   return result;
 };
 
@@ -83,20 +77,13 @@ export const getUserBrand = (user) => {
                    user.user_metadata?.brand || 
                    'yhwh_msc';
   
-  console.log('=== getUserBrand Debug ===');
-  console.log('User:', user);
-  console.log('Raw brand from custom claim:', user['https://mscandco.com/brand']);
-  console.log('Raw brand from user_metadata:', user.user_metadata?.brand);
-  console.log('UserBrand after fallback:', userBrand);
   
   // Handle the parent company brand
   if (userBrand === 'mscandco') {
-    console.log('Returning MSC_AND_CO brand');
     return BRANDS.MSC_AND_CO;
   }
   
   const result = BRANDS[userBrand.toUpperCase()] || BRANDS.YHWH_MSC;
-  console.log('Returning brand:', result);
   return result;
 };
 
@@ -142,41 +129,32 @@ export const getDefaultDisplayBrand = (user) => {
   const userBrand = getUserBrand(user);
   const userRole = getUserRole(user);
   
-  console.log('=== getDefaultDisplayBrand Debug ===');
-  console.log('UserBrand:', userBrand);
-  console.log('UserRole:', userRole);
   
   // Super Admin sees YHWH MSC by default (since that's what we're building)
   if (userRole === 'super_admin') {
-    console.log('Returning YHWH_MSC for super admin role');
     return BRANDS.YHWH_MSC;
   }
   
   // Company Admin sees their assigned brand
   if (userRole === 'company_admin') {
-    console.log('Returning user brand for company admin:', userBrand);
     return userBrand;
   }
   
   // Label Admin sees their assigned brand
   if (userRole === 'label_admin') {
-    console.log('Returning user brand for label admin:', userBrand);
     return userBrand;
   }
   
   // Artist sees their assigned brand
   if (userRole === 'artist') {
-    console.log('Returning user brand for artist:', userBrand);
     return userBrand;
   }
   
   // Distribution Partner sees YHWH MSC by default
   if (userRole === 'distribution_partner') {
-    console.log('Returning YHWH_MSC for distribution partner');
     return BRANDS.YHWH_MSC;
   }
   
   // Default fallback
-  console.log('Returning default YHWH_MSC');
   return BRANDS.YHWH_MSC;
 }; 

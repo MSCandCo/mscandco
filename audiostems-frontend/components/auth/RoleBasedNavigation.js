@@ -10,11 +10,9 @@ import {
   Wallet,
   ChevronDown,
   User,
-  Download,
   Settings,
   LogOut,
 } from "lucide-react";
-import { openCustomerPortal } from "@/lib/utils";
 import { useState, useEffect } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
@@ -101,12 +99,7 @@ export default function RoleBasedNavigation() {
     });
   };
 
-  // Debug logging
-  console.log('=== Navigation Debug ===');
-  console.log('User object:', user);
-  console.log('User metadata:', user['https://mscandco.com/role'], user['https://mscandco.com/brand']);
-  console.log('Detected role:', userRole);
-  console.log('Display brand:', displayBrand);
+
 
   // Add distribution partner navigation
   if (userRole === 'distribution_partner') {

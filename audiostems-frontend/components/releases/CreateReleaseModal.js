@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaTimes, FaUpload, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
 import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
 
@@ -323,13 +323,13 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {Object.entries(RELEASE_STATUSES)
-                  .filter(([key, value]) => {
+                  .filter(([, value]) => {
                     if (userRole === 'label_admin') {
                       return isStatusEditableByLabelAdmin(value);
                     }
                     return isStatusEditableByArtist(value);
                   })
-                  .map(([key, value]) => (
+                  .map(([, value]) => (
                     <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
                   ))}
               </select>

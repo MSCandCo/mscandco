@@ -19,25 +19,12 @@ export default function LabelAdminArtists() {
 
   // Get label artists from centralized data
   const labelArtists = useMemo(() => {
-    const labelName = userBrand?.displayName || 'MSC & Co';
-    
-    console.log('=== Label Admin Artists Debug ===');
-    console.log('userBrand:', userBrand);
-    console.log('labelName:', labelName);
-    console.log('Total ARTISTS in database:', ARTISTS.length);
-    console.log('All ARTISTS sample:', ARTISTS.slice(0, 3).map(a => ({ name: a.name, label: a.label, brand: a.brand, status: a.status })));
-    console.log('All MSC & Co related artists:', ARTISTS.filter(a => a.label?.includes('MSC') || a.brand?.includes('MSC')).map(a => ({ name: a.name, label: a.label, brand: a.brand, status: a.status })));
+    const labelName = userBrand?.displayName || 'YHWH MSC';
     
     const filteredArtists = ARTISTS.filter(artist => 
       artist.approvalStatus === 'approved' && 
       artist.label === labelName
     );
-    
-    console.log('Filtered artists for label:', filteredArtists.length);
-    console.log('Artists details:');
-    filteredArtists.forEach(artist => {
-      console.log(`- ${artist.name}: label="${artist.label}", brand="${artist.brand}", status="${artist.status}"`);
-    });
     
     return filteredArtists.map(artist => {
       // Calculate artist releases and earnings

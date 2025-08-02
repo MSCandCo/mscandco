@@ -149,7 +149,7 @@ const ContributorVideoSection = () => {
 };
 
 export default function ArtistRoster() {
-  console.log('ArtistRoster component rendering');
+
   const { user, isLoading: authLoading } = useAuth0();
   const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
@@ -202,7 +202,7 @@ export default function ArtistRoster() {
 
   const loadRoster = async () => {
     try {
-      console.log('Loading roster...');
+  
       setIsLoading(true);
       
       const response = await fetch('/api/artist/roster');
