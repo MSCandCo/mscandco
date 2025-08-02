@@ -1114,7 +1114,10 @@ export default function DistributionPartnerDashboard() {
   const [profileData, setProfileData] = useState({
     firstName: 'John',
     lastName: 'Doe', 
-    email: 'john.doe@codegroup.com'
+    email: 'john.doe@codegroup.com',
+    companyName: '', // Empty initially, set during first registration
+    isCompanyNameSet: false, // Track if company name has been set (non-editable after first set)
+    registrationDate: null // Track when company was first registered
   });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({ ...profileData });
@@ -1132,10 +1135,37 @@ export default function DistributionPartnerDashboard() {
 
   // Profile handlers
   const handleProfileSave = () => {
-    setProfileData({ ...editProfileData });
+    // Validation: If company name is not set, require it
+    if (!profileData.isCompanyNameSet && (!editProfileData.companyName || editProfileData.companyName.trim() === '')) {
+      alert('⚠️ Company name is required!\n\nPlease enter your company name to complete your profile setup.');
+      return;
+    }
+
+    // Validation: Check for basic required fields
+    if (!editProfileData.firstName || !editProfileData.lastName || !editProfileData.email) {
+      alert('⚠️ Please fill in all required fields (First Name, Last Name, Email)');
+      return;
+    }
+
+    const updatedProfile = { ...editProfileData };
+    
+    // Check if company name is being set for the first time
+    if (!profileData.isCompanyNameSet && editProfileData.companyName && editProfileData.companyName.trim() !== '') {
+      updatedProfile.isCompanyNameSet = true;
+      updatedProfile.registrationDate = new Date().toISOString();
+      console.log('Company name registered for the first time:', editProfileData.companyName);
+      
+      // Show confirmation message for first-time registration
+      setTimeout(() => {
+        alert(`✅ Company registration completed!\n\nCompany Name: "${editProfileData.companyName}"\n\nNote: Company name cannot be changed after initial registration for security and compliance purposes.`);
+      }, 100);
+    }
+    
+    setProfileData(updatedProfile);
     setIsEditingProfile(false);
+    
     // Here you would typically save to an API
-    console.log('Saving profile:', editProfileData);
+    console.log('Saving profile:', updatedProfile);
   };
 
   const handleProfileCancel = () => {
@@ -2005,8 +2035,8 @@ export default function DistributionPartnerDashboard() {
                       <p className="text-sm text-gray-900">{selectedRelease.legalName}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.companyName}</p>
+                                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                <p className="text-sm text-gray-900">{profileData.companyName || 'Not set'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Label</label>
@@ -2271,8 +2301,8 @@ export default function DistributionPartnerDashboard() {
                       <p className="text-sm text-gray-900">{selectedRelease.releaseLabel}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Distribution Company</label>
-                      <p className="text-sm text-gray-900">{selectedRelease.distributionCompany}</p>
+                                      <label className="block text-sm font-medium text-gray-700">Distribution Company</label>
+                <p className="text-sm text-gray-900">{profileData.companyName || 'Not set'}</p>
                     </div>
                   </div>
                 </div>
@@ -2919,7 +2949,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Company Name (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.companyName || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{profileData.companyName || 'Not set'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Legal Name (Read Only)</label>
@@ -3207,7 +3237,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Distribution Company (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.distributionCompany || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{profileData.companyName || 'Not set'}</p>
                     </div>
                   </div>
                 </div>
@@ -4104,6 +4134,26 @@ export default function DistributionPartnerDashboard() {
 
               {/* Profile Content */}
               <div className="space-y-6">
+                {/* Company Name Setup Notice */}
+                {!profileData.isCompanyNameSet && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <FaAlertCircle className="h-5 w-5 text-amber-400 mt-0.5" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-amber-800">
+                          Complete Your Company Registration
+                        </h3>
+                        <p className="mt-1 text-sm text-amber-700">
+                          Please set your company name to complete your distribution partner setup. 
+                          This name will be used for all official documentation and cannot be changed after registration.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white rounded-lg p-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
@@ -4184,9 +4234,46 @@ export default function DistributionPartnerDashboard() {
 
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Company Information</h4>
-                      <p className="text-sm text-gray-600">Code Group</p>
-                      <p className="text-sm text-gray-600">Distribution Partner</p>
+                      <h4 className="text-sm font-medium text-gray-900 mb-4">Company Information</h4>
+                      
+                      {/* Company Name Field */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Company Name
+                          {profileData.isCompanyNameSet && (
+                            <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                          )}
+                        </label>
+                        {isEditingProfile && !profileData.isCompanyNameSet ? (
+                          <div>
+                            <input
+                              type="text"
+                              value={editProfileData.companyName || ''}
+                              onChange={(e) => setEditProfileData({ ...editProfileData, companyName: e.target.value })}
+                              className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50"
+                              placeholder="Enter your company name"
+                            />
+                            <p className="text-xs text-amber-600 mt-1">
+                              ⚠️ Important: Company name cannot be changed after initial registration
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-gray-900 py-2">
+                              {profileData.companyName || 'Not set - Please set your company name'}
+                            </p>
+                            {profileData.isCompanyNameSet && profileData.registrationDate && (
+                              <p className="text-xs text-gray-500">
+                                Registered on: {new Date(profileData.registrationDate).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-600">Distribution Partner</p>
+                      </div>
                     </div>
                   </div>
                 </div>
