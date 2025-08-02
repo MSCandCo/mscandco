@@ -15,9 +15,122 @@ export default function LabelAdminArtists() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  const [selectedArtistForForm, setSelectedArtistForForm] = useState('');
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
+
+  // Available artists data for the dropdown
+  const availableArtists = {
+    'gospel-collective': {
+      name: 'Gospel Voices Collective',
+      email: 'contact@gospelvoices.com',
+      genre: 'Gospel',
+      location: 'Atlanta, GA',
+      bio: 'A powerful gospel collective bringing traditional and contemporary sounds together.',
+      joinDate: '2022-03-15',
+      status: 'Available'
+    },
+    'harmony-group': {
+      name: 'Vocal Harmony',
+      email: 'bookings@vocalharmony.com',
+      genre: 'R&B/Soul',
+      location: 'Detroit, MI',
+      bio: 'Smooth R&B harmonies with a modern twist on classic soul music.',
+      joinDate: '2021-11-20',
+      status: 'Available'
+    },
+    'jazz-ensemble': {
+      name: 'Jazz Ensemble Pro',
+      email: 'info@jazzensemblepro.com',
+      genre: 'Jazz',
+      location: 'New Orleans, LA',
+      bio: 'Professional jazz ensemble specializing in contemporary and traditional jazz.',
+      joinDate: '2020-08-10',
+      status: 'Available'
+    },
+    'hip-hop-artist': {
+      name: 'Urban Flow Artist',
+      email: 'contact@urbanflow.com',
+      genre: 'Hip Hop',
+      location: 'Los Angeles, CA',
+      bio: 'Rising hip hop artist with innovative flow and conscious lyrics.',
+      joinDate: '2023-01-05',
+      status: 'Available'
+    },
+    'classical-performer': {
+      name: 'Classical Symphony',
+      email: 'bookings@classicalsymphony.com',
+      genre: 'Classical',
+      location: 'Boston, MA',
+      bio: 'Elite classical performer with expertise in orchestral and solo performances.',
+      joinDate: '2019-06-30',
+      status: 'Available'
+    },
+    'rnb-singer': {
+      name: 'R&B Soul Singer',
+      email: 'management@rnbsoul.com',
+      genre: 'R&B',
+      location: 'Chicago, IL',
+      bio: 'Soulful R&B vocalist with powerful range and emotional depth.',
+      joinDate: '2022-09-12',
+      status: 'Available'
+    },
+    'pop-artist': {
+      name: 'Pop Star Rising',
+      email: 'team@popstarrising.com',
+      genre: 'Pop',
+      location: 'Nashville, TN',
+      bio: 'Emerging pop artist with catchy melodies and mainstream appeal.',
+      joinDate: '2023-04-18',
+      status: 'Available'
+    },
+    'rock-band': {
+      name: 'Rock Revolution',
+      email: 'contact@rockrevolution.com',
+      genre: 'Rock',
+      location: 'Seattle, WA',
+      bio: 'High-energy rock band bringing fresh sound to classic rock traditions.',
+      joinDate: '2021-07-22',
+      status: 'Available'
+    },
+    'electronic-producer': {
+      name: 'Electronic Beats',
+      email: 'bookings@electronicbeats.com',
+      genre: 'Electronic',
+      location: 'Miami, FL',
+      bio: 'Electronic music producer creating innovative soundscapes and dance tracks.',
+      joinDate: '2022-12-03',
+      status: 'Available'
+    },
+    'indie-artist': {
+      name: 'Indie Folk Artist',
+      email: 'hello@indiefolk.com',
+      genre: 'Indie Folk',
+      location: 'Portland, OR',
+      bio: 'Authentic indie folk artist with heartfelt lyrics and acoustic arrangements.',
+      joinDate: '2023-02-14',
+      status: 'Available'
+    },
+    'country-singer': {
+      name: 'Country Roads Singer',
+      email: 'booking@countryroads.com',
+      genre: 'Country',
+      location: 'Austin, TX',
+      bio: 'Traditional country singer with modern storytelling and authentic sound.',
+      joinDate: '2021-05-08',
+      status: 'Available'
+    },
+    'reggae-band': {
+      name: 'Reggae Vibes Band',
+      email: 'contact@reggaevibes.com',
+      genre: 'Reggae',
+      location: 'Kingston, Jamaica',
+      bio: 'Authentic reggae band spreading positive vibes and conscious messages.',
+      joinDate: '2020-10-25',
+      status: 'Available'
+    }
+  };
 
   // Get label artists from centralized data
   const labelArtists = useMemo(() => {
@@ -297,7 +410,10 @@ export default function LabelAdminArtists() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Add New Artist</h2>
                 <button
-                  onClick={() => setShowAddArtist(false)}
+                  onClick={() => {
+                    setShowAddArtist(false);
+                    setSelectedArtistForForm('');
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,6 +430,8 @@ export default function LabelAdminArtists() {
                   </label>
                   <select 
                     required
+                    value={selectedArtistForForm}
+                    onChange={(e) => setSelectedArtistForForm(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Choose an artist to add to your label</option>
@@ -331,6 +449,59 @@ export default function LabelAdminArtists() {
                     <option value="reggae-band">Reggae Vibes Band</option>
                   </select>
                 </div>
+
+                {/* Selected Artist Information */}
+                {selectedArtistForForm && availableArtists[selectedArtistForForm] && (
+                  <div className="bg-gray-50 p-4 rounded-lg border">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Artist Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Name</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].name}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Email</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].email}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Genre</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].genre}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Location</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].location}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Member Since</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          {availableArtists[selectedArtistForForm].joinDate}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Status</label>
+                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            {availableArtists[selectedArtistForForm].status}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-600">Bio</label>
+                      <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded mt-1">
+                        {availableArtists[selectedArtistForForm].bio}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Contract Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -383,7 +554,10 @@ export default function LabelAdminArtists() {
                 <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowAddArtist(false)}
+                    onClick={() => {
+                      setShowAddArtist(false);
+                      setSelectedArtistForForm('');
+                    }}
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
                     Cancel
@@ -393,8 +567,14 @@ export default function LabelAdminArtists() {
                     onClick={(e) => {
                       e.preventDefault();
                       // Here you would normally submit the form data to assign artist to label
-                      alert('Artist successfully added to your label! (This is a demo)');
+                      if (selectedArtistForForm) {
+                        const artistName = availableArtists[selectedArtistForForm].name;
+                        alert(`${artistName} successfully added to your label! (This is a demo)`);
+                      } else {
+                        alert('Artist successfully added to your label! (This is a demo)');
+                      }
                       setShowAddArtist(false);
+                      setSelectedArtistForForm('');
                     }}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
