@@ -212,7 +212,8 @@ export default function LabelAdminArtists() {
   const filteredArtists = labelArtists.filter(artist => {
     const matchesSearch = artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         artist.genre.toLowerCase().includes(searchTerm.toLowerCase());
+                         (artist.primaryGenre && artist.primaryGenre.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (artist.genres && artist.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase())));
     const matchesStatus = statusFilter === 'all' || artist.status === statusFilter;
     const matchesArtist = artistFilter === 'all' || artist.name === artistFilter;
     
