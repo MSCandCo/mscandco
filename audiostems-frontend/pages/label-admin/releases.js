@@ -4,6 +4,7 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaFilter, FaSearch } from 'react-icons/fa';
 import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search, Plus } from 'lucide-react';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 // Import centralized mock data
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
@@ -29,6 +30,7 @@ export default function LabelAdminReleases() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
 
   const userRole = getUserRole(user);
@@ -170,7 +172,7 @@ export default function LabelAdminReleases() {
                         </div>
                         <div className="bg-green-50 p-4 rounded-lg">
                           <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">£{selectedRelease.totalRevenue?.toLocaleString() || '0'}</div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(selectedRelease.totalRevenue || 0, selectedCurrency)}</div>
                             <div className="text-sm text-green-700">Total Revenue</div>
                           </div>
                         </div>
@@ -274,13 +276,21 @@ export default function LabelAdminReleases() {
                   Manage and track all releases from your label artists
                 </p>
               </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Release
-              </button>
+              <div className="flex items-center gap-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                  compact={true}
+                  showLabel={false}
+                />
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Release
+                </button>
+              </div>
             </div>
           </div>
 
@@ -309,8 +319,8 @@ export default function LabelAdminReleases() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">£{labelTotals.totalEarnings.toLocaleString()}</p>
+                                  <p className="text-sm font-medium text-gray-600">Total Earnings</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(labelTotals.totalEarnings, selectedCurrency)}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
