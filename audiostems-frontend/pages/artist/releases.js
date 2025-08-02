@@ -48,6 +48,16 @@ export default function ArtistReleases() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [hoveredStatus, setHoveredStatus] = useState(null);
+  
+  // Sync hover state with current filter
+  useEffect(() => {
+    if (statusFilter !== 'all') {
+      setHoveredStatus(statusFilter);
+    } else {
+      setHoveredStatus('all');
+    }
+  }, [statusFilter]);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -254,33 +264,75 @@ export default function ArtistReleases() {
               </button>
             </div>
 
-            {/* Stats */}
+            {/* Interactive Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-8">
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'all' ? 'bg-gray-200 shadow-md transform scale-105' : 'bg-gray-50 hover:bg-gray-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('all')}
+                onClick={() => {setStatusFilter('all'); setHoveredStatus('all');}}
+              >
                 <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                 <div className="text-sm text-gray-600">Total</div>
               </div>
-              <div className="bg-yellow-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'DRAFT' ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('DRAFT')}
+                onClick={() => {setStatusFilter('DRAFT'); setHoveredStatus('DRAFT');}}
+              >
                 <div className="text-2xl font-bold text-yellow-800">{stats.draft}</div>
                 <div className="text-sm text-yellow-700">Draft</div>
               </div>
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'SUBMITTED' ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('SUBMITTED')}
+                onClick={() => {setStatusFilter('SUBMITTED'); setHoveredStatus('SUBMITTED');}}
+              >
                 <div className="text-2xl font-bold text-blue-800">{stats.submitted}</div>
                 <div className="text-sm text-blue-700">Submitted</div>
               </div>
-              <div className="bg-orange-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'UNDER_REVIEW' ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('UNDER_REVIEW')}
+                onClick={() => {setStatusFilter('UNDER_REVIEW'); setHoveredStatus('UNDER_REVIEW');}}
+              >
                 <div className="text-2xl font-bold text-orange-800">{stats.underReview}</div>
                 <div className="text-sm text-orange-700">Under Review</div>
               </div>
-              <div className="bg-purple-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'APPROVAL_REQUIRED' ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('APPROVAL_REQUIRED')}
+                onClick={() => {setStatusFilter('APPROVAL_REQUIRED'); setHoveredStatus('APPROVAL_REQUIRED');}}
+              >
                 <div className="text-2xl font-bold text-purple-800">{stats.approvalRequired}</div>
                 <div className="text-sm text-purple-700">Approval Req.</div>
               </div>
-              <div className="bg-indigo-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'COMPLETED' ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('COMPLETED')}
+                onClick={() => {setStatusFilter('COMPLETED'); setHoveredStatus('COMPLETED');}}
+              >
                 <div className="text-2xl font-bold text-indigo-800">{stats.completed}</div>
                 <div className="text-sm text-indigo-700">Completed</div>
               </div>
-              <div className="bg-green-50 rounded-lg p-4 text-center">
+              <div 
+                className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
+                  hoveredStatus === 'LIVE' ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
+                }`}
+                onMouseEnter={() => setHoveredStatus('LIVE')}
+                onClick={() => {setStatusFilter('LIVE'); setHoveredStatus('LIVE');}}
+              >
                 <div className="text-2xl font-bold text-green-800">{stats.live}</div>
                 <div className="text-sm text-green-700">Live</div>
               </div>
