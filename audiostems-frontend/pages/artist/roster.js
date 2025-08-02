@@ -187,12 +187,8 @@ export default function ArtistRoster() {
   });
 
   useEffect(() => {
-    console.log('Roster useEffect - authLoading:', authLoading, 'user:', user?.email, 'isLoading:', isLoading);
     if (!authLoading) {
-      console.log('Roster useEffect - calling loadRoster (authLoading is false)');
       loadRoster();
-    } else {
-      console.log('Roster useEffect - waiting for auth to load');
     }
   }, [user, authLoading]);
 

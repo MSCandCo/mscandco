@@ -343,7 +343,7 @@ function Pricing() {
           updateCurrency('USD');
         }
       } catch (error) {
-        console.log('Could not detect user location, defaulting to GBP');
+        // Could not detect user location, defaulting to GBP
         updateCurrency('GBP');
       }
     };
@@ -530,7 +530,7 @@ function Pricing() {
                       window.location.href = '/login';
                     } else {
                       // Handle subscription logic
-                      console.log('Subscribe to:', plan.name);
+                      // Subscribe to selected plan
                     }
                   }}
                 >
