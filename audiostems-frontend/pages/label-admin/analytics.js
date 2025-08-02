@@ -289,12 +289,6 @@ export default function LabelAdminAnalytics() {
                 <p className="text-sm text-gray-500">Comprehensive analytics for {userBrand?.displayName || 'MSC & Co'}</p>
               </div>
               <div className="flex items-center space-x-4 flex-wrap">
-                <CurrencySelector 
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  compact={true}
-                  showLabel={false}
-                />
                 <select
                   value={selectedTimeframe}
                   onChange={(e) => setSelectedTimeframe(e.target.value)}
