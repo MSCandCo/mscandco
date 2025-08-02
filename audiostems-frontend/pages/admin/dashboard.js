@@ -6,12 +6,13 @@ import {
   Play, Pause, CheckCircle, Clock, AlertTriangle,
   Globe, Calendar, Database, Settings, Shield
 } from 'lucide-react';
-import { formatCurrency } from '../components/shared/CurrencySelector';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../components/shared/CurrencySelector';
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth0();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Mock admin data
   const mockAdminData = {
@@ -95,7 +96,7 @@ export default function AdminDashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockAdminData.overview.totalRevenue, 'GBP')}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(mockAdminData.overview.totalRevenue, selectedCurrency)}</p>
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
@@ -377,11 +378,11 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Total Revenue</span>
-              <span className="text-lg font-bold text-gray-900">{formatCurrency(mockAdminData.revenue.total, 'GBP')}</span>
+              <span className="text-lg font-bold text-gray-900">{formatCurrency(mockAdminData.revenue.total, selectedCurrency)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">This Month</span>
-              <span className="text-sm font-medium text-green-600">{formatCurrency(mockAdminData.revenue.thisMonth, 'GBP')}</span>
+              <span className="text-sm font-medium text-green-600">{formatCurrency(mockAdminData.revenue.thisMonth, selectedCurrency)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Growth</span>
@@ -389,7 +390,7 @@ export default function AdminDashboard() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Avg per Release</span>
-              <span className="text-sm font-medium text-gray-900">${mockAdminData.revenue.averagePerRelease}</span>
+              <span className="text-sm font-medium text-gray-900">{formatCurrency(mockAdminData.revenue.averagePerRelease, selectedCurrency)}</span>
             </div>
           </div>
         </div>
@@ -459,6 +460,12 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-600">Platform Management & Analytics</p>
             </div>
             <div className="flex items-center space-x-4">
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                showExchangeRate={true}
+                compact={true}
+              />
               <div className="text-right">
                 <p className="text-sm text-gray-600">Platform Health</p>
                 <p className="text-2xl font-bold text-green-600">{mockAdminData.overview.platformHealth}%</p>
