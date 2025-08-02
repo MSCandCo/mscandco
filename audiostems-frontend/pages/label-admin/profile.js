@@ -3,12 +3,16 @@ import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS } from '../../lib/mockData';
+import SuccessModal from '../../components/shared/SuccessModal';
 
 export default function LabelAdminProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successTitle, setSuccessTitle] = useState('');
   const [profile, setProfile] = useState({
     // Personal Information
     firstName: '',
@@ -76,6 +80,10 @@ export default function LabelAdminProfile() {
     
     // Verification & Security
     isVerified: false,
+    emailVerified: false,
+    phoneVerified: false,
+    emailVerificationDate: null,
+    phoneVerificationDate: null,
     twoFactorEnabled: false,
     lastPasswordChange: '',
     
@@ -122,17 +130,17 @@ export default function LabelAdminProfile() {
         
         businessType: '',
         taxId: '',
-        vatNumber: 'GB987654321',
-        registrationNumber: 'RC12345678',
-        foundedYear: '2018',
+        vatNumber: '',
+        registrationNumber: '',
+        foundedYear: '',
         
         bankInfo: {
-          accountName: 'MSC & Co Entertainment Ltd',
-          accountNumber: '12345678',
-          routingNumber: '123456',
-          bankName: 'Barclays Bank UK',
-          swiftCode: 'BARCGB22',
-          iban: 'GB29 BARC 1234 5612 3456 78'
+          accountName: '',
+          accountNumber: '',
+          routingNumber: '',
+          bankName: '',
+          swiftCode: '',
+          iban: ''
         },
         
         yearsOfExperience: '8',
@@ -159,7 +167,11 @@ export default function LabelAdminProfile() {
           monthlyStatements: true
         },
         
-        isVerified: true,
+        isVerified: false, // Will be calculated based on verification requirements
+        emailVerified: true,
+        phoneVerified: true,
+        emailVerificationDate: '2023-06-15T10:30:00Z',
+        phoneVerificationDate: '2023-06-15T10:45:00Z',
         twoFactorEnabled: false,
         lastPasswordChange: '2024-01-01T00:00:00Z',
         
@@ -172,6 +184,9 @@ export default function LabelAdminProfile() {
         registrationDate: null
       };
 
+      // Calculate initial verification status
+      mockProfile.isVerified = calculateVerificationStatus(mockProfile);
+      
       setProfile(mockProfile);
       setFormData(mockProfile);
     }
@@ -248,7 +263,9 @@ export default function LabelAdminProfile() {
     if (isFirstTimeSetup) {
       // Validate that required company info is provided
       if (!formData.companyName?.trim()) {
-        alert('Company name is required for first-time setup.');
+        setSuccessTitle('Validation Error');
+        setSuccessMessage('Company name is required for first-time setup.');
+        setShowSuccessModal(true);
         return;
       }
     }
@@ -267,18 +284,26 @@ export default function LabelAdminProfile() {
         updatedProfile.registrationDate = new Date().toISOString();
       }
       
+      // Recalculate verification status
+      updatedProfile.isVerified = calculateVerificationStatus(updatedProfile);
+      
       setProfile(updatedProfile);
       setIsEditing(false);
       
       // Show success message
       if (isFirstTimeSetup) {
-        alert('Company information has been set successfully! This information cannot be changed in the future.');
+        setSuccessTitle('Company Registration Complete!');
+        setSuccessMessage('Company information has been set successfully! This information cannot be changed in the future. Your account verification status has been updated.');
       } else {
-        alert('Profile updated successfully!');
+        setSuccessTitle('Profile Updated!');
+        setSuccessMessage('Your profile has been updated successfully.');
       }
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Error saving profile. Please try again.');
+      setSuccessTitle('Error');
+      setSuccessMessage('Error saving profile. Please try again.');
+      setShowSuccessModal(true);
     } finally {
       setIsSaving(false);
     }
@@ -288,6 +313,16 @@ export default function LabelAdminProfile() {
     setFormData(profile);
     setErrors({});
     setIsEditing(false);
+  };
+
+  // Calculate verification status based on requirements
+  const calculateVerificationStatus = (profileData) => {
+    const hasEmailVerification = profileData.emailVerified;
+    const hasPhoneVerification = profileData.phoneVerified;
+    const hasCompanyInfoSet = profileData.isCompanyInfoSet;
+    
+    // Verified only if they have email OR phone verification AND company info is set
+    return (hasEmailVerification || hasPhoneVerification) && hasCompanyInfoSet;
   };
 
   if (isLoading) {
@@ -603,13 +638,42 @@ export default function LabelAdminProfile() {
                     <span className="text-gray-600">Founded</span>
                     <span className="font-semibold">{profile.foundedYear}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Verified</span>
-                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
-                      profile.isVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {profile.isVerified ? 'Verified' : 'Pending'}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Account Status</span>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
+                        profile.isVerified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {profile.isVerified ? 'Fully Verified' : 'Verification Pending'}
+                      </span>
+                    </div>
+                    
+                    {/* Verification Requirements */}
+                    <div className="text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Email Verification</span>
+                        <span className={`text-xs ${profile.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
+                          {profile.emailVerified ? '✓' : '✗'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Phone Verification</span>
+                        <span className={`text-xs ${profile.phoneVerified ? 'text-green-600' : 'text-red-600'}`}>
+                          {profile.phoneVerified ? '✓' : '✗'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Company Registration</span>
+                        <span className={`text-xs ${profile.isCompanyInfoSet ? 'text-green-600' : 'text-red-600'}`}>
+                          {profile.isCompanyInfoSet ? '✓' : '✗'}
+                        </span>
+                      </div>
+                      {!profile.isVerified && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          Complete {profile.emailVerified || profile.phoneVerified ? 'company registration' : 'email/phone verification and company registration'} to become fully verified.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -675,6 +739,15 @@ export default function LabelAdminProfile() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={successTitle}
+        message={successMessage}
+        buttonText="Close"
+      />
     </Layout>
   );
 }
