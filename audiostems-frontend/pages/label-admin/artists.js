@@ -462,12 +462,6 @@ export default function LabelAdminArtists() {
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600">Email</label>
-                        <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
-                          {availableArtists[selectedArtistForForm].email}
-                        </p>
-                      </div>
-                      <div>
                         <label className="block text-sm font-medium text-gray-600">Genre</label>
                         <p className="text-sm text-gray-900 bg-white px-3 py-2 border border-gray-200 rounded">
                           {availableArtists[selectedArtistForForm].genre}
