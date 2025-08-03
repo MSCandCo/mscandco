@@ -40,14 +40,18 @@ function AdminAnalytics() {
   // Get user role for filtering
   const userRole = getUserRole(user);
 
-  // Platform performance data
+  // Platform performance data - Comprehensive distribution network
   const mockPlatformStats = [
     { platform: 'Spotify', totalStreams: 8500000, totalEarnings: 85000, avgCompletionTime: 28, releases: 45 },
     { platform: 'Apple Music', totalStreams: 6200000, totalEarnings: 74400, avgCompletionTime: 32, releases: 42 },
     { platform: 'YouTube Music', totalStreams: 4800000, totalEarnings: 24000, avgCompletionTime: 35, releases: 38 },
     { platform: 'Amazon Music', totalStreams: 3100000, totalEarnings: 31000, avgCompletionTime: 30, releases: 35 },
     { platform: 'Deezer', totalStreams: 1800000, totalEarnings: 14400, avgCompletionTime: 25, releases: 28 },
-    { platform: 'Tidal', totalStreams: 950000, totalEarnings: 14250, avgCompletionTime: 22, releases: 22 }
+    { platform: 'Tidal', totalStreams: 950000, totalEarnings: 14250, avgCompletionTime: 22, releases: 22 },
+    { platform: 'Pandora', totalStreams: 720000, totalEarnings: 7200, avgCompletionTime: 24, releases: 18 },
+    { platform: 'SoundCloud', totalStreams: 580000, totalEarnings: 2900, avgCompletionTime: 20, releases: 15 },
+    { platform: 'Bandcamp', totalStreams: 350000, totalEarnings: 8750, avgCompletionTime: 18, releases: 12 },
+    { platform: 'Other Platforms', totalStreams: 1850000, totalEarnings: 16200, avgCompletionTime: 27, releases: 85 }
   ];
 
   const allUserStats = [
@@ -212,7 +216,7 @@ function AdminAnalytics() {
             <Card>
               <h2 className="text-xl font-semibold mb-4">Platform Performance</h2>
               <div className="space-y-3">
-                {mockPlatformStats.slice(0, 6).map((platform) => (
+                {mockPlatformStats.map((platform) => (
                   <div key={platform.platform} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                     <div>
                       <p className="font-semibold">{platform.platform}</p>
