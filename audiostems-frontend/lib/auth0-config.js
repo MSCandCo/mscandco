@@ -64,7 +64,7 @@ export const getUserRole = (user) => {
                   'artist';
   
   
-  const result = USER_ROLES[userRole.toUpperCase()] || USER_ROLES.ARTIST;
+  const result = USER_ROLES[userRole?.toUpperCase()] || USER_ROLES.ARTIST;
   return result;
 };
 
@@ -83,7 +83,7 @@ export const getUserBrand = (user) => {
     return BRANDS.MSC_AND_CO;
   }
   
-  const result = BRANDS[userBrand.toUpperCase()] || BRANDS.YHWH_MSC;
+  const result = BRANDS[userBrand?.toUpperCase()] || BRANDS.YHWH_MSC;
   return result;
 };
 
