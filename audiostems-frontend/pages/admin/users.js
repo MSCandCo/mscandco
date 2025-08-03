@@ -476,7 +476,6 @@ export default function AdminUsersPage() {
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
                 </select>
               </div>
             </div>
@@ -526,10 +525,9 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.brand}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.status === 'active' ? 'bg-green-100 text-green-800' : 
-                          user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                          user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {user.status.toUpperCase()}
+                          {user.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -697,7 +695,6 @@ function UserModal({ title, user = null, onClose, onSave }) {
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
               </select>
             </div>
 
