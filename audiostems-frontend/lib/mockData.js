@@ -4,28 +4,7 @@
 
 import { RELEASE_STATUSES, GENRES, RELEASE_TYPES } from './constants';
 
-// 📊 PLATFORM-WIDE STATISTICS (Auto-calculated from base data)
-const calculatePlatformStats = () => {
-  const totalArtists = ARTISTS.length;
-  const activeArtists = ARTISTS.filter(a => a.status === 'active').length;
-  const totalReleases = RELEASES.length;
-  const totalStreams = RELEASES.reduce((sum, r) => sum + (r.streams || 0), 0);
-  const totalEarnings = RELEASES.reduce((sum, r) => sum + (r.earnings || 0), 0);
-  
-  return {
-    // Auto-calculated global stats
-    platform: {
-      totalUsers: 1247,
-      totalArtists,
-      activeArtists,
-      totalReleases,
-      totalStreams,
-      totalEarnings,
-      totalBrands: 2,
-      systemFeatures: 15
-    }
-  };
-};
+
 
 // 🎬 VIDEO CONTENT (Shared across all dashboards)
 export const MOCK_VIDEOS = {
@@ -1050,6 +1029,29 @@ export const RELEASES = [
     ]
   }
 ];
+
+// 📊 PLATFORM-WIDE STATISTICS (Auto-calculated from base data)
+const calculatePlatformStats = () => {
+  const totalArtists = ARTISTS.length;
+  const activeArtists = ARTISTS.filter(a => a.status === 'active').length;
+  const totalReleases = RELEASES.length;
+  const totalStreams = RELEASES.reduce((sum, r) => sum + (r.streams || 0), 0);
+  const totalEarnings = RELEASES.reduce((sum, r) => sum + (r.earnings || 0), 0);
+  
+  return {
+    // Auto-calculated global stats
+    platform: {
+      totalUsers: 1247,
+      totalArtists,
+      activeArtists,
+      totalReleases,
+      totalStreams,
+      totalEarnings,
+      totalBrands: 2,
+      systemFeatures: 15
+    }
+  };
+};
 
 // STREAMING PLATFORMS DATA
 export const STREAMING_PLATFORMS = {

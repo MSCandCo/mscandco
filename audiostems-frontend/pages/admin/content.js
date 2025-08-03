@@ -12,7 +12,7 @@ import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/
 import { ARTISTS, RELEASES, SONGS } from '@/lib/mockData';
 import { getUserRole } from '@/lib/auth0-config';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '@/lib/constants';
-import { Avatar } from '@/components/shared/Avatar';
+import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
 
 export default function AdminContentPage() {
