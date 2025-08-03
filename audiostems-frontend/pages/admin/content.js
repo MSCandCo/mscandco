@@ -1359,7 +1359,6 @@ export default function AdminContentPage() {
                 );
               })}
             </div>
-              </div>
             </div>
             
             <div className="p-6 bg-white border-t border-gray-200 sticky bottom-0">
