@@ -11,7 +11,7 @@ import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { ARTISTS, ADMINS } from '@/lib/mockData';
 import { getUserRole } from '@/lib/auth0-config';
-import { Avatar } from '@/components/shared/Avatar';
+import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
 
 export default function AdminUsersPage() {

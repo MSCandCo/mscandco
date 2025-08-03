@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function Avatar({ name, image, size = "w-10 h-10", textSize = "text-sm" }) {
+function Avatar({ name, image, size = "w-10 h-10", textSize = "text-sm" }) {
   // Generate initials from name
   const getInitials = (name) => {
     if (!name) return '?';
