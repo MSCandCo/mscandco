@@ -236,16 +236,19 @@ export default function WorkflowVisualization() {
 
         {/* Enhanced Horizontal Workflow Diagram */}
         <div className="relative py-8">
-          {/* Background connection line */}
-          <div className="absolute top-1/2 left-6 right-6 h-1 bg-gray-200 rounded-full transform -translate-y-1/2"></div>
-          
-          {/* Progress line */}
-          <div 
-            className="absolute top-1/2 left-6 h-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full transform -translate-y-1/2 transition-all duration-500"
-            style={{ width: `${(currentIndex / (allStatuses.length - 1)) * (100 - (12/100)*100)}%` }}
-          ></div>
+          {/* Progress lines positioned above circles */}
+          <div className="absolute top-4 left-6 right-6 flex items-center justify-between mb-4">
+            {/* Background connection line */}
+            <div className="absolute inset-0 h-1 bg-gray-200 rounded-full"></div>
+            
+            {/* Progress line */}
+            <div 
+              className="absolute inset-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-500"
+              style={{ width: `${(currentIndex / (allStatuses.length - 1)) * (100 - (12/100)*100)}%` }}
+            ></div>
+          </div>
 
-          <div className="flex items-center justify-between relative">
+          <div className="flex items-center justify-between relative pt-8">
             {allStatuses.map((status, index) => {
               const config = statusConfig[status];
               const Icon = config.icon;
