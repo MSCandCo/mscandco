@@ -311,10 +311,10 @@ export default function RoleBasedDashboard() {
           cards: [
             {
               title: 'Distribution',
-              description: 'Manage content distribution across platforms',
+              description: 'Visual workflow tracking and release progression',
               icon: '🌐',
-              href: '/distribution/content',
-              stats: { content: 567, platforms: 12 }
+              href: '/distribution/workflow',
+              stats: { active: 8, completed: 567 }
             },
             {
               title: 'Reports',
