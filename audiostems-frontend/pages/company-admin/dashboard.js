@@ -9,7 +9,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getDashboardStats, getApprovedArtistsByLabel } from '../../lib/mockData';
+import { getApprovedArtistsByLabel } from '../../lib/mockData';
 import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 
@@ -24,13 +24,15 @@ export default function CompanyAdminDashboard() {
   const userBrand = getUserBrand(user);
   const brandName = userBrand?.displayName || 'MSC & Co';
 
-  // Get centralized dashboard stats
-  const companyData = getDashboardStats('company_admin');
-
-  // Get brand-specific data
-      const brandArtists = getUsers().filter(u => u.role === 'artist' && (u.brand === brandName || u.label === brandName));
+  // Get brand-specific data from universal database
+  const brandArtists = getUsers().filter(u => u.role === 'artist' && (u.brand === brandName || u.label === brandName));
   const brandReleases = getReleases().filter(r => r.label === brandName || r.artist && brandArtists.find(a => a.name === r.artist));
   const approvedArtists = brandArtists.filter(a => a.approvalStatus === 'approved');
+  
+  // Calculate real brand revenue from artists
+  const brandRevenue = brandArtists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
+  const brandStreams = brandArtists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
+  const brandTotalReleases = brandArtists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
 
   // Check admin access
   useEffect(() => {
@@ -129,7 +131,7 @@ export default function CompanyAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Brand Revenue</p>
-                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(companyData.brandRevenue || 85000, selectedCurrency)}</p>
+                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(brandRevenue, selectedCurrency)}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                     <span className="text-green-600">+18% this month</span>
@@ -145,7 +147,7 @@ export default function CompanyAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-3xl font-bold text-gray-900">{companyData.activeProjects || 15}</p>
+                  <p className="text-3xl font-bold text-gray-900">{brandTotalReleases}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <Activity className="w-4 h-4 text-yellow-500 mr-1" />
                     <span className="text-yellow-600">3 need attention</span>
