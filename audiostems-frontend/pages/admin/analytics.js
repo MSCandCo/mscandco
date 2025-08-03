@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { Card, Badge } from "flowbite-react";
-import { HiUsers, HiDownload, HiMusicNote, HiCreditCard } from "lucide-react";
+import { Users, Download, Music, CreditCard } from "lucide-react";
 import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";
@@ -134,7 +134,7 @@ function AdminAnalytics() {
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 rounded-full">
-                  <HiUsers className="h-6 w-6 text-blue-600" />
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Users</p>
@@ -146,7 +146,7 @@ function AdminAnalytics() {
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-green-100 rounded-full">
-                  <HiDownload className="h-6 w-6 text-green-600" />
+                  <Download className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Downloads</p>
@@ -158,7 +158,7 @@ function AdminAnalytics() {
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-purple-100 rounded-full">
-                  <HiMusicNote className="h-6 w-6 text-purple-600" />
+                  <Music className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Songs</p>
@@ -170,7 +170,7 @@ function AdminAnalytics() {
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-orange-100 rounded-full">
-                  <HiCreditCard className="h-6 w-6 text-orange-600" />
+                  <CreditCard className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Stems</p>
@@ -182,7 +182,7 @@ function AdminAnalytics() {
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-green-100 rounded-full">
-                  <HiCreditCard className="h-6 w-6 text-green-600" />
+                  <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Revenue</p>
@@ -199,20 +199,17 @@ function AdminAnalytics() {
               {recentDownloads.map((download) => (
                 <div key={download.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                   <div>
-                    <p className="font-semibold">{download.attributes.contentTitle}</p>
+                    <p className="font-semibold">{download.song}</p>
                     <p className="text-sm text-gray-600">
-                      {download.attributes.user?.data?.attributes?.firstName} {download.attributes.user?.data?.attributes?.lastName}
+                      {download.user}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge color="gray">
-                      {download.attributes.contentType}
-                    </Badge>
-                    <Badge color="blue">
-                      {download.attributes.creditsSpent} credit{download.attributes.creditsSpent !== 1 ? 's' : ''}
+                      {download.type}
                     </Badge>
                     <span className="text-sm text-gray-500">
-                      {moment(download.attributes.downloadDate).format('MMM DD, YYYY')}
+                      {moment(download.date).format('MMM DD, YYYY')}
                     </span>
                   </div>
                 </div>
