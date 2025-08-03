@@ -376,11 +376,7 @@ export default function AdminUsersPage() {
                 Add New User
               </button>
             )}
-            {userRole === 'company_admin' && (
-              <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
-                View & Edit Access Only
-              </div>
-            )}
+
           </div>
 
           {/* Stats Cards */}
@@ -551,8 +547,7 @@ export default function AdminUsersPage() {
                             onClick={() => handleViewUser(user)}
                             className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                           >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View
+                            <Eye className="w-3 h-3" />
                           </button>
 
                           {userRole === 'super_admin' && (
