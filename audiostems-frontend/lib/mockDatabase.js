@@ -5,19 +5,37 @@
 import { RELEASE_STATUSES, GENRES, RELEASE_TYPES } from './constants';
 
 // 🎯 USER STATUS LOGIC
-// Users are only INACTIVE if they have no releases AND minimal earnings (< $1000)
+// Users are INACTIVE if they meet ANY of these criteria:
+// 1. No releases AND minimal earnings (< $1000)
+// 2. Haven't logged in for more than 6 months
+// 3. Account creation without any activity for 3+ months
 const determineUserStatus = (user) => {
   // Admin roles are always active
   if (['super_admin', 'company_admin', 'distribution_partner', 'label_admin'].includes(user.role)) {
     return 'active';
   }
   
-  // For artists: inactive only if no releases OR very low earnings
+  const now = new Date();
+  const lastLoginDate = user.lastLogin ? new Date(user.lastLogin) : null;
+  const joinDate = new Date(user.joinDate);
+  
+  // Calculate time since last login (in days)
+  const daysSinceLastLogin = lastLoginDate 
+    ? Math.floor((now - lastLoginDate) / (1000 * 60 * 60 * 24))
+    : Math.floor((now - joinDate) / (1000 * 60 * 60 * 24)); // Use join date if no login
+  
+  // Calculate days since joining
+  const daysSinceJoining = Math.floor((now - joinDate) / (1000 * 60 * 60 * 24));
+  
+  // For artists: check multiple inactive criteria
   if (user.role === 'artist') {
     const hasNoReleases = !user.totalReleases || user.totalReleases === 0;
     const hasMinimalEarnings = !user.totalRevenue || user.totalRevenue < 1000;
+    const hasNotLoggedInRecently = daysSinceLastLogin > 180; // 6 months
+    const isNewAccountWithNoActivity = daysSinceJoining > 90 && hasNoReleases && hasMinimalEarnings; // 3 months with no activity
     
-    return (hasNoReleases && hasMinimalEarnings) ? 'inactive' : 'active';
+    // Inactive if: (no releases AND minimal earnings) OR haven't logged in for 6+ months OR new account with no activity
+    return (hasNoReleases && hasMinimalEarnings) || hasNotLoggedInRecently || isNewAccountWithNoActivity ? 'inactive' : 'active';
   }
   
   return 'active';
@@ -423,6 +441,74 @@ export const USERS = [
       twitter: '@demoartist',
       spotify: 'demoartist',
       youtube: 'DemoArtistOfficial'
+    },
+    permissions: [],
+    avatar: null,
+    isVerified: false,
+    twoFactorEnabled: false
+  },
+  
+  // TEST CASE: ARTIST WITH RELEASES BUT HASN'T LOGGED IN FOR 6+ MONTHS
+  {
+    id: 'artist_dormant_star',
+    email: 'dormant.star@email.com',
+    name: 'Dormant Star',
+    displayName: 'Dormant Star',
+    role: 'artist',
+    brand: 'Major Label Music',
+    labelId: 'major_label_music',
+    status: 'inactive', // Should be inactive due to old login despite having releases
+    approvalStatus: 'approved',
+    lastLogin: '2024-05-01T12:00:00Z', // Over 8 months ago = inactive
+    joinDate: '2019-01-01',
+    phone: '+1 323 555 8888',
+    address: 'Hollywood, CA, USA',
+    primaryGenre: 'R&B',
+    genres: ['R&B', 'Soul'],
+    bio: 'R&B artist who stopped logging in despite successful releases.',
+    totalReleases: 5, // Has releases
+    totalStreams: 2500000,
+    totalRevenue: 85000, // Has earnings
+    topTrack: 'Soulful Melody',
+    socialMedia: {
+      instagram: '@dormantstar',
+      twitter: '@dormantstar',
+      spotify: 'dormantstar',
+      youtube: 'DormantStarMusic'
+    },
+    permissions: ['releases', 'earnings', 'analytics'],
+    avatar: null,
+    isVerified: true,
+    twoFactorEnabled: false
+  },
+
+  // TEST CASE: NEW ARTIST WHO JOINED 4 MONTHS AGO WITH NO ACTIVITY
+  {
+    id: 'artist_new_inactive',
+    email: 'new.inactive@email.com',
+    name: 'New Inactive',
+    displayName: 'New Inactive',
+    role: 'artist',
+    brand: 'Indie Collective',
+    labelId: 'indie_collective',
+    status: 'inactive', // Should be inactive: new account (4 months) with no releases/earnings
+    approvalStatus: 'approved',
+    lastLogin: '2024-09-01T12:00:00Z', // 4 months ago with no activity = inactive
+    joinDate: '2024-09-01', // Joined 4 months ago
+    phone: '+1 555 111 2222',
+    address: 'Austin, TX, USA',
+    primaryGenre: 'Folk',
+    genres: ['Folk', 'Indie'],
+    bio: 'New artist who signed up but never released anything.',
+    totalReleases: 0, // No releases
+    totalStreams: 0,
+    totalRevenue: 0, // No earnings
+    topTrack: null,
+    socialMedia: {
+      instagram: '@newinactive',
+      twitter: '@newinactive',
+      spotify: 'newinactive',
+      youtube: 'NewInactiveMusic'
     },
     permissions: [],
     avatar: null,
