@@ -806,7 +806,7 @@ function ViewUserModal({ user, onClose, onEdit }) {
                   <div className="text-sm text-gray-600">Streams</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">£{user.totalEarnings?.toLocaleString() || '0'}</div>
+                  <div className="text-2xl font-bold text-gray-900">{formatCurrency(user.totalEarnings || 0, selectedCurrency)}</div>
                   <div className="text-sm text-gray-600">Earnings</div>
                 </div>
               </div>
