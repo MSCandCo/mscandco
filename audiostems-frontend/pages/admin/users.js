@@ -9,7 +9,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { ARTISTS, ADMINS } from '@/lib/mockData';
+import { ARTISTS, ADMINS, getApprovedArtistsByLabel } from '@/lib/mockData';
 import { getUserRole } from '@/lib/auth0-config';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
@@ -787,18 +787,28 @@ function ViewUserModal({ user, onClose, onEdit, selectedCurrency }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Earnings</label>
               <p className="text-gray-900 font-semibold">{formatCurrency(user.totalEarnings || 0, selectedCurrency)}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Approved Artist</label>
-              <p className="text-gray-900">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  user.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' : 
-                  user.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {user.approvalStatus === 'approved' ? 'Yes' : 
-                   user.approvalStatus === 'pending' ? 'Pending' : 'No'}
-                </span>
-              </p>
-            </div>
+            {user.role === 'label_admin' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Approved Artists</label>
+                <div className="text-gray-900">
+                  {(() => {
+                    const approvedArtists = getApprovedArtistsByLabel(user.labelId);
+                    if (approvedArtists.length === 0) {
+                      return <span className="text-gray-500 italic">No approved artists yet</span>;
+                    }
+                    return (
+                      <div className="space-y-1">
+                        {approvedArtists.map((artist, index) => (
+                          <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-1 mb-1">
+                            {artist.name}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
               <p className="text-gray-900">{new Date(user.joinDate).toLocaleDateString()}</p>
