@@ -51,9 +51,30 @@ export const getDashboardStats = () => {
       totalStreams: stats.totalStreams,
       totalEarnings: stats.totalRevenue,
       monthlyGrowth: 12.5
+    },
+    superAdmin: {
+      totalUsers: stats.totalUsers,
+      totalArtists: stats.totalArtists,
+      totalReleases: stats.totalReleases,
+      totalStreams: stats.totalStreams,
+      totalEarnings: stats.totalRevenue,
+      totalBrands: stats.totalLabels,
+      systemFeatures: 15
+    },
+    companyAdmin: {
+      brandUsers: stats.totalArtists + 5, // Artists + Label Admins
+      brandRoles: 4, // Different role types they can manage
+      activeProjects: stats.totalReleases,
+      brandRevenue: stats.totalRevenue,
+      contentItems: stats.totalSongs,
+      totalViews: stats.totalStreams,
+      engagement: 78.5 // Percentage
     }
   };
 };
+
+// Legacy compatibility - export as DASHBOARD_STATS for components still using old structure
+export const DASHBOARD_STATS = getDashboardStats();
 
 // 🎬 LEGACY VIDEO CONTENT (kept for backward compatibility)
 export const MOCK_VIDEOS = {

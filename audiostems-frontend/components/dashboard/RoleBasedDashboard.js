@@ -3,7 +3,7 @@ import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
+import { getDashboardStats, DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 // Video component for artist dashboard
