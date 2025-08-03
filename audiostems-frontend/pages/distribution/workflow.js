@@ -11,89 +11,16 @@ import { Card, Badge } from 'flowbite-react';
 import moment from 'moment';
 import { getUserRole } from '@/lib/auth0-config';
 import { formatNumber as globalFormatNumber } from '@/lib/number-utils';
+import { 
+  generateWorkflowData, 
+  getWorkflowAnalytics, 
+  formatDuration as serviceDuration,
+  getCurrentElapsedTime 
+} from '@/lib/workflowService';
 
-// Mock workflow data with detailed timing
-const mockWorkflowData = [
-  {
-    id: 1,
-    title: 'Urban Beat',
-    artist: 'YHWH MSC',
-    label: 'YHWH MSC',
-    submittedDate: '2024-01-16T10:30:00Z',
-    currentStatus: 'live',
-    statusHistory: [
-      { status: 'draft', timestamp: '2024-01-16T09:00:00Z', duration: 90 }, // 1.5 hours
-      { status: 'submitted', timestamp: '2024-01-16T10:30:00Z', duration: 60 }, // 1 hour
-      { status: 'in_review', timestamp: '2024-01-16T11:30:00Z', duration: 1440 }, // 24 hours
-      { status: 'approvals', timestamp: '2024-01-17T11:30:00Z', duration: 720 }, // 12 hours
-      { status: 'live', timestamp: '2024-01-17T23:30:00Z', duration: 0 }
-    ],
-    archived: false,
-    priority: 'high'
-  },
-  {
-    id: 2,
-    title: 'Starlight',
-    artist: 'Seoul Stars',
-    label: 'Urban Sounds',
-    submittedDate: '2024-01-15T14:20:00Z',
-    currentStatus: 'approvals',
-    statusHistory: [
-      { status: 'draft', timestamp: '2024-01-15T12:00:00Z', duration: 140 }, // 2.3 hours
-      { status: 'submitted', timestamp: '2024-01-15T14:20:00Z', duration: 45 }, // 45 minutes
-      { status: 'in_review', timestamp: '2024-01-15T15:05:00Z', duration: 2160 }, // 36 hours
-      { status: 'approvals', timestamp: '2024-01-16T15:05:00Z', duration: 480 } // 8 hours so far
-    ],
-    archived: false,
-    priority: 'medium'
-  },
-  {
-    id: 3,
-    title: 'Hit Single #1',
-    artist: 'Global Superstar',
-    label: 'YHWH MSC',
-    submittedDate: '2024-01-14T09:15:00Z',
-    currentStatus: 'in_review',
-    statusHistory: [
-      { status: 'draft', timestamp: '2024-01-14T08:30:00Z', duration: 45 }, // 45 minutes
-      { status: 'submitted', timestamp: '2024-01-14T09:15:00Z', duration: 30 }, // 30 minutes
-      { status: 'in_review', timestamp: '2024-01-14T09:45:00Z', duration: 3600 } // 60 hours so far
-    ],
-    archived: false,
-    priority: 'high'
-  },
-  {
-    id: 4,
-    title: 'Street Rhythm',
-    artist: 'YHWH MSC',
-    label: 'YHWH MSC',
-    submittedDate: '2024-01-10T16:45:00Z',
-    currentStatus: 'live',
-    statusHistory: [
-      { status: 'draft', timestamp: '2024-01-10T15:30:00Z', duration: 75 },
-      { status: 'submitted', timestamp: '2024-01-10T16:45:00Z', duration: 90 },
-      { status: 'in_review', timestamp: '2024-01-10T18:15:00Z', duration: 1320 }, // 22 hours
-      { status: 'approvals', timestamp: '2024-01-11T16:15:00Z', duration: 600 }, // 10 hours
-      { status: 'live', timestamp: '2024-01-12T02:15:00Z', duration: 0 }
-    ],
-    archived: true,
-    priority: 'medium'
-  },
-  {
-    id: 5,
-    title: 'Opening Anthem',
-    artist: 'Rock Legends',
-    label: 'Urban Sounds',
-    submittedDate: '2024-01-13T11:20:00Z',
-    currentStatus: 'submitted',
-    statusHistory: [
-      { status: 'draft', timestamp: '2024-01-13T10:30:00Z', duration: 50 },
-      { status: 'submitted', timestamp: '2024-01-13T11:20:00Z', duration: 4320 } // 72 hours so far
-    ],
-    archived: false,
-    priority: 'low'
-  }
-];
+// Generate workflow data from Universal Database
+const mockWorkflowData = generateWorkflowData();
+
 
 // Status configuration with colors and icons
 const statusConfig = {
