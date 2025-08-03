@@ -350,7 +350,7 @@ export default function WorkflowVisualization() {
                       <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
                         <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {formatDuration(getCurrentStatusDuration(workflow) * 60)} elapsed
+                          {formatDuration(getCurrentStatusDuration(workflow) * 60)}
                         </p>
                       </div>
                     )}
