@@ -38,6 +38,7 @@ export default function AdminUsersPage() {
       ...user,
       // Ensure consistent field mapping
       releases: user.totalReleases || 0,
+      totalStreams: user.totalStreams || 0,
       totalEarnings: user.totalRevenue || user.totalEarnings || 0
     }));
 
