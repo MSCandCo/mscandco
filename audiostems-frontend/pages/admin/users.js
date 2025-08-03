@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import { 
-  Users, Search, Filter, Plus, Edit, Eye, Trash2, 
+  Users, Search, Filter, Plus, Eye, Trash2, 
   UserCheck, UserX, Shield, Calendar, Mail, Phone, 
   Building2, TrendingUp, DollarSign
 } from 'lucide-react';
@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -164,12 +164,7 @@ export default function AdminUsersPage() {
     setShowAddUserModal(true);
   };
 
-  const handleEditUser = (user) => {
-    console.log('handleEditUser called with:', user);
-    setSelectedUser(user);
-    setShowEditModal(true);
-    console.log('Edit modal should be showing');
-  };
+
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
@@ -196,26 +191,18 @@ export default function AdminUsersPage() {
     console.log('handleSaveUser called with:', userData);
     console.log('Current userRole:', userRole);
     
-    if (userData.id) {
-      // Edit existing user
-      console.log('Editing existing user');
-      setUsers(prev => prev.map(u => u.id === userData.id ? { ...u, ...userData } : u));
-      setSuccessMessage('User updated successfully!');
-    } else {
-      // Add new user (only super admins can do this)
-      if (userRole !== 'super_admin') {
-        console.log('Permission denied for adding new user');
-        setSuccessMessage('You do not have permission to add new users.');
-        setShowSuccessModal(true);
-        return;
-      }
-      console.log('Adding new user');
-      const newUser = { ...userData, id: Date.now() };
-      setUsers(prev => [...prev, newUser]);
-      setSuccessMessage('User added successfully!');
+    // Add new user (only super admins can do this)
+    if (userRole !== 'super_admin') {
+      console.log('Permission denied for adding new user');
+      setSuccessMessage('You do not have permission to add new users.');
+      setShowSuccessModal(true);
+      return;
     }
+    console.log('Adding new user');
+    const newUser = { ...userData, id: Date.now() };
+    setUsers(prev => [...prev, newUser]);
+    setSuccessMessage('User added successfully!');
     setShowAddUserModal(false);
-    setShowEditModal(false);
     setSelectedUser(null);
     setShowSuccessModal(true);
     console.log('Save completed');
@@ -470,13 +457,7 @@ export default function AdminUsersPage() {
                             <Eye className="w-3 h-3 mr-1" />
                             View
                           </button>
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Edit
-                          </button>
+
                           {userRole === 'super_admin' && (
                             <button
                               onClick={() => handleDeleteUser(user.id)}
@@ -514,36 +495,15 @@ export default function AdminUsersPage() {
         />
       )}
 
-      {/* Edit User Modal */}
-      {showEditModal && selectedUser && (
-        <UserModal
-          title="Edit User"
-          user={selectedUser}
-          onClose={() => {
-            console.log('Closing edit modal');
-            setShowEditModal(false);
-          }}
-          onSave={handleSaveUser}
-        />
-      )}
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 rounded text-xs z-50">
-          Edit Modal: {showEditModal ? 'OPEN' : 'CLOSED'}<br/>
-          Selected User: {selectedUser ? selectedUser.name : 'NONE'}<br/>
-          User Role: {userRole}
-        </div>
-      )}
+
+
 
       {/* View User Modal */}
       {showViewModal && selectedUser && (
         <ViewUserModal
           user={selectedUser}
           onClose={() => setShowViewModal(false)}
-          onEdit={() => {
-            setShowViewModal(false);
-            setShowEditModal(true);
-          }}
+          onEdit={null}
         />
       )}
     </MainLayout>
