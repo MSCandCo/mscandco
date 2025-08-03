@@ -576,23 +576,35 @@ export default function AdminContentPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Project Name</label>
-                    <p className="text-sm text-gray-900">{selectedItem.projectName || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.projectName}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Song Title</label>
+                    <p className="text-sm text-gray-900">{selectedItem.songTitle || selectedItem.projectName}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Artist Name</label>
-                    <p className="text-sm text-gray-900">{selectedItem.artist || selectedItem.artistName || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.artistName || selectedItem.artist}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Legal Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.legalName || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.companyName || 'MSC & Co'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Label</label>
-                    <p className="text-sm text-gray-900">{selectedItem.label || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.label}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Release Type</label>
-                    <p className="text-sm text-gray-900">{selectedItem.releaseType || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseType}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Genre</label>
-                    <p className="text-sm text-gray-900">{selectedItem.genre || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.genre}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Sub Genre</label>
@@ -601,20 +613,59 @@ export default function AdminContentPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedItem.status === RELEASE_STATUSES.LIVE ? 'bg-green-100 text-green-800' :
-                      selectedItem.status === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
+                      selectedItem.status === 'live' 
+                        ? 'bg-green-100 text-green-800'
+                        : selectedItem.status === 'under_review' || selectedItem.status === 'In Review'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : selectedItem.status === 'approval_required' || selectedItem.status === 'Approvals'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {RELEASE_STATUS_LABELS[selectedItem.status] || selectedItem.status}
+                      {selectedItem.status}
                     </span>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Number of Tracks</label>
-                    <p className="text-sm text-gray-900">{selectedItem.trackListing?.length || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Product Title</label>
+                    <p className="text-sm text-gray-900">{selectedItem.productTitle || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Submission Date</label>
-                    <p className="text-sm text-gray-900">{selectedItem.submissionDate || selectedItem.created || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Alt Title</label>
+                    <p className="text-sm text-gray-900">{selectedItem.altTitle || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Number of Tracks</label>
+                    <p className="text-sm text-gray-900">{selectedItem.trackListing ? selectedItem.trackListing.length : 1}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Artist Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Artist Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.artistType || 'Individual'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Stylised</label>
+                    <p className="text-sm text-gray-900">{selectedItem.stylised || selectedItem.artistName}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">AKA/FKA</label>
+                    <p className="text-sm text-gray-900">{selectedItem.akaFka || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phonetic Pronunciation</label>
+                    <p className="text-sm text-gray-900">{selectedItem.phoneticPronunciation || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Featuring Artists</label>
+                    <p className="text-sm text-gray-900">{selectedItem.featuringArtists || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Background Vocalists</label>
+                    <p className="text-sm text-gray-900">{selectedItem.backgroundVocalists || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -633,19 +684,54 @@ export default function AdminContentPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Song Key</label>
-                    <p className="text-sm text-gray-900">{selectedItem.songKey || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedItem.songKey || selectedItem.key || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Version</label>
+                    <p className="text-sm text-gray-900">{selectedItem.version || 'Original'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Explicit</label>
+                    <p className="text-sm text-gray-900">{selectedItem.explicit ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Language</label>
                     <p className="text-sm text-gray-900">{selectedItem.language || 'English'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Explicit</label>
-                    <p className="text-sm text-gray-900">{selectedItem.explicit || 'No'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Vocal Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.vocalType || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">File Type</label>
                     <p className="text-sm text-gray-900">{selectedItem.fileType || 'WAV'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Audio File Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.audioFileName || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Cover File Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.coverFileName || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Creative Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Creative Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Mood Description</label>
+                    <p className="text-sm text-gray-900">{selectedItem.moodDescription || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tags</label>
+                    <p className="text-sm text-gray-900">{selectedItem.tags || 'N/A'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Lyrics</label>
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedItem.lyrics || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -655,12 +741,12 @@ export default function AdminContentPage() {
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Product Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">ISRC</label>
-                    <p className="text-sm text-gray-900 font-mono">{selectedItem.isrc || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Format</label>
+                    <p className="text-sm text-gray-900">{selectedItem.format || 'Digital'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">UPC</label>
-                    <p className="text-sm text-gray-900 font-mono">{selectedItem.upc || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Product Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.productType || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Catalogue No.</label>
@@ -671,12 +757,24 @@ export default function AdminContentPage() {
                     <p className="text-sm text-gray-900">{selectedItem.barcode || 'N/A'}</p>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700">Tunecode</label>
+                    <p className="text-sm text-gray-900">{selectedItem.tunecode || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ICE Work Key</label>
+                    <p className="text-sm text-gray-900">{selectedItem.iceWorkKey || 'N/A'}</p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700">ISWC</label>
                     <p className="text-sm text-gray-900">{selectedItem.iswc || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Format</label>
-                    <p className="text-sm text-gray-900">{selectedItem.format || 'Digital'}</p>
+                    <label className="block text-sm font-medium text-gray-700">ISRC</label>
+                    <p className="text-sm text-gray-900 font-mono">{selectedItem.isrc || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">UPC</label>
+                    <p className="text-sm text-gray-900 font-mono">{selectedItem.upc || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -686,24 +784,263 @@ export default function AdminContentPage() {
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Release Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Release Date</label>
-                    <p className="text-sm text-gray-900">{selectedItem.releaseDate || selectedItem.expectedReleaseDate || 'TBD'}</p>
+                    <label className="block text-sm font-medium text-gray-700">BOWI Previously Released</label>
+                    <p className="text-sm text-gray-900">{selectedItem.bowiPreviouslyReleased || 'No'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Pre-Release Date</label>
-                    <p className="text-sm text-gray-900">{selectedItem.preReleaseDate || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Previous Release Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.previousReleaseDate || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Recording Country</label>
                     <p className="text-sm text-gray-900">{selectedItem.recordingCountry || 'N/A'}</p>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700">Pre-Release Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.preReleaseDate || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Pre-Release URL</label>
+                    <p className="text-sm text-gray-900">{selectedItem.preReleaseUrl || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Release Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseDate || selectedItem.expectedReleaseDate || 'TBD'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Release URL</label>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseUrl || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Release Label</label>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseLabel || selectedItem.label}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Distribution Company</label>
+                    <p className="text-sm text-gray-900">{selectedItem.distributionCompany || 'MSC & Co'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Copyright Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Copyright Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Copyright Year</label>
+                    <p className="text-sm text-gray-900">{selectedItem.copyrightYear || new Date().getFullYear()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Copyright Owner</label>
+                    <p className="text-sm text-gray-900">{selectedItem.copyrightOwner || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">℗ P Line</label>
+                    <p className="text-sm text-gray-900">{selectedItem.pLine || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">© C Line</label>
+                    <p className="text-sm text-gray-900">{selectedItem.cLine || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Publishing Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Publishing Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Composer / Author</label>
+                    <p className="text-sm text-gray-900">{selectedItem.composerAuthor || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Role</label>
+                    <p className="text-sm text-gray-900">{selectedItem.role || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">PRO</label>
+                    <p className="text-sm text-gray-900">{selectedItem.pro || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">CAE/IPI</label>
+                    <p className="text-sm text-gray-900">{selectedItem.caeIpi || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Publishing</label>
+                    <p className="text-sm text-gray-900">{selectedItem.publishing || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Publisher IPI</label>
+                    <p className="text-sm text-gray-900">{selectedItem.publisherIpi || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Publishing Admin</label>
+                    <p className="text-sm text-gray-900">{selectedItem.publishingAdmin || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Publishing Admin IPI</label>
+                    <p className="text-sm text-gray-900">{selectedItem.publishingAdminIpi || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Mechanical</label>
+                    <p className="text-sm text-gray-900">{selectedItem.mechanical || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">BMI Work #</label>
+                    <p className="text-sm text-gray-900">{selectedItem.bmiWorkNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ASCAP Work #</label>
+                    <p className="text-sm text-gray-900">{selectedItem.ascapWorkNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ISNI</label>
+                    <p className="text-sm text-gray-900">{selectedItem.isni || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Sub-Publisher</label>
+                    <p className="text-sm text-gray-900">{selectedItem.subPublisher || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Publishing Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.publishingType || 'N/A'}</p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700">Territory</label>
                     <p className="text-sm text-gray-900">{selectedItem.territory || 'Worldwide'}</p>
                   </div>
+                </div>
+              </div>
+
+              {/* Production Credits */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Production Credits</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Distribution Status</label>
-                    <p className="text-sm text-gray-900">{selectedItem.distributionStatus || 'Pending'}</p>
+                    <label className="block text-sm font-medium text-gray-700">Executive Producer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.executiveProducer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Producer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.producer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Mixing Engineer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.mixingEngineer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Mastering Engineer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.masteringEngineer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Co-Producer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.coProducer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Assistant Producer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.assistantProducer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Engineer / Editing</label>
+                    <p className="text-sm text-gray-900">{selectedItem.engineerEditing || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Mastering Studio</label>
+                    <p className="text-sm text-gray-900">{selectedItem.masteringStudio || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Recording Engineer</label>
+                    <p className="text-sm text-gray-900">{selectedItem.recordingEngineer || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Additional Production</label>
+                    <p className="text-sm text-gray-900">{selectedItem.additionalProduction || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Recording Studio</label>
+                    <p className="text-sm text-gray-900">{selectedItem.recordingStudio || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instrumentation */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Instrumentation</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Keyboards</label>
+                    <p className="text-sm text-gray-900">{selectedItem.keyboards || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Programming</label>
+                    <p className="text-sm text-gray-900">{selectedItem.programming || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Bass</label>
+                    <p className="text-sm text-gray-900">{selectedItem.bass || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Drums</label>
+                    <p className="text-sm text-gray-900">{selectedItem.drums || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Guitars</label>
+                    <p className="text-sm text-gray-900">{selectedItem.guitars || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Organ</label>
+                    <p className="text-sm text-gray-900">{selectedItem.organ || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Percussion</label>
+                    <p className="text-sm text-gray-900">{selectedItem.percussion || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Strings</label>
+                    <p className="text-sm text-gray-900">{selectedItem.strings || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Additional Instrumentation</label>
+                    <p className="text-sm text-gray-900">{selectedItem.additionalInstrumentation || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Business Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Design / Art Direction</label>
+                    <p className="text-sm text-gray-900">{selectedItem.designArtDirection || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Management</label>
+                    <p className="text-sm text-gray-900">{selectedItem.management || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Booking Agent</label>
+                    <p className="text-sm text-gray-900">{selectedItem.bookingAgent || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Press Contact</label>
+                    <p className="text-sm text-gray-900">{selectedItem.pressContact || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Primary Contact Email</label>
+                    <p className="text-sm text-gray-900">{selectedItem.primaryContactEmail || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Artist Email</label>
+                    <p className="text-sm text-gray-900">{selectedItem.artistEmail || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Primary Contact #</label>
+                    <p className="text-sm text-gray-900">{selectedItem.primaryContactNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Secondary Contact #</label>
+                    <p className="text-sm text-gray-900">{selectedItem.secondaryContactNumber || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -1022,19 +1359,22 @@ export default function AdminContentPage() {
                 );
               })}
             </div>
+              </div>
+            </div>
             
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Close
-              </button>
+            <div className="p-6 bg-white border-t border-gray-200 sticky bottom-0">
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="px-6 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    );
+      );
   };
 
   return (
