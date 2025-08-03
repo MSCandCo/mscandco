@@ -273,7 +273,7 @@ export default function WorkflowVisualization() {
               const historyItem = workflow.statusHistory.find(h => h.status === status);
 
               return (
-                <div key={status} className="flex flex-col items-center relative z-10">
+                <div key={status} className="flex flex-col items-center relative z-10 flex-1">
                   {/* Enhanced Status Node with animations */}
                   <div className={`
                     relative w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 transform
@@ -302,38 +302,42 @@ export default function WorkflowVisualization() {
                   </div>
 
                   {/* Enhanced Status Label */}
-                  <div className="mt-4 text-center min-w-[100px]">
-                    <p className={`text-sm font-medium mb-1 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                      {config.label}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {config.description}
-                    </p>
+                  <div className="mt-4 text-center w-full px-2">
+                    <div className="h-16 flex flex-col justify-start">
+                      <p className={`text-sm font-medium mb-1 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {config.label}
+                      </p>
+                      <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                        {config.description}
+                      </p>
+                    </div>
                     
-                    {historyItem && (
-                      <div className="bg-white rounded-lg p-2 shadow-sm border">
-                        <p className="text-xs text-gray-600 font-medium">
-                          {moment(historyItem.timestamp).format('MMM DD')}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {moment(historyItem.timestamp).format('HH:mm')}
-                        </p>
-                        {historyItem.duration > 0 && (
-                          <p className="text-xs text-blue-600 font-medium mt-1">
-                            ⏱️ {formatDuration(historyItem.duration)}
+                    <div className="min-h-[80px] flex flex-col justify-center">
+                      {historyItem && (
+                        <div className="bg-white rounded-lg p-2 shadow-sm border mb-2">
+                          <p className="text-xs text-gray-600 font-medium">
+                            {moment(historyItem.timestamp).format('MMM DD')}
                           </p>
-                        )}
-                      </div>
-                    )}
-                    
-                    {isCurrent && workflow.currentStatus !== 'live' && (
-                      <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
-                        <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {getCurrentStatusDuration(workflow)}h elapsed
-                        </p>
-                      </div>
-                    )}
+                          <p className="text-xs text-gray-500">
+                            {moment(historyItem.timestamp).format('HH:mm')}
+                          </p>
+                          {historyItem.duration > 0 && (
+                            <p className="text-xs text-blue-600 font-medium mt-1">
+                              ⏱️ {formatDuration(historyItem.duration)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {isCurrent && workflow.currentStatus !== 'live' && (
+                        <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
+                          <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {getCurrentStatusDuration(workflow)}h elapsed
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
