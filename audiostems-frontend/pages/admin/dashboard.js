@@ -322,7 +322,10 @@ export default function AdminDashboard() {
 
           {/* Currency Selector */}
           <div className="mb-6 flex justify-end">
-            <CurrencySelector />
+            <CurrencySelector 
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+            />
           </div>
 
           {/* Content */}

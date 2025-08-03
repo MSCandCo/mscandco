@@ -366,7 +366,10 @@ export default function AdminUsersPage() {
 
           {/* Controls */}
           <div className="flex justify-between items-center mb-6">
-            <CurrencySelector />
+            <CurrencySelector 
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+            />
             {userRole === 'super_admin' && (
               <button
                 onClick={handleAddUser}
