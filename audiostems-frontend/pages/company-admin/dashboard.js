@@ -161,7 +161,7 @@ export default function CompanyAdminDashboard() {
           </div>
 
           {/* Management Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             {/* User Management - Unrestricted Access */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
@@ -170,6 +170,11 @@ export default function CompanyAdminDashboard() {
                   <Shield className="w-5 h-5 text-purple-600 mr-2" />
                   <span className="text-sm text-purple-600 font-medium">Unrestricted Access</span>
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                <span>Users: {getUsers().length}</span>
+                <span>Roles: {[...new Set(getUsers().map(u => u.role))].length}</span>
               </div>
               
               <div className="space-y-4">
@@ -186,7 +191,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Label Admins</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">3</span>
+                  <span className="text-2xl font-bold text-gray-900">{getUsers().filter(u => u.role === 'label_admin').length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -214,11 +219,62 @@ export default function CompanyAdminDashboard() {
               </div>
             </div>
 
+            {/* Content Management */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900">Content Management</h3>
+                <FileText className="w-6 h-6 text-blue-600" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                <span>Songs: {getReleases().reduce((total, release) => total + (release.trackListing?.length || 1), 0)}</span>
+                <span>Projects: {getReleases().length}</span>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                    <span className="font-medium text-gray-900">Active Releases</span>
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => ['live', 'distributed'].includes(r.status)).length}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                    <span className="font-medium text-gray-900">In Review</span>
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => r.status === 'in_review').length}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+                    <span className="font-medium text-gray-900">Pending Approval</span>
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => r.status === 'approvals').length}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => router.push('/admin/content')}
+                className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                View Content Management
+              </button>
+            </div>
+
             {/* Brand Analytics */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Brand Analytics</h3>
+                <h3 className="text-lg font-bold text-gray-900">Analytics</h3>
                 <BarChart3 className="w-6 h-6 text-green-600" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                <span>Views: {brandStreams.toLocaleString()}</span>
+                <span>Engagement: {((brandStreams / 1000000) * 10).toFixed(1)}</span>
               </div>
               
               <div className="space-y-4">
