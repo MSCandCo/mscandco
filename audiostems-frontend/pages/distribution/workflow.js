@@ -264,17 +264,17 @@ export default function WorkflowVisualization() {
 
         {/* Enhanced Horizontal Workflow Diagram */}
         <div className="relative py-8">
-          <div className="flex items-center justify-between relative">
+          {/* Circles Row - Fixed Height and Position */}
+          <div className="flex items-start justify-between relative mb-8">
             {allStatuses.map((status, index) => {
               const config = statusConfig[status];
               const Icon = config.icon;
               const isActive = index <= currentIndex;
               const isCurrent = index === currentIndex;
-              const historyItem = workflow.statusHistory.find(h => h.status === status);
 
               return (
                 <div key={status} className="flex flex-col items-center relative z-10 flex-1">
-                  {/* Enhanced Status Node with animations */}
+                  {/* Enhanced Status Node with animations - Fixed Position */}
                   <div className={`
                     relative w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 transform
                     ${isActive 
@@ -301,43 +301,55 @@ export default function WorkflowVisualization() {
                     )}
                   </div>
 
-                  {/* Enhanced Status Label */}
-                  <div className="mt-4 text-center w-full px-2">
-                    <div className="h-16 flex flex-col justify-start">
-                      <p className={`text-sm font-medium mb-1 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {config.label}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                        {config.description}
-                      </p>
-                    </div>
+                  {/* Status Label - Fixed Height */}
+                  <div className="mt-4 text-center w-full px-2 h-20 flex flex-col justify-start">
+                    <p className={`text-sm font-medium mb-1 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                      {config.label}
+                    </p>
+                    <p className="text-xs text-gray-500 line-clamp-3">
+                      {config.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Content Row - Separate from Circles */}
+          <div className="flex items-start justify-between relative">
+            {allStatuses.map((status, index) => {
+              const config = statusConfig[status];
+              const isActive = index <= currentIndex;
+              const isCurrent = index === currentIndex;
+              const historyItem = workflow.statusHistory.find(h => h.status === status);
+
+              return (
+                <div key={`content-${status}`} className="flex flex-col items-center relative z-10 flex-1 px-2">
+                  <div className="min-h-[80px] flex flex-col justify-center w-full">
+                    {historyItem && (
+                      <div className="bg-white rounded-lg p-2 shadow-sm border mb-2">
+                        <p className="text-xs text-gray-600 font-medium">
+                          {moment(historyItem.timestamp).format('MMM DD')}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {moment(historyItem.timestamp).format('HH:mm')}
+                        </p>
+                        {historyItem.duration > 0 && (
+                          <p className="text-xs text-blue-600 font-medium mt-1">
+                            ⏱️ {formatDuration(historyItem.duration)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     
-                    <div className="min-h-[80px] flex flex-col justify-center">
-                      {historyItem && (
-                        <div className="bg-white rounded-lg p-2 shadow-sm border mb-2">
-                          <p className="text-xs text-gray-600 font-medium">
-                            {moment(historyItem.timestamp).format('MMM DD')}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {moment(historyItem.timestamp).format('HH:mm')}
-                          </p>
-                          {historyItem.duration > 0 && (
-                            <p className="text-xs text-blue-600 font-medium mt-1">
-                              ⏱️ {formatDuration(historyItem.duration)}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      
-                      {isCurrent && workflow.currentStatus !== 'live' && (
-                        <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
-                          <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {getCurrentStatusDuration(workflow)}h elapsed
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    {isCurrent && workflow.currentStatus !== 'live' && (
+                      <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
+                        <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {getCurrentStatusDuration(workflow)}h elapsed
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
