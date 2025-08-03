@@ -5,7 +5,7 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { 
   Play, Clock, CheckCircle, AlertCircle, Archive, 
-  Filter, Calendar, Timer, RefreshCw
+  Filter, Calendar, Timer, RefreshCw, Activity
 } from 'lucide-react';
 import { Card, Badge } from 'flowbite-react';
 import moment from 'moment';
@@ -191,13 +191,20 @@ export default function WorkflowVisualization() {
     );
   }
 
+  const handleArchiveWorkflow = (workflowId) => {
+    // In a real app, this would make an API call
+    console.log('Archive workflow:', workflowId);
+    // For demo purposes, we'll just show a success message
+    alert(`Workflow #${workflowId} has been archived successfully!`);
+  };
+
   const WorkflowDiagram = ({ workflow }) => {
     const allStatuses = ['draft', 'submitted', 'in_review', 'approvals', 'live'];
     const currentIndex = allStatuses.indexOf(workflow.currentStatus);
 
     return (
-      <Card className="mb-6 p-6">
-        <div className="flex justify-between items-start mb-4">
+      <Card className="mb-6 p-6 hover:shadow-lg transition-shadow duration-200">
+        <div className="flex justify-between items-start mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{workflow.title}</h3>
             <p className="text-sm text-gray-600">{workflow.artist} • {workflow.label}</p>
@@ -215,12 +222,30 @@ export default function WorkflowVisualization() {
                 Archived
               </Badge>
             )}
+            {!workflow.archived && workflow.currentStatus === 'live' && (
+              <button
+                onClick={() => handleArchiveWorkflow(workflow.id)}
+                className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg transition-colors"
+              >
+                <Archive className="w-3 h-3" />
+                Archive
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Horizontal Workflow Diagram */}
-        <div className="relative">
-          <div className="flex items-center justify-between">
+        {/* Enhanced Horizontal Workflow Diagram */}
+        <div className="relative py-8">
+          {/* Background connection line */}
+          <div className="absolute top-1/2 left-6 right-6 h-1 bg-gray-200 rounded-full transform -translate-y-1/2"></div>
+          
+          {/* Progress line */}
+          <div 
+            className="absolute top-1/2 left-6 h-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full transform -translate-y-1/2 transition-all duration-500"
+            style={{ width: `${(currentIndex / (allStatuses.length - 1)) * (100 - (12/100)*100)}%` }}
+          ></div>
+
+          <div className="flex items-center justify-between relative">
             {allStatuses.map((status, index) => {
               const config = statusConfig[status];
               const Icon = config.icon;
@@ -229,72 +254,107 @@ export default function WorkflowVisualization() {
               const historyItem = workflow.statusHistory.find(h => h.status === status);
 
               return (
-                <div key={status} className="flex flex-col items-center relative">
-                  {/* Status Node */}
+                <div key={status} className="flex flex-col items-center relative z-10">
+                  {/* Enhanced Status Node with animations */}
                   <div className={`
-                    relative z-10 w-12 h-12 rounded-full flex items-center justify-center
+                    relative w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 transform
                     ${isActive 
                       ? isCurrent 
-                        ? 'bg-blue-600 text-white shadow-lg ring-4 ring-blue-200' 
-                        : 'bg-green-600 text-white'
-                      : 'bg-gray-200 text-gray-400'
+                        ? 'bg-blue-600 text-white border-blue-300 shadow-xl scale-110 animate-pulse' 
+                        : 'bg-green-600 text-white border-green-300 shadow-lg'
+                      : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300'
                     }
-                    transition-all duration-300
                   `}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-6 h-6" />
+                    
+                    {/* Completion checkmark for finished steps */}
+                    {isActive && !isCurrent && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    
+                    {/* Current step indicator */}
+                    {isCurrent && workflow.currentStatus !== 'live' && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center animate-bounce">
+                        <Timer className="w-3 h-3 text-white" />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Status Label */}
-                  <div className="mt-2 text-center">
-                    <p className={`text-xs font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {/* Enhanced Status Label */}
+                  <div className="mt-4 text-center min-w-[100px]">
+                    <p className={`text-sm font-medium mb-1 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
                       {config.label}
                     </p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      {config.description}
+                    </p>
+                    
                     {historyItem && (
-                      <div className="mt-1">
+                      <div className="bg-white rounded-lg p-2 shadow-sm border">
+                        <p className="text-xs text-gray-600 font-medium">
+                          {moment(historyItem.timestamp).format('MMM DD')}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {moment(historyItem.timestamp).format('MMM DD HH:mm')}
+                          {moment(historyItem.timestamp).format('HH:mm')}
                         </p>
                         {historyItem.duration > 0 && (
-                          <p className="text-xs text-blue-600 font-medium">
-                            {formatDuration(historyItem.duration)}
+                          <p className="text-xs text-blue-600 font-medium mt-1">
+                            ⏱️ {formatDuration(historyItem.duration)}
                           </p>
                         )}
                       </div>
                     )}
+                    
                     {isCurrent && workflow.currentStatus !== 'live' && (
-                      <div className="mt-1">
-                        <p className="text-xs text-orange-600 font-medium flex items-center justify-center">
-                          <Timer className="w-3 h-3 mr-1" />
-                          {getCurrentStatusDuration(workflow)}h
+                      <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
+                        <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {getCurrentStatusDuration(workflow)}h elapsed
                         </p>
                       </div>
                     )}
                   </div>
-
-                  {/* Connection Line */}
-                  {index < allStatuses.length - 1 && (
-                    <div className={`
-                      absolute top-6 left-6 w-24 h-0.5 
-                      ${index < currentIndex ? 'bg-green-600' : 'bg-gray-200'}
-                      transition-all duration-300
-                    `} />
-                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Status Description */}
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Current Status:</strong> {statusConfig[workflow.currentStatus].description}
-          </p>
-          {workflow.currentStatus !== 'live' && (
-            <p className="text-sm text-gray-600 mt-1">
-              Time in current status: {getCurrentStatusDuration(workflow)} hours
-            </p>
-          )}
+        {/* Enhanced Status Description with more details */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-gray-700 font-medium mb-1">
+                📍 Current Status: {statusConfig[workflow.currentStatus].description}
+              </p>
+              {workflow.currentStatus !== 'live' && (
+                <p className="text-sm text-gray-600">
+                  ⏰ Time in current status: {getCurrentStatusDuration(workflow)} hours
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Total workflow time: {workflow.statusHistory.reduce((sum, h) => sum + (h.duration || 0), 0)} minutes
+              </p>
+            </div>
+            
+            {/* Progress Percentage */}
+            <div className="text-right">
+              <p className="text-lg font-bold text-blue-600">
+                {Math.round((currentIndex / (allStatuses.length - 1)) * 100)}%
+              </p>
+              <p className="text-xs text-gray-500">Complete</p>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${(currentIndex / (allStatuses.length - 1)) * 100}%` }}
+            ></div>
+          </div>
         </div>
       </Card>
     );
@@ -313,42 +373,110 @@ export default function WorkflowVisualization() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Filter by Status:</span>
-            </div>
-            
-            {['all', ...Object.keys(statusConfig)].map(status => (
-              <button
-                key={status}
-                onClick={() => setSelectedFilter(status)}
-                className={`
-                  px-3 py-1 rounded-lg text-sm font-medium transition-colors
-                  ${selectedFilter === status 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }
-                `}
-              >
-                {status === 'all' ? 'All' : statusConfig[status].label}
-              </button>
-            ))}
+          {/* Enhanced Filters and Actions */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">Filter by Status:</span>
+                </div>
+                
+                {['all', ...Object.keys(statusConfig)].map(status => (
+                  <button
+                    key={status}
+                    onClick={() => setSelectedFilter(status)}
+                    className={`
+                      px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105
+                      ${selectedFilter === status 
+                        ? 'bg-blue-600 text-white shadow-lg' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }
+                    `}
+                  >
+                    {status === 'all' ? 'All Workflows' : statusConfig[status].label}
+                    <span className="ml-2 text-xs">
+                      ({mockWorkflowData.filter(w => 
+                        (status === 'all' || w.currentStatus === status) && 
+                        (showArchived ? w.archived : !w.archived)
+                      ).length})
+                    </span>
+                  </button>
+                ))}
+              </div>
 
-            <button
-              onClick={() => setShowArchived(!showArchived)}
-              className={`
-                px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center gap-1
-                ${showArchived 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }
-              `}
-            >
-              <Archive className="w-3 h-3" />
-              {showArchived ? 'Hide Archived' : 'Show Archived'}
-            </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowArchived(!showArchived)}
+                  className={`
+                    px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2
+                    ${showArchived 
+                      ? 'bg-purple-600 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }
+                  `}
+                >
+                  <Archive className="w-4 h-4" />
+                  {showArchived ? 'Hide Archived' : 'Show Archived'}
+                </button>
+
+                {!showArchived && (
+                  <button
+                    onClick={() => {
+                      const completedWorkflows = mockWorkflowData.filter(w => w.currentStatus === 'live' && !w.archived);
+                      if (completedWorkflows.length > 0) {
+                        const count = completedWorkflows.length;
+                        if (confirm(`Archive all ${count} completed workflows?`)) {
+                          alert(`${count} workflows have been archived successfully!`);
+                        }
+                      } else {
+                        alert('No completed workflows to archive.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                  >
+                    <Archive className="w-4 h-4" />
+                    Bulk Archive Completed
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <p className="text-lg font-bold text-blue-600">
+                    {mockWorkflowData.filter(w => !w.archived).length}
+                  </p>
+                  <p className="text-xs text-blue-700">Active</p>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-3">
+                  <p className="text-lg font-bold text-yellow-600">
+                    {mockWorkflowData.filter(w => w.currentStatus === 'in_review' && !w.archived).length}
+                  </p>
+                  <p className="text-xs text-yellow-700">In Review</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <p className="text-lg font-bold text-purple-600">
+                    {mockWorkflowData.filter(w => w.currentStatus === 'approvals' && !w.archived).length}
+                  </p>
+                  <p className="text-xs text-purple-700">Approvals</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-lg font-bold text-green-600">
+                    {mockWorkflowData.filter(w => w.currentStatus === 'live' && !w.archived).length}
+                  </p>
+                  <p className="text-xs text-green-700">Live</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-lg font-bold text-gray-600">
+                    {mockWorkflowData.filter(w => w.archived).length}
+                  </p>
+                  <p className="text-xs text-gray-700">Archived</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Workflow Diagrams */}
@@ -364,32 +492,86 @@ export default function WorkflowVisualization() {
             )}
           </div>
 
-          {/* Summary Stats */}
-          <div className="mt-8 grid md:grid-cols-4 gap-4">
-            <Card className="p-4">
-              <h3 className="text-sm font-medium text-gray-700">Total Active</h3>
-              <p className="text-2xl font-bold text-blue-600">
-                {mockWorkflowData.filter(w => !w.archived).length}
-              </p>
-            </Card>
-            <Card className="p-4">
-              <h3 className="text-sm font-medium text-gray-700">In Review</h3>
-              <p className="text-2xl font-bold text-yellow-600">
-                {mockWorkflowData.filter(w => w.currentStatus === 'in_review' && !w.archived).length}
-              </p>
-            </Card>
-            <Card className="p-4">
-              <h3 className="text-sm font-medium text-gray-700">Pending Approval</h3>
-              <p className="text-2xl font-bold text-purple-600">
-                {mockWorkflowData.filter(w => w.currentStatus === 'approvals' && !w.archived).length}
-              </p>
-            </Card>
-            <Card className="p-4">
-              <h3 className="text-sm font-medium text-gray-700">Completed</h3>
-              <p className="text-2xl font-bold text-green-600">
-                {mockWorkflowData.filter(w => w.currentStatus === 'live').length}
-              </p>
-            </Card>
+          {/* Performance Analytics */}
+          <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Workflow Performance Analytics</h3>
+            
+            <div className="grid md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                  <Clock className="w-8 h-8 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-blue-600">
+                  {Math.round(mockWorkflowData.reduce((sum, w) => sum + w.formCompletionTime, 0) / mockWorkflowData.length)}min
+                </p>
+                <p className="text-sm text-gray-600">Avg Form Time</p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-yellow-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                  <RefreshCw className="w-8 h-8 text-yellow-600" />
+                </div>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {Math.round(mockWorkflowData.reduce((sum, w) => {
+                    const reviewTime = w.statusHistory.find(s => s.status === 'in_review')?.duration || 0;
+                    return sum + reviewTime;
+                  }, 0) / mockWorkflowData.length / 60)}h
+                </p>
+                <p className="text-sm text-gray-600">Avg Review Time</p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="w-8 h-8 text-purple-600" />
+                </div>
+                <p className="text-2xl font-bold text-purple-600">
+                  {Math.round(mockWorkflowData.reduce((sum, w) => {
+                    const approvalTime = w.statusHistory.find(s => s.status === 'approvals')?.duration || 0;
+                    return sum + approvalTime;
+                  }, 0) / mockWorkflowData.length / 60)}h
+                </p>
+                <p className="text-sm text-gray-600">Avg Approval Time</p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                  <Activity className="w-8 h-8 text-green-600" />
+                </div>
+                <p className="text-2xl font-bold text-green-600">
+                  {Math.round((mockWorkflowData.filter(w => w.currentStatus === 'live').length / mockWorkflowData.length) * 100)}%
+                </p>
+                <p className="text-sm text-gray-600">Success Rate</p>
+              </div>
+            </div>
+
+            {/* Efficiency Indicators */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-red-50 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-2">🚨 Attention Needed</h4>
+                  <p className="text-sm text-red-600">
+                    {mockWorkflowData.filter(w => {
+                      const currentTime = getTimeSinceLastUpdate(w);
+                      return currentTime > 48 && w.currentStatus !== 'live' && !w.archived;
+                    }).length} workflows stuck for 48+ hours
+                  </p>
+                </div>
+
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <h4 className="font-medium text-yellow-800 mb-2">⚠️ Review Queue</h4>
+                  <p className="text-sm text-yellow-600">
+                    {mockWorkflowData.filter(w => w.currentStatus === 'in_review' && !w.archived).length} releases waiting for review
+                  </p>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">✅ Ready to Archive</h4>
+                  <p className="text-sm text-green-600">
+                    {mockWorkflowData.filter(w => w.currentStatus === 'live' && !w.archived).length} completed releases
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
