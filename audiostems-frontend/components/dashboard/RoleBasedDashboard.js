@@ -3,7 +3,8 @@ import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { getDashboardStats, DASHBOARD_STATS, MOCK_VIDEOS, ARTISTS, RELEASES } from '@/lib/mockData';
+import { getDashboardStats, DASHBOARD_STATS, MOCK_VIDEOS } from '@/lib/mockData';
+import { getUsers, getReleases } from '@/lib/mockDatabase';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 // Video component for artist dashboard
@@ -109,26 +110,25 @@ export default function RoleBasedDashboard() {
     
     const labelName = userBrand?.displayName || 'YHWH MSC';
     
-    const filteredArtists = ARTISTS.filter(artist => 
-      artist.approvalStatus === 'approved' && 
-      artist.label === labelName
+    const filteredArtists = getUsers().filter(user => 
+      user.role === 'artist' &&
+      user.approvalStatus === 'approved' && 
+      (user.label === labelName || user.brand === labelName)
     );
     
     return filteredArtists.map(artist => {
-      // Calculate artist releases and earnings
-      const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
-      const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
-      const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+      // Use data directly from universal database
+      const totalEarnings = artist.totalRevenue || artist.totalEarnings || 0;
+      const totalStreams = artist.totalStreams || 0;
+      const totalReleases = artist.totalReleases || 0;
       
       return {
         ...artist,
-        releases: artistReleases.length,
+        releases: totalReleases,
         totalEarnings,
         totalStreams,
         followers: artist.followers || 0,
-        lastRelease: artistReleases.length > 0 ? 
-          artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
-          null,
+        lastRelease: artist.lastLogin || artist.joinDate,
         avatar: artist.avatar || '🎤'
       };
     });
@@ -151,7 +151,7 @@ export default function RoleBasedDashboard() {
             { label: 'Total Users', value: DASHBOARD_STATS.superAdmin.totalUsers.toLocaleString(), change: '+12%', changeType: 'positive' },
             { label: 'Active Projects', value: DASHBOARD_STATS.superAdmin.activeProjects.toString(), change: '+5%', changeType: 'positive' },
             { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.superAdmin.totalRevenue, selectedCurrency), change: '+8%', changeType: 'positive' },
-            { label: 'Total Artists', value: ARTISTS.length.toString(), change: `${RELEASES.length} releases`, changeType: 'neutral' }
+            { label: 'Total Artists', value: getUsers().filter(u => u.role === 'artist').length.toString(), change: `${getReleases().length} releases`, changeType: 'neutral' }
           ],
           cards: [
             {
@@ -185,7 +185,7 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Brand Management`,
           description: 'Manage your brand users and content',
           stats: [
-            { label: 'Brand Artists', value: ARTISTS.filter(a => a.brand === displayBrand?.displayName).length.toString(), change: '+8%', changeType: 'positive' },
+            { label: 'Brand Artists', value: getUsers().filter(u => u.role === 'artist' && u.brand === displayBrand?.displayName).length.toString(), change: '+8%', changeType: 'positive' },
             { label: 'Active Projects', value: DASHBOARD_STATS.companyAdmin.activeProjects.toString(), change: '+3%', changeType: 'positive' },
             { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.companyAdmin.brandRevenue, selectedCurrency), change: '+6%', changeType: 'positive' },
             { label: 'Content Items', value: DASHBOARD_STATS.companyAdmin.contentItems.toString(), change: '+12%', changeType: 'positive' }
@@ -268,7 +268,7 @@ export default function RoleBasedDashboard() {
           stats: [
             { label: 'Distributed Content', value: DASHBOARD_STATS.distributionPartner.distributedContent.toString(), change: '+15%', changeType: 'positive' },
             { label: 'Partner Revenue', value: formatCurrency(DASHBOARD_STATS.distributionPartner.partnerRevenue, selectedCurrency), change: '+12%', changeType: 'positive' },
-            { label: 'Active Artists', value: DASHBOARD_STATS.distributionPartner.totalArtists.toString(), change: `${RELEASES.length} total releases`, changeType: 'positive' },
+            { label: 'Active Artists', value: getUsers().filter(u => u.role === 'artist').length.toString(), change: `${getReleases().length} total releases`, changeType: 'positive' },
             { label: 'Success Rate', value: `${DASHBOARD_STATS.distributionPartner.successRate}%`, change: '+2%', changeType: 'positive' }
           ],
           cards: [
@@ -335,17 +335,16 @@ export default function RoleBasedDashboard() {
 
       case 'artist':
     
-        const artistData = ARTISTS.find(a => a.id === 'yhwh_msc') || ARTISTS[0];
-        const artistReleases = RELEASES.filter(r => r.artistId === artistData.id);
+        const artistData = getUsers().find(u => u.role === 'artist' && u.id === 'artist_yhwh_msc') || getUsers().find(u => u.role === 'artist');
         return {
           title: 'Artist Dashboard',
           subtitle: `Welcome to ${artistData.brand} - Your Music Career Hub`,
           description: 'Manage your releases, track earnings, and grow your audience',
           stats: [
-            { label: 'Total Releases', value: DASHBOARD_STATS.artist.totalReleases.toString(), change: '+2 this month', changeType: 'positive' },
-            { label: 'Total Streams', value: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, change: `+${DASHBOARD_STATS.artist.growth}%`, changeType: 'positive' },
-            { label: 'Total Earnings', value: formatCurrency(DASHBOARD_STATS.artist.totalEarnings, selectedCurrency), change: `+${formatCurrency(DASHBOARD_STATS.artist.thisMonthEarnings, selectedCurrency)}`, changeType: 'positive' },
-            { label: 'Active Projects', value: DASHBOARD_STATS.artist.activeProjects.toString(), change: '3 in review', changeType: 'neutral' }
+            { label: 'Total Releases', value: (artistData?.totalReleases || 0).toString(), change: '+2 this month', changeType: 'positive' },
+            { label: 'Total Streams', value: `${((artistData?.totalStreams || 0) / 1000).toFixed(0)}K`, change: '+15%', changeType: 'positive' },
+            { label: 'Total Earnings', value: formatCurrency(artistData?.totalRevenue || artistData?.totalEarnings || 0, selectedCurrency), change: `+${formatCurrency(25000, selectedCurrency)}`, changeType: 'positive' },
+            { label: 'Active Projects', value: (artistData?.totalReleases || 0).toString(), change: '3 in review', changeType: 'neutral' }
           ],
           cards: [
             {
@@ -354,13 +353,13 @@ export default function RoleBasedDashboard() {
               icon: '🎵',
               href: '/artist/releases',
               stats: { 
-                total: artistReleases.length, 
-                draft: artistReleases.filter(r => r.status === 'DRAFT').length, 
-                submitted: artistReleases.filter(r => r.status === 'SUBMITTED').length,
-                underReview: artistReleases.filter(r => r.status === 'UNDER_REVIEW').length, 
-                approvalRequired: artistReleases.filter(r => r.status === 'APPROVAL_REQUIRED').length,
-                live: artistReleases.filter(r => r.status === 'LIVE').length,
-                completed: artistReleases.filter(r => r.status === 'COMPLETED').length
+                total: artistData?.totalReleases || 0, 
+                draft: 2, 
+                submitted: 1,
+                underReview: 1, 
+                approvalRequired: 1,
+                live: (artistData?.totalReleases || 0) - 5,
+                completed: 0
               }
             },
             {
@@ -369,10 +368,10 @@ export default function RoleBasedDashboard() {
               icon: '💰',
               href: '/artist/earnings',
               stats: { 
-                thisMonth: formatCurrency(DASHBOARD_STATS.artist.thisMonthEarnings, selectedCurrency), 
-                lastMonth: formatCurrency(DASHBOARD_STATS.artist.lastMonthEarnings, selectedCurrency),
-                held: formatCurrency(DASHBOARD_STATS.artist.heldEarnings, selectedCurrency),
-                platforms: DASHBOARD_STATS.artist.platforms
+                thisMonth: formatCurrency((artistData?.totalRevenue || artistData?.totalEarnings || 0) * 0.15, selectedCurrency), 
+                lastMonth: formatCurrency((artistData?.totalRevenue || artistData?.totalEarnings || 0) * 0.12, selectedCurrency),
+                held: formatCurrency((artistData?.totalRevenue || artistData?.totalEarnings || 0) * 0.05, selectedCurrency),
+                platforms: 8
               }
             },
             {
