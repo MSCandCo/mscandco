@@ -123,13 +123,13 @@ function AdminAnalytics() {
           </div>
           
           {/* Business Stats Cards */}
-          <div className="grid md:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             <Card>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 rounded-full">
                   <Users className="h-6 w-6 text-blue-600" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-600">Active Users</p>
                   <p className="text-2xl font-bold">{totalUsers}</p>
                 </div>
@@ -141,7 +141,7 @@ function AdminAnalytics() {
                 <div className="p-3 bg-green-100 rounded-full">
                   <Music className="h-6 w-6 text-green-600" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-600">Total Releases</p>
                   <p className="text-2xl font-bold">{totalReleases}</p>
                 </div>
@@ -153,7 +153,7 @@ function AdminAnalytics() {
                 <div className="p-3 bg-purple-100 rounded-full">
                   <Download className="h-6 w-6 text-purple-600" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-600">Platform Channels</p>
                   <p className="text-2xl font-bold">{activePlatforms}</p>
                 </div>
@@ -165,7 +165,7 @@ function AdminAnalytics() {
                 <div className="p-3 bg-orange-100 rounded-full">
                   <CreditCard className="h-6 w-6 text-orange-600" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-600">System Efficiency</p>
                   <p className="text-2xl font-bold">{avgEfficiency}%</p>
                 </div>
@@ -177,9 +177,9 @@ function AdminAnalytics() {
                 <div className="p-3 bg-green-100 rounded-full">
                   <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalRevenue, selectedCurrency)}</p>
+                  <p className="text-2xl font-bold truncate">{formatCurrency(totalRevenue, selectedCurrency)}</p>
                 </div>
               </div>
             </Card>
