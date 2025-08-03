@@ -165,8 +165,10 @@ export default function AdminUsersPage() {
   };
 
   const handleEditUser = (user) => {
+    console.log('handleEditUser called with:', user);
     setSelectedUser(user);
     setShowEditModal(true);
+    console.log('Edit modal should be showing');
   };
 
   const handleViewUser = (user) => {
@@ -191,17 +193,23 @@ export default function AdminUsersPage() {
   };
 
   const handleSaveUser = (userData) => {
+    console.log('handleSaveUser called with:', userData);
+    console.log('Current userRole:', userRole);
+    
     if (userData.id) {
       // Edit existing user
+      console.log('Editing existing user');
       setUsers(prev => prev.map(u => u.id === userData.id ? { ...u, ...userData } : u));
       setSuccessMessage('User updated successfully!');
     } else {
       // Add new user (only super admins can do this)
       if (userRole !== 'super_admin') {
+        console.log('Permission denied for adding new user');
         setSuccessMessage('You do not have permission to add new users.');
         setShowSuccessModal(true);
         return;
       }
+      console.log('Adding new user');
       const newUser = { ...userData, id: Date.now() };
       setUsers(prev => [...prev, newUser]);
       setSuccessMessage('User added successfully!');
@@ -210,6 +218,7 @@ export default function AdminUsersPage() {
     setShowEditModal(false);
     setSelectedUser(null);
     setShowSuccessModal(true);
+    console.log('Save completed');
   };
 
   // Get role badge color
@@ -510,9 +519,20 @@ export default function AdminUsersPage() {
         <UserModal
           title="Edit User"
           user={selectedUser}
-          onClose={() => setShowEditModal(false)}
+          onClose={() => {
+            console.log('Closing edit modal');
+            setShowEditModal(false);
+          }}
           onSave={handleSaveUser}
         />
+      )}
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-black text-white p-2 rounded text-xs z-50">
+          Edit Modal: {showEditModal ? 'OPEN' : 'CLOSED'}<br/>
+          Selected User: {selectedUser ? selectedUser.name : 'NONE'}<br/>
+          User Role: {userRole}
+        </div>
       )}
 
       {/* View User Modal */}
