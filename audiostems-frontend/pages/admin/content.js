@@ -544,17 +544,268 @@ export default function AdminContentPage() {
     </div>
   );
 
-  // Details Modal Component
+  // Details Modal Component - Distribution Partner Style View
   const DetailsModal = () => {
     if (!showDetailsModal || !selectedItem) return null;
 
+    const isRelease = selectedItem.projectName;
+    const isAsset = selectedItem.title && selectedItem.duration;
+    const isArtist = selectedItem.name && selectedItem.email;
+
+    if (isRelease) {
+      return (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Release Details - {selectedItem.projectName}</h3>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.projectName || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Artist Name</label>
+                    <p className="text-sm text-gray-900">{selectedItem.artist || selectedItem.artistName || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Label</label>
+                    <p className="text-sm text-gray-900">{selectedItem.label || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Release Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseType || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Genre</label>
+                    <p className="text-sm text-gray-900">{selectedItem.genre || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Sub Genre</label>
+                    <p className="text-sm text-gray-900">{selectedItem.subGenre || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedItem.status === RELEASE_STATUSES.LIVE ? 'bg-green-100 text-green-800' :
+                      selectedItem.status === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {RELEASE_STATUS_LABELS[selectedItem.status] || selectedItem.status}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Number of Tracks</label>
+                    <p className="text-sm text-gray-900">{selectedItem.trackListing?.length || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Submission Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.submissionDate || selectedItem.created || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audio Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Audio Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Duration</label>
+                    <p className="text-sm text-gray-900">{selectedItem.duration || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">BPM</label>
+                    <p className="text-sm text-gray-900">{selectedItem.bpm || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Song Key</label>
+                    <p className="text-sm text-gray-900">{selectedItem.songKey || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Language</label>
+                    <p className="text-sm text-gray-900">{selectedItem.language || 'English'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Explicit</label>
+                    <p className="text-sm text-gray-900">{selectedItem.explicit || 'No'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">File Type</label>
+                    <p className="text-sm text-gray-900">{selectedItem.fileType || 'WAV'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Product Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ISRC</label>
+                    <p className="text-sm text-gray-900 font-mono">{selectedItem.isrc || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">UPC</label>
+                    <p className="text-sm text-gray-900 font-mono">{selectedItem.upc || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Catalogue No.</label>
+                    <p className="text-sm text-gray-900">{selectedItem.catalogueNo || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Barcode</label>
+                    <p className="text-sm text-gray-900">{selectedItem.barcode || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ISWC</label>
+                    <p className="text-sm text-gray-900">{selectedItem.iswc || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Format</label>
+                    <p className="text-sm text-gray-900">{selectedItem.format || 'Digital'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Release Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Release Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Release Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.releaseDate || selectedItem.expectedReleaseDate || 'TBD'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Pre-Release Date</label>
+                    <p className="text-sm text-gray-900">{selectedItem.preReleaseDate || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Recording Country</label>
+                    <p className="text-sm text-gray-900">{selectedItem.recordingCountry || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Territory</label>
+                    <p className="text-sm text-gray-900">{selectedItem.territory || 'Worldwide'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Distribution Status</label>
+                    <p className="text-sm text-gray-900">{selectedItem.distributionStatus || 'Pending'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Data */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Performance Data</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Total Streams</label>
+                    <p className="text-sm text-gray-900">{(selectedItem.streams || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Total Earnings</label>
+                    <p className="text-sm text-gray-900">{formatCurrency(selectedItem.earnings || 0, selectedCurrency)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Downloads</label>
+                    <p className="text-sm text-gray-900">{(selectedItem.downloads || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Playlist Adds</label>
+                    <p className="text-sm text-gray-900">{(selectedItem.playlistAdds || 0).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Track Listing */}
+              {selectedItem.trackListing && selectedItem.trackListing.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Track Listing</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">BPM</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {selectedItem.trackListing.map((track, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900">{track.title}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{track.duration}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 font-mono">{track.isrc}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{track.bpm}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{track.songKey}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Publishing Notes & Feedback */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Information</h4>
+                <div className="space-y-4">
+                  {selectedItem.publishingNotes && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Publishing Notes</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedItem.publishingNotes}</p>
+                    </div>
+                  )}
+                  {selectedItem.feedback && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Feedback</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedItem.feedback}</p>
+                    </div>
+                  )}
+                  {selectedItem.marketingPlan && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Marketing Plan</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedItem.marketingPlan}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-center sticky bottom-0 bg-white pt-4 border-t">
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="px-6 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Fallback for assets and artists (simple view)
     return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
         <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
           <div className="mt-3">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {selectedItem.title || selectedItem.projectName || selectedItem.name} - Details
+                {selectedItem.title || selectedItem.name} - Details
               </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
@@ -586,7 +837,7 @@ export default function AdminContentPage() {
             <div className="mt-6 flex justify-center">
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="px-4 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Close
               </button>
