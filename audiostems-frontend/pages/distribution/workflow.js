@@ -10,6 +10,7 @@ import {
 import { Card, Badge } from 'flowbite-react';
 import moment from 'moment';
 import { getUserRole } from '@/lib/auth0-config';
+import { formatNumber as globalFormatNumber } from '@/lib/number-utils';
 
 // Mock workflow data with detailed timing
 const mockWorkflowData = [
@@ -160,6 +161,9 @@ export default function WorkflowVisualization() {
     const lastStatus = workflow.statusHistory[workflow.statusHistory.length - 1];
     return moment().diff(moment(lastStatus.timestamp), 'hours');
   };
+
+  // Use global formatNumber utility
+  const formatNumber = globalFormatNumber;
 
   // Format duration in human readable format
   const formatDuration = (minutes) => {
@@ -537,7 +541,7 @@ export default function WorkflowVisualization() {
                   <Clock className="w-8 h-8 text-blue-600" />
                 </div>
                 <p className="text-2xl font-bold text-blue-600">
-                  {Math.round(mockWorkflowData.reduce((sum, w) => sum + w.formCompletionTime, 0) / mockWorkflowData.length)}min
+                  {formatNumber(Math.round(mockWorkflowData.reduce((sum, w) => sum + w.formCompletionTime, 0) / mockWorkflowData.length))}min
                 </p>
                 <p className="text-sm text-gray-600">Avg Form Time</p>
               </div>
@@ -547,10 +551,10 @@ export default function WorkflowVisualization() {
                   <RefreshCw className="w-8 h-8 text-yellow-600" />
                 </div>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {Math.round(mockWorkflowData.reduce((sum, w) => {
+                  {formatNumber(Math.round(mockWorkflowData.reduce((sum, w) => {
                     const reviewTime = w.statusHistory.find(s => s.status === 'in_review')?.duration || 0;
                     return sum + reviewTime;
-                  }, 0) / mockWorkflowData.length / 60)}h
+                  }, 0) / mockWorkflowData.length / 60))}h
                 </p>
                 <p className="text-sm text-gray-600">Avg Review Time</p>
               </div>
@@ -560,10 +564,10 @@ export default function WorkflowVisualization() {
                   <CheckCircle className="w-8 h-8 text-purple-600" />
                 </div>
                 <p className="text-2xl font-bold text-purple-600">
-                  {Math.round(mockWorkflowData.reduce((sum, w) => {
+                  {formatNumber(Math.round(mockWorkflowData.reduce((sum, w) => {
                     const approvalTime = w.statusHistory.find(s => s.status === 'approvals')?.duration || 0;
                     return sum + approvalTime;
-                  }, 0) / mockWorkflowData.length / 60)}h
+                  }, 0) / mockWorkflowData.length / 60))}h
                 </p>
                 <p className="text-sm text-gray-600">Avg Approval Time</p>
               </div>
@@ -573,7 +577,7 @@ export default function WorkflowVisualization() {
                   <Activity className="w-8 h-8 text-green-600" />
                 </div>
                 <p className="text-2xl font-bold text-green-600">
-                  {Math.round((mockWorkflowData.filter(w => w.currentStatus === 'live').length / mockWorkflowData.length) * 100)}%
+                  {formatNumber(Math.round((mockWorkflowData.filter(w => w.currentStatus === 'live').length / mockWorkflowData.length) * 100))}%
                 </p>
                 <p className="text-sm text-gray-600">Success Rate</p>
               </div>

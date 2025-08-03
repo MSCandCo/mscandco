@@ -4,6 +4,7 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -133,7 +134,7 @@ export default function ArtistEarnings() {
         if (customStartDate && customEndDate) {
           // Mock calculation for custom date range
           const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
-          const avgDailyEarnings = earningsData.totalEarnings / 365; // Assuming 1 year of data
+          const avgDailyEarnings = safeDivide(earningsData.totalEarnings, 365); // Assuming 1 year of data
           return Math.round(avgDailyEarnings * daysDiff);
         }
         return earningsData.thisMonth; // Default to current month if no custom dates
@@ -153,7 +154,7 @@ export default function ArtistEarnings() {
         // For custom date range, calculate previous period of same length
         if (customStartDate && customEndDate) {
           const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
-          const avgDailyEarnings = earningsData.totalEarnings / 365; // Assuming 1 year of data
+          const avgDailyEarnings = safeDivide(earningsData.totalEarnings, 365); // Assuming 1 year of data
           // Calculate previous period of same length (80% of current for demo)
           return Math.round(avgDailyEarnings * daysDiff * 0.8);
         }
@@ -167,7 +168,8 @@ export default function ArtistEarnings() {
   const getPercentageChange = () => {
     const current = getCurrentPeriodEarnings();
     const previous = getPreviousPeriodEarnings();
-    return ((current - previous) / previous * 100).toFixed(1);
+    if (previous === 0) return '---';
+    return formatNumber(safeRound(safeDivide((current - previous) * 100, previous), 1));
   };
 
   const getStatusColor = (status) => {

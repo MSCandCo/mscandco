@@ -6,6 +6,7 @@ import { FaDollarSign, FaChartLine, FaTrendingUp, FaTrendingDown, FaCalendar, Fa
 import { DollarSign, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import { formatNumber, safeRound } from '../../lib/number-utils';
 
 // Calculate earnings data from centralized RELEASES and ARTISTS data
 const calculateEarningsData = (userBrand) => {
@@ -124,7 +125,7 @@ const calculateEarningsData = (userBrand) => {
     totalEarnings,
     thisMonth,
     lastMonth,
-    growth: parseFloat(growth.toFixed(1)),
+    growth: formatNumber(safeRound(growth, 1)),
     minimumBalance,
     pendingWithdrawal,
     heldEarnings,

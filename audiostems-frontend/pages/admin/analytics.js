@@ -10,6 +10,7 @@ import { apiRoute } from "@/lib/utils";
 import moment from "moment";
 import CurrencySelector, { formatCurrency, useCurrencySync } from "@/components/shared/CurrencySelector";
 import { getUserRole } from "@/lib/auth0-config";
+import { formatNumber, safeDivide, safeRound } from "@/lib/number-utils";
 
 function AdminAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -72,14 +73,14 @@ function AdminAnalytics() {
 
   // Calculate business totals with currency support
   const totalRevenue = mockUserStats.reduce((sum, user) => sum + user.totalEarnings, 0);
-  const avgFormCompletionTime = mockWorkflowStats.reduce((sum, workflow) => sum + workflow.formCompletionTime, 0) / mockWorkflowStats.length;
-  const avgSystemEfficiency = mockUserStats.filter(u => u.efficiency > 0).reduce((sum, user) => sum + user.efficiency, 0) / mockUserStats.filter(u => u.efficiency > 0).length;
+  const avgFormCompletionTime = formatNumber(safeDivide(mockWorkflowStats.reduce((sum, workflow) => sum + workflow.formCompletionTime, 0), mockWorkflowStats.length));
+  const avgSystemEfficiency = formatNumber(safeDivide(mockUserStats.filter(u => u.efficiency > 0).reduce((sum, user) => sum + user.efficiency, 0), mockUserStats.filter(u => u.efficiency > 0).length));
 
   // Calculate workflow efficiency metrics
   const workflowMetrics = {
-    avgDraftTime: mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.draft || 0), 0) / mockWorkflowStats.length,
-    avgReviewTime: mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.in_review || 0), 0) / mockWorkflowStats.length,
-    avgApprovalTime: mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.approvals || 0), 0) / mockWorkflowStats.length,
+    avgDraftTime: formatNumber(safeDivide(mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.draft || 0), 0), mockWorkflowStats.length)),
+    avgReviewTime: formatNumber(safeDivide(mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.in_review || 0), 0), mockWorkflowStats.length)),
+    avgApprovalTime: formatNumber(safeDivide(mockWorkflowStats.reduce((sum, w) => sum + (w.statusProgression.approvals || 0), 0), mockWorkflowStats.length)),
     totalReleases: mockWorkflowStats.length,
     completedReleases: mockWorkflowStats.filter(w => w.currentStatus === 'live').length
   };

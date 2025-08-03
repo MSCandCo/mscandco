@@ -5,6 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -130,7 +131,8 @@ export default function ArtistAnalytics() {
   };
 
   const getPercentageChange = (current, previous) => {
-    return ((current - previous) / previous * 100).toFixed(1);
+    if (previous === 0) return '---';
+    return formatNumber(safeRound(safeDivide((current - previous) * 100, previous), 1));
   };
 
   return (
