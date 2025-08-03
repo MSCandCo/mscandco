@@ -5,6 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
+import { getUserById } from '../../lib/mockDatabase';
 
 export default function ArtistEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -15,17 +16,20 @@ export default function ArtistEarnings() {
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
 
+  // Get artist data from universal database
+  const artistData = getUserById('artist_yhwh_msc') || getUserById('artist_global_superstar') || { totalRevenue: 12450, totalStreams: 875000 };
+  
   const [earningsData] = useState({
-    totalEarnings: 12450,
-    pendingEarnings: 2340,
-    heldEarnings: 1560,
-    pendingWithdrawal: 320, // Money withdrawn but still in transit
+    totalEarnings: artistData.totalRevenue || artistData.totalEarnings || 12450,
+    pendingEarnings: Math.round((artistData.totalRevenue || 12450) * 0.19), // 19% pending
+    heldEarnings: Math.round((artistData.totalRevenue || 12450) * 0.13), // 13% held
+    pendingWithdrawal: Math.round((artistData.totalRevenue || 12450) * 0.03), // 3% in transit
     minimumCashoutThreshold: 100,
-    minimumBalance: 100, // Minimum balance that must be held in account
-    thisMonth: 3450,
-    lastMonth: 2890,
-    thisYear: 12450,
-    lastYear: 8900,
+    minimumBalance: 100,
+    thisMonth: Math.round((artistData.totalRevenue || 12450) * 0.28), // 28% this month
+    lastMonth: Math.round((artistData.totalRevenue || 12450) * 0.23), // 23% last month  
+    thisYear: artistData.totalRevenue || artistData.totalEarnings || 12450,
+    lastYear: Math.round((artistData.totalRevenue || 12450) * 0.72), // 72% of current
     monthlyData: [
       { month: 'Jan', earnings: 2100, streams: 45000 },
       { month: 'Feb', earnings: 1800, streams: 38000 },

@@ -5,6 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import { getUserById } from '../../lib/mockDatabase';
 import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistAnalytics() {
@@ -15,11 +16,14 @@ export default function ArtistAnalytics() {
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  // Get artist data from universal database
+  const artistData = getUserById('artist_yhwh_msc') || getUserById('artist_global_superstar') || { totalRevenue: 12450, totalStreams: 875000 };
+  
   const [analyticsData] = useState({
-    totalStreams: 456789,
-    totalFollowers: 45678,
-    totalPlays: 678901,
-    totalRevenue: 12450,
+    totalStreams: artistData.totalStreams || 456789,
+    totalFollowers: Math.round((artistData.totalStreams || 456789) / 10), // ~10% of streams as followers
+    totalPlays: Math.round((artistData.totalStreams || 456789) * 1.5), // 1.5x streams as plays
+    totalRevenue: artistData.totalRevenue || artistData.totalEarnings || 12450,
     monthlyData: [
       { month: 'Jan', streams: 45000, followers: 1200, revenue: 2100 },
       { month: 'Feb', streams: 38000, followers: 1350, revenue: 1800 },
