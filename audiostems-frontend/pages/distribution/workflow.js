@@ -163,13 +163,41 @@ export default function WorkflowVisualization() {
 
   // Format duration in human readable format
   const formatDuration = (minutes) => {
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (hours < 24) return `${hours}h ${remainingMinutes}m`;
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return `${days}d ${remainingHours}h`;
+    if (minutes < 60) return `${minutes} minutes`;
+    if (minutes < 1440) { // Less than 24 hours
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours} hours ${mins} minutes` : `${hours} hours`;
+    }
+    if (minutes < 10080) { // Less than 7 days
+      const days = Math.floor(minutes / 1440);
+      const hours = Math.floor((minutes % 1440) / 60);
+      const mins = minutes % 60;
+      let result = `${days} ${days === 1 ? 'day' : 'days'}`;
+      if (hours > 0) result += ` ${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+      if (mins > 0) result += ` ${mins} minutes`;
+      return result;
+    }
+    if (minutes < 43200) { // Less than 30 days (approximately 1 month)
+      const weeks = Math.floor(minutes / 10080);
+      const days = Math.floor((minutes % 10080) / 1440);
+      let result = `${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+      if (days > 0) result += ` ${days} ${days === 1 ? 'day' : 'days'}`;
+      return result;
+    }
+    if (minutes < 525600) { // Less than 365 days (1 year)
+      const months = Math.floor(minutes / 43200);
+      const weeks = Math.floor((minutes % 43200) / 10080);
+      let result = `${months} ${months === 1 ? 'month' : 'months'}`;
+      if (weeks > 0) result += ` ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+      return result;
+    }
+    // Over a year
+    const years = Math.floor(minutes / 525600);
+    const months = Math.floor((minutes % 525600) / 43200);
+    let result = `${years} ${years === 1 ? 'year' : 'years'}`;
+    if (months > 0) result += ` ${months} ${months === 1 ? 'month' : 'months'}`;
+    return result;
   };
 
   // Get current status duration
@@ -236,19 +264,7 @@ export default function WorkflowVisualization() {
 
         {/* Enhanced Horizontal Workflow Diagram */}
         <div className="relative py-8">
-          {/* Progress lines positioned above circles */}
-          <div className="absolute top-4 left-6 right-6 flex items-center justify-between mb-4">
-            {/* Background connection line */}
-            <div className="absolute inset-0 h-1 bg-gray-200 rounded-full"></div>
-            
-            {/* Progress line */}
-            <div 
-              className="absolute inset-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-500"
-              style={{ width: `${(currentIndex / (allStatuses.length - 1)) * (100 - (12/100)*100)}%` }}
-            ></div>
-          </div>
-
-          <div className="flex items-center justify-between relative pt-8">
+          <div className="flex items-center justify-between relative">
             {allStatuses.map((status, index) => {
               const config = statusConfig[status];
               const Icon = config.icon;
@@ -338,7 +354,7 @@ export default function WorkflowVisualization() {
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-2">
-                Total workflow time: {workflow.statusHistory.reduce((sum, h) => sum + (h.duration || 0), 0)} minutes
+                Total workflow time: {formatDuration(workflow.statusHistory.reduce((sum, h) => sum + (h.duration || 0), 0))}
               </p>
             </div>
             
