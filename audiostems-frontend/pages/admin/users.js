@@ -840,6 +840,36 @@ function ViewUserModal({ user, onClose, onEdit, selectedCurrency }) {
             </div>
           )}
 
+          {/* Label Admin Performance Stats */}
+          {user.role === 'label_admin' && (
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Label Performance</h4>
+              {(() => {
+                const approvedArtists = getApprovedArtistsByLabel(user.labelId);
+                const totalReleases = approvedArtists.reduce((sum, artist) => sum + (artist.totalReleases || 0), 0);
+                const totalStreams = approvedArtists.reduce((sum, artist) => sum + (artist.totalStreams || 0), 0);
+                const totalEarnings = approvedArtists.reduce((sum, artist) => sum + (artist.totalRevenue || artist.totalEarnings || 0), 0);
+                
+                return (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900">{totalReleases}</div>
+                      <div className="text-sm text-gray-600">Total Releases</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900">{totalStreams.toLocaleString()}</div>
+                      <div className="text-sm text-gray-600">Total Streams</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalEarnings, selectedCurrency)}</div>
+                      <div className="text-sm text-gray-600">Total Earnings</div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-6">
             <button
               onClick={onClose}
