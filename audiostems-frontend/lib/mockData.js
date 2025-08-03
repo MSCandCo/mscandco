@@ -101,9 +101,9 @@ export {
   getStats,
   getFilteredDataForRole,
   getUsersByRole,
-  getReleasesByArtist,
   getUserById,
-  getReleasesByStatus
+  getReleasesByStatus,
+  getReleasesByArtist
 };
 
 // 🎯 STREAMING PLATFORMS (from Universal Database)
