@@ -53,6 +53,15 @@ function Header({ largeLogo = false }) {
     return router.pathname === path;
   };
 
+  // Get nav link classes with blue active state
+  const getNavLinkClasses = (path) => {
+    const baseClasses = "transition-colors duration-200";
+    if (isActivePage(path)) {
+      return `${baseClasses} text-blue-600 font-semibold`;
+    }
+    return `${baseClasses} text-gray-500 hover:text-blue-600`;
+  };
+
   // Get display name with role and label information
   const getDisplayName = () => {
     const userRole = getUserRole(user);
@@ -112,11 +121,7 @@ function Header({ largeLogo = false }) {
                 <li className="px-5 py-2">
                   <Link 
                     href="/pricing" 
-                    className={`transition-colors duration-200 ${
-                      isActivePage('/pricing') 
-                        ? 'text-[#1f2937] font-semibold' 
-                        : 'text-gray-500 hover:text-[#1f2937]'
-                    }`}
+                    className={getNavLinkClasses('/pricing')}
                   >
                     Prices
                   </Link>
@@ -125,11 +130,7 @@ function Header({ largeLogo = false }) {
               <li className="px-5 py-2">
                 <Link 
                   href="/about" 
-                  className={`transition-colors duration-200 ${
-                    isActivePage('/about') 
-                      ? 'text-[#1f2937] font-semibold' 
-                      : 'text-gray-500 hover:text-[#1f2937]'
-                  }`}
+                  className={getNavLinkClasses('/about')}
                 >
                   About
                 </Link>
@@ -137,11 +138,7 @@ function Header({ largeLogo = false }) {
               <li className="px-5 py-2">
                 <Link 
                   href="/support" 
-                  className={`transition-colors duration-200 ${
-                    isActivePage('/support') 
-                      ? 'text-[#1f2937] font-semibold' 
-                      : 'text-gray-500 hover:text-[#1f2937]'
-                  }`}
+                  className={getNavLinkClasses('/support')}
                 >
                   Support
                 </Link>

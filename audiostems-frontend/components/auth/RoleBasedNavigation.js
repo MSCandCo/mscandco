@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { Dropdown } from "flowbite-react";
 import {
@@ -18,6 +19,7 @@ import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/compo
 
 export default function RoleBasedNavigation() {
   const { user, isAuthenticated, logout } = useAuth0();
+  const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const [fundsData, setFundsData] = useState({
     heldEarnings: 1560,
@@ -26,6 +28,20 @@ export default function RoleBasedNavigation() {
   });
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Check if current page is active
+  const isActivePage = (path) => {
+    return router.pathname === path;
+  };
+
+  // Get nav link classes with active state
+  const getNavLinkClasses = (path) => {
+    const baseClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200";
+    if (isActivePage(path)) {
+      return `${baseClasses} text-blue-600 font-semibold`;
+    }
+    return `${baseClasses} text-gray-900 hover:text-blue-600`;
+  };
 
   // Use shared currency formatting
 
@@ -126,19 +142,19 @@ export default function RoleBasedNavigation() {
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
                   href="/distribution-partner/dashboard"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/distribution-partner/dashboard')}
                 >
                   Content Management
                 </Link>
                 <Link
                   href="/partner/analytics"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/partner/analytics')}
                 >
                   Analytics
                 </Link>
                 <Link
                   href="/partner/reports"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/partner/reports')}
                 >
                   Earnings
                 </Link>
@@ -211,37 +227,37 @@ export default function RoleBasedNavigation() {
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
                   href="/dashboard"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/dashboard')}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/admin/users"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/users')}
                 >
                   Users
                 </Link>
                 <Link
                   href="/admin/content"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/content')}
                 >
                   Content
                 </Link>
                 <Link
                   href="/admin/analytics"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/analytics')}
                 >
                   Analytics
                 </Link>
                 <Link
                   href="/distribution/workflow"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/distribution/workflow')}
                 >
                   Distribution
                 </Link>
                 <Link
                   href="/super-admin/ghost-login"
-                  className="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium border border-red-200 hover:border-red-300"
+                  className={`${getNavLinkClasses('/super-admin/ghost-login')} border border-red-200 hover:border-red-300 ${isActivePage('/super-admin/ghost-login') ? 'text-red-600 border-red-400' : 'text-red-600 hover:text-red-800'}`}
                 >
                   Ghost Login
                 </Link>
@@ -314,31 +330,31 @@ export default function RoleBasedNavigation() {
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
                   href="/dashboard"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/dashboard')}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/admin/users"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/users')}
                 >
                   Users
                 </Link>
                 <Link
                   href="/admin/content"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/content')}
                 >
                   Content
                 </Link>
                 <Link
                   href="/admin/analytics"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/admin/analytics')}
                 >
                   Analytics
                 </Link>
                 <Link
                   href="/distribution/workflow"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/distribution/workflow')}
                 >
                   Distribution
                 </Link>
@@ -411,31 +427,31 @@ export default function RoleBasedNavigation() {
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
                   href="/dashboard"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/dashboard')}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/label-admin/artists"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/label-admin/artists')}
                 >
                   My Artists
                 </Link>
                 <Link
                   href="/label-admin/releases"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/label-admin/releases')}
                 >
                   All Releases
                 </Link>
                 <Link
                   href="/label-admin/earnings"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/label-admin/earnings')}
                 >
                   Earnings
                 </Link>
                 <Link
                   href="/label-admin/analytics"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className={getNavLinkClasses('/label-admin/analytics')}
                 >
                   Analytics
                 </Link>
@@ -500,7 +516,11 @@ export default function RoleBasedNavigation() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center space-x-1"
+              className={`text-sm font-medium flex items-center space-x-1 transition-colors duration-200 ${
+                isActivePage(item.href) 
+                  ? 'text-blue-600 font-semibold' 
+                  : 'text-gray-500 hover:text-blue-600'
+              }`}
             >
               <item.icon className="w-5 h-5" />
               <span>{item.label}</span>
@@ -540,10 +560,24 @@ export default function RoleBasedNavigation() {
           )}
 
           <div className="flex items-center space-x-4">
-            <Link href="/about" className="text-sm text-gray-500 hover:text-gray-900">
+            <Link 
+              href="/about" 
+              className={`text-sm transition-colors duration-200 ${
+                isActivePage('/about') 
+                  ? 'text-blue-600 font-semibold' 
+                  : 'text-gray-500 hover:text-blue-600'
+              }`}
+            >
               About
             </Link>
-            <Link href="/support" className="text-sm text-gray-500 hover:text-gray-900">
+            <Link 
+              href="/support" 
+              className={`text-sm transition-colors duration-200 ${
+                isActivePage('/support') 
+                  ? 'text-blue-600 font-semibold' 
+                  : 'text-gray-500 hover:text-blue-600'
+              }`}
+            >
               Support
             </Link>
           </div>
