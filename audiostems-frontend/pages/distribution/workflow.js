@@ -350,7 +350,7 @@ export default function WorkflowVisualization() {
                       <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
                         <p className="text-xs text-orange-700 font-medium flex items-center justify-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {getCurrentStatusDuration(workflow)}h elapsed
+                          {formatDuration(getCurrentStatusDuration(workflow) * 60)} elapsed
                         </p>
                       </div>
                     )}
@@ -370,7 +370,7 @@ export default function WorkflowVisualization() {
               </p>
               {workflow.currentStatus !== 'live' && (
                 <p className="text-sm text-gray-600">
-                  ⏰ Time in current status: {getCurrentStatusDuration(workflow)} hours
+                  ⏰ Time in current status: {formatDuration(getCurrentStatusDuration(workflow) * 60)}
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-2">
