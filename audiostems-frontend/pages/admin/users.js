@@ -127,9 +127,9 @@ export default function AdminUsersPage() {
     return [];
   };
 
-  const [users, setUsers] = useState(getAllUsers());
+  const [users, setUsers] = useState([]);
 
-  // Check admin access
+  // Check admin access and load users
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       const role = getUserRole(user);
@@ -137,6 +137,103 @@ export default function AdminUsersPage() {
         router.push('/dashboard');
         return;
       }
+      
+      // Load users data once role is confirmed - recreate the function here to ensure fresh userRole
+      const loadUsers = () => {
+        const allUsers = [
+          {
+            id: 1,
+            email: 'superadmin@mscandco.com',
+            name: 'Super Admin User',
+            role: 'super_admin',
+            brand: 'MSC & Co',
+            status: 'active',
+            lastLogin: '2024-01-15T10:30:00Z',
+            releases: 0,
+            totalStreams: 0,
+            totalEarnings: 0,
+            permissions: ['all'],
+            phone: '+44 20 7946 0958',
+            joinDate: '2023-01-01'
+          },
+          {
+            id: 2,
+            email: 'companyadmin@mscandco.com',
+            name: 'Company Admin User',
+            role: 'company_admin',
+            brand: 'MSC & Co',
+            status: 'active',
+            lastLogin: '2024-01-14T15:45:00Z',
+            releases: 0,
+            totalStreams: 0,
+            totalEarnings: 0,
+            permissions: ['user_management', 'content_oversight'],
+            phone: '+44 20 7946 0959',
+            joinDate: '2023-01-01'
+          },
+          // Add label admins
+          {
+            id: 10,
+            email: 'label.admin.yhwh@mscandco.com',
+            name: 'YHWH Label Admin',
+            role: 'label_admin',
+            brand: 'YHWH MSC',
+            status: 'active',
+            lastLogin: '2024-01-14T12:00:00Z',
+            releases: 12,
+            totalStreams: 250000,
+            totalEarnings: 15000,
+            permissions: ['label_management', 'artist_oversight'],
+            phone: '+44 20 7946 0965',
+            joinDate: '2023-06-15'
+          },
+          {
+            id: 11,
+            email: 'label.admin.urban@mscandco.com',
+            name: 'Urban Sounds Label Admin',
+            role: 'label_admin',
+            brand: 'Urban Sounds',
+            status: 'active',
+            lastLogin: '2024-01-13T16:30:00Z',
+            releases: 8,
+            totalStreams: 180000,
+            totalEarnings: 12000,
+            permissions: ['label_management', 'artist_oversight'],
+            phone: '+44 20 7946 0966',
+            joinDate: '2023-08-20'
+          },
+          // Add artists
+          ...ARTISTS.map(artist => ({
+            id: artist.id,
+            email: `${artist.name.toLowerCase().replace(/\s+/g, '.')}@artist.com`,
+            name: artist.name,
+            role: 'artist',
+            brand: artist.brand || artist.label || 'YHWH MSC',
+            status: artist.status || 'active',
+            lastLogin: artist.lastLogin || '2024-01-15T10:30:00Z',
+            releases: artist.releases || 0,
+            totalStreams: artist.totalStreams || 0,
+            totalEarnings: artist.totalEarnings || 0,
+            permissions: ['releases', 'earnings', 'analytics'],
+            phone: artist.phone || '+44 20 7946 0960',
+            joinDate: artist.joinDate || '2024-01-01',
+            primaryGenre: artist.primaryGenre
+          }))
+        ];
+
+        // Filter users based on current user role
+        if (role === 'company_admin') {
+          // Company admins can only see artists and label admins
+          return allUsers.filter(user => ['artist', 'label_admin'].includes(user.role));
+        } else if (role === 'super_admin') {
+          // Super admins can see all users
+          return allUsers;
+        }
+        
+        return [];
+      };
+      
+      setUsers(loadUsers());
       setLoading(false);
     }
   }, [isAuthenticated, isLoading, user, router]);
