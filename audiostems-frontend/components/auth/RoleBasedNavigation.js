@@ -234,7 +234,7 @@ export default function RoleBasedNavigation() {
                   Analytics
                 </Link>
                 <Link
-                  href="/distribution-partner/dashboard"
+                  href="/distribution/workflow"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Distribution
@@ -337,7 +337,7 @@ export default function RoleBasedNavigation() {
                   Analytics
                 </Link>
                 <Link
-                  href="/distribution-partner/dashboard"
+                  href="/distribution/workflow"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Distribution
