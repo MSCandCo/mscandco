@@ -783,6 +783,22 @@ function ViewUserModal({ user, onClose, onEdit }) {
               <p className="text-gray-900">{user.phone || 'Not provided'}</p>
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Earnings</label>
+              <p className="text-gray-900 font-semibold">{formatCurrency(user.totalEarnings || 0, selectedCurrency)}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Approved Artist</label>
+              <p className="text-gray-900">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  user.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' : 
+                  user.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {user.approvalStatus === 'approved' ? 'Yes' : 
+                   user.approvalStatus === 'pending' ? 'Pending' : 'No'}
+                </span>
+              </p>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
               <p className="text-gray-900">{new Date(user.joinDate).toLocaleDateString()}</p>
             </div>
