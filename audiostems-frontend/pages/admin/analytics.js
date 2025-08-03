@@ -9,6 +9,7 @@ import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";
 import CurrencySelector, { formatCurrency, useCurrencySync } from "@/components/shared/CurrencySelector";
+import { getUserRole } from "@/lib/auth0-config";
 
 function AdminAnalytics() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -37,7 +38,10 @@ function AdminAnalytics() {
     { id: 10, user: 'Rock Legends', song: 'Classic Hit (Live)', date: '2024-01-12', type: 'master' }
   ];
 
-  const mockUserStats = [
+  // Get user role for filtering
+  const userRole = getUserRole(user);
+
+  const allUserStats = [
     { id: 1, name: 'YHWH MSC', role: 'artist', status: 'active', releases: 6, streams: 125000, earnings: 2840 },
     { id: 2, name: 'Global Superstar', role: 'artist', status: 'active', releases: 1, streams: 2800000, earnings: 45600 },
     { id: 3, name: 'Seoul Stars', role: 'artist', status: 'active', releases: 1, streams: 4500000, earnings: 67200 },
@@ -51,8 +55,15 @@ function AdminAnalytics() {
     { id: 11, name: 'Film Composer Orchestra', role: 'artist', status: 'pending', releases: 1, streams: 0, earnings: 0 },
     { id: 12, name: 'Nashville Dreams', role: 'artist', status: 'inactive', releases: 1, streams: 0, earnings: 0 },
     { id: 13, name: 'Super Admin User', role: 'super_admin', status: 'active', releases: 0, streams: 0, earnings: 0 },
-    { id: 14, name: 'Company Admin User', role: 'company_admin', status: 'active', releases: 0, streams: 0, earnings: 0 }
+    { id: 14, name: 'Company Admin User', role: 'company_admin', status: 'active', releases: 0, streams: 0, earnings: 0 },
+    { id: 15, name: 'YHWH Label Admin', role: 'label_admin', status: 'active', releases: 12, streams: 250000, earnings: 15000 },
+    { id: 16, name: 'Urban Sounds Label Admin', role: 'label_admin', status: 'active', releases: 8, streams: 180000, earnings: 12000 }
   ];
+
+  // Filter stats based on current user role
+  const mockUserStats = userRole === 'company_admin' 
+    ? allUserStats.filter(user => ['artist', 'label_admin'].includes(user.role))
+    : allUserStats;
 
   // Calculate platform totals with currency support
   const totalRevenue = mockUserStats.reduce((sum, user) => sum + user.earnings, 0);

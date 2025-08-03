@@ -215,7 +215,7 @@ function DistributionPartnerDashboard() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export error:', error);
-      alert('Export failed: ' + error.message);
+      console.error('Export failed:', error.message);
     }
   };
 
@@ -285,7 +285,7 @@ function DistributionPartnerDashboard() {
                 filters={filters}
                 onExportStart={() => console.log('Export started')}
                 onExportComplete={() => console.log('Export completed')}
-                onExportError={(error) => alert('Export failed: ' + error)}
+                onExportError={(error) => console.error('Export failed:', error)}
                 variant="blue"
                 size="sm"
               />

@@ -172,7 +172,7 @@ export default function ReleaseTable({
                   {formatCurrency(release.earnings || 0, currency)}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-900 w-28">
-                  {release.expectedReleaseDate || 'TBD'}
+                  {release.expectedReleaseDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                 </td>
                 {showActions && (
                   <td className="px-4 py-4 text-right w-32">

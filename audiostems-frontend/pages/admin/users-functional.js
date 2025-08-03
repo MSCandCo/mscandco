@@ -32,102 +32,55 @@ export default function AdminUsersPage() {
   // Get user role
   const userRole = getUserRole(user);
 
-  // Get all users data based on current user role
-  const getAllUsers = () => {
-    const allUsers = [
-      {
-        id: 1,
-        email: 'superadmin@mscandco.com',
-        name: 'Super Admin User',
-        role: 'super_admin',
-        brand: 'MSC & Co',
-        status: 'active',
-        lastLogin: '2024-01-15T10:30:00Z',
-        releases: 0,
-        totalStreams: 0,
-        totalEarnings: 0,
-        permissions: ['all'],
-        phone: '+44 20 7946 0958',
-        joinDate: '2023-01-01'
-      },
-      {
-        id: 2,
-        email: 'companyadmin@mscandco.com',
-        name: 'Company Admin User',
-        role: 'company_admin',
-        brand: 'MSC & Co',
-        status: 'active',
-        lastLogin: '2024-01-14T15:45:00Z',
-        releases: 0,
-        totalStreams: 0,
-        totalEarnings: 0,
-        permissions: ['user_management', 'content_oversight'],
-        phone: '+44 20 7946 0959',
-        joinDate: '2023-01-01'
-      },
-      // Add label admins
-      {
-        id: 10,
-        email: 'label.admin.yhwh@mscandco.com',
-        name: 'YHWH Label Admin',
-        role: 'label_admin',
-        brand: 'YHWH MSC',
-        status: 'active',
-        lastLogin: '2024-01-14T12:00:00Z',
-        releases: 12,
-        totalStreams: 250000,
-        totalEarnings: 15000,
-        permissions: ['label_management', 'artist_oversight'],
-        phone: '+44 20 7946 0965',
-        joinDate: '2023-06-15'
-      },
-      {
-        id: 11,
-        email: 'label.admin.urban@mscandco.com',
-        name: 'Urban Sounds Label Admin',
-        role: 'label_admin',
-        brand: 'Urban Sounds',
-        status: 'active',
-        lastLogin: '2024-01-13T16:30:00Z',
-        releases: 8,
-        totalStreams: 180000,
-        totalEarnings: 12000,
-        permissions: ['label_management', 'artist_oversight'],
-        phone: '+44 20 7946 0966',
-        joinDate: '2023-08-20'
-      },
-      // Add artists
-      ...ARTISTS.map(artist => ({
-        id: artist.id,
-        email: `${artist.name.toLowerCase().replace(/\s+/g, '.')}@artist.com`,
-        name: artist.name,
-        role: 'artist',
-        brand: artist.brand || artist.label || 'YHWH MSC',
-        status: artist.status || 'active',
-        lastLogin: artist.lastLogin || '2024-01-15T10:30:00Z',
-        releases: artist.releases || 0,
-        totalStreams: artist.totalStreams || 0,
-        totalEarnings: artist.totalEarnings || 0,
-        permissions: ['releases', 'earnings', 'analytics'],
-        phone: artist.phone || '+44 20 7946 0960',
-        joinDate: artist.joinDate || '2024-01-01',
-        primaryGenre: artist.primaryGenre
-      }))
-    ];
-
-    // Filter users based on current user role
-    if (userRole === 'company_admin') {
-      // Company admins can only see artists and label admins
-      return allUsers.filter(user => ['artist', 'label_admin'].includes(user.role));
-    } else if (userRole === 'super_admin') {
-      // Super admins can see all users
-      return allUsers;
-    }
-    
-    return [];
-  };
-
-  const [users, setUsers] = useState(getAllUsers());
+  // Mock users data (from your existing data)
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      email: 'superadmin@mscandco.com',
+      name: 'Super Admin User',
+      role: 'super_admin',
+      brand: 'MSC & Co',
+      status: 'active',
+      lastLogin: '2024-01-15T10:30:00Z',
+      releases: 0,
+      totalStreams: 0,
+      totalEarnings: 0,
+      permissions: ['all'],
+      phone: '+44 20 7946 0958',
+      joinDate: '2023-01-01'
+    },
+    {
+      id: 2,
+      email: 'companyadmin@mscandco.com',
+      name: 'Company Admin User',
+      role: 'company_admin',
+      brand: 'MSC & Co',
+      status: 'active',
+      lastLogin: '2024-01-14T15:45:00Z',
+      releases: 0,
+      totalStreams: 0,
+      totalEarnings: 0,
+      permissions: ['user_management', 'content_oversight'],
+      phone: '+44 20 7946 0959',
+      joinDate: '2023-01-01'
+    },
+    ...ARTISTS.map(artist => ({
+      id: artist.id,
+      email: `${artist.name.toLowerCase().replace(/\s+/g, '.')}@artist.com`,
+      name: artist.name,
+      role: 'artist',
+      brand: artist.brand || artist.label || 'YHWH MSC',
+      status: artist.status || 'active',
+      lastLogin: artist.lastLogin || '2024-01-15T10:30:00Z',
+      releases: artist.releases || 0,
+      totalStreams: artist.totalStreams || 0,
+      totalEarnings: artist.totalEarnings || 0,
+      permissions: ['releases', 'earnings', 'analytics'],
+      phone: artist.phone || '+44 20 7946 0960',
+      joinDate: artist.joinDate || '2024-01-01',
+      primaryGenre: artist.primaryGenre
+    }))
+  ]);
 
   // Check admin access
   useEffect(() => {
@@ -175,14 +128,6 @@ export default function AdminUsersPage() {
   };
 
   const handleDeleteUser = (userId) => {
-    // Check if current user has permission to delete this user
-    const userToDelete = users.find(u => u.id === userId);
-    if (userRole === 'company_admin' && !['artist', 'label_admin'].includes(userToDelete?.role)) {
-      setSuccessMessage('You do not have permission to delete this user.');
-      setShowSuccessModal(true);
-      return;
-    }
-    
     if (confirm('Are you sure you want to delete this user?')) {
       setUsers(prev => prev.filter(u => u.id !== userId));
       setSuccessMessage('User deleted successfully!');
@@ -196,12 +141,7 @@ export default function AdminUsersPage() {
       setUsers(prev => prev.map(u => u.id === userData.id ? { ...u, ...userData } : u));
       setSuccessMessage('User updated successfully!');
     } else {
-      // Add new user (only super admins can do this)
-      if (userRole !== 'super_admin') {
-        setSuccessMessage('You do not have permission to add new users.');
-        setShowSuccessModal(true);
-        return;
-      }
+      // Add new user
       const newUser = { ...userData, id: Date.now() };
       setUsers(prev => [...prev, newUser]);
       setSuccessMessage('User added successfully!');
@@ -241,11 +181,8 @@ export default function AdminUsersPage() {
   return (
     <MainLayout>
       <SEO 
-        title={userRole === 'company_admin' ? 'User Overview' : 'User Management'}
-        description={userRole === 'company_admin' 
-          ? 'View and edit artists and label administrators' 
-          : 'Manage users and their roles across the platform'
-        }
+        title="User Management"
+        description="Manage users and their roles across the platform"
       />
       
       <div className="min-h-screen bg-gray-50">
@@ -254,14 +191,9 @@ export default function AdminUsersPage() {
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold mb-2">
-                  {userRole === 'company_admin' ? 'User Overview' : 'User Management'}
-                </h1>
+                <h1 className="text-3xl font-bold mb-2">User Management</h1>
                 <p className="text-blue-100 text-lg">
-                  {userRole === 'company_admin' 
-                    ? 'View and edit artists and label administrators' 
-                    : 'Manage users and their roles across the platform'
-                  }
+                  Manage users and their roles across the platform
                 </p>
               </div>
               <div className="text-right">
@@ -274,20 +206,13 @@ export default function AdminUsersPage() {
           {/* Controls */}
           <div className="flex justify-between items-center mb-6">
             <CurrencySelector />
-            {userRole === 'super_admin' && (
-              <button
-                onClick={handleAddUser}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add New User
-              </button>
-            )}
-            {userRole === 'company_admin' && (
-              <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
-                View & Edit Access Only
-              </div>
-            )}
+            <button
+              onClick={handleAddUser}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New User
+            </button>
           </div>
 
           {/* Stats Cards */}
@@ -365,15 +290,12 @@ export default function AdminUsersPage() {
                   onChange={(e) => setRoleFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
-                                  <option value="all">All Roles</option>
-                {userRole === 'super_admin' && (
-                  <>
-                    <option value="super_admin">Super Admin</option>
-                    <option value="company_admin">Company Admin</option>
-                  </>
-                )}
-                <option value="label_admin">Label Admin</option>
-                <option value="artist">Artist</option>
+                  <option value="all">All Roles</option>
+                  <option value="super_admin">Super Admin</option>
+                  <option value="company_admin">Company Admin</option>
+                  <option value="label_admin">Label Admin</option>
+                  <option value="artist">Artist</option>
+                  <option value="distribution_partner">Distribution Partner</option>
                 </select>
               </div>
               
@@ -596,13 +518,9 @@ function UserModal({ title, user = null, onClose, onSave }) {
               >
                 <option value="artist">Artist</option>
                 <option value="label_admin">Label Admin</option>
-                {userRole === 'super_admin' && (
-                  <>
-                    <option value="distribution_partner">Distribution Partner</option>
-                    <option value="company_admin">Company Admin</option>
-                    <option value="super_admin">Super Admin</option>
-                  </>
-                )}
+                <option value="distribution_partner">Distribution Partner</option>
+                <option value="company_admin">Company Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
 

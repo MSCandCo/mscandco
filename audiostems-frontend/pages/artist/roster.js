@@ -260,7 +260,8 @@ export default function ArtistRoster() {
     e.preventDefault();
     
     if (!validateISNI(formData.isni)) {
-      alert('Invalid ISNI format. Must be 16 digits with last character being a digit or X.');
+      setSuccessMessage('Invalid ISNI format. Must be 16 digits with last character being a digit or X.');
+      setShowSuccessModal(true);
       return;
     }
 

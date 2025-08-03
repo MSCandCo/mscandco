@@ -70,7 +70,7 @@ export default function FAQ() {
       {
         id: 'rel-4',
         question: 'Can I edit a release after it\'s submitted?',
-        answer: 'You can edit releases that are in "Draft" or "Under Review" status. Once a release is "Live", editing capabilities are limited to protect distribution integrity. Contact support for any necessary changes to live releases.'
+        answer: 'You can edit releases that are in "Draft" or "In Review" status. Once a release is "Live", editing capabilities are limited to protect distribution integrity. Contact support for any necessary changes to live releases.'
       },
       {
         id: 'rel-5',

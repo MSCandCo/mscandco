@@ -59,8 +59,8 @@ export const MOCK_VIDEOS = {
     likes: '567',
     releaseDate: '2025-04-05',
     performance: 'upcoming',
-    expectedStreams: 'TBD',
-    status: 'Under Review'
+    expectedStreams: '250K+',
+    status: 'In Review'
   }
 };
 
@@ -503,7 +503,7 @@ export const RELEASES = [
     streams: 0,
     lastUpdated: '2024-11-20',
     cover: '🎼',
-    feedback: 'Under review - coordinating with film release schedule',
+          feedback: 'In review - coordinating with film release schedule',
     marketingPlan: 'Film promotion tie-in, classical radio, streaming features',
     musicFiles: ['main_theme.wav', 'battle_scene.wav', 'love_theme.wav', 'end_credits.wav'],
     artworkFile: 'movie_soundtrack_cover.jpg',

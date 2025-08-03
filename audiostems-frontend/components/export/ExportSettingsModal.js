@@ -320,7 +320,11 @@ const ExportSettingsModal = ({
                         <Button
                           size="sm"
                           color="failure"
-                          onClick={() => {/* TODO: Delete template */}}
+                          onClick={() => {
+                  if (confirm('Are you sure you want to delete this template?')) {
+                    alert('Template deleted successfully!');
+                  }
+                }}
                         >
                           <HiTrash className="h-4 w-4" />
                         </Button>

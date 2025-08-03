@@ -239,6 +239,12 @@ export default function RoleBasedNavigation() {
                 >
                   Distribution
                 </Link>
+                <Link
+                  href="/super-admin/ghost-login"
+                  className="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium border border-red-200 hover:border-red-300"
+                >
+                  Ghost Login
+                </Link>
               </div>
             </div>
 
@@ -307,7 +313,7 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
-                  href="/admin/dashboard"
+                  href="/dashboard"
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Dashboard
@@ -323,6 +329,12 @@ export default function RoleBasedNavigation() {
                   className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Content
+                </Link>
+                <Link
+                  href="/admin/analytics"
+                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Analytics
                 </Link>
                 <Link
                   href="/distribution-partner/dashboard"

@@ -540,7 +540,7 @@ const mockEditRequests = [
     submissionDate: '2024-02-15',
     expectedReleaseDate: '2024-05-01',
     assets: '5 remixes, artwork',
-    feedback: 'Exciting remix package under review',
+            feedback: 'Exciting remix package in review',
     marketingPlan: 'Electronic music promotion focus',
     publishingNotes: 'Official remixes by top electronic producers',
     trackListing: [
@@ -859,7 +859,7 @@ const mockEditRequests = [
     submissionDate: '2024-11-20',
     expectedReleaseDate: '2025-04-05',
     assets: '22 orchestral pieces, movie tie-in artwork',
-    feedback: 'Under review - coordinating with film release schedule',
+            feedback: 'In review - coordinating with film release schedule',
     marketingPlan: 'Film promotion tie-in, classical radio, streaming features',
     publishingNotes: 'Epic orchestral soundtrack for major motion picture',
     trackListing: [

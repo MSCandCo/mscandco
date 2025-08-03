@@ -1,12 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
 import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
+import { ARTISTS } from '../../lib/mockData';
 
 export default function CreateReleaseModal({ isOpen, onClose, existingRelease = null, isEditRequest = false, isApprovalEdit = false, userRole = 'artist' }) {
+  
+  // Get approved artists for label admin dropdown
+  const getApprovedArtists = () => {
+    if (userRole === 'label_admin') {
+      // Filter artists with approvalStatus 'approved' and label 'YHWH MSC'
+      return ARTISTS.filter(artist => 
+        artist.approvalStatus === 'approved' && 
+        artist.label === 'YHWH MSC'
+      );
+    }
+    return [];
+  };
+
+  const approvedArtists = getApprovedArtists();
+
   const [formData, setFormData] = useState({
     projectName: 'New Release Project',
-    artist: 'YHWH MSC',
+    artist: userRole === 'label_admin' && approvedArtists.length > 0 ? approvedArtists[0].name : 'YHWH MSC',
     releaseType: 'Single',
     genre: 'Hip Hop',
     status: 'draft',
@@ -21,6 +37,21 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Auto-save functionality for artist and label admin
+  const [hasStartedEditing, setHasStartedEditing] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const autoSaveTimeoutRef = useRef(null);
+
+  // Cleanup auto-save timeout when modal closes
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Populate form with existing release data when modal opens
   React.useEffect(() => {
@@ -115,6 +146,54 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     }
   };
 
+  // Auto-save function for draft saves
+  const autoSaveDraft = async () => {
+    if (userRole === 'artist' || userRole === 'label_admin') {
+      setIsSaving(true);
+      try {
+        // Simulate API call to save draft
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // In production, this would be an API call:
+        // await fetch('/api/releases/save-draft', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ ...formData, status: 'draft' })
+        // });
+        
+        setLastSaved(new Date());
+        console.log('Auto-saved draft:', { ...formData, status: 'draft' });
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  // Handle form changes with auto-save trigger
+  const handleFormChange = (field, value) => {
+    // Mark as started editing on first change
+    if (!hasStartedEditing) {
+      setHasStartedEditing(true);
+      // Auto-save to draft immediately when user starts editing
+      setTimeout(() => autoSaveDraft(), 100);
+    }
+
+    // Update form data
+    handleInputChange(field, value);
+
+    // Clear existing timeout and set new one for auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Auto-save after 3 seconds of inactivity
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSaveDraft();
+    }, 3000);
+  };
+
   const handleMusicFileUpload = (e) => {
     const files = Array.from(e.target.files);
     setFormData(prev => ({
@@ -184,13 +263,22 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     setIsSubmitting(true);
     
     try {
+      // For artist and label admin, automatically set status to 'submitted' on form submission
+      const submissionData = { ...formData };
+      if (userRole === 'artist' || userRole === 'label_admin') {
+        submissionData.status = RELEASE_STATUSES.SUBMITTED;
+      }
+
       if (isEditRequest) {
-        console.log('Submitting edit request:', formData);
+        console.log('Submitting edit request:', submissionData);
         await new Promise(resolve => setTimeout(resolve, 2000));
         alert('Edit request submitted successfully! The distribution team will review your changes.');
       } else {
-        console.log('Submitting release:', formData);
+        console.log('Submitting release:', submissionData);
         await new Promise(resolve => setTimeout(resolve, 2000));
+        if (userRole === 'artist' || userRole === 'label_admin') {
+          alert('Release submitted successfully! Your release has been sent for review.');
+        }
       }
       onClose();
     } catch (error) {
@@ -218,6 +306,39 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
           </button>
         </div>
 
+        {/* Auto-save indicator for artist and label admin */}
+        {(userRole === 'artist' || userRole === 'label_admin') && (
+          <div className="px-6 pb-4">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-2">
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">Saving draft...</span>
+                  </>
+                ) : lastSaved ? (
+                  <>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-600">
+                      Auto-saved at {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </>
+                ) : hasStartedEditing ? (
+                  <>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span className="text-gray-600">Changes will be auto-saved</span>
+                  </>
+                ) : null}
+              </div>
+              {hasStartedEditing && (
+                <span className="text-xs text-gray-500">
+                  Submit to send for review
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6">
           {/* Basic Information */}
@@ -229,7 +350,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
               <input
                 type="text"
                 value={formData.projectName}
-                onChange={(e) => handleInputChange('projectName', e.target.value)}
+                onChange={(e) => handleFormChange('projectName', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.projectName ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -244,15 +365,32 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Artist *
               </label>
-              <input
-                type="text"
-                value={formData.artist}
-                onChange={(e) => handleInputChange('artist', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.artist ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter artist name"
-              />
+              {userRole === 'label_admin' ? (
+                <select
+                  value={formData.artist}
+                  onChange={(e) => handleFormChange('artist', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.artist ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select an approved artist</option>
+                  {approvedArtists.map((artist) => (
+                    <option key={artist.id} value={artist.name}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={formData.artist}
+                  onChange={(e) => handleFormChange('artist', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.artist ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter artist name"
+                />
+              )}
               {errors.artist && (
                 <p className="text-red-500 text-sm mt-1">{errors.artist}</p>
               )}
@@ -313,27 +451,30 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {Object.entries(RELEASE_STATUSES)
-                  .filter(([, value]) => {
-                    if (userRole === 'label_admin') {
-                      return isStatusEditableByLabelAdmin(value);
-                    }
-                    return isStatusEditableByArtist(value);
-                  })
-                  .map(([, value]) => (
-                    <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
-                  ))}
-              </select>
-            </div>
+            {/* Status dropdown only visible for distribution partner, company admin, and super admin */}
+            {(userRole === 'distribution_partner' || userRole === 'company_admin' || userRole === 'super_admin') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {Object.entries(RELEASE_STATUSES)
+                    .filter(([, value]) => {
+                      if (userRole === 'label_admin') {
+                        return isStatusEditableByLabelAdmin(value);
+                      }
+                      return isStatusEditableByArtist(value);
+                    })
+                    .map(([, value]) => (
+                      <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
+                    ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

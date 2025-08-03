@@ -19,7 +19,8 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release, curr
     switch (status) {
       case 'draft': return 'Draft';
       case 'submitted': return 'Submitted';
-      case 'under_review': return 'Under Review';
+      case 'under_review': return 'In Review';
+      case 'approval_required': return 'Approvals';
       case 'completed': return 'Completed';
       case 'live': return 'Live';
       default: return status;

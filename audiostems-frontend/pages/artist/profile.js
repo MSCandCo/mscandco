@@ -123,14 +123,16 @@ export default function ArtistProfile() {
     // Special handling for email and phone to sync with Auth0
     if (field === 'email' && user?.email) {
       if (value !== user.email) {
-        alert('Email must match your login credentials. Please contact support to change your login email.');
+        setSuccessMessage('Email must match your login credentials. Please contact support to change your login email.');
+        setShowSuccessModal(true);
         return;
       }
     }
     
     if (field === 'phone' && user?.phone_number) {
       if (value !== user.phone_number) {
-        alert('Phone number must match your login credentials. Please contact support to change your login phone.');
+        setSuccessMessage('Phone number must match your login credentials. Please contact support to change your login phone.');
+        setShowSuccessModal(true);
         return;
       }
     }

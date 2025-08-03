@@ -189,7 +189,7 @@ const ExportButton = ({
             <Dropdown.Divider />
             <Dropdown.Item
               icon={HiCog}
-              onClick={() => {/* TODO: Open export settings modal */}}
+              onClick={() => alert('Export settings will be available in the next update!')}
               className="text-blue-600"
             >
               Export Settings

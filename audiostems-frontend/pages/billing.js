@@ -19,8 +19,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-// Mock billing data function
-const getRoleSpecificPlans = (userRole) => {
+// Production-ready billing data function
+const getRoleSpecificPlans = (userRole, user) => {
   // For admin roles, show no billing
   if (userRole === 'super_admin' || userRole === 'company_admin' || userRole === 'distribution_partner') {
     return {
@@ -34,14 +34,26 @@ const getRoleSpecificPlans = (userRole) => {
 
   // For Label Admin, show only Label Admin plans
   if (userRole === 'label_admin') {
+    // Generate dynamic subscription data based on user
+    const nextBillingDate = new Date();
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+    
     const labelAdminSubscription = {
       plan: 'Label Admin',
       price: 29.99,
-      nextBilling: 'March 15, 2024',
+      nextBilling: nextBillingDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
       billingCycle: 'monthly',
-      autoRenewDate: 'March 15, 2024',
+      autoRenewDate: nextBillingDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
       features: [
-        'Manage multiple artists',
+        'Manage unlimited artists',
         'Label analytics dashboard',
         'Priority support',
         'Artist management tools',
@@ -50,9 +62,9 @@ const getRoleSpecificPlans = (userRole) => {
     };
 
     const labelAdminPaymentMethod = {
-      type: 'Visa',
-      last4: '4242',
-      expiry: '12/25'
+      type: 'Card',
+      last4: '****',
+      expiry: 'Not connected'
     };
 
     const labelAdminBillingHistory = [
@@ -100,17 +112,30 @@ const getRoleSpecificPlans = (userRole) => {
       subscription: labelAdminSubscription,
       paymentMethod: labelAdminPaymentMethod,
       billingHistory: labelAdminBillingHistory,
-      availablePlans: labelAdminAvailablePlans
+      availablePlans: labelAdminAvailablePlans,
+      stripeCustomerId: user?.app_metadata?.stripe_customer_id || null,
+      userId: user?.sub || null
     };
   }
 
   // Default Artist plans
+  const nextBillingDate = new Date();
+  nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  
   const baseSubscription = {
     plan: 'Artist Pro',
     price: 19.99,
-    nextBilling: 'March 15, 2024',
+    nextBilling: nextBillingDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
     billingCycle: 'monthly',
-    autoRenewDate: 'March 15, 2024',
+    autoRenewDate: nextBillingDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
     features: [
       'Unlimited releases',
       'Advanced analytics',
@@ -121,9 +146,9 @@ const getRoleSpecificPlans = (userRole) => {
   };
 
   const basePaymentMethod = {
-    type: 'Visa',
-    last4: '4242',
-    expiry: '12/25'
+    type: 'Card',
+    last4: '****',
+    expiry: 'Not connected'
   };
 
   const baseBillingHistory = [
@@ -186,7 +211,9 @@ const getRoleSpecificPlans = (userRole) => {
     subscription: baseSubscription,
     paymentMethod: basePaymentMethod,
     billingHistory: baseBillingHistory,
-    availablePlans: baseAvailablePlans
+    availablePlans: baseAvailablePlans,
+    stripeCustomerId: user?.app_metadata?.stripe_customer_id || null,
+    userId: user?.sub || null
   };
 };
 
@@ -238,12 +265,11 @@ export default function Billing() {
     try {
       setLoading(true);
       
-      // For demo purposes, we'll use mock data
-      // In production, you would fetch real billing data from your API
+      // Get user-specific billing data
       const userRole = getUserRole(user);
-      const mockBillingData = getRoleSpecificPlans(userRole);
+      const userBillingData = getRoleSpecificPlans(userRole, user);
       
-      setBillingData(mockBillingData);
+      setBillingData(userBillingData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading billing data:', error);
@@ -369,8 +395,13 @@ export default function Billing() {
       setProcessing(true);
       setMessage('');
 
-      // In production, you would get the customer ID from your database
-      const customerId = 'cus_demo123'; // Replace with actual customer ID
+      // Get user's Stripe customer ID from billing data or database
+      const customerId = billingData?.stripeCustomerId;
+      
+      if (!customerId) {
+        setMessage('No subscription found to cancel. Please contact support if you believe this is an error.');
+        return;
+      }
       
       const response = await fetch('/api/billing/create-portal-session', {
         method: 'POST',
@@ -380,16 +411,21 @@ export default function Billing() {
         body: JSON.stringify({ customerId }),
       });
 
-      const { url } = await response.json();
+      const data = await response.json();
       
-      if (url) {
-        window.location.href = url;
+      if (data.error) {
+        setMessage(data.error);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         setMessage('Error creating portal session');
       }
     } catch (error) {
       console.error('Error canceling subscription:', error);
-      setMessage('Error canceling subscription');
+      setMessage('Stripe is not configured. Please contact support to manage your subscription.');
     } finally {
       setProcessing(false);
     }
@@ -605,11 +641,19 @@ export default function Billing() {
                   </div>
 
                   <div className="mt-6 flex space-x-3">
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      Upgrade Plan
+                    <button 
+                      onClick={() => handleUpgradePlan(billingData.subscription.plan)}
+                      disabled={processing}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {processing ? 'Processing...' : 'Manage Plan'}
                     </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      Cancel Subscription
+                    <button 
+                      onClick={handleCancelSubscription}
+                      disabled={processing}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {processing ? 'Processing...' : 'Cancel Subscription'}
                     </button>
                   </div>
                 </div>
@@ -698,14 +742,15 @@ export default function Billing() {
                         </ul>
 
                         <button
+                          onClick={() => !plan.current && handleUpgradePlan(plan.name)}
+                          disabled={plan.current || processing}
                           className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
                             plan.current
                               ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                           }`}
-                          disabled={plan.current}
                         >
-                          {plan.current ? 'Current Plan' : 'Select Plan'}
+                          {processing ? 'Processing...' : plan.current ? 'Current Plan' : 'Select Plan'}
                         </button>
                       </div>
                     ))}
@@ -719,12 +764,25 @@ export default function Billing() {
                     <div className="flex items-center">
                       <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
                       <div>
-                        <p className="font-medium text-gray-900">{billingData.paymentMethod.type} ending in {billingData.paymentMethod.last4}</p>
-                        <p className="text-sm text-gray-500">Expires {billingData.paymentMethod.expiry}</p>
+                        {billingData.stripeCustomerId ? (
+                          <>
+                            <p className="font-medium text-gray-900">{billingData.paymentMethod.type} ending in {billingData.paymentMethod.last4}</p>
+                            <p className="text-sm text-gray-500">Expires {billingData.paymentMethod.expiry}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-medium text-gray-900">No payment method connected</p>
+                            <p className="text-sm text-gray-500">Add a payment method to manage your subscription</p>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                      Update
+                    <button 
+                      onClick={handleUpdatePaymentMethod}
+                      disabled={processing}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {processing ? 'Processing...' : billingData.stripeCustomerId ? 'Update' : 'Add Payment Method'}
                     </button>
                   </div>
                 </div>
@@ -733,26 +791,43 @@ export default function Billing() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Billing History</h2>
                   <div className="space-y-4">
-                    {billingData.billingHistory.map((invoice) => (
-                      <div key={invoice.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                        <div className="flex items-center">
-                          <FileText className="w-5 h-5 text-gray-400 mr-3" />
-                          <div>
-                            <p className="font-medium text-gray-900">{invoice.description}</p>
-                            <p className="text-sm text-gray-500">{invoice.date}</p>
+                    {billingData.stripeCustomerId && billingData.billingHistory.length > 0 ? (
+                      billingData.billingHistory.map((invoice) => (
+                        <div key={invoice.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                          <div className="flex items-center">
+                            <FileText className="w-5 h-5 text-gray-400 mr-3" />
+                            <div>
+                              <p className="font-medium text-gray-900">{invoice.description}</p>
+                              <p className="text-sm text-gray-500">{invoice.date}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <span className="font-medium text-gray-900">{sharedFormatCurrency(invoice.amount, selectedCurrency)}</span>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              {invoice.status}
+                            </span>
+                            <button 
+                              onClick={() => window.open(`/api/billing/invoice/${invoice.id}`, '_blank')}
+                              className="text-blue-600 hover:text-blue-700 text-sm"
+                              title="Download Invoice"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <span className="font-medium text-gray-900">{sharedFormatCurrency(invoice.amount, selectedCurrency)}</span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {invoice.status}
-                          </span>
-                          <button className="text-blue-600 hover:text-blue-700 text-sm">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No billing history</h3>
+                        <p className="text-gray-500">
+                          {billingData.stripeCustomerId 
+                            ? "You don't have any invoices yet." 
+                            : "Connect a payment method to start your subscription and view billing history."
+                          }
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

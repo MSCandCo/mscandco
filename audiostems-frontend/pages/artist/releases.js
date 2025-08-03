@@ -78,14 +78,14 @@ export default function ArtistReleases() {
         
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
         const artistReleases = getReleasesByArtist('yhwh_msc');
-        console.log('Loaded releases:', artistReleases.length, artistReleases.map(r => ({id: r.id, name: r.projectName, status: r.status})));
+
         setReleases(artistReleases);
         setIsLoadingData(false);
       } catch (error) {
         console.error('Error loading data:', error);
         // Fallback to centralized data
         const artistReleases = getReleasesByArtist('yhwh_msc');
-        console.log('Fallback loaded releases:', artistReleases.length, artistReleases.map(r => ({id: r.id, name: r.projectName, status: r.status})));
+
         setReleases(artistReleases);
         setIsLoadingData(false);
       }
@@ -98,13 +98,13 @@ export default function ArtistReleases() {
 
   // 🔍 ADVANCED FILTERING SYSTEM
   const filteredReleases = useMemo(() => {
-    console.log('Filtering with statusFilter:', statusFilter, 'releases count:', releases.length);
+
     let filtered = releases;
 
     // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(release => release.status === statusFilter);
-      console.log('After status filter:', filtered.length, 'releases');
+
     }
 
     // Search filter
@@ -126,7 +126,7 @@ export default function ArtistReleases() {
       filtered = filtered.filter(release => release.releaseType === typeFilter);
     }
 
-    console.log('Final filtered result:', filtered.length, 'releases');
+
     return filtered;
   }, [releases, statusFilter, searchTerm, genreFilter, typeFilter]);
 
@@ -140,84 +140,89 @@ export default function ArtistReleases() {
       approvalRequired: releases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length,
       completed: releases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length,
       live: releases.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
-      totalEarnings: releases.reduce((sum, r) => sum + (r.earnings || 0), 0),
+
       totalStreams: releases.reduce((sum, r) => sum + (r.streams || 0), 0)
     };
   }, [releases]);
 
   // 🎨 RENDER FUNCTIONS
   const renderReleaseCard = (release) => (
-    <div key={release.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{release.projectName}</h3>
-            <div className="flex items-center space-x-3 text-sm text-gray-600">
-              <span>{release.releaseType}</span>
-              <span>•</span>
-              <span>{release.genre}</span>
-              <span>•</span>
-              <span>{release.trackListing?.length || 1} tracks</span>
-            </div>
+    <div key={release.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+        {/* Status Badge - Full Width */}
+        <div className="flex justify-end mb-3">
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(release.status)}`}>
+            {getStatusIcon(release.status)}
+            <span className="ml-1.5">{getStatusLabel(release.status)}</span>
+          </span>
+        </div>
+        
+        {/* Project Info */}
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-3">{release.projectName}</h3>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            <span className="bg-white px-2 py-1 rounded-md font-medium">{release.releaseType}</span>
+            <span className="bg-white px-2 py-1 rounded-md">{release.genre}</span>
+            <span className="bg-white px-2 py-1 rounded-md">{release.trackListing?.length || 1} tracks</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-              {getStatusIcon(release.status)}
-              <span className="ml-1">{getStatusLabel(release.status)}</span>
-            </span>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(release.earnings || 0, selectedCurrency)}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Total Earnings</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">{(release.streams || 0).toLocaleString()}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Total Streams</div>
           </div>
         </div>
 
-        {/* Details */}
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-          <div>
-            <span className="text-gray-500">Submitted:</span>
-            <span className="ml-2 text-gray-900">{release.submissionDate || 'Not submitted'}</span>
+        {/* Timeline Info */}
+        <div className="space-y-3 mb-6">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-600">Submitted</span>
+            <span className="text-sm text-gray-900 font-medium">{release.submissionDate || 'Not submitted'}</span>
           </div>
-          <div>
-            <span className="text-gray-500">Expected Release:</span>
-            <span className="ml-2 text-gray-900">{release.expectedReleaseDate || 'TBD'}</span>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-600">Expected Release</span>
+                              <span className="text-sm text-gray-900 font-medium">{release.expectedReleaseDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
           </div>
-          <div>
-            <span className="text-gray-500">Earnings:</span>
-            <span className="ml-2 text-gray-900">{formatCurrency(release.earnings || 0, selectedCurrency)}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Streams:</span>
-            <span className="ml-2 text-gray-900">{(release.streams || 0).toLocaleString()}</span>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-600">Last Updated</span>
+            <span className="text-sm text-gray-900 font-medium">{release.lastUpdated || 'Unknown'}</span>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-gray-500">
-            Last updated: {release.lastUpdated || 'Unknown'}
-          </div>
-          <div className="flex space-x-2">
+        <div className="flex space-x-3">
+          <button
+            onClick={() => {
+              setSelectedRelease(release);
+              setIsViewModalOpen(true);
+            }}
+            className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View Details</span>
+          </button>
+          {isStatusEditableByArtist(release.status) && (
             <button
               onClick={() => {
                 setSelectedRelease(release);
-                setIsViewModalOpen(true);
+                setIsCreateModalOpen(true);
               }}
-              className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center space-x-1"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
             >
-              <Eye className="w-3 h-3" />
-              <span>View</span>
+              <FaEdit className="w-4 h-4" />
+              <span>Edit</span>
             </button>
-            {isStatusEditableByArtist(release.status) && (
-              <button
-                onClick={() => {
-                  setSelectedRelease(release);
-                  setIsCreateModalOpen(true);
-                }}
-                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center space-x-1"
-              >
-                <FaEdit className="w-3 h-3" />
-                <span>Edit</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -270,7 +275,7 @@ export default function ArtistReleases() {
             </div>
 
             {/* Interactive Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-8">
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === 'all' || statusFilter === 'all' ? 'bg-gray-200 shadow-md transform scale-105' : 'bg-gray-50 hover:bg-gray-100'
@@ -283,14 +288,12 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'DRAFT' || statusFilter === 'DRAFT' ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
+                  hoveredStatus === RELEASE_STATUSES.DRAFT || statusFilter === RELEASE_STATUSES.DRAFT ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('DRAFT')}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.DRAFT)}
                 onClick={() => {
-                  console.log('Clicking DRAFT card, current statusFilter:', statusFilter);
-                  setStatusFilter('DRAFT'); 
-                  setHoveredStatus('DRAFT');
-                  console.log('After click, should be DRAFT');
+                  setStatusFilter(RELEASE_STATUSES.DRAFT); 
+                  setHoveredStatus(RELEASE_STATUSES.DRAFT);
                 }}
               >
                 <div className="text-2xl font-bold text-yellow-800">{stats.draft}</div>
@@ -298,58 +301,55 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'SUBMITTED' || statusFilter === 'SUBMITTED' ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
+                  hoveredStatus === RELEASE_STATUSES.SUBMITTED || statusFilter === RELEASE_STATUSES.SUBMITTED ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('SUBMITTED')}
-                onClick={() => {setStatusFilter('SUBMITTED'); setHoveredStatus('SUBMITTED');}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.SUBMITTED)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.SUBMITTED); setHoveredStatus(RELEASE_STATUSES.SUBMITTED);}}
               >
                 <div className="text-2xl font-bold text-blue-800">{stats.submitted}</div>
                 <div className="text-sm text-blue-700">Submitted</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'UNDER_REVIEW' || statusFilter === 'UNDER_REVIEW' ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
+                  hoveredStatus === RELEASE_STATUSES.UNDER_REVIEW || statusFilter === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('UNDER_REVIEW')}
-                onClick={() => {setStatusFilter('UNDER_REVIEW'); setHoveredStatus('UNDER_REVIEW');}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.UNDER_REVIEW)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.UNDER_REVIEW); setHoveredStatus(RELEASE_STATUSES.UNDER_REVIEW);}}
               >
                 <div className="text-2xl font-bold text-orange-800">{stats.underReview}</div>
-                <div className="text-sm text-orange-700">Under Review</div>
+                <div className="text-sm text-orange-700">In Review</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'APPROVAL_REQUIRED' || statusFilter === 'APPROVAL_REQUIRED' ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
+                  hoveredStatus === RELEASE_STATUSES.APPROVAL_REQUIRED || statusFilter === RELEASE_STATUSES.APPROVAL_REQUIRED ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('APPROVAL_REQUIRED')}
-                onClick={() => {setStatusFilter('APPROVAL_REQUIRED'); setHoveredStatus('APPROVAL_REQUIRED');}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.APPROVAL_REQUIRED)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.APPROVAL_REQUIRED); setHoveredStatus(RELEASE_STATUSES.APPROVAL_REQUIRED);}}
               >
                 <div className="text-2xl font-bold text-purple-800">{stats.approvalRequired}</div>
-                <div className="text-sm text-purple-700">Approval Req.</div>
+                <div className="text-sm text-purple-700">Approvals</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'COMPLETED' || statusFilter === 'COMPLETED' ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
+                  hoveredStatus === RELEASE_STATUSES.COMPLETED || statusFilter === RELEASE_STATUSES.COMPLETED ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('COMPLETED')}
-                onClick={() => {setStatusFilter('COMPLETED'); setHoveredStatus('COMPLETED');}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.COMPLETED)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.COMPLETED); setHoveredStatus(RELEASE_STATUSES.COMPLETED);}}
               >
                 <div className="text-2xl font-bold text-indigo-800">{stats.completed}</div>
                 <div className="text-sm text-indigo-700">Completed</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === 'LIVE' || statusFilter === 'LIVE' ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
+                  hoveredStatus === RELEASE_STATUSES.LIVE || statusFilter === RELEASE_STATUSES.LIVE ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus('LIVE')}
-                onClick={() => {setStatusFilter('LIVE'); setHoveredStatus('LIVE');}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.LIVE)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.LIVE); setHoveredStatus(RELEASE_STATUSES.LIVE);}}
               >
                 <div className="text-2xl font-bold text-green-800">{stats.live}</div>
                 <div className="text-sm text-green-700">Live</div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-gray-900">{formatCurrency(stats.totalEarnings, selectedCurrency)}</div>
-                <div className="text-sm text-gray-600">Earnings</div>
-              </div>
+
             </div>
           </div>
         </div>
@@ -417,7 +417,7 @@ export default function ArtistReleases() {
                 </select>
               </div>
               
-              <div className="flex flex-col items-start space-y-2">
+              <div className="flex flex-col justify-end">
                 <button
                   onClick={() => {
                     setSearchTerm('');
@@ -425,9 +425,9 @@ export default function ArtistReleases() {
                     setGenreFilter('all');
                     setTypeFilter('all');
                   }}
-                  className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                  className="w-full px-3 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
-                  Clear
+                  Clear Filters
                 </button>
               </div>
             </div>

@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { FaPlus, FaEye, FaEdit, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
-import { Plus, Eye, Edit, Music, TrendingUp, DollarSign } from 'lucide-react';
+import { FaPlus, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
+import { Plus, Music, TrendingUp, DollarSign } from 'lucide-react';
 import { ARTISTS, RELEASES } from '../../lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import SuccessModal from '../../components/shared/SuccessModal';
@@ -420,21 +420,6 @@ export default function LabelAdminArtists() {
                 
                 <div className="flex justify-between items-center">
                   <p className="text-xs text-gray-500">Joined: {artist.joinDate}</p>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => setSelectedArtist(artist)}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="View Details"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button 
-                      className="text-gray-600 hover:text-gray-900"
-                      title="Edit Artist"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}
