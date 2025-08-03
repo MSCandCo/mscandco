@@ -8,7 +8,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { ARTISTS, RELEASES } from '../../lib/mockData';
+import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import { Avatar } from '../../components/shared/Avatar';
 import { SuccessModal } from '../../components/shared/SuccessModal';
@@ -31,7 +31,7 @@ export default function CompanyAdminApprovals() {
 
   // Get all artists for this brand
   const [artists, setArtists] = useState(
-    ARTISTS.filter(a => a.brand === brandName || a.label === brandName)
+    getUsers().filter(u => u.role === 'artist' && (u.brand === brandName || u.label === brandName))
   );
 
   // Check admin access

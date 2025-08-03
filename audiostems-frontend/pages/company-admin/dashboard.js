@@ -9,7 +9,8 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getDashboardStats, ARTISTS, RELEASES, getApprovedArtistsByLabel } from '../../lib/mockData';
+import { getDashboardStats, getApprovedArtistsByLabel } from '../../lib/mockData';
+import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 
 export default function CompanyAdminDashboard() {
@@ -27,8 +28,8 @@ export default function CompanyAdminDashboard() {
   const companyData = getDashboardStats('company_admin');
 
   // Get brand-specific data
-  const brandArtists = ARTISTS.filter(a => a.brand === brandName || a.label === brandName);
-  const brandReleases = RELEASES.filter(r => r.label === brandName || r.artist && brandArtists.find(a => a.name === r.artist));
+      const brandArtists = getUsers().filter(u => u.role === 'artist' && (u.brand === brandName || u.label === brandName));
+  const brandReleases = getReleases().filter(r => r.label === brandName || r.artist && brandArtists.find(a => a.name === r.artist));
   const approvedArtists = brandArtists.filter(a => a.approvalStatus === 'approved');
 
   // Check admin access

@@ -8,7 +8,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { getUserRole } from '../../lib/auth0-config';
-import { ARTISTS } from '../../lib/mockData';
+import { getUsers } from '../../lib/mockDatabase';
 
 export default function GhostLogin() {
   const { user, isLoading, isAuthenticated } = useAuth0();
@@ -22,7 +22,7 @@ export default function GhostLogin() {
   // Mock user database - in production this would come from your user management system
   const allUsers = [
     // Artists from our centralized data
-    ...ARTISTS.map(artist => ({
+    ...getUsers().filter(u => u.role === 'artist').map(artist => ({
       id: artist.id,
       name: artist.name,
       email: `${artist.name.toLowerCase().replace(/\s+/g, '.')}@artist.com`,

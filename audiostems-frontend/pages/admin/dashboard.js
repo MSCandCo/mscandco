@@ -11,7 +11,8 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getDashboardStats, ARTISTS, RELEASES } from '../../lib/mockData';
+import { getDashboardStats } from '../../lib/mockData';
+import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { getUserRole } from '../../lib/auth0-config';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '../../lib/constants';
 
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                 <span className="font-medium text-gray-900">Artists</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">{ARTISTS.length}</span>
+              <span className="text-2xl font-bold text-gray-900">{getUsers().filter(u => u.role === 'artist').length}</span>
             </div>
             
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
