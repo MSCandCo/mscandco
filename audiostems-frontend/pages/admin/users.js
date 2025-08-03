@@ -35,13 +35,30 @@ export default function AdminUsersPage() {
 
   // Get all users data from universal mock database based on current user role
   const getAllUsers = () => {
-    const allUsers = getUsers().map(user => ({
-      ...user,
-      // Ensure consistent field mapping
-      releases: user.totalReleases || 0,
-      totalStreams: user.totalStreams || 0,
-      totalEarnings: user.totalRevenue || user.totalEarnings || 0
-    }));
+    const allUsers = getUsers().map(user => {
+      if (user.role === 'label_admin') {
+        // For label admins, calculate aggregated data from their artists
+        const approvedArtists = getApprovedArtistsByLabel(user.labelId);
+        const totalReleases = approvedArtists.reduce((sum, artist) => sum + (artist.totalReleases || 0), 0);
+        const totalStreams = approvedArtists.reduce((sum, artist) => sum + (artist.totalStreams || 0), 0);
+        const totalEarnings = approvedArtists.reduce((sum, artist) => sum + (artist.totalRevenue || artist.totalEarnings || 0), 0);
+        
+        return {
+          ...user,
+          releases: totalReleases,
+          totalStreams: totalStreams,
+          totalEarnings: totalEarnings
+        };
+      } else {
+        // For other roles, use their individual data
+        return {
+          ...user,
+          releases: user.totalReleases || 0,
+          totalStreams: user.totalStreams || 0,
+          totalEarnings: user.totalRevenue || user.totalEarnings || 0
+        };
+      }
+    });
 
     // Filter users based on current user role
     if (userRole === 'company_admin') {
