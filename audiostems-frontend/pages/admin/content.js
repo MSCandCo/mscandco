@@ -3,7 +3,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import { 
   Music, Users, FileText, Search, Filter, Plus, Edit, Trash2, Eye,
-  TrendingUp, Download, Settings, BarChart3, Play, Pause, Globe
+  TrendingUp, Download, Settings, BarChart3, Play, Pause, Globe,
+  CheckCircle, Clock, AlertCircle, User
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -24,6 +25,9 @@ export default function AdminContentPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [playingAsset, setPlayingAsset] = useState(null);
 
   // Get user role
   const userRole = getUserRole(user);
@@ -78,23 +82,39 @@ export default function AdminContentPage() {
 
   const filteredArtistsForDisplay = artists.filter(artist => {
     const matchesSearch = artist.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         artist.primaryGenre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         artist.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                         artist.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         artist.genre?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
   const filteredSongs = songs.filter(song => {
     const matchesSearch = song.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          song.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         song.genre?.toLowerCase().includes(searchTerm.toLowerCase());
+                         song.releaseName?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
   // Handle actions
   const handleAction = (action, item) => {
-    console.log(`${action} action for:`, item);
-    setSuccessMessage(`${action} completed successfully!`);
-    setShowSuccessModal(true);
+    if (action === 'View Details' || action === 'View Profile') {
+      setSelectedItem(item);
+      setShowDetailsModal(true);
+    } else {
+      console.log(`${action} action for:`, item);
+      setSuccessMessage(`${action} completed successfully!`);
+      setShowSuccessModal(true);
+    }
+  };
+
+  // Handle asset playback
+  const handlePlayAsset = (asset) => {
+    if (playingAsset === asset.id) {
+      setPlayingAsset(null);
+    } else {
+      setPlayingAsset(asset.id);
+      // In a real app, this would trigger audio playback
+      console.log('Playing asset:', asset.title);
+    }
   };
 
   // Loading state
@@ -111,6 +131,52 @@ export default function AdminContentPage() {
     );
   }
 
+  // Group content by label for overview
+  const getContentByLabel = () => {
+    const labelGroups = {};
+    
+    artists.forEach(artist => {
+      const label = artist.label || 'Independent';
+      if (!labelGroups[label]) {
+        labelGroups[label] = {
+          name: label,
+          artists: [],
+          releases: [],
+          songs: [],
+          totalStreams: 0,
+          totalRevenue: 0
+        };
+      }
+      labelGroups[label].artists.push(artist);
+    });
+
+    releases.forEach(release => {
+      const label = release.label || 'Independent';
+      if (!labelGroups[label]) {
+        labelGroups[label] = {
+          name: label,
+          artists: [],
+          releases: [],
+          songs: [],
+          totalStreams: 0,
+          totalRevenue: 0
+        };
+      }
+      labelGroups[label].releases.push(release);
+      labelGroups[label].totalStreams += release.streams || 0;
+      labelGroups[label].totalRevenue += release.earnings || 0;
+    });
+
+    songs.forEach(song => {
+      const label = song.label || 'Independent';
+      if (labelGroups[label]) {
+        labelGroups[label].songs.push(song);
+      }
+    });
+
+    return Object.values(labelGroups);
+  };
+
   // Tab content renderer
   const renderTabContent = () => {
     switch (activeTab) {
@@ -120,366 +186,486 @@ export default function AdminContentPage() {
         return renderReleases();
       case 'artists':
         return renderArtists();
-      case 'songs':
-        return renderSongs();
+      case 'assets':
+        return renderAssets();
       default:
         return renderOverview();
     }
   };
 
-  const renderOverview = () => (
-    <div className="space-y-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Songs</p>
-              <p className="text-3xl font-bold text-gray-900">{contentStats.totalSongs}</p>
-              <p className="text-sm text-green-600 flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +12% this month
-              </p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <Music className="w-8 h-8 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Artists</p>
-              <p className="text-3xl font-bold text-gray-900">{contentStats.totalArtists}</p>
-              <p className="text-sm text-green-600 flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +8% this month
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-xl">
-              <Users className="w-8 h-8 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Streams</p>
-              <p className="text-3xl font-bold text-gray-900">{contentStats.totalStreams.toLocaleString()}</p>
-              <p className="text-sm text-green-600 flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +25% this month
-              </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-xl">
-              <BarChart3 className="w-8 h-8 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
-              <p className="text-sm text-green-600 flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +18% this month
-              </p>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-xl">
-              <Download className="w-8 h-8 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Recent Activity</h3>
-        <div className="space-y-4">
-          {RELEASES.slice(0, 5).map((release) => (
-            <div key={release.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
-                  {release.projectName.charAt(0)}
-                </div>
-                <div className="ml-4">
-                  <div className="font-medium text-gray-900">{release.projectName}</div>
-                  <div className="text-sm text-gray-500">by {release.artist} • {release.genre}</div>
-                </div>
+  const renderOverview = () => {
+    const labelData = getContentByLabel();
+    
+    return (
+      <div className="space-y-8">
+        {/* Overall Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Assets</p>
+                <p className="text-3xl font-bold text-gray-900">{contentStats.totalSongs}</p>
+                <p className="text-sm text-green-600 flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +12% this month
+                </p>
               </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">{RELEASE_STATUS_LABELS[release.status]}</div>
-                <div className="text-sm text-gray-500">{release.lastUpdated}</div>
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Music className="w-8 h-8 text-blue-600" />
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+          </div>
 
-  const renderReleases = () => (
-    <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search Releases</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by project, artist, or genre..."
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Artists</p>
+                <p className="text-3xl font-bold text-gray-900">{contentStats.totalArtists}</p>
+                <p className="text-sm text-green-600 flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +8% this month
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <Users className="w-8 h-8 text-green-600" />
+              </div>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All Status</option>
-              {Object.entries(RELEASE_STATUS_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Streams</p>
+                <p className="text-3xl font-bold text-gray-900">{contentStats.totalStreams.toLocaleString()}</p>
+                <p className="text-sm text-green-600 flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +25% this month
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <BarChart3 className="w-8 h-8 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-3xl font-bold text-gray-900">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
+                <p className="text-sm text-green-600 flex items-center mt-2">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +18% this month
+                </p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-xl">
+                <Download className="w-8 h-8 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content by Label */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Content Overview by Label</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artists</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Releases</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assets</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Streams</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {labelData.map((label, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">{label.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {label.artists.length}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {label.releases.length}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {label.songs.length}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {label.totalStreams.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatCurrency(label.totalRevenue, selectedCurrency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    );
+  };
 
-      {/* Releases List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900">Releases ({filteredReleases.length})</h3>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Release
-          </button>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {filteredReleases.map((release) => (
-            <div key={release.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
-                    {release.projectName.charAt(0)}
+  // Group releases by release name
+  const getGroupedReleases = () => {
+    const grouped = {};
+    filteredReleases.forEach(release => {
+      const key = release.projectName;
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(release);
+    });
+    return grouped;
+  };
+
+  const renderReleases = () => {
+    const groupedReleases = getGroupedReleases();
+    
+    return (
+      <div className="space-y-6">
+        {Object.entries(groupedReleases).map(([releaseName, releaseGroup]) => {
+          const mainRelease = releaseGroup[0];
+          return (
+            <div key={releaseName} className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{releaseName}</h3>
+                    <p className="text-sm text-gray-500">by {mainRelease.artist}</p>
                   </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-gray-900">{release.projectName}</h4>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>by {release.artist}</span>
-                      <span>•</span>
-                      <span>{release.genre}</span>
-                      <span>•</span>
-                      <span>{release.trackListing?.length || 1} tracks</span>
-                    </div>
-                    <div className="flex items-center mt-2 space-x-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}>
-                        {RELEASE_STATUS_LABELS[release.status]}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        Revenue: {formatCurrency(release.earnings || 0, selectedCurrency)}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        Streams: {(release.streams || 0).toLocaleString()}
-                      </span>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      mainRelease.status === RELEASE_STATUSES.LIVE ? 'bg-green-100 text-green-800' :
+                      mainRelease.status === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {RELEASE_STATUS_LABELS[mainRelease.status] || mainRelease.status}
+                    </span>
+                    <button
+                      onClick={() => handleAction('View Details', mainRelease)}
+                      className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Release Details */}
+              <div className="px-6 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Genre</p>
+                    <p className="text-sm text-gray-900">{mainRelease.genre}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Release Date</p>
+                    <p className="text-sm text-gray-900">{mainRelease.releaseDate || 'TBD'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Streams</p>
+                    <p className="text-sm text-gray-900">{(mainRelease.streams || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Earnings</p>
+                    <p className="text-sm text-gray-900">{formatCurrency(mainRelease.earnings || 0, selectedCurrency)}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => handleAction('View', release)}
-                    className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleAction('Edit', release)}
-                    className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </button>
-                </div>
+                {/* Track Listing */}
+                {mainRelease.trackListing && mainRelease.trackListing.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Track Listing</h4>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ISRC</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">BPM</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {mainRelease.trackListing.map((track, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm text-gray-900">{track.title}</td>
+                              <td className="px-4 py-3 text-sm text-gray-500">{track.duration}</td>
+                              <td className="px-4 py-3 text-sm text-gray-500 font-mono">{track.isrc}</td>
+                              <td className="px-4 py-3 text-sm text-gray-500">{track.bpm}</td>
+                              <td className="px-4 py-3 text-sm text-gray-500">{track.songKey}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderArtists = () => (
-    <div className="space-y-6">
-      {/* Artists Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Artists Management</h3>
-            <p className="text-gray-600">Manage all artists across the platform</p>
-          </div>
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Artist
-          </button>
-        </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Artists</h3>
       </div>
-
-      {/* Artists Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredArtistsForDisplay.map((artist) => (
-          <div key={artist.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center mb-4">
-              <Avatar 
-                name={artist.name}
-                image={artist.profileImage}
-                size="w-12 h-12"
-                textSize="text-lg"
-              />
-              <div className="ml-4">
-                <h4 className="font-semibold text-gray-900">{artist.name}</h4>
-                <p className="text-sm text-gray-600">{artist.primaryGenre}</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{artist.releases || 0}</div>
-                <div className="text-xs text-gray-500">Releases</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{formatCurrency(artist.totalEarnings || 0, selectedCurrency)}</div>
-                <div className="text-xs text-gray-500">Earnings</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{artist.totalStreams?.toLocaleString() || '0'}</div>
-                <div className="text-xs text-gray-500">Streams</div>
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleAction('View Profile', artist)}
-                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-              >
-                View Profile
-              </button>
-              <button
-                onClick={() => handleAction('Edit Artist', artist)}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderSongs = () => (
-    <div className="space-y-6">
-      {/* Songs List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900">Songs Library ({filteredSongs.length})</h3>
-          <button className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Song
-          </button>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {filteredSongs.map((song) => (
-            <div key={song.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white">
-                    <Music className="w-5 h-5" />
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-gray-900">{song.title}</h4>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>by {song.artist}</span>
-                      <span>•</span>
-                      <span>{song.genre}</span>
-                      <span>•</span>
-                      <span>{song.duration}</span>
-                      <span>•</span>
-                      <span>{(song.streams || 0).toLocaleString()} streams</span>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Genre</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Releases</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Streams</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredArtistsForDisplay.map((artist, index) => (
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <Avatar name={artist.name} size="w-10 h-10" />
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">{artist.name}</div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <button className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
-                    <Play className="w-4 h-4" />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{artist.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{artist.genre || 'N/A'}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    artist.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {artist.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases || 0}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(artist.totalStreams || 0).toLocaleString()}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                  <button
+                    onClick={() => handleAction('View Profile', artist)}
+                    className="text-blue-600 hover:text-blue-900"
+                  >
+                    <Eye className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleAction('Edit Song', song)}
-                    className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    onClick={() => handleAction('Edit Artist', artist)}
+                    className="text-gray-600 hover:text-gray-900"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
+                    <Edit className="w-4 h-4" />
                   </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
+
+  const renderAssets = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Assets</h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredSongs.map((song, index) => (
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => handlePlayAsset(song)}
+                      className={`mr-3 p-2 rounded-full ${
+                        playingAsset === song.id 
+                          ? 'bg-blue-100 text-blue-600' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {playingAsset === song.id ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </button>
+                    <div className="text-sm font-medium text-gray-900">{song.title}</div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{song.artist}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{song.releaseName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{song.duration}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{song.isrc}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(song.streams || 0).toLocaleString()}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(song.earnings || 0, selectedCurrency)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleAction('View Details', song)}
+                    className="text-blue-600 hover:text-blue-900"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  // Details Modal Component
+  const DetailsModal = () => {
+    if (!showDetailsModal || !selectedItem) return null;
+
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                {selectedItem.title || selectedItem.projectName || selectedItem.name} - Details
+              </h3>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {Object.entries(selectedItem).map(([key, value]) => {
+                if (key === 'id' || value === null || value === undefined) return null;
+                
+                return (
+                  <div key={key} className="grid grid-cols-3 gap-4">
+                    <dt className="text-sm font-medium text-gray-500 capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    </dt>
+                    <dd className="text-sm text-gray-900 col-span-2">
+                      {Array.isArray(value) ? value.join(', ') : 
+                       typeof value === 'object' ? JSON.stringify(value, null, 2) : 
+                       value.toString()}
+                    </dd>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <MainLayout>
       <SEO 
-        title="Content Management"
-        description="Admin content management dashboard"
+        title="Content Management - Admin Dashboard"
+        description="Comprehensive content management for artists, releases, and assets"
       />
       
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-8">
-            <div className="flex justify-between items-start">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold mb-2">Content Management</h1>
-                <p className="text-blue-100 text-lg">
-                  Manage songs, artists, releases, and platform content
+                <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  {userRole === 'company_admin' ? 'Manage and overview content for artists and label administrators' : 'Comprehensive platform content management'}
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-blue-100">Platform Health</div>
-                <div className="text-2xl font-bold">99.2%</div>
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                />
               </div>
             </div>
           </div>
 
-          {/* Currency Selector */}
-          <div className="mb-6 flex justify-end">
-            <CurrencySelector />
+          {/* Search and Filters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <div className="flex-1 max-w-lg">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search content..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value={RELEASE_STATUSES.DRAFT}>Draft</option>
+                  <option value={RELEASE_STATUSES.SUBMITTED}>Submitted</option>
+                  <option value={RELEASE_STATUSES.UNDER_REVIEW}>In Review</option>
+                  <option value={RELEASE_STATUSES.APPROVAL_REQUIRED}>Approvals</option>
+                  <option value={RELEASE_STATUSES.LIVE}>Live</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          {/* Tabs Navigation */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+          {/* Content Tabs */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
+              <nav className="flex space-x-8 px-6" aria-label="Tabs">
                 {[
                   { id: 'overview', label: 'Overview', icon: BarChart3 },
                   { id: 'releases', label: 'Releases', icon: FileText },
                   { id: 'artists', label: 'Artists', icon: Users },
-                  { id: 'songs', label: 'Songs', icon: Music }
+                  { id: 'assets', label: 'Assets', icon: Music }
                 ].map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
@@ -505,7 +691,8 @@ export default function AdminContentPage() {
         </div>
       </div>
 
-      {/* Success Modal */}
+      {/* Modals */}
+      <DetailsModal />
       {showSuccessModal && (
         <SuccessModal 
           message={successMessage}

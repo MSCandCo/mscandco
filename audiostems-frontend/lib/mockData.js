@@ -1274,12 +1274,34 @@ export const getLiveReleases = () => RELEASES.filter(release => release.status =
 export const getTotalStreams = () => RELEASES.reduce((total, release) => total + (release.streams || 0), 0);
 export const getTotalRevenue = () => RELEASES.reduce((total, release) => total + (release.earnings || 0), 0);
 
+// Extract all songs from releases for content management
+export const SONGS = RELEASES.reduce((allSongs, release) => {
+  if (release.trackListing && Array.isArray(release.trackListing)) {
+    const songsWithMetadata = release.trackListing.map(track => ({
+      ...track,
+      id: track.isrc || `${release.id}-${track.title.replace(/\s+/g, '-').toLowerCase()}`,
+      releaseId: release.id,
+      releaseName: release.projectName,
+      artist: release.artist,
+      genre: release.genre,
+      status: release.status,
+      streams: Math.floor(Math.random() * 100000) + 1000, // Random streams for demo
+      earnings: Math.floor(Math.random() * 5000) + 100, // Random earnings for demo
+      releaseDate: release.releaseDate || release.created,
+      distributionStatus: release.distributionStatus || 'active'
+    }));
+    return [...allSongs, ...songsWithMetadata];
+  }
+  return allSongs;
+}, []);
+
 // 📦 BACKWARDS COMPATIBILITY (will be removed in next cleanup)
 export const DASHBOARD_STATS = getDashboardStats();
 
 export default {
   ARTISTS,
   RELEASES,
+  SONGS,
   STREAMING_PLATFORMS,
   ADMIN_USERS,
   MOCK_VIDEOS,
