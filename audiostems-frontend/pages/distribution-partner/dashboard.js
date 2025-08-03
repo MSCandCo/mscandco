@@ -1999,8 +1999,8 @@ export default function DistributionPartnerDashboard() {
         {/* Release Details Modal */}
         {showReleaseDetails && selectedRelease && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b">
+            <div className="relative top-10 mx-auto border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white max-h-[90vh] overflow-hidden">
+              <div className="flex justify-between items-center p-6 sticky top-0 bg-white border-b border-gray-200 z-10">
                 <h3 className="text-lg font-semibold text-gray-900">Release Details - {selectedRelease.projectName}</h3>
                 <button
                   onClick={() => {
@@ -2013,7 +2013,8 @@ export default function DistributionPartnerDashboard() {
                 </button>
               </div>
               
-              <div className="space-y-6">
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <div className="space-y-6">
                 {/* Basic Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
@@ -2770,6 +2771,21 @@ export default function DistributionPartnerDashboard() {
                     Close
                   </button>
                 </div>
+                </div>
+              </div>
+              
+              <div className="p-6 bg-white border-t border-gray-200 sticky bottom-0">
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      setShowReleaseDetails(false);
+                      setSelectedRelease(null);
+                    }}
+                    className="px-6 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2778,7 +2794,7 @@ export default function DistributionPartnerDashboard() {
         {/* Edit Modal */}
         {showEditModal && editingRelease && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative mx-auto p-0 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[95vh] overflow-y-auto">
+            <div className="relative top-10 mx-auto border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[95vh] overflow-hidden">
               {/* Header - Fixed at top */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
                 <div className="flex justify-between items-start">
@@ -2896,7 +2912,8 @@ export default function DistributionPartnerDashboard() {
                 </div>
               </div>
               
-              <div className="space-y-6 px-6 py-4">
+              <div className="overflow-y-auto max-h-[calc(95vh-160px)] px-6 py-4">
+                <div className="space-y-6">
                 {/* Basic Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
@@ -4108,6 +4125,31 @@ export default function DistributionPartnerDashboard() {
                     Cancel
                   </button>
                 </div>
+                </div>
+              </div>
+              
+              <div className="p-6 bg-white border-t border-gray-200 sticky bottom-0">
+                <div className="flex justify-center space-x-3">
+                  <button
+                    onClick={() => {
+                      // Save changes logic would go here
+                      setShowEditModal(false);
+                      setEditingRelease(null);
+                    }}
+                    className="px-6 py-2 bg-blue-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingRelease(null);
+                    }}
+                    className="px-6 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4116,9 +4158,9 @@ export default function DistributionPartnerDashboard() {
         {/* Profile Settings Modal */}
         {showProfileModal && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+            <div className="relative top-10 mx-auto border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-[90vh] overflow-hidden">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <div className="flex justify-between items-center p-6 bg-white border-b border-gray-200 sticky top-0 z-10">
                 <h2 className="text-xl font-semibold text-gray-900">Profile Settings</h2>
                 <button
                   onClick={() => {
