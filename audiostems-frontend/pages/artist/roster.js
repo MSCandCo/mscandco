@@ -16,6 +16,9 @@ import {
   FaKeyboard,
   FaFileAudio
 } from 'react-icons/fa';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 
 // Mock contributor videos data
 const mockContributorVideos = [
@@ -158,6 +161,17 @@ export default function ArtistRoster() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingContributor, setEditingContributor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize modals hook
+  const {
+    confirmModal,
+    notificationModal,
+    confirmDelete,
+    showSuccess,
+    showError,
+    closeConfirmModal,
+    closeNotificationModal
+  } = useModals();
 
   // Contributor types with icons
   const contributorTypes = [
@@ -315,18 +329,25 @@ export default function ArtistRoster() {
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this contributor?')) {
+    const contributor = roster.find(c => c.id === id);
+    const contributorName = contributor ? `${contributor.firstName} ${contributor.lastName}` : 'this contributor';
+    
+    confirmDelete(contributorName, async () => {
       try {
         const response = await fetch(`/api/artist/roster/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {
           await loadRoster();
+          showSuccess(`${contributorName} has been removed from your roster.`);
+        } else {
+          showError('Failed to delete contributor. Please try again.');
         }
       } catch (error) {
         console.error('Error deleting contributor:', error);
+        showError('An error occurred while deleting the contributor. Please try again.');
       }
-    }
+    });
   };
 
   const getTypeIcon = (type) => {
@@ -678,6 +699,27 @@ export default function ArtistRoster() {
           </div>
         </div>
       )}
+
+      {/* Branded Modals */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+      />
+
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onClose={closeNotificationModal}
+        title={notificationModal.title}
+        message={notificationModal.message}
+        type={notificationModal.type}
+        buttonText={notificationModal.buttonText}
+      />
     </div>
   );
 } 
