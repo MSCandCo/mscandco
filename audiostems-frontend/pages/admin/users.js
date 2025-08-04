@@ -14,6 +14,9 @@ import { getUsers } from '@/lib/mockDatabase';
 import { getUserRole } from '@/lib/auth0-config';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 
 export default function AdminUsersPage() {
   const { user, isLoading, isAuthenticated } = useAuth0();
@@ -29,6 +32,17 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Initialize modals hook
+  const {
+    confirmModal,
+    notificationModal,
+    confirmDelete,
+    showSuccess,
+    showError,
+    closeConfirmModal,
+    closeNotificationModal
+  } = useModals();
 
   // Get user role
   const userRole = getUserRole(user);
@@ -128,11 +142,12 @@ export default function AdminUsersPage() {
       return;
     }
     
-    if (confirm('Are you sure you want to delete this user?')) {
+    const userToDeleteName = userToDelete ? `${userToDelete.name} (${userToDelete.email})` : 'this user';
+    
+    confirmDelete(userToDeleteName, () => {
       setUsers(prev => prev.filter(u => u.id !== userId));
-      setSuccessMessage('User deleted successfully!');
-      setShowSuccessModal(true);
-    }
+      showSuccess('User deleted successfully!');
+    });
   };
 
   const handleSaveUser = (userData) => {
@@ -742,5 +757,26 @@ function ViewUserModal({ user, onClose, onEdit, selectedCurrency }) {
         </div>
       </div>
     </div>
+
+    {/* Branded Modals */}
+    <ConfirmationModal
+      isOpen={confirmModal.isOpen}
+      onClose={closeConfirmModal}
+      onConfirm={confirmModal.onConfirm}
+      title={confirmModal.title}
+      message={confirmModal.message}
+      type={confirmModal.type}
+      confirmText={confirmModal.confirmText}
+      cancelText={confirmModal.cancelText}
+    />
+
+    <NotificationModal
+      isOpen={notificationModal.isOpen}
+      onClose={closeNotificationModal}
+      title={notificationModal.title}
+      message={notificationModal.message}
+      type={notificationModal.type}
+      buttonText={notificationModal.buttonText}
+    />
   );
 }
