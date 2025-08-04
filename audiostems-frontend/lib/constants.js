@@ -70,14 +70,16 @@ export const GENRES = [
 ];
 
 // Release Type Constants
-export const RELEASE_TYPES = {
-  SINGLE: 'single',
-  EP: 'ep',
-  ALBUM: 'album',
-  COMPILATION: 'compilation',
-  LIVE: 'live',
-  REMIX: 'remix'
-};
+export const RELEASE_TYPES = [
+  'Single',
+  'EP',
+  'Album',
+  'Compilation',
+  'Live',
+  'Remix',
+  'Mixtape',
+  'Soundtrack'
+];
 
 // User Role Constants
 export const USER_ROLES = {
