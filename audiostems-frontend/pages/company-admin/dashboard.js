@@ -24,14 +24,19 @@ export default function CompanyAdminDashboard() {
   const userBrand = getUserBrand(user);
   const brandName = userBrand?.displayName || 'MSC & Co';
 
-  // Company Admin sees everyone under YHWH MSC (their jurisdiction)
-  const jurisdictionBrand = 'YHWH MSC'; // Company Admin manages YHWH MSC
-  const jurisdictionUsers = getUsers().filter(u => u.brand === jurisdictionBrand);
-  const jurisdictionReleases = getReleases().filter(r => r.label === jurisdictionBrand || r.artist && jurisdictionUsers.find(a => a.name === r.artist));
+  // Company Admin manages entire YHWH MSC branch (all label admins + all artists)
+  // This includes: YHWH MSC label + external labels using YHWH MSC distribution services
+  const allUsers = getUsers();
+  const allReleases = getReleases();
+  
+  // YHWH MSC branch includes ALL label admins and ALL artists (regardless of their specific label)
+  const jurisdictionUsers = allUsers.filter(u => u.role === 'label_admin' || u.role === 'artist');
+  const jurisdictionReleases = allReleases; // All releases go through YHWH MSC distribution
   const jurisdictionArtists = jurisdictionUsers.filter(u => u.role === 'artist');
+  const jurisdictionLabelAdmins = jurisdictionUsers.filter(u => u.role === 'label_admin');
   const approvedArtists = jurisdictionArtists.filter(a => a.approvalStatus === 'approved');
   
-  // Calculate YHWH MSC revenue and stats
+  // Calculate total YHWH MSC branch revenue and stats
   const jurisdictionRevenue = jurisdictionArtists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
   const jurisdictionStreams = jurisdictionArtists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
   const jurisdictionTotalReleases = jurisdictionArtists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
@@ -77,7 +82,7 @@ export default function CompanyAdminDashboard() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">Company Admin Dashboard</h1>
                 <p className="text-purple-100 text-lg">
-                  YHWH MSC management and user administration
+                  YHWH MSC Branch - All Labels & Artists Management
                 </p>
               </div>
               <div className="text-right">
@@ -100,7 +105,7 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">YHWH MSC Artists</p>
+                  <p className="text-sm font-medium text-gray-600">Total Artists</p>
                   <p className="text-3xl font-bold text-gray-900">{jurisdictionArtists.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <UserCheck className="w-4 h-4 text-green-500 mr-1" />
@@ -116,7 +121,7 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">YHWH MSC Releases</p>
+                  <p className="text-sm font-medium text-gray-600">Total Releases</p>
                   <p className="text-3xl font-bold text-gray-900">{jurisdictionReleases.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -132,7 +137,7 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">YHWH MSC Revenue</p>
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                   <p className="text-3xl font-bold text-gray-900">{formatCurrency(jurisdictionRevenue, selectedCurrency)}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -148,7 +153,7 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">YHWH MSC Projects</p>
+                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
                   <p className="text-3xl font-bold text-gray-900">{jurisdictionTotalReleases}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <Activity className="w-4 h-4 text-yellow-500 mr-1" />
