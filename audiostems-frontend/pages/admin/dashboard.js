@@ -6,7 +6,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, Eye,
   Play, Pause, CheckCircle, Clock, AlertTriangle,
   Globe, Calendar, Database, Settings, Shield,
-  UserCheck, Activity, Target, Zap
+  UserCheck, Activity, Target, Zap, Building2
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -22,10 +22,64 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  
+  // Revenue Split Configuration State (Super Admin has same controls as Company Admin)
+  const [revenueSplit, setRevenueSplit] = useState({
+    labelAdminPercentage: 25, // Default: 25% to Label Admin
+    artistPercentage: 75,     // Default: 75% to Artist
+    distributionPartnerPercentage: 15, // Code Group takes 15%
+    distributionPartnerName: 'Code Group'
+  });
+  const [showSplitConfig, setShowSplitConfig] = useState(false);
+  const [splitConfigSaved, setSplitConfigSaved] = useState(false);
 
   // Get centralized dashboard stats
-  const adminData = getDashboardStats('super_admin');
+  const adminData = getDashboardStats().superAdmin;
   const userRole = getUserRole(user);
+  
+  // Get all data for Super Admin (full visibility)
+  const allUsers = getUsers();
+  const allReleases = getReleases();
+  const totalPlatformRevenue = allUsers.reduce((total, user) => total + (user.totalRevenue || user.totalEarnings || 0), 0);
+
+  // Revenue Split Management Functions (Same as Company Admin)
+  const handleSplitChange = (field, value) => {
+    if (field === 'labelAdminPercentage') {
+      const newLabelPercentage = Math.min(100, Math.max(0, value));
+      const newArtistPercentage = 100 - newLabelPercentage;
+      setRevenueSplit(prev => ({
+        ...prev,
+        labelAdminPercentage: newLabelPercentage,
+        artistPercentage: newArtistPercentage
+      }));
+    } else if (field === 'distributionPartnerPercentage') {
+      setRevenueSplit(prev => ({
+        ...prev,
+        distributionPartnerPercentage: Math.min(50, Math.max(0, value))
+      }));
+    }
+  };
+
+  const saveSplitConfiguration = () => {
+    // In a real app, this would save to backend
+    console.log('Super Admin saving revenue split configuration:', revenueSplit);
+    setSplitConfigSaved(true);
+    setTimeout(() => setSplitConfigSaved(false), 3000);
+  };
+
+  const calculateSplitAmounts = (totalAmount) => {
+    const afterDistributionPartner = totalAmount * (1 - revenueSplit.distributionPartnerPercentage / 100);
+    const labelAdminAmount = afterDistributionPartner * (revenueSplit.labelAdminPercentage / 100);
+    const artistAmount = afterDistributionPartner * (revenueSplit.artistPercentage / 100);
+    const distributionPartnerAmount = totalAmount * (revenueSplit.distributionPartnerPercentage / 100);
+    
+    return {
+      distributionPartner: distributionPartnerAmount,
+      afterDistributionPartner,
+      labelAdmin: labelAdminAmount,
+      artist: artistAmount
+    };
+  };
 
   // Check admin access
   useEffect(() => {
@@ -80,9 +134,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-3xl font-bold text-gray-900">{adminData.totalUsers.toLocaleString()}</p>
+                          <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / adminData.totalUsers.toLocaleString().length))}px`
+                }}>{adminData.totalUsers.toLocaleString()}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+12% this month</span>
@@ -96,9 +152,11 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Releases</p>
-              <p className="text-3xl font-bold text-gray-900">{adminData.totalReleases}</p>
+                          <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600">Total Releases</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / adminData.totalReleases.toString().length))}px`
+                }}>{adminData.totalReleases}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+8% this month</span>
@@ -112,9 +170,11 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                <p className="text-3xl font-bold text-gray-900 truncate">{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
+                          <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(adminData.totalRevenue, selectedCurrency).length))}px`
+                }}>{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+15% this month</span>
@@ -128,9 +188,11 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Projects</p>
-              <p className="text-3xl font-bold text-gray-900">{adminData.activeProjects || 23}</p>
+                          <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600">Active Projects</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / (adminData.activeProjects || 23).toString().length))}px`
+                }}>{adminData.activeProjects || 23}</p>
               <div className="flex items-center mt-2 text-sm">
                 <Activity className="w-4 h-4 text-yellow-500 mr-1" />
                 <span className="text-yellow-600">{adminData.pendingApprovals || 5} pending</span>
@@ -268,6 +330,190 @@ export default function AdminDashboard() {
           View Detailed Analytics
         </button>
       </div>
+
+      {/* Revenue Split Configuration - Super Admin Control */}
+      {userRole === 'super_admin' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Platform Revenue Split Configuration</h3>
+              <p className="text-sm text-gray-600">Control revenue distribution across the entire platform</p>
+            </div>
+            <button
+              onClick={() => setShowSplitConfig(!showSplitConfig)}
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              {showSplitConfig ? 'Hide Settings' : 'Configure Split'}
+            </button>
+          </div>
+
+          {/* Platform Revenue Overview */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-bold text-gray-900">Total Platform Revenue</h4>
+                <p className="font-bold text-purple-600" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(totalPlatformRevenue, selectedCurrency).length))}px`
+                }}>
+                  {formatCurrency(totalPlatformRevenue, selectedCurrency)}
+                </p>
+                <p className="text-sm text-gray-600">Across all users, labels, and artists</p>
+              </div>
+              <Globe className="w-12 h-12 text-purple-500" />
+            </div>
+          </div>
+
+          {/* Current Split Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-red-700">{revenueSplit.distributionPartnerName}</p>
+                  <p className="text-2xl font-bold text-red-600">{revenueSplit.distributionPartnerPercentage}%</p>
+                  <p className="text-xs text-red-500">First deduction</p>
+                </div>
+                <Target className="w-8 h-8 text-red-500" />
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700">Label Admin</p>
+                  <p className="text-2xl font-bold text-blue-600">{revenueSplit.labelAdminPercentage}%</p>
+                  <p className="text-xs text-blue-500">Of remaining {100 - revenueSplit.distributionPartnerPercentage}%</p>
+                </div>
+                <UserCheck className="w-8 h-8 text-blue-500" />
+              </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700">Artist</p>
+                  <p className="text-2xl font-bold text-green-600">{revenueSplit.artistPercentage}%</p>
+                  <p className="text-xs text-green-500">Of remaining {100 - revenueSplit.distributionPartnerPercentage}%</p>
+                </div>
+                <Users className="w-8 h-8 text-green-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Example Calculation with Platform Revenue */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h4 className="font-medium text-gray-900 mb-3">Current Platform Split: {formatCurrency(totalPlatformRevenue, selectedCurrency)}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-red-600 font-medium">{revenueSplit.distributionPartnerName}:</span>
+                <br />
+                <span className="text-lg font-bold text-red-600">{formatCurrency(calculateSplitAmounts(totalPlatformRevenue).distributionPartner, selectedCurrency)}</span>
+              </div>
+              <div>
+                <span className="text-gray-600 font-medium">Remaining:</span>
+                <br />
+                <span className="text-lg font-bold text-gray-700">{formatCurrency(calculateSplitAmounts(totalPlatformRevenue).afterDistributionPartner, selectedCurrency)}</span>
+              </div>
+              <div>
+                <span className="text-blue-600 font-medium">All Label Admins:</span>
+                <br />
+                <span className="text-lg font-bold text-blue-600">{formatCurrency(calculateSplitAmounts(totalPlatformRevenue).labelAdmin, selectedCurrency)}</span>
+              </div>
+              <div>
+                <span className="text-green-600 font-medium">All Artists:</span>
+                <br />
+                <span className="text-lg font-bold text-green-600">{formatCurrency(calculateSplitAmounts(totalPlatformRevenue).artist, selectedCurrency)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Configuration Panel */}
+          {showSplitConfig && (
+            <div className="border-t border-gray-200 pt-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                  <div>
+                    <p className="font-medium text-yellow-800">Super Admin Revenue Control</p>
+                    <p className="text-sm text-yellow-700">Changes affect the entire platform's revenue distribution structure.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Label Admin Percentage (of remaining after distribution partner)
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={revenueSplit.labelAdminPercentage}
+                      onChange={(e) => handleSplitChange('labelAdminPercentage', parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={revenueSplit.labelAdminPercentage}
+                        onChange={(e) => handleSplitChange('labelAdminPercentage', parseInt(e.target.value) || 0)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      />
+                      <span className="text-gray-500">%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Artist automatically gets {revenueSplit.artistPercentage}%</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Distribution Partner Percentage (Code Group)
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={revenueSplit.distributionPartnerPercentage}
+                      onChange={(e) => handleSplitChange('distributionPartnerPercentage', parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={revenueSplit.distributionPartnerPercentage}
+                        onChange={(e) => handleSplitChange('distributionPartnerPercentage', parseInt(e.target.value) || 0)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      />
+                      <span className="text-gray-500">%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">This is deducted first from total revenue</p>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={saveSplitConfiguration}
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                    splitConfigSaved 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
+                >
+                  {splitConfigSaved ? '✓ Platform Configuration Saved!' : 'Save Platform Configuration'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {userRole === 'super_admin' && (
         <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200 p-6">

@@ -202,9 +202,11 @@ export default function AdminContentPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Assets</p>
-                <p className="text-3xl font-bold text-gray-900">{contentStats.totalSongs}</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalSongs.toString().length))}px`
+                }}>{contentStats.totalSongs}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +12% this month
@@ -218,9 +220,11 @@ export default function AdminContentPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Active Artists</p>
-                <p className="text-3xl font-bold text-gray-900">{contentStats.totalArtists}</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalArtists.toString().length))}px`
+                }}>{contentStats.totalArtists}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +8% this month
@@ -234,9 +238,11 @@ export default function AdminContentPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Streams</p>
-                <p className="text-3xl font-bold text-gray-900">{contentStats.totalStreams.toLocaleString()}</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalStreams.toLocaleString().length))}px`
+                }}>{contentStats.totalStreams.toLocaleString()}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +25% this month
@@ -250,9 +256,11 @@ export default function AdminContentPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                  <p className="text-3xl font-bold text-gray-900 truncate">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
+                <p className="font-bold text-gray-900" style={{
+                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(contentStats.totalRevenue, selectedCurrency).length))}px`
+                }}>{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +18% this month

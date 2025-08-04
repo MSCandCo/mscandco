@@ -329,32 +329,32 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
-                  href="/dashboard"
-                  className={getNavLinkClasses('/dashboard')}
+                  href="/company-admin/dashboard"
+                  className={getNavLinkClasses('/company-admin/dashboard')}
                 >
                   Dashboard
                 </Link>
                 <Link
-                  href="/admin/users"
-                  className={getNavLinkClasses('/admin/users')}
+                  href="/company-admin/users"
+                  className={getNavLinkClasses('/company-admin/users')}
                 >
                   Users
                 </Link>
                 <Link
-                  href="/admin/content"
-                  className={getNavLinkClasses('/admin/content')}
+                  href="/company-admin/content"
+                  className={getNavLinkClasses('/company-admin/content')}
                 >
                   Content
                 </Link>
                 <Link
-                  href="/admin/analytics"
-                  className={getNavLinkClasses('/admin/analytics')}
+                  href="/company-admin/analytics"
+                  className={getNavLinkClasses('/company-admin/analytics')}
                 >
                   Analytics
                 </Link>
                 <Link
-                  href="/distribution/workflow"
-                  className={getNavLinkClasses('/distribution/workflow')}
+                  href="/company-admin/distribution"
+                  className={getNavLinkClasses('/company-admin/distribution')}
                 >
                   Distribution
                 </Link>
