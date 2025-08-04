@@ -4,12 +4,11 @@ import { useRouter } from 'next/router';
 import { 
   Users, FileText, Music, BarChart3, Building2,
   TrendingUp, DollarSign, UserCheck, Settings,
-  Shield, Target, Activity, Globe
+  Shield, Target, Activity, Globe, Eye
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getApprovedArtistsByLabel } from '../../lib/mockData';
 import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 
@@ -22,24 +21,30 @@ export default function CompanyAdminDashboard() {
   // Get user context
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
-  const brandName = userBrand?.displayName || 'MSC & Co';
 
   // Company Admin manages entire YHWH MSC branch (all label admins + all artists)
-  // This includes: YHWH MSC label + external labels using YHWH MSC distribution services
   const allUsers = getUsers();
   const allReleases = getReleases();
   
-  // YHWH MSC branch includes ALL label admins and ALL artists (regardless of their specific label)
-  const jurisdictionUsers = allUsers.filter(u => u.role === 'label_admin' || u.role === 'artist');
-  const jurisdictionReleases = allReleases; // All releases go through YHWH MSC distribution
-  const jurisdictionArtists = jurisdictionUsers.filter(u => u.role === 'artist');
-  const jurisdictionLabelAdmins = jurisdictionUsers.filter(u => u.role === 'label_admin');
-  const approvedArtists = jurisdictionArtists.filter(a => a.approvalStatus === 'approved');
+  // YHWH MSC branch includes ALL label admins and ALL artists
+  const labelAdmins = allUsers.filter(u => u.role === 'label_admin');
+  const artists = allUsers.filter(u => u.role === 'artist');
+  const jurisdictionUsers = [...labelAdmins, ...artists];
+  const approvedArtists = artists.filter(a => a.approvalStatus === 'approved');
   
-  // Calculate total YHWH MSC branch revenue and stats
-  const jurisdictionRevenue = jurisdictionArtists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
-  const jurisdictionStreams = jurisdictionArtists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
-  const jurisdictionTotalReleases = jurisdictionArtists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
+  // Calculate real statistics from mock database
+  const totalRevenue = artists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
+  const totalStreams = artists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
+  const totalReleases = artists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
+
+  // Release status breakdown
+  const liveReleases = allReleases.filter(r => ['live', 'distributed'].includes(r.status)).length;
+  const inReviewReleases = allReleases.filter(r => r.status === 'in_review').length;
+  const approvalsReleases = allReleases.filter(r => r.status === 'approvals').length;
+  const draftReleases = allReleases.filter(r => r.status === 'draft').length;
+
+  // Song count (tracks across all releases)
+  const totalSongs = allReleases.reduce((total, release) => total + (release.trackListing?.length || 1), 0);
 
   // Check admin access
   useEffect(() => {
@@ -57,10 +62,11 @@ export default function CompanyAdminDashboard() {
   if (isLoading || loading) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <SEO title="Company Admin Dashboard" />
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading company admin dashboard...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
           </div>
         </div>
       </MainLayout>
@@ -69,13 +75,10 @@ export default function CompanyAdminDashboard() {
 
   return (
     <MainLayout>
-      <SEO 
-        title={`${brandName} - Company Admin Dashboard`}
-        description="Company administrative dashboard for brand management"
-      />
-      
+      <SEO title="Company Admin Dashboard" />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
           {/* Header Section */}
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex justify-between items-start">
@@ -84,10 +87,13 @@ export default function CompanyAdminDashboard() {
                 <p className="text-purple-100 text-lg">
                   YHWH MSC Branch - All Labels & Artists Management
                 </p>
+                <p className="text-purple-200 text-sm mt-2">
+                  Managing {labelAdmins.length} label admins and {artists.length} artists
+                </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-purple-100">Brand Health</div>
-                <div className="text-2xl font-bold">96.8%</div>
+                <div className="text-sm text-purple-100">Platform Health</div>
+                <div className="text-2xl font-bold">{Math.round((approvedArtists.length / artists.length) * 100)}%</div>
               </div>
             </div>
           </div>
@@ -102,11 +108,13 @@ export default function CompanyAdminDashboard() {
 
           {/* Key Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            
+            {/* Total Artists */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Artists</p>
-                  <p className="text-3xl font-bold text-gray-900">{jurisdictionArtists.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">{artists.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <UserCheck className="w-4 h-4 text-green-500 mr-1" />
                     <span className="text-green-600">{approvedArtists.length} approved</span>
@@ -118,14 +126,15 @@ export default function CompanyAdminDashboard() {
               </div>
             </div>
 
+            {/* Total Releases */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Releases</p>
-                  <p className="text-3xl font-bold text-gray-900">{jurisdictionReleases.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">{allReleases.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                    <span className="text-green-600">+12% this month</span>
+                    <span className="text-green-600">{liveReleases} live</span>
                   </div>
                 </div>
                 <div className="p-3 bg-green-100 rounded-xl">
@@ -134,14 +143,15 @@ export default function CompanyAdminDashboard() {
               </div>
             </div>
 
+            {/* Total Revenue */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(jurisdictionRevenue, selectedCurrency)}</p>
+                  <p className="text-3xl font-bold text-gray-900 truncate">{formatCurrency(totalRevenue, selectedCurrency)}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                    <span className="text-green-600">+18% this month</span>
+                    <span className="text-green-600">Active income</span>
                   </div>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-xl">
@@ -150,14 +160,15 @@ export default function CompanyAdminDashboard() {
               </div>
             </div>
 
+            {/* Total Label Admins */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
-                  <p className="text-3xl font-bold text-gray-900">{jurisdictionTotalReleases}</p>
+                  <p className="text-sm font-medium text-gray-600">Label Admins</p>
+                  <p className="text-3xl font-bold text-gray-900">{labelAdmins.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <Activity className="w-4 h-4 text-yellow-500 mr-1" />
-                    <span className="text-yellow-600">3 need attention</span>
+                    <span className="text-yellow-600">Active management</span>
                   </div>
                 </div>
                 <div className="p-3 bg-yellow-100 rounded-xl">
@@ -169,13 +180,14 @@ export default function CompanyAdminDashboard() {
 
           {/* Management Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {/* User Management - Unrestricted Access */}
+            
+            {/* User Management */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-900">User Management</h3>
                 <div className="flex items-center">
                   <Shield className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-sm text-purple-600 font-medium">Unrestricted Access</span>
+                  <span className="text-sm text-purple-600 font-medium">Full Access</span>
                 </div>
               </div>
               
@@ -188,9 +200,9 @@ export default function CompanyAdminDashboard() {
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">All Artists</span>
+                    <span className="font-medium text-gray-900">Artists</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionArtists.length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{artists.length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -198,7 +210,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Label Admins</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionUsers.filter(u => u.role === 'label_admin').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{labelAdmins.length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -206,24 +218,16 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Pending Approvals</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionArtists.filter(a => a.approvalStatus === 'pending').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{artists.filter(a => a.approvalStatus === 'pending').length}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-6">
-                <button
-                  onClick={() => router.push('/admin/users')}
-                  className="bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Manage Users
-                </button>
-                <button
-                  onClick={() => router.push('/company-admin/approvals')}
-                  className="bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                >
-                  Approve Artists
-                </button>
-              </div>
+              <button
+                onClick={() => router.push('/admin/users')}
+                className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                View User Management
+              </button>
             </div>
 
             {/* Content Management */}
@@ -234,17 +238,17 @@ export default function CompanyAdminDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Songs: {jurisdictionReleases.reduce((total, release) => total + (release.trackListing?.length || 1), 0)}</span>
-                <span>Projects: {jurisdictionReleases.length}</span>
+                <span>Songs: {totalSongs}</span>
+                <span>Releases: {allReleases.length}</span>
               </div>
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Active Releases</span>
+                    <span className="font-medium text-gray-900">Live</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionReleases.filter(r => ['live', 'distributed'].includes(r.status)).length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{liveReleases}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -252,15 +256,15 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">In Review</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionReleases.filter(r => r.status === 'in_review').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{inReviewReleases}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Pending Approval</span>
+                    <span className="font-medium text-gray-900">Approvals</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{jurisdictionReleases.filter(r => r.status === 'approvals').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{approvalsReleases}</span>
                 </div>
               </div>
 
@@ -272,7 +276,7 @@ export default function CompanyAdminDashboard() {
               </button>
             </div>
 
-            {/* Brand Analytics */}
+            {/* Analytics */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Analytics</h3>
@@ -280,33 +284,33 @@ export default function CompanyAdminDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Views: {jurisdictionStreams.toLocaleString()}</span>
-                <span>Engagement: {((jurisdictionStreams / 1000000) * 10).toFixed(1)}</span>
+                <span>Streams: {totalStreams.toLocaleString()}</span>
+                <span>Revenue: {formatCurrency(totalRevenue, selectedCurrency)}</span>
               </div>
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Monthly Streams</span>
+                    <span className="font-medium text-gray-900">Active Artists</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">2.1M</span>
+                  <span className="text-2xl font-bold text-gray-900">{approvedArtists.length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Engagement Rate</span>
+                    <span className="font-medium text-gray-900">Total Projects</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">87.3%</span>
+                  <span className="text-2xl font-bold text-gray-900">{totalReleases}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Growth Rate</span>
+                    <span className="font-medium text-gray-900">Draft Releases</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">+23.5%</span>
+                  <span className="text-2xl font-bold text-gray-900">{draftReleases}</span>
                 </div>
               </div>
 
@@ -319,37 +323,35 @@ export default function CompanyAdminDashboard() {
             </div>
           </div>
 
-          {/* Brand Artists Overview */}
+          {/* Label Admins Overview */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-gray-900">Brand Artists Overview</h3>
+              <h3 className="text-lg font-bold text-gray-900">Label Admins Overview</h3>
               <Building2 className="w-6 h-6 text-blue-600" />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {approvedArtists.slice(0, 6).map((artist, index) => (
-                <div key={artist.id} className="p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {labelAdmins.map((admin, index) => (
+                <div key={admin.id} className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center mb-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {artist.name.split(' ').map(n => n[0]).join('')}
+                      {admin.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="ml-3">
-                      <div className="font-medium text-gray-900">{artist.name}</div>
-                      <div className="text-sm text-gray-500">{artist.primaryGenre}</div>
+                      <div className="font-medium text-gray-900">{admin.name}</div>
+                      <div className="text-sm text-gray-500">{admin.brand}</div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-2 gap-2 text-center">
                     <div>
-                      <div className="text-lg font-bold text-gray-900">{artist.releases || 0}</div>
-                      <div className="text-xs text-gray-500">Releases</div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {artists.filter(a => a.brand === admin.brand).length}
+                      </div>
+                      <div className="text-xs text-gray-500">Artists</div>
                     </div>
                     <div>
-                      <div className="text-lg font-bold text-gray-900">{formatCurrency(artist.totalEarnings || 0, selectedCurrency)}</div>
-                      <div className="text-xs text-gray-500">Earnings</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-gray-900">{artist.totalStreams?.toLocaleString() || '0'}</div>
-                      <div className="text-xs text-gray-500">Streams</div>
+                      <div className="text-lg font-bold text-gray-900">{admin.status === 'active' ? 'Active' : 'Inactive'}</div>
+                      <div className="text-xs text-gray-500">Status</div>
                     </div>
                   </div>
                 </div>
@@ -360,7 +362,7 @@ export default function CompanyAdminDashboard() {
               onClick={() => router.push('/admin/users')}
               className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              View All Artists
+              Manage All Label Admins
             </button>
           </div>
 
@@ -371,31 +373,34 @@ export default function CompanyAdminDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <button
                 onClick={() => router.push('/admin/users')}
-                className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center"
+                className="flex items-center justify-center p-4 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
               >
-                <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <div className="font-medium text-gray-900">Users</div>
+                <Users className="w-6 h-6 text-blue-600 mr-2" />
+                <span className="font-medium text-blue-800">Users</span>
               </button>
               
               <button
                 onClick={() => router.push('/admin/content')}
-                className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-center"
+                className="flex items-center justify-center p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
               >
-                <Music className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <div className="font-medium text-gray-900">Content</div>
+                <FileText className="w-6 h-6 text-green-600 mr-2" />
+                <span className="font-medium text-green-800">Content</span>
               </button>
               
               <button
                 onClick={() => router.push('/admin/analytics')}
-                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center"
+                className="flex items-center justify-center p-4 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
               >
-                <BarChart3 className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <div className="font-medium text-gray-900">Analytics</div>
+                <BarChart3 className="w-6 h-6 text-purple-600 mr-2" />
+                <span className="font-medium text-purple-800">Analytics</span>
               </button>
               
-              <button className="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors text-center">
-                <Settings className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <div className="font-medium text-gray-900">Settings</div>
+              <button
+                onClick={() => router.push('/distribution/workflow')}
+                className="flex items-center justify-center p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition-colors"
+              >
+                <Activity className="w-6 h-6 text-yellow-600 mr-2" />
+                <span className="font-medium text-yellow-800">Workflow</span>
               </button>
             </div>
           </div>
