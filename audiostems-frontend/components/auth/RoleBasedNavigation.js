@@ -356,7 +356,7 @@ export default function RoleBasedNavigation() {
                   href="/company-admin/distribution"
                   className={getNavLinkClasses('/company-admin/distribution')}
                 >
-                  Distribution
+                  Workflow
                 </Link>
               </div>
             </div>
@@ -375,7 +375,7 @@ export default function RoleBasedNavigation() {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
-                      href="/admin/profile"
+                      href="/company-admin/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
