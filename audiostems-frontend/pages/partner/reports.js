@@ -4,6 +4,8 @@ import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { formatGrowthPercentage } from '@/lib/number-utils';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';

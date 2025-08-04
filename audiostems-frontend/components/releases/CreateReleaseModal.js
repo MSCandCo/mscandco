@@ -3,6 +3,8 @@ import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
 import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
 import { ARTISTS } from '../../lib/mockData';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 
 export default function CreateReleaseModal({ isOpen, onClose, existingRelease = null, isEditRequest = false, isApprovalEdit = false, userRole = 'artist' }) {
   
@@ -37,6 +39,13 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize modals hook
+  const {
+    notificationModal,
+    showSuccess,
+    closeNotificationModal
+  } = useModals();
   
   // Auto-save functionality for artist and label admin
   const [hasStartedEditing, setHasStartedEditing] = useState(false);
@@ -272,12 +281,12 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
       if (isEditRequest) {
         console.log('Submitting edit request:', submissionData);
         await new Promise(resolve => setTimeout(resolve, 2000));
-        alert('Edit request submitted successfully! The distribution team will review your changes.');
+        showSuccess('Edit request submitted successfully! The distribution team will review your changes.', 'Request Submitted');
       } else {
         console.log('Submitting release:', submissionData);
         await new Promise(resolve => setTimeout(resolve, 2000));
         if (userRole === 'artist' || userRole === 'label_admin') {
-          alert('Release submitted successfully! Your release has been sent for review.');
+          showSuccess('Release submitted successfully! Your release has been sent for review.', 'Release Submitted');
         }
       }
       onClose();
@@ -783,6 +792,16 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
           </div>
         </form>
       </div>
+
+      {/* Branded Modals */}
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onClose={closeNotificationModal}
+        title={notificationModal.title}
+        message={notificationModal.message}
+        type={notificationModal.type}
+        buttonText={notificationModal.buttonText}
+      />
     </div>
   );
 } 
