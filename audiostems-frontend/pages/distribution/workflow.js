@@ -11,6 +11,8 @@ import { Card, Badge } from 'flowbite-react';
 import moment from 'moment';
 import { getUserRole } from '@/lib/auth0-config';
 import { formatNumber as globalFormatNumber } from '@/lib/number-utils';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 import { 
   generateWorkflowData, 
   getWorkflowAnalytics, 
@@ -62,6 +64,14 @@ export default function WorkflowVisualization() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showArchived, setShowArchived] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+
+  // Initialize modals hook
+  const {
+    notificationModal,
+    showSuccess,
+    showWarning,
+    closeNotificationModal
+  } = useModals();
 
   // Check admin access
   useEffect(() => {
@@ -154,7 +164,7 @@ export default function WorkflowVisualization() {
     // In a real app, this would make an API call
     console.log('Archive workflow:', workflowId);
     // For demo purposes, we'll just show a success message
-    alert(`Workflow #${workflowId} has been archived successfully!`);
+    showSuccess(`Workflow #${workflowId} has been archived successfully!`, 'Archive Complete');
   };
 
   const WorkflowDiagram = ({ workflow }) => {
@@ -392,11 +402,9 @@ export default function WorkflowVisualization() {
                       const completedWorkflows = mockWorkflowData.filter(w => w.currentStatus === 'live' && !w.archived);
                       if (completedWorkflows.length > 0) {
                         const count = completedWorkflows.length;
-                        if (confirm(`Archive all ${count} completed workflows?`)) {
-                          alert(`${count} workflows have been archived successfully!`);
-                        }
+                        showSuccess(`${count} workflows have been archived successfully!`, 'Bulk Archive Complete');
                       } else {
-                        alert('No completed workflows to archive.');
+                        showWarning('No completed workflows to archive.', 'Archive Notice');
                       }
                     }}
                     className="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
@@ -541,6 +549,16 @@ export default function WorkflowVisualization() {
           </div>
         </div>
       </div>
+
+      {/* Branded Modals */}
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onClose={closeNotificationModal}
+        title={notificationModal.title}
+        message={notificationModal.message}
+        type={notificationModal.type}
+        buttonText={notificationModal.buttonText}
+      />
     </MainLayout>
   );
 }
