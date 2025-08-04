@@ -8,7 +8,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
-import { Avatar } from '../../components/shared/Avatar';
+import Avatar from '../../components/shared/Avatar';
 import { SuccessModal } from '../../components/shared/SuccessModal';
 
 export default function AdminProfile() {
