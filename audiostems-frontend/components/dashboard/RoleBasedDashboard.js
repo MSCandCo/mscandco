@@ -4,7 +4,7 @@ import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-c
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { getDashboardStats, DASHBOARD_STATS, MOCK_VIDEOS } from '@/lib/mockData';
-import { formatPercentage } from '@/lib/number-utils';
+import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
 import { getUsers, getReleases } from '@/lib/mockDatabase';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
@@ -384,7 +384,7 @@ export default function RoleBasedDashboard() {
                 streams: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, 
                 countries: DASHBOARD_STATS.artist.countries,
                 topTrack: DASHBOARD_STATS.artist.topTrack,
-                growth: DASHBOARD_STATS.artist.growth ? `+${DASHBOARD_STATS.artist.growth}%` : '---'
+                growth: formatGrowthPercentage(DASHBOARD_STATS.artist.growth)
               }
             }
           ]
