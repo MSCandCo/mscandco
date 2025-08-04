@@ -2,7 +2,7 @@
 // Production-Ready Central Data System
 // This acts as the single source of truth for ALL user roles and scenarios
 
-import { RELEASE_STATUSES, GENRES, RELEASE_TYPES } from './constants';
+import { RELEASE_STATUSES, GENRES, RELEASE_TYPES } from './constants.js';
 
 // 🎯 USER STATUS LOGIC
 // Users are INACTIVE if they meet ANY of these criteria:

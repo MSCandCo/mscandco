@@ -32,6 +32,7 @@ export default function CompanyAdminDashboard() {
   const jurisdictionUsers = [...labelAdmins, ...artists];
   const approvedArtists = artists.filter(a => a.approvalStatus === 'approved');
   
+  
   // Calculate real statistics from mock database
   const totalRevenue = artists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
   const totalStreams = artists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
