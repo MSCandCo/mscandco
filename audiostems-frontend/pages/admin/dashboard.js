@@ -114,7 +114,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
+                                <p className="text-3xl font-bold text-gray-900 truncate">{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+15% this month</span>
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">{formatCurrency(125000, selectedCurrency)}</div>
+                            <div className="text-3xl font-bold text-purple-600 mb-2 truncate">{formatCurrency(125000, selectedCurrency)}</div>
             <div className="text-sm text-gray-600">Monthly Revenue</div>
             <div className="text-xs text-green-600 mt-1">+18.5% vs last month</div>
           </div>

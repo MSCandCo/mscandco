@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-3xl font-bold text-purple-600">{formatCurrency(userStats.totalRevenue, selectedCurrency)}</p>
+                  <p className="text-3xl font-bold text-purple-600 truncate">{formatCurrency(userStats.totalRevenue, selectedCurrency)}</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-xl">
                   <DollarSign className="w-8 h-8 text-purple-600" />

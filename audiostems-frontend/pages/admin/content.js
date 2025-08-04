@@ -252,7 +252,7 @@ export default function AdminContentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
+                                  <p className="text-3xl font-bold text-gray-900 truncate">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +18% this month

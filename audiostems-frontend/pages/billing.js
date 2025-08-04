@@ -580,7 +580,7 @@ export default function Billing() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">{billingData.subscription.plan}</h3>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">{sharedFormatCurrency(billingData.subscription.price, selectedCurrency)}</p>
+                      <p className="text-3xl font-bold text-gray-900 mb-2 truncate">{sharedFormatCurrency(billingData.subscription.price, selectedCurrency)}</p>
                       <p className="text-sm text-gray-500">Next billing: {billingData.subscription.nextBilling}</p>
                       <p className="text-sm text-gray-500 capitalize">Billing cycle: {billingData.subscription.billingCycle}</p>
                       
