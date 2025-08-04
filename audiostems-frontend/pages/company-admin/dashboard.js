@@ -24,15 +24,16 @@ export default function CompanyAdminDashboard() {
   const userBrand = getUserBrand(user);
   const brandName = userBrand?.displayName || 'MSC & Co';
 
-  // Get brand-specific data from universal database
-  const brandArtists = getUsers().filter(u => u.role === 'artist' && (u.brand === brandName || u.label === brandName));
-  const brandReleases = getReleases().filter(r => r.label === brandName || r.artist && brandArtists.find(a => a.name === r.artist));
-  const approvedArtists = brandArtists.filter(a => a.approvalStatus === 'approved');
+  // Get platform-wide data (Company Admin has jurisdiction over ALL users)
+  const allUsers = getUsers();
+  const allReleases = getReleases();
+  const allArtists = allUsers.filter(u => u.role === 'artist');
+  const approvedArtists = allArtists.filter(a => a.approvalStatus === 'approved');
   
-  // Calculate real brand revenue from artists
-  const brandRevenue = brandArtists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
-  const brandStreams = brandArtists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
-  const brandTotalReleases = brandArtists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
+  // Calculate platform-wide revenue and stats
+  const platformRevenue = allArtists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
+  const platformStreams = allArtists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
+  const platformTotalReleases = allArtists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
 
   // Check admin access
   useEffect(() => {
@@ -73,9 +74,9 @@ export default function CompanyAdminDashboard() {
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{brandName} - Company Admin</h1>
+                <h1 className="text-3xl font-bold mb-2">Company Admin Dashboard</h1>
                 <p className="text-purple-100 text-lg">
-                  Brand management and unrestricted user administration
+                  Platform-wide management and unrestricted user administration
                 </p>
               </div>
               <div className="text-right">
@@ -98,8 +99,8 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Brand Artists</p>
-                  <p className="text-3xl font-bold text-gray-900">{brandArtists.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Artists</p>
+                  <p className="text-3xl font-bold text-gray-900">{allArtists.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <UserCheck className="w-4 h-4 text-green-500 mr-1" />
                     <span className="text-green-600">{approvedArtists.length} approved</span>
@@ -114,8 +115,8 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Releases</p>
-                  <p className="text-3xl font-bold text-gray-900">{brandReleases.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Releases</p>
+                  <p className="text-3xl font-bold text-gray-900">{allReleases.length}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                     <span className="text-green-600">+12% this month</span>
@@ -130,8 +131,8 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Brand Revenue</p>
-                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(brandRevenue, selectedCurrency)}</p>
+                  <p className="text-sm font-medium text-gray-600">Platform Revenue</p>
+                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(platformRevenue, selectedCurrency)}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                     <span className="text-green-600">+18% this month</span>
@@ -146,8 +147,8 @@ export default function CompanyAdminDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-3xl font-bold text-gray-900">{brandTotalReleases}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                  <p className="text-3xl font-bold text-gray-900">{platformTotalReleases}</p>
                   <div className="flex items-center mt-2 text-sm">
                     <Activity className="w-4 h-4 text-yellow-500 mr-1" />
                     <span className="text-yellow-600">3 need attention</span>
@@ -173,8 +174,8 @@ export default function CompanyAdminDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Users: {getUsers().length}</span>
-                <span>Roles: {[...new Set(getUsers().map(u => u.role))].length}</span>
+                <span>Users: {allUsers.length}</span>
+                <span>Roles: {[...new Set(allUsers.map(u => u.role))].length}</span>
               </div>
               
               <div className="space-y-4">
@@ -183,7 +184,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">All Artists</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{brandArtists.length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allArtists.length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -191,7 +192,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Label Admins</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{getUsers().filter(u => u.role === 'label_admin').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allUsers.filter(u => u.role === 'label_admin').length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -199,7 +200,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Pending Approvals</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{brandArtists.filter(a => a.approvalStatus === 'pending').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allArtists.filter(a => a.approvalStatus === 'pending').length}</span>
                 </div>
               </div>
 
@@ -227,8 +228,8 @@ export default function CompanyAdminDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Songs: {getReleases().reduce((total, release) => total + (release.trackListing?.length || 1), 0)}</span>
-                <span>Projects: {getReleases().length}</span>
+                <span>Songs: {allReleases.reduce((total, release) => total + (release.trackListing?.length || 1), 0)}</span>
+                <span>Projects: {allReleases.length}</span>
               </div>
               
               <div className="space-y-4">
@@ -237,7 +238,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Active Releases</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => ['live', 'distributed'].includes(r.status)).length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allReleases.filter(r => ['live', 'distributed'].includes(r.status)).length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -245,7 +246,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">In Review</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => r.status === 'in_review').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allReleases.filter(r => r.status === 'in_review').length}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -253,7 +254,7 @@ export default function CompanyAdminDashboard() {
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
                     <span className="font-medium text-gray-900">Pending Approval</span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">{getReleases().filter(r => r.status === 'approvals').length}</span>
+                  <span className="text-2xl font-bold text-gray-900">{allReleases.filter(r => r.status === 'approvals').length}</span>
                 </div>
               </div>
 
@@ -273,8 +274,8 @@ export default function CompanyAdminDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Views: {brandStreams.toLocaleString()}</span>
-                <span>Engagement: {((brandStreams / 1000000) * 10).toFixed(1)}</span>
+                <span>Views: {platformStreams.toLocaleString()}</span>
+                <span>Engagement: {((platformStreams / 1000000) * 10).toFixed(1)}</span>
               </div>
               
               <div className="space-y-4">
