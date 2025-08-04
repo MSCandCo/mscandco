@@ -58,7 +58,11 @@ export const getDashboardStats = () => {
       totalReleases: stats.totalReleases,
       totalStreams: stats.totalStreams,
       totalEarnings: stats.totalRevenue,
+      totalRevenue: stats.totalRevenue, // Alias for compatibility
       totalBrands: stats.totalLabels,
+      totalRoles: 5, // Super Admin, Company Admin, Distribution Partner, Label Admin, Artist
+      totalSongs: stats.totalSongs,
+      activeProjects: stats.totalReleases, // Active projects = total releases
       systemFeatures: 15
     },
     companyAdmin: {
