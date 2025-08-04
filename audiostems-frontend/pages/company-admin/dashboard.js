@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/router';
 import { 
-  Users, FileText, Music, BarChart3, Building2,
+  Users, Music, Building2,
   TrendingUp, DollarSign, UserCheck, Settings,
-  Shield, Target, Activity, Globe, Eye
+  Target, Activity, Globe, Eye
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -31,6 +31,8 @@ export default function CompanyAdminDashboard() {
   const artists = allUsers.filter(u => u.role === 'artist');
   const jurisdictionUsers = [...labelAdmins, ...artists];
   const approvedArtists = artists.filter(a => a.approvalStatus === 'approved');
+
+
   
   
   // Calculate real statistics from mock database
@@ -179,150 +181,7 @@ export default function CompanyAdminDashboard() {
             </div>
           </div>
 
-          {/* Management Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            
-            {/* User Management */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">User Management</h3>
-                <div className="flex items-center">
-                  <Shield className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-sm text-purple-600 font-medium">Full Access</span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Users: {jurisdictionUsers.length}</span>
-                <span>Roles: {[...new Set(jurisdictionUsers.map(u => u.role))].length}</span>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Artists</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{artists.length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Label Admins</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{labelAdmins.length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Pending Approvals</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{artists.filter(a => a.approvalStatus === 'pending').length}</span>
-                </div>
-              </div>
 
-              <button
-                onClick={() => router.push('/admin/users')}
-                className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                View User Management
-              </button>
-            </div>
-
-            {/* Content Management */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Content Management</h3>
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Songs: {totalSongs}</span>
-                <span>Releases: {allReleases.length}</span>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Live</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{liveReleases}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">In Review</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{inReviewReleases}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Approvals</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{approvalsReleases}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => router.push('/admin/content')}
-                className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                View Content Management
-              </button>
-            </div>
-
-            {/* Analytics */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Analytics</h3>
-                <BarChart3 className="w-6 h-6 text-green-600" />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <span>Streams: {totalStreams.toLocaleString()}</span>
-                <span>Revenue: {formatCurrency(totalRevenue, selectedCurrency)}</span>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Active Artists</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{approvedArtists.length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Total Projects</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{totalReleases}</span>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="font-medium text-gray-900">Draft Releases</span>
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{draftReleases}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => router.push('/admin/analytics')}
-                className="w-full mt-6 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
-              >
-                View Analytics
-              </button>
-            </div>
-          </div>
 
           {/* Label Admins Overview */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
