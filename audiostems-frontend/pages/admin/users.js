@@ -466,6 +466,27 @@ export default function AdminUsersPage() {
           selectedCurrency={selectedCurrency}
         />
       )}
+
+      {/* Branded Modals */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+      />
+
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onClose={closeNotificationModal}
+        title={notificationModal.title}
+        message={notificationModal.message}
+        type={notificationModal.type}
+        buttonText={notificationModal.buttonText}
+      />
     </MainLayout>
   );
 }
@@ -757,26 +778,5 @@ function ViewUserModal({ user, onClose, onEdit, selectedCurrency }) {
         </div>
       </div>
     </div>
-
-    {/* Branded Modals */}
-    <ConfirmationModal
-      isOpen={confirmModal.isOpen}
-      onClose={closeConfirmModal}
-      onConfirm={confirmModal.onConfirm}
-      title={confirmModal.title}
-      message={confirmModal.message}
-      type={confirmModal.type}
-      confirmText={confirmModal.confirmText}
-      cancelText={confirmModal.cancelText}
-    />
-
-    <NotificationModal
-      isOpen={notificationModal.isOpen}
-      onClose={closeNotificationModal}
-      title={notificationModal.title}
-      message={notificationModal.message}
-      type={notificationModal.type}
-      buttonText={notificationModal.buttonText}
-    />
   );
 }
