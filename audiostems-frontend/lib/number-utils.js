@@ -40,6 +40,23 @@ export const formatPercentage = (value, fallback = '---') => {
 };
 
 /**
+ * Formats growth percentage with + sign and handles undefined values
+ * @param {number} value - The growth percentage value
+ * @param {string} fallback - The fallback value (default: '---')
+ * @returns {string} - Formatted growth percentage or fallback
+ */
+export const formatGrowthPercentage = (value, fallback = '---') => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return fallback;
+  }
+  const formatted = formatNumber(value, null);
+  if (formatted === null) {
+    return fallback;
+  }
+  return value >= 0 ? `+${formatted}%` : `${formatted}%`;
+};
+
+/**
  * Formats currency and handles NaN values
  * @param {number} value - The currency value
  * @param {string} currency - The currency symbol (default: '$')
@@ -105,6 +122,7 @@ export const formatThousands = (value, fallback = '---') => {
 export default {
   formatNumber,
   formatPercentage,
+  formatGrowthPercentage,
   formatCurrency,
   safeDivide,
   safeRound,

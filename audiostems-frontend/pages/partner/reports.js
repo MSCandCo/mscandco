@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole } from '@/lib/auth0-config';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import { formatGrowthPercentage } from '@/lib/number-utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -1139,7 +1140,7 @@ export default function PartnerReports() {
                       )}
                     </div>
                     <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                      +{platform.growth}%
+                      {formatGrowthPercentage(platform.growth)}
                     </span>
                   </div>
                   
@@ -1231,7 +1232,7 @@ export default function PartnerReports() {
                             ? 'bg-yellow-100 text-yellow-800' 
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          +{artist.growth}%
+                          {formatGrowthPercentage(artist.growth)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
