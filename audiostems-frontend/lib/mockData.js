@@ -69,6 +69,22 @@ export const getDashboardStats = () => {
       contentItems: stats.totalSongs,
       totalViews: stats.totalStreams,
       engagement: 78.5 // Percentage
+    },
+    labelAdmin: {
+      labelReleases: Math.floor(stats.totalReleases * 0.3), // Label has 30% of total releases
+      labelRevenue: Math.floor(stats.totalRevenue * 0.25), // Label gets 25% of total revenue
+      labelStreams: Math.floor(stats.totalStreams * 0.28), // Label has 28% of total streams
+      labelArtists: Math.floor(stats.totalArtists * 0.4), // Label manages 40% of artists
+      growth: 18.2, // Label growth percentage
+      topGenre: 'Pop'
+    },
+    distributionPartner: {
+      distributedContent: stats.totalReleases,
+      partnerRevenue: Math.floor(stats.totalRevenue * 0.15), // Partner gets 15% commission
+      partnerStreams: stats.totalStreams,
+      successRate: 94.2, // Distribution success rate
+      activePlatforms: 12,
+      totalArtists: stats.totalArtists
     }
   };
 };
