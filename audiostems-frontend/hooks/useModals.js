@@ -120,6 +120,17 @@ export const useModals = () => {
     });
   };
 
+  const confirmWithdrawal = (amount, onConfirm) => {
+    return showConfirmation({
+      title: 'Confirm Withdrawal',
+      message: `Are you sure you want to withdraw ${amount}? This action cannot be undone.`,
+      onConfirm,
+      confirmText: 'Withdraw',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+  };
+
   return {
     // Modal states
     confirmModal,
@@ -133,6 +144,7 @@ export const useModals = () => {
     
     // Convenience methods
     confirmDelete,
+    confirmWithdrawal,
     showSuccess,
     showError,
     showWarning,
