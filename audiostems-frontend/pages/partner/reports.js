@@ -54,6 +54,14 @@ export default function PartnerReports() {
   // Currency state
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
+  // Initialize modals hook
+  const {
+    notificationModal,
+    showError,
+    showWarning,
+    closeNotificationModal
+  } = useModals();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -549,7 +557,7 @@ export default function PartnerReports() {
       console.log('Excel export completed successfully');
     } catch (error) {
       console.error('Excel export error:', error);
-      alert('Error generating Excel file. Please try again.');
+      showError('Error generating Excel file. Please try again.', 'Export Error');
     }
   };
 
@@ -647,7 +655,7 @@ export default function PartnerReports() {
       console.log('PDF export completed successfully');
     } catch (error) {
       console.error('PDF export error:', error);
-      alert('Error generating PDF file. Please try again.');
+      showError('Error generating PDF file. Please try again.', 'Export Error');
     }
   };
 
@@ -869,7 +877,7 @@ export default function PartnerReports() {
                         console.log(`Applying custom date range for reports: ${customStartDate} to ${customEndDate}`);
                         // Here you would typically refresh the earnings data with the new date range
                       } else {
-                        alert('Please select both start and end dates');
+                        showWarning('Please select both start and end dates', 'Date Selection Required');
                       }
                     }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -1253,6 +1261,15 @@ export default function PartnerReports() {
           </div>
         </div>
       </div>
-    </Layout>
-  );
-}
+            {/* Branded Modals */}
+        <NotificationModal
+          isOpen={notificationModal.isOpen}
+          onClose={closeNotificationModal}
+          title={notificationModal.title}
+          message={notificationModal.message}
+          type={notificationModal.type}
+          buttonText={notificationModal.buttonText}
+        />
+      </Layout>
+    );
+  }
