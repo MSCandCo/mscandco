@@ -9,6 +9,8 @@ import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES,
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import Link from 'next/link';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 
 // Excel download functions
 const downloadReleaseExcel = async (release) => {
@@ -16,7 +18,7 @@ const downloadReleaseExcel = async (release) => {
     await downloadSingleReleaseExcel(release);
   } catch (error) {
     console.error('Error downloading release:', error);
-    alert('Error downloading release data. Please try again.');
+    showError('Error downloading release data. Please try again.', 'Download Error');
   }
 };
 
@@ -25,7 +27,7 @@ const downloadAllReleasesExcel = async (releases) => {
     await downloadMultipleReleasesExcel(releases);
   } catch (error) {
     console.error('Error downloading releases:', error);
-    alert('Error downloading releases data. Please try again.');
+    showError('Error downloading releases data. Please try again.', 'Download Error');
   }
 };
 
@@ -49,6 +51,13 @@ export default function LabelAdminDashboard() {
   
   // Currency system integration
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+
+  // Initialize modals hook
+  const {
+    notificationModal,
+    showError,
+    closeNotificationModal
+  } = useModals();
 
   // Get approved artists for this label
   const approvedArtists = useMemo(() => {
@@ -731,6 +740,15 @@ export default function LabelAdminDashboard() {
           {activeTab === 'earnings' && renderEarnings()}
         </div>
       </div>
-    </Layout>
-  );
-} 
+            {/* Branded Modals */}
+        <NotificationModal
+          isOpen={notificationModal.isOpen}
+          onClose={closeNotificationModal}
+          title={notificationModal.title}
+          message={notificationModal.message}
+          type={notificationModal.type}
+          buttonText={notificationModal.buttonText}
+        />
+      </Layout>
+    );
+  } 

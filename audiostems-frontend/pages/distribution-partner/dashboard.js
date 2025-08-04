@@ -8,6 +8,8 @@ import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../..
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, RELEASE_TYPES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import * as XLSX from 'xlsx';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import NotificationModal from '@/components/shared/NotificationModal';
+import useModals from '@/hooks/useModals';
 
 // Excel download functions using template
 const downloadReleaseExcel = async (release) => {
@@ -15,7 +17,7 @@ const downloadReleaseExcel = async (release) => {
     await downloadSingleReleaseExcel(release);
   } catch (error) {
     console.error('Error downloading release:', error);
-    alert('Error downloading release data. Please try again.');
+    showError('Error downloading release data. Please try again.', 'Download Error');
   }
 };
 
@@ -25,7 +27,7 @@ const downloadAllReleasesExcel = async (releases) => {
     await downloadMultipleReleasesExcel(releases);
   } catch (error) {
     console.error('Error downloading releases:', error);
-    alert('Error downloading releases data. Please try again.');
+    showError('Error downloading releases data. Please try again.', 'Download Error');
   }
 };
 
@@ -1039,6 +1041,15 @@ export default function DistributionPartnerDashboard() {
   
   // Convert mockAllReleases to state for dynamic updates
   const [allReleases, setAllReleases] = useState(mockAllReleases);
+
+  // Initialize modals hook
+  const {
+    notificationModal,
+    showSuccess,
+    showError,
+    showWarning,
+    closeNotificationModal
+  } = useModals();
   
   // ISRC editing state
   const [editingIsrc, setEditingIsrc] = useState(null); // { releaseId, trackIndex }
@@ -1137,13 +1148,13 @@ export default function DistributionPartnerDashboard() {
   const handleProfileSave = () => {
     // Validation: If company name is not set, require it
     if (!profileData.isCompanyNameSet && (!editProfileData.companyName || editProfileData.companyName.trim() === '')) {
-      alert('⚠️ Company name is required!\n\nPlease enter your company name to complete your profile setup.');
+      showWarning('Company name is required!\n\nPlease enter your company name to complete your profile setup.', 'Profile Setup Required');
       return;
     }
 
     // Validation: Check for basic required fields
     if (!editProfileData.firstName || !editProfileData.lastName || !editProfileData.email) {
-      alert('⚠️ Please fill in all required fields (First Name, Last Name, Email)');
+      showWarning('Please fill in all required fields (First Name, Last Name, Email)', 'Required Fields Missing');
       return;
     }
 
@@ -1157,7 +1168,7 @@ export default function DistributionPartnerDashboard() {
       
       // Show confirmation message for first-time registration
       setTimeout(() => {
-        alert(`✅ Company registration completed!\n\nCompany Name: "${editProfileData.companyName}"\n\nNote: Company name cannot be changed after initial registration for security and compliance purposes.`);
+        showSuccess(`Company registration completed!\n\nCompany Name: "${editProfileData.companyName}"\n\nNote: Company name cannot be changed after initial registration for security and compliance purposes.`, 'Registration Complete');
       }, 100);
     }
     
@@ -1266,7 +1277,7 @@ export default function DistributionPartnerDashboard() {
       
       // Use setTimeout to ensure the alert shows after state update
       setTimeout(() => {
-        alert(`✅ Release status successfully updated!\n\nFrom: "${oldStatusLabel}"\nTo: "${statusLabel}"\n\nThis change is now visible to the artist and other stakeholders.`);
+        showSuccess(`Release status successfully updated!\n\nFrom: "${oldStatusLabel}"\nTo: "${statusLabel}"\n\nThis change is now visible to the artist and other stakeholders.`, 'Status Updated');
       }, 100);
       
       console.log(`Status change applied: Release "${updatedReleases[releaseIndex].projectName}" (${releaseId}) → ${statusLabel}`);
@@ -1810,7 +1821,7 @@ export default function DistributionPartnerDashboard() {
                       <button
                         onClick={() => {
                           console.log('Approving edit request:', request.id);
-                          alert('Edit request approved and will be processed.');
+                          showSuccess('Edit request approved and will be processed.', 'Request Approved');
                         }}
                         className="text-green-600 hover:text-green-900"
                         title="Approve Request"
@@ -1820,7 +1831,7 @@ export default function DistributionPartnerDashboard() {
                       <button
                         onClick={() => {
                           console.log('Rejecting edit request:', request.id);
-                          alert('Edit request rejected.');
+                          showWarning('Edit request rejected.', 'Request Rejected');
                         }}
                         className="text-red-600 hover:text-red-900"
                         title="Reject Request"
@@ -1865,15 +1876,15 @@ export default function DistributionPartnerDashboard() {
         setEditingRelease(updatedRelease);
         
         // Show success message
-        alert('Excel data uploaded successfully! Form fields have been populated.');
+        showSuccess('Excel data uploaded successfully! Form fields have been populated.', 'Upload Complete');
       } else {
         setUploadStatus('error');
-        alert('No valid data found in the Excel file. Please ensure the file follows the correct template format.');
+        showWarning('No valid data found in the Excel file. Please ensure the file follows the correct template format.', 'Invalid File Format');
       }
     } catch (error) {
       console.error('Error processing Excel file:', error);
       setUploadStatus('error');
-      alert('Error processing Excel file. Please ensure the file follows the correct template format.');
+      showError('Error processing Excel file. Please ensure the file follows the correct template format.', 'Processing Error');
     }
     
     // Reset file input
@@ -2870,7 +2881,7 @@ export default function DistributionPartnerDashboard() {
                             setUploadStatus(null);
                             // Reset the editing release to original data
                             setEditingRelease(allReleases.find(r => r.id === editingRelease?.id));
-                            alert('Uploaded data cleared. Form reset to original values.');
+                            showSuccess('Uploaded data cleared. Form reset to original values.', 'Data Cleared');
                           }}
                           className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
                         >
@@ -4322,6 +4333,16 @@ export default function DistributionPartnerDashboard() {
           </div>
         )}
       </div>
+
+      {/* Branded Modals */}
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onClose={closeNotificationModal}
+        title={notificationModal.title}
+        message={notificationModal.message}
+        type={notificationModal.type}
+        buttonText={notificationModal.buttonText}
+      />
     </Layout>
   );
 } 

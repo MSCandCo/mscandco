@@ -288,7 +288,7 @@ export default function AdminUsersPage() {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                   <p className="text-3xl font-bold text-purple-600 truncate">{formatCurrency(userStats.totalRevenue, selectedCurrency)}</p>
                 </div>

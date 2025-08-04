@@ -18,7 +18,7 @@ const downloadReleaseExcel = async (release) => {
     await downloadSingleReleaseExcel(release);
   } catch (error) {
     console.error('Error downloading release:', error);
-    alert('Error downloading release data. Please try again.');
+    // showError('Error downloading release data. Please try again.', 'Download Error'); // TODO: Add modal system
   }
 };
 
