@@ -16,14 +16,14 @@ const ArtistVideoSection = () => {
   useEffect(() => {
     // Randomly choose between highest performing and newest video
     const isHighestPerforming = Math.random() > 0.5;
-    const video = isHighestPerforming ? MOCK_VIDEOS.highestPerforming : MOCK_VIDEOS.newestReleased;
+    const video = isHighestPerforming ? MOCK_VIDEOS.featured : MOCK_VIDEOS.latest;
     setCurrentVideo(video);
     setVideoType(isHighestPerforming ? 'highest' : 'newest');
     
     // Switch videos every 30 seconds
     const interval = setInterval(() => {
       const newIsHighestPerforming = Math.random() > 0.5;
-      const newVideo = newIsHighestPerforming ? MOCK_VIDEOS.highestPerforming : MOCK_VIDEOS.newestReleased;
+      const newVideo = newIsHighestPerforming ? MOCK_VIDEOS.featured : MOCK_VIDEOS.latest;
       setCurrentVideo(newVideo);
       setVideoType(newIsHighestPerforming ? 'highest' : 'newest');
     }, 30000);
