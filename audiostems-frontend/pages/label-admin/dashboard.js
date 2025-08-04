@@ -301,8 +301,7 @@ export default function LabelAdminDashboard() {
                   <div className="flex items-center space-x-4">
                     <h3 className="text-xl font-semibold text-gray-900">{release.projectName}</h3>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
-                      {getStatusIcon(release.status)}
-                      <span className="ml-1">{getStatusLabel(release.status)}</span>
+                      <span>{getStatusLabel(release.status)}</span>
                     </span>
                   </div>
                   <div className="mt-2 text-sm text-gray-600">

@@ -1367,8 +1367,7 @@ export default function DistributionPartnerDashboard() {
                   <div className="flex items-center space-x-4">
                     <h3 className="text-xl font-semibold text-gray-900">{release.projectName}</h3>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
-                      {getStatusIcon(release.status)}
-                      <span className="ml-1">{getStatusLabel(release.status)}</span>
+                      <span>{getStatusLabel(release.status)}</span>
                     </span>
                     {release.statusHistory && release.statusHistory.length > 0 && (() => {
                       const lastChange = release.statusHistory[release.statusHistory.length - 1];
@@ -1609,7 +1608,7 @@ export default function DistributionPartnerDashboard() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="text-4xl">🎵</div>
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(release.status)}`}>
-                        {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                        {getStatusLabel(release.status)}
                       </span>
                     </div>
                     
@@ -1679,7 +1678,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                        {getStatusIcon(release.status)} {getStatusLabel(release.status)}
+                        {getStatusLabel(release.status)}
                       </span>
                       <button
                         onClick={() => {
@@ -2058,8 +2057,7 @@ export default function DistributionPartnerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Status</label>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedRelease.status)}`}>
-                        {getStatusIcon(selectedRelease.status)}
-                        <span className="ml-1">{selectedRelease.status.replace('_', ' ')}</span>
+                        <span>{selectedRelease.status.replace('_', ' ')}</span>
                       </span>
                     </div>
                     <div>

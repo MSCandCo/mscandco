@@ -153,8 +153,7 @@ export default function ArtistReleases() {
         {/* Status Badge - Full Width */}
         <div className="flex justify-end mb-3">
           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(release.status)}`}>
-            {getStatusIcon(release.status)}
-            <span className="ml-1.5">{getStatusLabel(release.status)}</span>
+            <span>{getStatusLabel(release.status)}</span>
           </span>
         </div>
         

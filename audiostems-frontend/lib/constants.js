@@ -113,20 +113,8 @@ export const getStatusColor = (status) => {
 };
 
 export const getStatusIcon = (status) => {
-  // Returns appropriate icon component name for the status
-  const iconMap = {
-    [RELEASE_STATUSES.DRAFT]: 'FileText',
-    [RELEASE_STATUSES.SUBMITTED]: 'Send',
-    [RELEASE_STATUSES.UNDER_REVIEW]: 'Eye',
-    [RELEASE_STATUSES.IN_REVIEW]: 'Eye',
-    [RELEASE_STATUSES.APPROVAL_REQUIRED]: 'CheckCircle',
-    [RELEASE_STATUSES.APPROVALS]: 'CheckCircle',
-    [RELEASE_STATUSES.COMPLETED]: 'Check',
-    [RELEASE_STATUSES.LIVE]: 'Play',
-    [RELEASE_STATUSES.DISTRIBUTED]: 'Play',
-    [RELEASE_STATUSES.ARCHIVED]: 'X'
-  };
-  return iconMap[status] || 'FileText';
+  // Status icons disabled - return empty string to show only status labels
+  return '';
 };
 
 export const isStatusEditableByArtist = (status) => {

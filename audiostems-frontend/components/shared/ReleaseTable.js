@@ -74,8 +74,7 @@ export default function ReleaseTable({
                 <p className="text-sm text-gray-600">{release.artist} • {release.releaseType}</p>
               </div>
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                {getStatusIcon(release.status)}
-                <span className="ml-1">{getStatusLabel(release.status)}</span>
+                <span>{getStatusLabel(release.status)}</span>
               </span>
             </div>
             
@@ -161,8 +160,7 @@ export default function ReleaseTable({
                 </td>
                 <td className="px-4 py-4 w-32">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
-                    {getStatusIcon(release.status)}
-                    <span className="ml-1">{getStatusLabel(release.status)}</span>
+                    <span>{getStatusLabel(release.status)}</span>
                   </span>
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-900 w-24">
