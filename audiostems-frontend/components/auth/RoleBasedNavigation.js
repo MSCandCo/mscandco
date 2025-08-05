@@ -24,7 +24,9 @@ export default function RoleBasedNavigation() {
   const [fundsData, setFundsData] = useState({
     heldEarnings: 1560,
     availableForCashout: 890,
-    minimumCashoutThreshold: 100
+    minimumCashoutThreshold: 100,
+    labelAdminEarnings: 4250, // Label admin earnings
+    labelAdminAvailable: 3100  // Available for withdrawal
   });
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -139,7 +141,7 @@ export default function RoleBasedNavigation() {
 
             {/* Center Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+              <div className="ml-10 flex items-baseline space-x-6">
                 <Link
                   href="/distribution-partner/dashboard"
                   className={getNavLinkClasses('/distribution-partner/dashboard')}
@@ -162,7 +164,7 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Right side - User menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -224,7 +226,7 @@ export default function RoleBasedNavigation() {
 
             {/* Center Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+              <div className="ml-10 flex items-baseline space-x-6">
                 <Link
                   href="/dashboard"
                   className={getNavLinkClasses('/dashboard')}
@@ -265,7 +267,7 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Right side - User menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -327,7 +329,7 @@ export default function RoleBasedNavigation() {
 
             {/* Center Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+              <div className="ml-10 flex items-baseline space-x-6">
                 <Link
                   href="/company-admin/dashboard"
                   className={getNavLinkClasses('/company-admin/dashboard')}
@@ -368,7 +370,7 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Right side - User menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -430,7 +432,7 @@ export default function RoleBasedNavigation() {
 
             {/* Center Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+              <div className="ml-10 flex items-baseline space-x-6">
                 <Link
                   href="/dashboard"
                   className={getNavLinkClasses('/dashboard')}
@@ -464,8 +466,16 @@ export default function RoleBasedNavigation() {
               </div>
             </div>
 
-            {/* Right side - User menu */}
-            <div className="flex items-center space-x-4">
+            {/* Right side - Balance and User menu */}
+            <div className="flex items-center space-x-3">
+              {/* Label Admin Balance Display */}
+              <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
+                <Wallet className="w-4 h-4 text-gray-600" />
+                <span className="text-xs font-medium text-gray-900">
+                  {sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)}
+                </span>
+              </div>
+              
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -557,15 +567,20 @@ export default function RoleBasedNavigation() {
 
         {/* Right side - Utility links and user menu */}
         <div className="flex-1 flex justify-end items-center space-x-3">
-          {/* Platform Funds Display - Only for artists */}
-          {userRole === 'artist' && (
+          {/* Platform Funds Display - For artists and label admins */}
+          {(userRole === 'artist' || userRole === 'label_admin') && (
             <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
               <Wallet className="w-4 h-4 text-gray-600" />
-                                      <span className="text-xs font-medium text-gray-900">{sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}</span>
+              <span className="text-xs font-medium text-gray-900">
+                {userRole === 'artist' 
+                  ? sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)
+                  : sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)
+                }
+              </span>
             </div>
           )}
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <Link 
               href="/about" 
               className={`text-sm transition-colors duration-200 ${
