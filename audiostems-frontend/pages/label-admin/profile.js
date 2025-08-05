@@ -117,7 +117,9 @@ export default function LabelAdminProfile() {
   );
 
   useEffect(() => {
+    console.log('📝 Profile useEffect running...');
     if (isAuthenticated && user) {
+      console.log('✅ User authenticated, loading profile data');
       // Load profile data - in real app this would be from API
       const mockProfile = {
         firstName: 'Sarah',
@@ -260,6 +262,9 @@ export default function LabelAdminProfile() {
   };
 
   const handleSave = async () => {
+    console.log('🚨 handleSave called!');
+    console.trace('Stack trace for handleSave:');
+    
     if (!validateForm()) {
       return;
     }
