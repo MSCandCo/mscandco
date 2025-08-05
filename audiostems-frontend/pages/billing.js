@@ -776,7 +776,7 @@ export default function Billing() {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {processing ? 'Processing...' : 
-                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'View in Stripe Portal'}
+                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'Downgrade to Starter'}
                     </button>
                     <button 
                       onClick={handleCancelSubscription}
@@ -880,7 +880,15 @@ export default function Billing() {
                               : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                           }`}
                         >
-                          {processing ? 'Processing...' : plan.current ? 'Current Plan' : plan.name === 'Artist Pro' ? 'Upgrade to Pro' : 'Select Plan'}
+                          {processing 
+                            ? 'Processing...' 
+                            : plan.current 
+                            ? 'Current Plan' 
+                            : plan.name === 'Artist Pro' 
+                            ? 'Upgrade to Pro'
+                            : plan.name === 'Artist Starter'
+                            ? 'Switch to Starter'
+                            : 'Select Plan'}
                         </button>
                       </div>
                     ))}
