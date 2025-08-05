@@ -623,17 +623,19 @@ export default function LabelAdminArtists() {
         </div>
       )}
 
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal && successMessage}
-        onClose={() => {
-          setShowSuccessModal(false);
-          setSuccessMessage('');
-        }}
-        title="Success!"
-        message={successMessage}
-        buttonText="Close"
-      />
+      {/* Success Modal - Temporarily Disabled for Debugging */}
+      {false && (
+        <SuccessModal
+          isOpen={showSuccessModal && successMessage}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setSuccessMessage('');
+          }}
+          title="Success!"
+          message={successMessage}
+          buttonText="Close"
+        />
+      )}
     </Layout>
   );
 } 
