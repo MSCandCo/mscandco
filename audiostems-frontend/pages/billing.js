@@ -301,9 +301,18 @@ export default function Billing() {
         try {
           const parsed = JSON.parse(upgradeData);
           setUpgradeTimestamp(parsed.timestamp);
+          setCurrentSessionUpgrade(true); // Also set session state
+          console.log('🔄 Restored upgrade state from localStorage:', parsed);
         } catch (e) {
           console.log('Error reading upgrade data:', e);
         }
+      }
+      
+      // Also check for a simpler upgrade flag
+      const simpleUpgrade = localStorage.getItem(`user_upgraded_${user.sub}`);
+      if (simpleUpgrade === 'true') {
+        setCurrentSessionUpgrade(true);
+        console.log('🔄 Restored upgrade from simple flag');
       }
     }
   }, [user?.sub]);
@@ -321,6 +330,10 @@ export default function Billing() {
       setMessageType('success');
       setMessage('🎉 Subscription updated successfully! Your new plan is now active.');
       
+      // Immediately set session upgrade state when success is detected
+      setCurrentSessionUpgrade(true);
+      console.log('🚀 Immediately setting session upgrade to true');
+      
               // In test mode, simulate subscription upgrade by storing in localStorage
         const sessionId = router.query.session_id;
         if (sessionId && user?.sub) {
@@ -334,6 +347,7 @@ export default function Billing() {
           // Force localStorage save with error handling
           try {
             localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
+            localStorage.setItem(`user_upgraded_${user.sub}`, 'true'); // Simple backup flag
             console.log('💾 Upgrade data saved:', { userId: user.sub, upgradeData });
             
             // Verify it was saved
@@ -347,6 +361,7 @@ export default function Billing() {
             setTimeout(() => {
               console.log('🔄 Force refreshing billing data after upgrade...');
               loadBillingData();
+              // Remove auto-refresh - it was causing the plan to revert
             }, 100); // Small delay to ensure localStorage is written
           } catch (error) {
             console.error('❌ Failed to save upgrade data:', error);
@@ -760,7 +775,8 @@ export default function Billing() {
                       disabled={processing}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {processing ? 'Processing...' : 'Manage Plan'}
+                      {processing ? 'Processing...' : 
+                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'View in Stripe Portal'}
                     </button>
                     <button 
                       onClick={handleCancelSubscription}
@@ -864,7 +880,7 @@ export default function Billing() {
                               : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                           }`}
                         >
-                          {processing ? 'Processing...' : plan.current ? 'Current Plan' : 'Select Plan'}
+                          {processing ? 'Processing...' : plan.current ? 'Current Plan' : plan.name === 'Artist Pro' ? 'Upgrade to Pro' : 'Select Plan'}
                         </button>
                       </div>
                     ))}
