@@ -117,30 +117,30 @@ export default function LabelAdminProfile() {
         email: user.email || 'sarah.johnson@mscandco.com',
         phone: '+44 20 7946 0958',
         
-        labelName: userBrand?.displayName || 'MSC & Co',
-        companyName: '',
-        position: '',
-        department: '',
+        labelName: userBrand?.displayName || 'YHWH MSC',
+        companyName: 'YHWH MSC Ltd',
+        position: 'Label Manager',
+        department: 'A&R',
         
-        officeAddress: '',
-        city: '',
-        country: '',
-        postalCode: '',
-        timezone: '',
+        officeAddress: '123 Music Street, London',
+        city: 'London',
+        country: 'United Kingdom',
+        postalCode: 'SW1A 1AA',
+        timezone: 'GMT+0',
         
-        businessType: '',
-        taxId: '',
-        vatNumber: '',
-        registrationNumber: '',
-        foundedYear: '',
+        businessType: 'Music Label',
+        taxId: 'TAX123456789',
+        vatNumber: 'GB123456789',
+        registrationNumber: 'REG987654321',
+        foundedYear: '2015',
         
         bankInfo: {
-          accountName: '',
-          accountNumber: '',
-          routingNumber: '',
-          bankName: '',
-          swiftCode: '',
-          iban: ''
+          accountName: 'YHWH MSC Ltd',
+          accountNumber: '12345678',
+          routingNumber: '123456',
+          bankName: 'Barclays Bank',
+          swiftCode: 'BARCGB22',
+          iban: 'GB29BARC20031512345678'
         },
         
         yearsOfExperience: '8',
@@ -148,11 +148,11 @@ export default function LabelAdminProfile() {
         primaryGenres: ['Hip Hop', 'R&B', 'Pop', 'Gospel'],
         languages: ['English', 'French'],
         
-        website: 'https://mscandco.com',
+        website: 'https://yhwhmsc.com',
         linkedin: 'https://linkedin.com/in/sarahjohnson',
-        instagram: '@mscandco_official',
-        facebook: 'MSCandCo',
-        twitter: '@mscandco',
+        instagram: '@yhwhmsc_official',
+        facebook: 'YHWHMSCLabel',
+        twitter: '@yhwhmsc',
         
         distributionPartners: ['Code Group', 'TuneCore', 'DistroKid'],
         publishingAgreements: ['ASCAP', 'PRS for Music'],
@@ -179,9 +179,9 @@ export default function LabelAdminProfile() {
         lastLogin: '2024-01-16T11:15:00Z',
         profileCompletion: 0, // Will be calculated dynamically
         
-        // Registration tracking - company info not set yet
-        isCompanyInfoSet: false,
-        registrationDate: null
+        // Company info is already set - preventing the first-time setup modal
+        isCompanyInfoSet: true,
+        registrationDate: '2023-06-15T00:00:00Z'
       };
 
       // Calculate initial verification status and profile completion
@@ -256,21 +256,6 @@ export default function LabelAdminProfile() {
       return;
     }
 
-    // Check if this is the first time setting company info
-    const isFirstTimeSetup = !profile.isCompanyInfoSet && 
-      (formData.companyName || formData.position || formData.department || 
-       formData.officeAddress || formData.businessType || formData.taxId);
-
-    if (isFirstTimeSetup) {
-      // Validate that required company info is provided
-      if (!formData.companyName?.trim()) {
-        setSuccessTitle('Validation Error');
-        setSuccessMessage('Company name is required for first-time setup.');
-        setShowSuccessModal(true);
-        return;
-      }
-    }
-
     setIsSaving(true);
     
     try {
@@ -279,12 +264,6 @@ export default function LabelAdminProfile() {
       
       const updatedProfile = { ...formData };
       
-      // If this is first time setup, mark company info as set
-      if (isFirstTimeSetup) {
-        updatedProfile.isCompanyInfoSet = true;
-        updatedProfile.registrationDate = new Date().toISOString();
-      }
-      
       // Recalculate verification status and profile completion
       updatedProfile.isVerified = calculateVerificationStatus(updatedProfile);
       updatedProfile.profileCompletion = calculateProfileCompletion(updatedProfile);
@@ -292,14 +271,9 @@ export default function LabelAdminProfile() {
       setProfile(updatedProfile);
       setIsEditing(false);
       
-      // Show success message
-      if (isFirstTimeSetup) {
-        setSuccessTitle('Company Registration Complete!');
-        setSuccessMessage('Company information has been set successfully! This information cannot be changed in the future. Your account verification status has been updated.');
-      } else {
-        setSuccessTitle('Profile Updated!');
-        setSuccessMessage('Your profile has been updated successfully.');
-      }
+      // Show success message only when user actually saves
+      setSuccessTitle('Profile Updated!');
+      setSuccessMessage('Your profile has been updated successfully.');
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving profile:', error);
