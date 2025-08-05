@@ -6,13 +6,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
 import { getUserRole, getUserBrand } from '@/lib/auth0-config';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function Header({ largeLogo = false }) {
   const { user, isAuthenticated, logout } = useAuth0();
   const router = useRouter();
   const userBrand = getBrandByUser(user);
   const [profileData, setProfileData] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Fetch profile data to get first and last name
   useEffect(() => {
@@ -25,6 +27,20 @@ function Header({ largeLogo = false }) {
         .catch(err => console.error('Error fetching profile:', err));
     }
   }, [isAuthenticated, user]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const openCustomerPortal = async () => {
     try {
@@ -145,38 +161,66 @@ function Header({ largeLogo = false }) {
               </li>
             </ul>
             {isAuthenticated ? (
-              <Dropdown
-                color="gray"
-                size="sm"
-                label={
-                  <p>Hi, {getDisplayName()}</p>
-                }
-                dismissOnClick={false}
+              <div 
+                className="relative"
+                ref={dropdownRef}
+                onMouseLeave={() => setIsDropdownOpen(false)}
               >
-                <Link href="/dashboard">
-                  <Dropdown.Item icon={HiUser}>Dashboard</Dropdown.Item>
-                </Link>
-                <Link href="/settings/me">
-                  <Dropdown.Item icon={HiUser}>Profile</Dropdown.Item>
-                </Link>
-                <Link href="/download-history">
-                  <Dropdown.Item icon={HiDownload}>Download History</Dropdown.Item>
-                </Link>
-                <Dropdown.Item icon={HiCog6Tooth} onClick={openCustomerPortal}>
-                  Billing
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item
-                  icon={HiArrowLeftOnRectangle}
-                  onClick={() => logout({ 
-                    logoutParams: { 
-                      returnTo: window.location.origin 
-                    } 
-                  })}
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onMouseEnter={() => setIsDropdownOpen(true)}
+                  className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                  type="button"
                 >
-                  Logout
-                </Dropdown.Item>
-              </Dropdown>
+                  <span className="sr-only">Open user menu</span>
+                  Hi, {getDisplayName()}
+                  <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                  </svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/dashboard">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                        Dashboard
+                      </div>
+                    </Link>
+                    <Link href="/settings/me">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                        Profile
+                      </div>
+                    </Link>
+                    <Link href="/download-history">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
+                        Download History
+                      </div>
+                    </Link>
+                    <button
+                      onClick={openCustomerPortal}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
+                      Billing
+                    </button>
+                    <hr className="my-1 border-gray-200" />
+                    <button
+                      onClick={() => logout({ 
+                        logoutParams: { 
+                          returnTo: window.location.origin 
+                        } 
+                      })}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="ml-2 flex gap-4">
                 <button className="font-semibold px-4 py-2">
