@@ -412,6 +412,7 @@ export default function LabelAdminProfile() {
               <div className="flex space-x-3">
                 {!isEditing ? (
                   <button
+                    type="button"
                     onClick={() => setIsEditing(true)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
@@ -420,12 +421,14 @@ export default function LabelAdminProfile() {
                 ) : (
                   <>
                     <button
+                      type="button"
                       onClick={handleCancel}
                       className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={handleSave}
                       disabled={isSaving}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
