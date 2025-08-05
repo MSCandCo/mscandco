@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS } from '../../lib/mockData';
@@ -7,12 +8,21 @@ import SuccessModal from '../../components/shared/SuccessModal';
 
 export default function LabelAdminProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successTitle, setSuccessTitle] = useState('');
+
+  // Debug: Log when success modal state changes
+  useEffect(() => {
+    if (showSuccessModal) {
+      console.log('🚨 SUCCESS MODAL TRIGGERED:', { title: successTitle, message: successMessage });
+      console.trace('Stack trace for success modal');
+    }
+  }, [showSuccessModal, successTitle, successMessage]);
   const [profile, setProfile] = useState({
     // Personal Information
     firstName: '',
@@ -102,6 +112,15 @@ export default function LabelAdminProfile() {
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
 
+  // Check for URL parameters that might trigger success modal
+  useEffect(() => {
+    if (router.query.success) {
+      console.log('🚨 SUCCESS PARAMETER DETECTED:', router.query.success);
+      // Clear the success parameter from URL
+      router.replace('/label-admin/profile', undefined, { shallow: true });
+    }
+  }, [router.query.success]);
+
   // Calculate approved label artists count
   const labelArtists = ARTISTS.filter(artist => 
     artist.approvalStatus === 'approved' && 
@@ -188,6 +207,7 @@ export default function LabelAdminProfile() {
       mockProfile.isVerified = calculateVerificationStatus(mockProfile);
       mockProfile.profileCompletion = calculateProfileCompletion(mockProfile);
       
+      console.log('📝 Loading profile data (should not trigger success modal)');
       setProfile(mockProfile);
       setFormData(mockProfile);
     }
