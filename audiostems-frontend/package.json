@@ -8,7 +8,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "ssl": "npx local-ssl-proxy --key localhost+1-key.pem --cert localhost+1.pem --source 3000 --target 3001"
+    "ssl": "npx local-ssl-proxy --key localhost+1-key.pem --cert localhost+1.pem --source 3000 --target 3001",
+    "stripe": "node scripts/stripe-cli.js",
+    "stripe:products": "node scripts/stripe-cli.js products",
+    "stripe:prices": "node scripts/stripe-cli.js prices",
+    "stripe:webhooks": "node scripts/stripe-cli.js webhooks",
+    "stripe:listen": "node scripts/stripe-cli.js listen",
+    "stripe:customers": "node scripts/stripe-cli.js customers",
+    "stripe:subscriptions": "node scripts/stripe-cli.js subscriptions"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
@@ -30,7 +37,7 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "clsx": "^2.1.0",
-    "dotenv": "^17.1.0",
+    "dotenv": "^17.2.1",
     "embla-carousel-react": "^8.0.0-rc21",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
@@ -55,7 +62,7 @@
     "react-icons": "^4.10.1",
     "react-player": "^2.14.1",
     "react-responsive": "^9.0.2",
-    "stripe": "^18.3.0",
+    "stripe": "^18.4.0",
     "swr": "^2.2.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
