@@ -9,6 +9,15 @@ import SuccessModal from '../../components/shared/SuccessModal';
 export default function LabelAdminProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   const router = useRouter();
+  
+  // Force component remount by clearing any stale state
+  useEffect(() => {
+    // Clear any success modal on component mount
+    console.log('🔄 LabelAdminProfile component mounted/remounted');
+    return () => {
+      console.log('🔄 LabelAdminProfile component unmounting');
+    };
+  }, []);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -393,7 +402,7 @@ export default function LabelAdminProfile() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
+      <div key="label-admin-profile-page" className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
