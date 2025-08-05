@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 // Production-ready billing data function
-const getRoleSpecificPlans = (userRole, user, forceRefresh = null) => {
+const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrade = false) => {
   // For admin roles, show no billing
   if (userRole === 'super_admin' || userRole === 'company_admin' || userRole === 'distribution_partner') {
     return {
@@ -124,24 +124,27 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null) => {
   nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
   
   // Check if user has successfully upgraded (for test mode simulation)
-  let hasUpgraded = false;
+  let hasUpgraded = sessionUpgrade; // Start with session state
   if (typeof window !== 'undefined' && user?.sub) {
     const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
     if (upgradeData) {
       try {
         const parsed = JSON.parse(upgradeData);
-        hasUpgraded = parsed.upgraded;
+        hasUpgraded = parsed.upgraded || sessionUpgrade; // Use either localStorage or session
         console.log('🎯 Plan detection:', { 
           userId: user.sub, 
           hasUpgraded, 
           upgradeData: parsed,
+          sessionUpgrade,
           forceRefresh 
         });
       } catch (e) {
         console.log('Error parsing upgrade data:', e);
+        hasUpgraded = sessionUpgrade; // Fall back to session state
       }
     } else {
-      console.log('🎯 No upgrade data found for user:', user.sub);
+      console.log('🎯 No localStorage upgrade data found, using session state:', sessionUpgrade);
+      hasUpgraded = sessionUpgrade;
     }
   }
   
@@ -260,6 +263,7 @@ export default function Billing() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [messageType, setMessageType] = useState('error'); // 'success', 'error', 'info'
   const [upgradeTimestamp, setUpgradeTimestamp] = useState(null); // Track upgrades to force re-render
+  const [currentSessionUpgrade, setCurrentSessionUpgrade] = useState(false); // Session-only upgrade state
 
   // Auto-detect currency based on user's location (using shared currency system)
   useEffect(() => {
@@ -308,7 +312,7 @@ export default function Billing() {
     if (isAuthenticated && user) {
       loadBillingData();
     }
-  }, [isAuthenticated, user, upgradeTimestamp]);
+  }, [isAuthenticated, user, upgradeTimestamp, currentSessionUpgrade]);
 
   // Handle successful payment return from Stripe
   useEffect(() => {
@@ -317,24 +321,37 @@ export default function Billing() {
       setMessageType('success');
       setMessage('🎉 Subscription updated successfully! Your new plan is now active.');
       
-      // In test mode, simulate subscription upgrade by storing in localStorage
-      const sessionId = router.query.session_id;
-      if (sessionId && user?.sub) {
-        // Store the successful upgrade for this user
-        const upgradeData = {
-          timestamp: new Date().toISOString(),
-          sessionId: sessionId,
-          upgraded: true
-        };
-        localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
-        setUpgradeTimestamp(upgradeData.timestamp); // Force re-render
-        
-        // Immediately update billing data to reflect the upgrade
-        setTimeout(() => {
-          console.log('🔄 Force refreshing billing data after upgrade...');
-          loadBillingData();
-        }, 100); // Small delay to ensure localStorage is written
-      }
+              // In test mode, simulate subscription upgrade by storing in localStorage
+        const sessionId = router.query.session_id;
+        if (sessionId && user?.sub) {
+          // Store the successful upgrade for this user
+          const upgradeData = {
+            timestamp: new Date().toISOString(),
+            sessionId: sessionId,
+            upgraded: true
+          };
+          
+          // Force localStorage save with error handling
+          try {
+            localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
+            console.log('💾 Upgrade data saved:', { userId: user.sub, upgradeData });
+            
+            // Verify it was saved
+            const verification = localStorage.getItem(`stripe_success_${user.sub}`);
+            console.log('✅ Verification read:', verification);
+            
+            setUpgradeTimestamp(upgradeData.timestamp); // Force re-render
+            setCurrentSessionUpgrade(true); // Also set session state as backup
+            
+            // Immediately update billing data to reflect the upgrade
+            setTimeout(() => {
+              console.log('🔄 Force refreshing billing data after upgrade...');
+              loadBillingData();
+            }, 100); // Small delay to ensure localStorage is written
+          } catch (error) {
+            console.error('❌ Failed to save upgrade data:', error);
+          }
+        }
       
       // Simulate subscription update in test mode
       setTimeout(() => {
@@ -353,7 +370,7 @@ export default function Billing() {
       
       // Get user-specific billing data
       const userRole = getUserRole(user);
-      const userBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp);
+      const userBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp, currentSessionUpgrade);
       
       setBillingData(userBillingData);
       setLoading(false);
@@ -537,7 +554,7 @@ export default function Billing() {
   }
 
   const userRole = getUserRole(user);
-  const roleBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp);
+  const roleBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp, currentSessionUpgrade);
 
   // Allow access to billing for all authenticated users
   if (!isAuthenticated) {
