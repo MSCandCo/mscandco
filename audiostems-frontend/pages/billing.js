@@ -131,9 +131,17 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null) => {
       try {
         const parsed = JSON.parse(upgradeData);
         hasUpgraded = parsed.upgraded;
+        console.log('🎯 Plan detection:', { 
+          userId: user.sub, 
+          hasUpgraded, 
+          upgradeData: parsed,
+          forceRefresh 
+        });
       } catch (e) {
         console.log('Error parsing upgrade data:', e);
       }
+    } else {
+      console.log('🎯 No upgrade data found for user:', user.sub);
     }
   }
   
@@ -320,6 +328,12 @@ export default function Billing() {
         };
         localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
         setUpgradeTimestamp(upgradeData.timestamp); // Force re-render
+        
+        // Immediately update billing data to reflect the upgrade
+        setTimeout(() => {
+          console.log('🔄 Force refreshing billing data after upgrade...');
+          loadBillingData();
+        }, 100); // Small delay to ensure localStorage is written
       }
       
       // Simulate subscription update in test mode
