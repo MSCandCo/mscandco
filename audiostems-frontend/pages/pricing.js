@@ -534,7 +534,9 @@ function Pricing() {
                     }
                   }}
                 >
-                  {isAuthenticated ? 'Select Plan' : 'Sign Up'}
+                  {isAuthenticated 
+                    ? (plan.name === 'Artist Pro' ? 'Upgrade to Pro' : plan.name === 'Artist Starter' ? 'Switch to Starter' : 'Select Plan')
+                    : 'Sign Up'}
                 </button>
               </div>
             ))}
