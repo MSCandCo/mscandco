@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 // Production-ready billing data function
-const getRoleSpecificPlans = (userRole, user) => {
+const getRoleSpecificPlans = (userRole, user, forceRefresh = null) => {
   // For admin roles, show no billing
   if (userRole === 'super_admin' || userRole === 'company_admin' || userRole === 'distribution_partner') {
     return {
@@ -251,6 +251,7 @@ export default function Billing() {
   const [message, setMessage] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [messageType, setMessageType] = useState('error'); // 'success', 'error', 'info'
+  const [upgradeTimestamp, setUpgradeTimestamp] = useState(null); // Track upgrades to force re-render
 
   // Auto-detect currency based on user's location (using shared currency system)
   useEffect(() => {
@@ -280,11 +281,26 @@ export default function Billing() {
     detectUserCurrency();
   }, [updateCurrency]);
 
+  // Initialize upgrade timestamp on component load
+  useEffect(() => {
+    if (user?.sub) {
+      const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
+      if (upgradeData) {
+        try {
+          const parsed = JSON.parse(upgradeData);
+          setUpgradeTimestamp(parsed.timestamp);
+        } catch (e) {
+          console.log('Error reading upgrade data:', e);
+        }
+      }
+    }
+  }, [user?.sub]);
+
   useEffect(() => {
     if (isAuthenticated && user) {
       loadBillingData();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, upgradeTimestamp]);
 
   // Handle successful payment return from Stripe
   useEffect(() => {
@@ -297,11 +313,13 @@ export default function Billing() {
       const sessionId = router.query.session_id;
       if (sessionId && user?.sub) {
         // Store the successful upgrade for this user
-        localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify({
+        const upgradeData = {
           timestamp: new Date().toISOString(),
           sessionId: sessionId,
           upgraded: true
-        }));
+        };
+        localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
+        setUpgradeTimestamp(upgradeData.timestamp); // Force re-render
       }
       
       // Simulate subscription update in test mode
@@ -321,7 +339,7 @@ export default function Billing() {
       
       // Get user-specific billing data
       const userRole = getUserRole(user);
-      const userBillingData = getRoleSpecificPlans(userRole, user);
+      const userBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp);
       
       setBillingData(userBillingData);
       setLoading(false);
@@ -505,7 +523,7 @@ export default function Billing() {
   }
 
   const userRole = getUserRole(user);
-  const roleBillingData = getRoleSpecificPlans(userRole);
+  const roleBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp);
 
   // Allow access to billing for all authenticated users
   if (!isAuthenticated) {
