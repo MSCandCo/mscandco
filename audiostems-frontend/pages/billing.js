@@ -368,13 +368,13 @@ export default function Billing() {
           }
         }
       
-      // Simulate subscription update in test mode
+      // Clear success message and URL after delay
       setTimeout(() => {
         setShowSuccessMessage(false);
         // Clear the success parameter from URL
         router.replace('/billing', undefined, { shallow: true });
-        // Reload billing data to show updated subscription
-        loadBillingData();
+        // Remove the loadBillingData() call here - it was causing the 3-second revert
+        // The upgrade state is already persisted and will be maintained
       }, 5000);
     }
   }, [router.query.success, router.query.session_id, user?.sub]);
@@ -776,7 +776,7 @@ export default function Billing() {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {processing ? 'Processing...' : 
-                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'Downgrade to Starter'}
+                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'Switch to Starter'}
                     </button>
                     <button 
                       onClick={handleCancelSubscription}
