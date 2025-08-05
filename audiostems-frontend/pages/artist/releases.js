@@ -42,6 +42,7 @@ export default function ArtistReleases() {
   const [releases, setReleases] = useState([]);
   const [profileData, setProfileData] = useState(null);
   const [activeTab, setActiveTab] = useState('all-projects');
+  const [userPlan, setUserPlan] = useState('starter'); // 'starter' or 'pro'
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [genreFilter, setGenreFilter] = useState('all');
@@ -79,6 +80,21 @@ export default function ArtistReleases() {
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
         const artistReleases = getReleasesByArtist('yhwh_msc');
 
+        // 🎯 Check user's subscription plan (for release limits)
+        if (user?.sub) {
+          const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
+          if (upgradeData) {
+            try {
+              const parsed = JSON.parse(upgradeData);
+              setUserPlan(parsed.upgraded ? 'pro' : 'starter');
+            } catch (e) {
+              setUserPlan('starter'); // Default to starter
+            }
+          } else {
+            setUserPlan('starter'); // Default to starter if no upgrade data
+          }
+        }
+
         setReleases(artistReleases);
         setIsLoadingData(false);
       } catch (error) {
@@ -95,6 +111,25 @@ export default function ArtistReleases() {
       loadData();
     }
   }, [isAuthenticated, isLoading, user?.sub]);
+
+  // 🎯 Calculate release counts for starter plan limits
+  const releaseCount = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const releasesThisYear = releases.filter(release => {
+      const releaseDate = new Date(release.releaseDate);
+      return releaseDate.getFullYear() === currentYear;
+    }).length;
+    
+    const maxReleases = userPlan === 'starter' ? 5 : Infinity;
+    const remaining = Math.max(0, maxReleases - releasesThisYear);
+    
+    return {
+      thisYear: releasesThisYear,
+      remaining: remaining,
+      maxReleases: maxReleases,
+      isLimited: userPlan === 'starter'
+    };
+  }, [releases, userPlan]);
 
   // 🔍 ADVANCED FILTERING SYSTEM
   const filteredReleases = useMemo(() => {
@@ -136,8 +171,8 @@ export default function ArtistReleases() {
       total: releases.length,
       draft: releases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length,
       submitted: releases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length,
-      underReview: releases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length,
-      approvalRequired: releases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length,
+      inReview: releases.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length,
+      approvals: releases.filter(r => r.status === RELEASE_STATUSES.APPROVALS).length,
       completed: releases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length,
       live: releases.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
 
@@ -263,10 +298,31 @@ export default function ArtistReleases() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">My Releases</h1>
                 <p className="mt-2 text-gray-600">Manage your music releases and track their progress</p>
+                {releaseCount.isLimited && (
+                  <div className="mt-3 flex items-center space-x-2">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      releaseCount.remaining > 0 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span>Releases Remaining: {releaseCount.remaining} / {releaseCount.maxReleases}</span>
+                    </div>
+                    {releaseCount.remaining === 0 && (
+                      <span className="text-sm text-red-600">
+                        Upgrade to Pro for unlimited releases
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                disabled={releaseCount.isLimited && releaseCount.remaining === 0}
+                className={`px-6 py-3 rounded-lg flex items-center space-x-2 ${
+                  releaseCount.isLimited && releaseCount.remaining === 0
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
                 <FaPlus className="w-4 h-4" />
                 <span>New Release</span>
@@ -310,22 +366,22 @@ export default function ArtistReleases() {
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === RELEASE_STATUSES.UNDER_REVIEW || statusFilter === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
+                  hoveredStatus === RELEASE_STATUSES.IN_REVIEW || statusFilter === RELEASE_STATUSES.IN_REVIEW ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.UNDER_REVIEW)}
-                onClick={() => {setStatusFilter(RELEASE_STATUSES.UNDER_REVIEW); setHoveredStatus(RELEASE_STATUSES.UNDER_REVIEW);}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.IN_REVIEW)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.IN_REVIEW); setHoveredStatus(RELEASE_STATUSES.IN_REVIEW);}}
               >
-                <div className="text-2xl font-bold text-orange-800">{stats.underReview}</div>
+                <div className="text-2xl font-bold text-orange-800">{stats.inReview}</div>
                 <div className="text-sm text-orange-700">In Review</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === RELEASE_STATUSES.APPROVAL_REQUIRED || statusFilter === RELEASE_STATUSES.APPROVAL_REQUIRED ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
+                  hoveredStatus === RELEASE_STATUSES.APPROVALS || statusFilter === RELEASE_STATUSES.APPROVALS ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.APPROVAL_REQUIRED)}
-                onClick={() => {setStatusFilter(RELEASE_STATUSES.APPROVAL_REQUIRED); setHoveredStatus(RELEASE_STATUSES.APPROVAL_REQUIRED);}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.APPROVALS)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.APPROVALS); setHoveredStatus(RELEASE_STATUSES.APPROVALS);}}
               >
-                <div className="text-2xl font-bold text-purple-800">{stats.approvalRequired}</div>
+                <div className="text-2xl font-bold text-purple-800">{stats.approvals}</div>
                 <div className="text-sm text-purple-700">Approvals</div>
               </div>
               <div 

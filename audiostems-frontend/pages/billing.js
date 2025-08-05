@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { getUserRole } from '@/lib/auth0-config';
 import { getStripe } from '@/lib/stripe';
@@ -122,9 +123,23 @@ const getRoleSpecificPlans = (userRole, user) => {
   const nextBillingDate = new Date();
   nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
   
+  // Check if user has successfully upgraded (for test mode simulation)
+  let hasUpgraded = false;
+  if (typeof window !== 'undefined' && user?.sub) {
+    const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
+    if (upgradeData) {
+      try {
+        const parsed = JSON.parse(upgradeData);
+        hasUpgraded = parsed.upgraded;
+      } catch (e) {
+        console.log('Error parsing upgrade data:', e);
+      }
+    }
+  }
+  
   const baseSubscription = {
-    plan: 'Artist Pro',
-    price: 19.99,
+    plan: hasUpgraded ? 'Artist Pro' : 'Artist Starter',
+    price: hasUpgraded ? 19.99 : 9.99,
     nextBilling: nextBillingDate.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
@@ -136,12 +151,19 @@ const getRoleSpecificPlans = (userRole, user) => {
       month: 'long', 
       day: 'numeric' 
     }),
-    features: [
+    features: hasUpgraded ? [
       'Unlimited releases',
       'Advanced analytics',
       'Priority support',
       'Custom branding',
-      'Earnings reporting'
+      'Earnings reporting',
+      'Premium distribution channels',
+      'Advanced reporting tools'
+    ] : [
+      'Up to 5 releases per year',
+      'Basic analytics',
+      'Standard support',
+      'Basic branding'
     ]
   };
 
@@ -174,9 +196,9 @@ const getRoleSpecificPlans = (userRole, user) => {
       monthlyPrice: 9.99,
       yearlyPrice: 99.99,
       yearlySavings: '17%',
-      current: false,
+      current: !hasUpgraded,
       features: [
-        'Up to 10 releases per year',
+        'Up to 5 releases per year',
         'Basic analytics and reporting',
         'Email support',
         'Distribution to major platforms (Spotify, Apple Music, etc.)',
@@ -189,7 +211,7 @@ const getRoleSpecificPlans = (userRole, user) => {
       monthlyPrice: 19.99,
       yearlyPrice: 199.99,
       yearlySavings: '17%',
-      current: true,
+      current: hasUpgraded,
       features: [
         'Unlimited releases per year',
         'Advanced analytics and reporting',
@@ -219,6 +241,7 @@ const getRoleSpecificPlans = (userRole, user) => {
 
 export default function Billing() {
   const { user, isAuthenticated, isLoading } = useAuth0();
+  const router = useRouter();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -226,6 +249,8 @@ export default function Billing() {
   const [autoRenew, setAutoRenew] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [messageType, setMessageType] = useState('error'); // 'success', 'error', 'info'
 
   // Auto-detect currency based on user's location (using shared currency system)
   useEffect(() => {
@@ -260,6 +285,35 @@ export default function Billing() {
       loadBillingData();
     }
   }, [isAuthenticated, user]);
+
+  // Handle successful payment return from Stripe
+  useEffect(() => {
+    if (router.query.success === 'true') {
+      setShowSuccessMessage(true);
+      setMessageType('success');
+      setMessage('🎉 Subscription updated successfully! Your new plan is now active.');
+      
+      // In test mode, simulate subscription upgrade by storing in localStorage
+      const sessionId = router.query.session_id;
+      if (sessionId && user?.sub) {
+        // Store the successful upgrade for this user
+        localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify({
+          timestamp: new Date().toISOString(),
+          sessionId: sessionId,
+          upgraded: true
+        }));
+      }
+      
+      // Simulate subscription update in test mode
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        // Clear the success parameter from URL
+        router.replace('/billing', undefined, { shallow: true });
+        // Reload billing data to show updated subscription
+        loadBillingData();
+      }, 5000);
+    }
+  }, [router.query.success, router.query.session_id, user?.sub]);
 
   const loadBillingData = async () => {
     try {
@@ -347,8 +401,19 @@ export default function Billing() {
   };
 
   const handleContactSupport = () => {
-    // Open support email or redirect to support page
-    window.open('mailto:support@mscandco.com?subject=Billing%20Support', '_blank');
+    // Create a support modal or redirect to support page instead of mailto
+    setShowSuccessMessage(false);
+    setMessageType('info');
+    setMessage('📧 Support Contact: support@mscandco.com | 📞 Phone: +44 20 1234 5678 | 💬 Live Chat available Mon-Fri 9AM-6PM GMT');
+    
+    // Copy email to clipboard for convenience
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText('support@mscandco.com').then(() => {
+        console.log('Support email copied to clipboard');
+      }).catch(() => {
+        console.log('Could not copy to clipboard');
+      });
+    }
   };
 
   const handleUpgradePlan = async (planName) => {
@@ -879,8 +944,20 @@ export default function Billing() {
                   </div>
                   
                   {message && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-600">{message}</p>
+                    <div className={`mt-3 p-3 rounded-lg ${
+                      showSuccessMessage || messageType === 'success'
+                        ? 'bg-green-50 border border-green-200' 
+                        : messageType === 'info'
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <p className={`text-sm ${
+                        showSuccessMessage || messageType === 'success' 
+                          ? 'text-green-600' 
+                          : messageType === 'info'
+                          ? 'text-blue-600'
+                          : 'text-red-600'
+                      }`}>{message}</p>
                     </div>
                   )}
                 </div>
