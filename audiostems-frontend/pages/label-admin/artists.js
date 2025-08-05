@@ -4,6 +4,7 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
 import { Plus, Music, TrendingUp, DollarSign } from 'lucide-react';
+import { getUsers, getReleases } from '../../lib/mockDatabase';
 import { ARTISTS, RELEASES } from '../../lib/mockData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import SuccessModal from '../../components/shared/SuccessModal';
@@ -173,16 +174,19 @@ export default function LabelAdminArtists() {
 
   // Get label artists from centralized data
   const labelArtists = useMemo(() => {
-    const labelName = userBrand?.displayName || 'YHWH MSC';
+    const users = getUsers();
+    const releases = getReleases();
+    const userLabelId = userBrand?.id || 'yhwh_msc';
     
-    const filteredArtists = ARTISTS.filter(artist => 
+    const filteredArtists = users.filter(artist => 
+      artist.role === 'artist' &&
       artist.approvalStatus === 'approved' && 
-      artist.label === labelName
+      artist.labelId === userLabelId
     );
     
     return filteredArtists.map(artist => {
       // Calculate artist releases and earnings
-      const artistReleases = RELEASES.filter(release => release.artistId === artist.id);
+      const artistReleases = releases.filter(release => release.artistId === artist.id);
       const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
       const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
       
@@ -447,7 +451,7 @@ export default function LabelAdminArtists() {
                 </button>
               </div>
 
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                 {/* Artist Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -594,7 +598,7 @@ export default function LabelAdminArtists() {
                     Cancel
                   </button>
                   <button
-                    type="submit"
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       // Here you would normally submit the form data to assign artist to label
@@ -621,8 +625,11 @@ export default function LabelAdminArtists() {
 
       {/* Success Modal */}
       <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
+        isOpen={showSuccessModal && successMessage}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setSuccessMessage('');
+        }}
         title="Success!"
         message={successMessage}
         buttonText="Close"
