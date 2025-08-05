@@ -20,9 +20,19 @@ export default function LabelAdminArtists() {
   const [selectedArtistForForm, setSelectedArtistForForm] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [labelPlan, setLabelPlan] = useState('starter'); // 'starter' or 'pro'
 
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
+
+  // Detect Label Admin plan for artist limits
+  useEffect(() => {
+    if (user?.sub) {
+      const hasUpgraded = localStorage.getItem(`label_admin_upgraded_${user.sub}`) === 'true';
+      setLabelPlan(hasUpgraded ? 'pro' : 'starter');
+      console.log('🎯 LABEL ADMIN PLAN CHECK:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
+    }
+  }, [user?.sub]);
 
   // Available artists data for the dropdown
   const availableArtists = {
@@ -251,6 +261,20 @@ export default function LabelAdminArtists() {
     totalReleases: approvedArtists.reduce((sum, artist) => sum + (artist.releases || 0), 0)
   };
 
+  // 🎯 Calculate artist counts for starter plan limits
+  const artistCount = useMemo(() => {
+    const currentArtists = labelArtists.length;
+    const maxArtists = labelPlan === 'starter' ? 5 : Infinity;
+    const remaining = Math.max(0, maxArtists - currentArtists);
+    
+    return {
+      current: currentArtists,
+      remaining: remaining,
+      maxArtists: maxArtists,
+      isLimited: labelPlan === 'starter'
+    };
+  }, [labelArtists, labelPlan]);
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
@@ -261,10 +285,31 @@ export default function LabelAdminArtists() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">My Artists</h1>
                 <p className="text-sm text-gray-500">Manage your label's artists and their releases</p>
+                {artistCount.isLimited && (
+                  <div className="mt-3 flex items-center space-x-2">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      artistCount.remaining > 0 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span>Artists Remaining: {artistCount.remaining} / {artistCount.maxArtists}</span>
+                    </div>
+                    {artistCount.remaining === 0 && (
+                      <span className="text-sm text-red-600">
+                        Upgrade to Pro for unlimited artists
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setShowAddArtist(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                disabled={artistCount.isLimited && artistCount.remaining === 0}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                  artistCount.isLimited && artistCount.remaining === 0
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
                 <Plus className="w-4 h-4" />
                 Add Artist

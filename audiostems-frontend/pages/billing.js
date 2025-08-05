@@ -33,15 +33,22 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrad
     };
   }
 
-  // For Label Admin, show only Label Admin plans
+  // For Label Admin, show Label Admin Starter/Pro plans
   if (userRole === 'label_admin') {
     // Generate dynamic subscription data based on user
     const nextBillingDate = new Date();
     nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
     
+    // SIMPLE UPGRADE CHECK for Label Admin - Only one source of truth
+    let hasUpgraded = false;
+    if (typeof window !== 'undefined' && user?.sub) {
+      hasUpgraded = localStorage.getItem(`label_admin_upgraded_${user.sub}`) === 'true' || sessionUpgrade;
+      console.log('🎯 LABEL ADMIN UPGRADE CHECK:', { userId: user.sub, hasUpgraded, sessionUpgrade });
+    }
+    
     const labelAdminSubscription = {
-      plan: 'Label Admin',
-      price: 29.99,
+      plan: hasUpgraded ? 'Label Admin Pro' : 'Label Admin Starter',
+      price: hasUpgraded ? 49.99 : 29.99,
       nextBilling: nextBillingDate.toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
@@ -53,12 +60,23 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrad
         month: 'long', 
         day: 'numeric' 
       }),
-      features: [
-        'Manage unlimited artists',
-        'Label analytics dashboard',
-        'Priority support',
-        'Artist management tools',
-        'Combined earnings reporting'
+      features: hasUpgraded ? [
+        'Unlimited artist management',
+        'Advanced label analytics',
+        'Priority support & phone support',
+        'Advanced artist management tools',
+        'Detailed earnings tracking and reporting',
+        'Advanced artist onboarding',
+        'Custom label branding',
+        'Marketing campaign tools',
+        'Advanced royalty tracking',
+        'Custom label profile optimisation'
+      ] : [
+        'Up to 5 artists per label',
+        'Basic label analytics',
+        'Email support',
+        'Standard artist management tools',
+        'Basic earnings tracking'
       ]
     };
 
@@ -71,40 +89,55 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrad
     const labelAdminBillingHistory = [
       {
         id: 1,
-        description: 'Label Admin - Monthly',
+        description: hasUpgraded ? 'Label Admin Pro - Monthly' : 'Label Admin Starter - Monthly',
         date: 'February 15, 2024',
-        amount: 29.99,
+        amount: hasUpgraded ? 49.99 : 29.99,
         status: 'Paid'
       },
       {
         id: 2,
-        description: 'Label Admin - Monthly',
+        description: hasUpgraded ? 'Label Admin Pro - Monthly' : 'Label Admin Starter - Monthly',
         date: 'January 15, 2024',
-        amount: 29.99,
+        amount: hasUpgraded ? 49.99 : 29.99,
         status: 'Paid'
       }
     ];
 
     const labelAdminAvailablePlans = [
       {
-        name: 'Label Admin',
+        name: 'Label Admin Starter',
         monthlyPrice: 29.99,
         yearlyPrice: 299.99,
         yearlySavings: '17%',
-        current: true,
+        current: !hasUpgraded,
         features: [
-          'Manage unlimited artists',
-          'Label-wide analytics dashboard',
-          'Priority support',
-          'Artist management tools',
-          'Combined earnings reporting',
-          'Label branding options',
-          'Advanced release management',
-          'Artist onboarding tools',
+          'Up to 5 artists per label',
+          'Basic label analytics and reporting',
+          'Email support',
+          'Standard artist management tools',
+          'Basic earnings tracking',
+          'Release management tools'
+        ]
+      },
+      {
+        name: 'Label Admin Pro',
+        monthlyPrice: 49.99,
+        yearlyPrice: 499.99,
+        yearlySavings: '17%',
+        current: hasUpgraded,
+        features: [
+          'Unlimited artist management',
+          'Advanced label analytics and reporting',
+          'Priority email and phone support',
+          'Advanced artist management tools',
+          'Detailed earnings tracking and reporting',
+          'Advanced release management tools',
+          'Custom label branding options',
+          'Advanced artist onboarding',
           'Label social media integration',
           'Marketing campaign management',
-          'Royalty tracking for all artists',
-          'Label profile optimization'
+          'Advanced royalty tracking',
+          'Custom label profile optimization'
         ]
       }
     ];
@@ -278,9 +311,18 @@ export default function Billing() {
   // SIMPLE INITIALIZATION - Check only the simple flag
   useEffect(() => {
     if (user?.sub) {
-      const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
+      const userRole = getUserRole(user);
+      let hasUpgraded = false;
+      
+      if (userRole === 'label_admin') {
+        hasUpgraded = localStorage.getItem(`label_admin_upgraded_${user.sub}`) === 'true';
+        console.log('🔄 LABEL ADMIN SIMPLE INIT:', { userId: user.sub, hasUpgraded });
+      } else {
+        hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
+        console.log('🔄 ARTIST SIMPLE INIT:', { userId: user.sub, hasUpgraded });
+      }
+      
       setCurrentSessionUpgrade(hasUpgraded);
-      console.log('🔄 SIMPLE INIT:', { userId: user.sub, hasUpgraded });
     }
   }, [user?.sub]);
 
@@ -306,8 +348,14 @@ export default function Billing() {
         if (sessionId && user?.sub) {
                       // SIMPLE PERMANENT UPGRADE - Store only what we need
           try {
-            localStorage.setItem(`user_upgraded_${user.sub}`, 'true');
-            console.log('💾 PERMANENT UPGRADE SET for user:', user.sub);
+            const userRole = getUserRole(user);
+            if (userRole === 'label_admin') {
+              localStorage.setItem(`label_admin_upgraded_${user.sub}`, 'true');
+              console.log('💾 LABEL ADMIN PERMANENT UPGRADE SET for user:', user.sub);
+            } else {
+              localStorage.setItem(`user_upgraded_${user.sub}`, 'true');
+              console.log('💾 ARTIST PERMANENT UPGRADE SET for user:', user.sub);
+            }
             
             // Force immediate re-render with upgraded state
             setCurrentSessionUpgrade(true);
@@ -726,7 +774,10 @@ export default function Billing() {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {processing ? 'Processing...' : 
-                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' : 'Switch to Starter'}
+                       billingData.subscription.plan === 'Artist Starter' ? 'Upgrade to Pro' :
+                       billingData.subscription.plan === 'Label Admin Starter' ? 'Upgrade to Pro' :
+                       billingData.subscription.plan === 'Artist Pro' ? 'Switch to Starter' :
+                       billingData.subscription.plan === 'Label Admin Pro' ? 'Switch to Starter' : 'Manage Plan'}
                     </button>
                     <button 
                       onClick={handleCancelSubscription}
@@ -834,9 +885,9 @@ export default function Billing() {
                             ? 'Processing...' 
                             : plan.current 
                             ? 'Current Plan' 
-                            : plan.name === 'Artist Pro' 
+                            : plan.name === 'Artist Pro' || plan.name === 'Label Admin Pro'
                             ? 'Upgrade to Pro'
-                            : plan.name === 'Artist Starter'
+                            : plan.name === 'Artist Starter' || plan.name === 'Label Admin Starter'
                             ? 'Switch to Starter'
                             : 'Select Plan'}
                         </button>
