@@ -568,9 +568,6 @@ export default function Billing() {
     );
   }
 
-  const userRole = getUserRole(user);
-  const roleBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp, currentSessionUpgrade);
-
   // Allow access to billing for all authenticated users
   if (!isAuthenticated) {
     return (
@@ -583,7 +580,7 @@ export default function Billing() {
   }
 
   // Show no-billing message for admin roles
-  if (roleBillingData.noBilling) {
+  if (billingData?.noBilling) {
     return (
       <Layout>
         <Head>

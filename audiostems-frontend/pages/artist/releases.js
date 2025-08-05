@@ -82,17 +82,31 @@ export default function ArtistReleases() {
 
         // 🎯 Check user's subscription plan (for release limits)
         if (user?.sub) {
+          // Check multiple sources for upgrade status (same as billing page)
           const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
+          const simpleUpgrade = localStorage.getItem(`user_upgraded_${user.sub}`);
+          
+          let hasUpgraded = false;
+          
+          // Check complex upgrade data first
           if (upgradeData) {
             try {
               const parsed = JSON.parse(upgradeData);
-              setUserPlan(parsed.upgraded ? 'pro' : 'starter');
+              hasUpgraded = parsed.upgraded;
+              console.log('🎯 Artist Releases: Found upgrade data:', parsed);
             } catch (e) {
-              setUserPlan('starter'); // Default to starter
+              console.log('🎯 Artist Releases: Error parsing upgrade data:', e);
             }
-          } else {
-            setUserPlan('starter'); // Default to starter if no upgrade data
           }
+          
+          // Check simple backup flag
+          if (!hasUpgraded && simpleUpgrade === 'true') {
+            hasUpgraded = true;
+            console.log('🎯 Artist Releases: Found simple upgrade flag');
+          }
+          
+          setUserPlan(hasUpgraded ? 'pro' : 'starter');
+          console.log('🎯 Artist Releases: User plan set to:', hasUpgraded ? 'pro' : 'starter');
         }
 
         setReleases(artistReleases);
