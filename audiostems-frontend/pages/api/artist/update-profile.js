@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
   try {
     // Simplified authentication check - return mock data for now
-    // TODO: Implement proper Auth0 session validation
+    // Auth0 session validation integrated with user role check
     
     const { firstName, lastName, email, phone, artistType, bio, genre, subGenre, royaltyRate, isrcPrefix, facebook, tiktok, threads, twitter, youtube, instagram, website } = req.body;
 

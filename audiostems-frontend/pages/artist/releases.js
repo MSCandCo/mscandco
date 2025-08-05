@@ -80,33 +80,11 @@ export default function ArtistReleases() {
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
         const artistReleases = getReleasesByArtist('yhwh_msc');
 
-        // 🎯 Check user's subscription plan (for release limits)
+        // 🎯 SIMPLE PLAN CHECK - One source of truth
         if (user?.sub) {
-          // Check multiple sources for upgrade status (same as billing page)
-          const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
-          const simpleUpgrade = localStorage.getItem(`user_upgraded_${user.sub}`);
-          
-          let hasUpgraded = false;
-          
-          // Check complex upgrade data first
-          if (upgradeData) {
-            try {
-              const parsed = JSON.parse(upgradeData);
-              hasUpgraded = parsed.upgraded;
-              console.log('🎯 Artist Releases: Found upgrade data:', parsed);
-            } catch (e) {
-              console.log('🎯 Artist Releases: Error parsing upgrade data:', e);
-            }
-          }
-          
-          // Check simple backup flag
-          if (!hasUpgraded && simpleUpgrade === 'true') {
-            hasUpgraded = true;
-            console.log('🎯 Artist Releases: Found simple upgrade flag');
-          }
-          
+          const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
           setUserPlan(hasUpgraded ? 'pro' : 'starter');
-          console.log('🎯 Artist Releases: User plan set to:', hasUpgraded ? 'pro' : 'starter');
+          console.log('🎯 SIMPLE PLAN CHECK:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
         }
 
         setReleases(artistReleases);

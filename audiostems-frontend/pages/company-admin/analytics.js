@@ -113,9 +113,13 @@ export default function CompanyAdminAnalytics() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-3xl font-bold text-blue-600">{businessMetrics.activeArtists + labelAdmins.length}</p>
+                <p className="font-bold text-blue-600" style={{
+                  fontSize: `${Math.min(24, Math.max(14, 200 / (businessMetrics.activeArtists + labelAdmins.length).toString().length))}px`
+                }}>
+                  {businessMetrics.activeArtists + labelAdmins.length}
+                </p>
                 <div className="flex items-center mt-2 text-sm">
                   <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">+8% this month</span>
@@ -129,9 +133,13 @@ export default function CompanyAdminAnalytics() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Releases</p>
-                <p className="text-3xl font-bold text-green-600">{businessMetrics.totalReleases}</p>
+                <p className="font-bold text-green-600" style={{
+                  fontSize: `${Math.min(24, Math.max(14, 200 / businessMetrics.totalReleases.toString().length))}px`
+                }}>
+                  {businessMetrics.totalReleases}
+                </p>
                 <div className="flex items-center mt-2 text-sm">
                   <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">{businessMetrics.liveReleases} live</span>
@@ -145,9 +153,13 @@ export default function CompanyAdminAnalytics() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Platform Channels</p>
-                <p className="text-3xl font-bold text-purple-600">10</p>
+                <p className="font-bold text-purple-600" style={{
+                  fontSize: `${Math.min(24, Math.max(14, 200 / "10".length))}px`
+                }}>
+                  10
+                </p>
                 <div className="flex items-center mt-2 text-sm">
                   <Activity className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">All operational</span>
@@ -161,9 +173,13 @@ export default function CompanyAdminAnalytics() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">System Efficiency</p>
-                <p className="text-3xl font-bold text-yellow-600">{businessMetrics.systemEfficiency}%</p>
+                <p className="font-bold text-yellow-600" style={{
+                  fontSize: `${Math.min(24, Math.max(14, 200 / `${businessMetrics.systemEfficiency}%`.length))}px`
+                }}>
+                  {businessMetrics.systemEfficiency}%
+                </p>
                 <div className="flex items-center mt-2 text-sm">
                   <Zap className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600">Excellent</span>
@@ -180,7 +196,7 @@ export default function CompanyAdminAnalytics() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                 <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(businessMetrics.totalRevenue, selectedCurrency).length))}px`
+                  fontSize: `${Math.min(20, Math.max(12, 160 / formatCurrency(businessMetrics.totalRevenue, selectedCurrency).length))}px`
                 }}>
                   {formatCurrency(businessMetrics.totalRevenue, selectedCurrency)}
                 </p>

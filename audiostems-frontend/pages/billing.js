@@ -123,29 +123,11 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrad
   const nextBillingDate = new Date();
   nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
   
-  // Check if user has successfully upgraded (for test mode simulation)
-  let hasUpgraded = sessionUpgrade; // Start with session state
+  // SIMPLE UPGRADE CHECK - Only one source of truth
+  let hasUpgraded = false;
   if (typeof window !== 'undefined' && user?.sub) {
-    const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
-    if (upgradeData) {
-      try {
-        const parsed = JSON.parse(upgradeData);
-        hasUpgraded = parsed.upgraded || sessionUpgrade; // Use either localStorage or session
-        console.log('🎯 Plan detection:', { 
-          userId: user.sub, 
-          hasUpgraded, 
-          upgradeData: parsed,
-          sessionUpgrade,
-          forceRefresh 
-        });
-      } catch (e) {
-        console.log('Error parsing upgrade data:', e);
-        hasUpgraded = sessionUpgrade; // Fall back to session state
-      }
-    } else {
-      console.log('🎯 No localStorage upgrade data found, using session state:', sessionUpgrade);
-      hasUpgraded = sessionUpgrade;
-    }
+    hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true' || sessionUpgrade;
+    console.log('🎯 SIMPLE UPGRADE CHECK:', { userId: user.sub, hasUpgraded, sessionUpgrade });
   }
   
   const baseSubscription = {
@@ -293,27 +275,12 @@ export default function Billing() {
     detectUserCurrency();
   }, [updateCurrency]);
 
-  // Initialize upgrade timestamp on component load
+  // SIMPLE INITIALIZATION - Check only the simple flag
   useEffect(() => {
     if (user?.sub) {
-      const upgradeData = localStorage.getItem(`stripe_success_${user.sub}`);
-      if (upgradeData) {
-        try {
-          const parsed = JSON.parse(upgradeData);
-          setUpgradeTimestamp(parsed.timestamp);
-          setCurrentSessionUpgrade(true); // Also set session state
-          console.log('🔄 Restored upgrade state from localStorage:', parsed);
-        } catch (e) {
-          console.log('Error reading upgrade data:', e);
-        }
-      }
-      
-      // Also check for a simpler upgrade flag
-      const simpleUpgrade = localStorage.getItem(`user_upgraded_${user.sub}`);
-      if (simpleUpgrade === 'true') {
-        setCurrentSessionUpgrade(true);
-        console.log('🔄 Restored upgrade from simple flag');
-      }
+      const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
+      setCurrentSessionUpgrade(hasUpgraded);
+      console.log('🔄 SIMPLE INIT:', { userId: user.sub, hasUpgraded });
     }
   }, [user?.sub]);
 
@@ -321,7 +288,7 @@ export default function Billing() {
     if (isAuthenticated && user) {
       loadBillingData();
     }
-  }, [isAuthenticated, user, upgradeTimestamp, currentSessionUpgrade]);
+  }, [isAuthenticated, user]); // REMOVE upgrade dependencies - they cause reload conflicts
 
   // Handle successful payment return from Stripe
   useEffect(() => {
@@ -337,34 +304,20 @@ export default function Billing() {
               // In test mode, simulate subscription upgrade by storing in localStorage
         const sessionId = router.query.session_id;
         if (sessionId && user?.sub) {
-          // Store the successful upgrade for this user
-          const upgradeData = {
-            timestamp: new Date().toISOString(),
-            sessionId: sessionId,
-            upgraded: true
-          };
-          
-          // Force localStorage save with error handling
+                      // SIMPLE PERMANENT UPGRADE - Store only what we need
           try {
-            localStorage.setItem(`stripe_success_${user.sub}`, JSON.stringify(upgradeData));
-            localStorage.setItem(`user_upgraded_${user.sub}`, 'true'); // Simple backup flag
-            console.log('💾 Upgrade data saved:', { userId: user.sub, upgradeData });
+            localStorage.setItem(`user_upgraded_${user.sub}`, 'true');
+            console.log('💾 PERMANENT UPGRADE SET for user:', user.sub);
             
-            // Verify it was saved
-            const verification = localStorage.getItem(`stripe_success_${user.sub}`);
-            console.log('✅ Verification read:', verification);
+            // Force immediate re-render with upgraded state
+            setCurrentSessionUpgrade(true);
             
-            setUpgradeTimestamp(upgradeData.timestamp); // Force re-render
-            setCurrentSessionUpgrade(true); // Also set session state as backup
-            
-            // Immediately update billing data to reflect the upgrade
+            // Single data refresh after small delay
             setTimeout(() => {
-              console.log('🔄 Force refreshing billing data after upgrade...');
               loadBillingData();
-              // Remove auto-refresh - it was causing the plan to revert
-            }, 100); // Small delay to ensure localStorage is written
+            }, 200);
           } catch (error) {
-            console.error('❌ Failed to save upgrade data:', error);
+            console.error('❌ Failed to save upgrade:', error);
           }
         }
       

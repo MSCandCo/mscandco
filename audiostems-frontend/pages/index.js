@@ -6,7 +6,7 @@ import SEO from "@/components/seo";
 import { apiRoute, resourceUrl } from "@/lib/utils";
 import { Tab, Transition } from "@headlessui/react";
 import classNames from "classnames";
-import { Button, Carousel as FlowbiteCarousel } from "flowbite-react";
+import { Button } from "flowbite-react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -101,47 +101,53 @@ export default function Home() {
       <SEO />
       <section>
         {user ? (
-          <div className="h-[calc(100vh_-_72px_-_55px)] index-page-carousel">
-            <FlowbiteCarousel>
+                  <div className="h-[calc(100vh_-_72px_-_55px)] index-page-carousel">
+          <Carousel className="h-full">
+            <CarouselContent className="h-full">
               {playlists?.map((playlist, i) => (
-                <div className="h-full relative" key={i}>
-                  <div
-                    className="h-full bg-no-repeat bg-top bg-cover"
-                    style={{
-                      backgroundImage: `url(${resourceUrl(
-                        playlist.attributes.coverBackground?.data?.attributes
-                          ?.url
-                      )})`,
-                    }}
-                  ></div>
-                  <Link href={`/playlists/${playlist.id}`}>
-                    <div className="absolute bottom-[8%] left-[8%] md:bottom-0 md:left-[10%] p-4 md:p-8 bg-black text-white">
-                      <div className="flex gap-4 md:gap-8 items-center">
-                        <img
-                          className="-ml-6 md:-ml-12 h-[120px] md:h-[180px] w-auto shadow"
-                          src={resourceUrl(
-                            playlist.attributes.cover?.data?.attributes?.url
-                          )}
-                        />
-                        <div>
-                          <h4 className="text-xl md:text-3xl font-semibold">
-                            {playlist.attributes.title}
-                          </h4>
-                          {playlist.attributes.genres?.data?.length > 0 ? (
-                            <p>
-                              {playlist.attributes.genres.data
-                                ?.map((g) => g.attributes.title)
-                                .join(", ")}
-                            </p>
-                          ) : null}
+                <CarouselItem key={i} className="h-full min-w-full">
+                  <div className="h-full relative">
+                    <div
+                      className="h-full bg-no-repeat bg-top bg-cover"
+                      style={{
+                        backgroundImage: `url(${resourceUrl(
+                          playlist.attributes.coverBackground?.data?.attributes
+                            ?.url
+                        )})`,
+                      }}
+                    ></div>
+                    <Link href={`/playlists/${playlist.id}`}>
+                      <div className="absolute bottom-[8%] left-[8%] md:bottom-0 md:left-[10%] p-4 md:p-8 bg-black text-white">
+                        <div className="flex gap-4 md:gap-8 items-center">
+                          <img
+                            className="-ml-6 md:-ml-12 h-[120px] md:h-[180px] w-auto shadow"
+                            src={resourceUrl(
+                              playlist.attributes.cover?.data?.attributes?.url
+                            )}
+                          />
+                          <div>
+                            <h4 className="text-xl md:text-3xl font-semibold">
+                              {playlist.attributes.title}
+                            </h4>
+                            {playlist.attributes.genres?.data?.length > 0 ? (
+                              <p>
+                                {playlist.attributes.genres.data
+                                  ?.map((g) => g.attributes.title)
+                                  .join(", ")}
+                              </p>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                </div>
+                    </Link>
+                  </div>
+                </CarouselItem>
               ))}
-            </FlowbiteCarousel>
-          </div>
+            </CarouselContent>
+            <CarouselPrevious className="left-4 h-10 w-10" />
+            <CarouselNext className="right-4 h-10 w-10" />
+          </Carousel>
+        </div>
         ) : (
           <Container fluid className="!p-6 md:!p-12 relative">
             <div

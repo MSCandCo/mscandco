@@ -19,6 +19,7 @@ import {
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
+import Avatar from '@/components/shared/Avatar';
 
 // Mock contributor videos data
 const mockContributorVideos = [
@@ -461,17 +462,12 @@ export default function ArtistRoster() {
                     <tr key={contributor.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex-shrink-0 h-24 w-24">
-                          {contributor.thumbnail ? (
-                            <img
-                              className="h-24 w-24 rounded-full object-cover"
-                              src={contributor.thumbnail}
-                              alt={contributor.name}
-                            />
-                          ) : (
-                            <div className="h-24 w-24 rounded-full bg-gray-300 flex items-center justify-center">
-                              <FaUser className="text-gray-500 text-2xl" />
-                            </div>
-                          )}
+                          <Avatar 
+                            name={contributor.name}
+                            image={contributor.thumbnail}
+                            size="w-24 h-24"
+                            textSize="text-2xl"
+                          />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -593,17 +589,12 @@ export default function ArtistRoster() {
                   </label>
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0 h-32 w-32">
-                      {formData.thumbnailPreview ? (
-                        <img
-                          className="h-32 w-32 rounded-full object-cover"
-                          src={formData.thumbnailPreview}
-                          alt="Preview"
-                        />
-                      ) : (
-                        <div className="h-32 w-32 rounded-full bg-gray-300 flex items-center justify-center">
-                          <FaUser className="text-gray-500 text-3xl" />
-                        </div>
-                      )}
+                      <Avatar 
+                        name={formData.name}
+                        image={formData.thumbnailPreview}
+                        size="w-32 h-32"
+                        textSize="text-3xl"
+                      />
                     </div>
                     <input
                       type="file"

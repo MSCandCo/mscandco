@@ -40,7 +40,7 @@ const mockAllReleases = [
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
-    status: RELEASE_STATUSES.UNDER_REVIEW,
+    status: RELEASE_STATUSES.IN_REVIEW,
     submissionDate: '2024-01-15',
     expectedReleaseDate: '2024-03-01',
     assets: '3 tracks, artwork',
@@ -326,7 +326,7 @@ const mockEditRequests = [
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
-    originalStatus: 'under_review',
+    originalStatus: 'in_review',
     requestType: 'edit_request',
     requestDate: '2024-01-20',
     requestReason: 'Artist wants to update track titles and add new artwork',
@@ -375,7 +375,7 @@ const mockEditRequests = [
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
-    originalStatus: 'under_review',
+    originalStatus: 'in_review',
     requestType: 'amendment',
     requestDate: '2024-01-22',
     requestReason: 'Artist submitted additional tracks and updated artwork',
@@ -427,7 +427,7 @@ const mockEditRequests = [
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Electronic',
-    status: RELEASE_STATUSES.APPROVAL_REQUIRED,
+    status: RELEASE_STATUSES.APPROVALS,
     submissionDate: '2024-01-20',
     expectedReleaseDate: '2025-05-01',
     assets: '4 tracks, artwork',
@@ -538,7 +538,7 @@ const mockEditRequests = [
     label: 'MSC & Co',
     releaseType: 'Remix',
     genre: 'Electronic',
-    status: RELEASE_STATUSES.UNDER_REVIEW,
+    status: RELEASE_STATUSES.IN_REVIEW,
     submissionDate: '2024-02-15',
     expectedReleaseDate: '2024-05-01',
     assets: '5 remixes, artwork',
@@ -718,7 +718,7 @@ const mockEditRequests = [
     recordingCountry: 'Germany'
   },
 
-  // APPROVAL_REQUIRED Status Examples
+      // APPROVALS Status Examples
   {
     id: 14,
     projectName: 'Indie Rock Revival',
@@ -726,7 +726,7 @@ const mockEditRequests = [
     label: 'Underground Records',
     releaseType: 'EP',
     genre: 'Rock',
-    status: RELEASE_STATUSES.APPROVAL_REQUIRED,
+    status: RELEASE_STATUSES.APPROVALS,
     submissionDate: '2024-11-15',
     expectedReleaseDate: '2025-02-28',
     assets: '5 tracks, artwork, music videos',
@@ -857,7 +857,7 @@ const mockEditRequests = [
     label: 'Cinematic Music',
     releaseType: 'Soundtrack',
     genre: 'Classical',
-    status: RELEASE_STATUSES.UNDER_REVIEW,
+    status: RELEASE_STATUSES.IN_REVIEW,
     submissionDate: '2024-11-20',
     expectedReleaseDate: '2025-04-05',
     assets: '22 orchestral pieces, movie tie-in artwork',
@@ -1231,7 +1231,7 @@ export default function DistributionPartnerDashboard() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'under_review': return 'bg-amber-100 text-amber-800';
+      case 'in_review': return 'bg-amber-100 text-amber-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'live': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -1531,8 +1531,8 @@ export default function DistributionPartnerDashboard() {
     const statusItems = [
       { status: RELEASE_STATUSES.DRAFT, label: getStatusLabel(RELEASE_STATUSES.DRAFT), count: allReleases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length, color: 'bg-yellow-500', icon: FileText },
       { status: RELEASE_STATUSES.SUBMITTED, label: getStatusLabel(RELEASE_STATUSES.SUBMITTED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length, color: 'bg-blue-500', icon: FileText },
-      { status: RELEASE_STATUSES.UNDER_REVIEW, label: getStatusLabel(RELEASE_STATUSES.UNDER_REVIEW), count: allReleases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length, color: 'bg-amber-500', icon: Eye },
-      { status: RELEASE_STATUSES.APPROVAL_REQUIRED, label: getStatusLabel(RELEASE_STATUSES.APPROVAL_REQUIRED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.APPROVAL_REQUIRED).length, color: 'bg-orange-500', icon: AlertCircle },
+      { status: RELEASE_STATUSES.IN_REVIEW, label: getStatusLabel(RELEASE_STATUSES.IN_REVIEW), count: allReleases.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length, color: 'bg-amber-500', icon: Eye },
+      { status: RELEASE_STATUSES.APPROVALS, label: getStatusLabel(RELEASE_STATUSES.APPROVALS), count: allReleases.filter(r => r.status === RELEASE_STATUSES.APPROVALS).length, color: 'bg-orange-500', icon: AlertCircle },
       { status: RELEASE_STATUSES.COMPLETED, label: getStatusLabel(RELEASE_STATUSES.COMPLETED), count: allReleases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length, color: 'bg-green-500', icon: CheckCircle },
       { status: RELEASE_STATUSES.LIVE, label: getStatusLabel(RELEASE_STATUSES.LIVE), count: allReleases.filter(r => r.status === RELEASE_STATUSES.LIVE).length, color: 'bg-purple-500', icon: Play }
     ];
@@ -1612,7 +1612,7 @@ export default function DistributionPartnerDashboard() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Priority Releases</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedReleasesForBoard
-              .filter(release => [RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.UNDER_REVIEW, RELEASE_STATUSES.APPROVAL_REQUIRED].includes(release.status))
+              .filter(release => [RELEASE_STATUSES.DRAFT, RELEASE_STATUSES.SUBMITTED, RELEASE_STATUSES.IN_REVIEW, RELEASE_STATUSES.APPROVALS].includes(release.status))
               .map((release) => (
                 <div key={release.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-all duration-200 hover:scale-105">
                   <div className="p-6">

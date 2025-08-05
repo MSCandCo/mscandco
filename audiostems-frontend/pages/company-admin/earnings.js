@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MainLayout } from '@/components/layouts/mainLayout';
+import MainLayout from '@/components/layouts/mainLayout';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -23,7 +23,8 @@ import {
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { formatNumber, formatPercentage, safeDivide } from '@/lib/number-utils';
 import { useModals } from '@/hooks/useModals';
-import { ConfirmationModal, NotificationModal } from '@/components/shared/ConfirmationModal';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
+import NotificationModal from '@/components/shared/NotificationModal';
 
 export default function CompanyAdminEarnings() {
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');

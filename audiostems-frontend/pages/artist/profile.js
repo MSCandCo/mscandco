@@ -2,7 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import PhoneInput from '../../components/ui/phone-input';
+
 
 export default function ArtistProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -385,12 +385,19 @@ export default function ArtistProfile() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <PhoneInput
+                  <input
+                    type="tel"
                     value={formData.phone}
-                    onChange={(value) => handleInputChange('phone', value)}
-                    error={errors.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
                     disabled={!isEditing}
+                    placeholder="+1 (555) 123-4567"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+                      errors.phone ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                  )}
                 </div>
               </div>
             </div>

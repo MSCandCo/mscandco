@@ -2,23 +2,25 @@
 export const RELEASE_STATUSES = {
   DRAFT: 'draft',
   SUBMITTED: 'submitted',
-  UNDER_REVIEW: 'under_review',
-  IN_REVIEW: 'in_review', // Alias for compatibility
-  APPROVAL_REQUIRED: 'approval_required',
-  APPROVALS: 'approvals', // Alias for compatibility
+  IN_REVIEW: 'in_review',
+  APPROVALS: 'approvals',
   COMPLETED: 'completed',
   LIVE: 'live',
   DISTRIBUTED: 'distributed',
   ARCHIVED: 'archived'
 };
 
+// Legacy aliases for backward compatibility
+export const LEGACY_STATUS_ALIASES = {
+  UNDER_REVIEW: 'in_review',
+  APPROVAL_REQUIRED: 'approvals'
+};
+
 // Status Labels Mapping
 export const RELEASE_STATUS_LABELS = {
   [RELEASE_STATUSES.DRAFT]: 'Draft',
   [RELEASE_STATUSES.SUBMITTED]: 'Submitted',
-  [RELEASE_STATUSES.UNDER_REVIEW]: 'In Review',
   [RELEASE_STATUSES.IN_REVIEW]: 'In Review',
-  [RELEASE_STATUSES.APPROVAL_REQUIRED]: 'Approvals',
   [RELEASE_STATUSES.APPROVALS]: 'Approvals',
   [RELEASE_STATUSES.COMPLETED]: 'Completed',
   [RELEASE_STATUSES.LIVE]: 'Live',
@@ -30,9 +32,7 @@ export const RELEASE_STATUS_LABELS = {
 export const RELEASE_STATUS_COLORS = {
   [RELEASE_STATUSES.DRAFT]: 'bg-yellow-100 text-yellow-800',
   [RELEASE_STATUSES.SUBMITTED]: 'bg-blue-100 text-blue-800',
-  [RELEASE_STATUSES.UNDER_REVIEW]: 'bg-amber-100 text-amber-800',
   [RELEASE_STATUSES.IN_REVIEW]: 'bg-amber-100 text-amber-800',
-  [RELEASE_STATUSES.APPROVAL_REQUIRED]: 'bg-orange-100 text-orange-800',
   [RELEASE_STATUSES.APPROVALS]: 'bg-orange-100 text-orange-800',
   [RELEASE_STATUSES.COMPLETED]: 'bg-green-100 text-green-800',
   [RELEASE_STATUSES.LIVE]: 'bg-purple-100 text-purple-800',
@@ -123,9 +123,7 @@ export const isStatusEditableByArtist = (status) => {
 
 export const isStatusControlledByDistributionPartner = (status) => {
   return [
-    RELEASE_STATUSES.UNDER_REVIEW, 
     RELEASE_STATUSES.IN_REVIEW,
-    RELEASE_STATUSES.APPROVAL_REQUIRED, 
     RELEASE_STATUSES.APPROVALS,
     RELEASE_STATUSES.COMPLETED, 
     RELEASE_STATUSES.LIVE
@@ -133,5 +131,5 @@ export const isStatusControlledByDistributionPartner = (status) => {
 };
 
 export const isStatusRequiringApproval = (status) => {
-  return status === RELEASE_STATUSES.APPROVAL_REQUIRED || status === RELEASE_STATUSES.APPROVALS;
+  return status === RELEASE_STATUSES.APPROVALS;
 };

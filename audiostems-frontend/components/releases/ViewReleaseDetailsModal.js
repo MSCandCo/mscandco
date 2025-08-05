@@ -8,7 +8,7 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release, curr
     switch (status) {
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'under_review': return 'bg-orange-100 text-orange-800';
+      case 'in_review': return 'bg-orange-100 text-orange-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'live': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -19,8 +19,8 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release, curr
     switch (status) {
       case 'draft': return 'Draft';
       case 'submitted': return 'Submitted';
-      case 'under_review': return 'In Review';
-      case 'approval_required': return 'Approvals';
+          case 'in_review': return 'In Review';
+    case 'approvals': return 'Approvals';
       case 'completed': return 'Completed';
       case 'live': return 'Live';
       default: return status;

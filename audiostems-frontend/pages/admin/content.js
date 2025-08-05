@@ -66,7 +66,7 @@ export default function AdminContentPage() {
     totalArtists: artists.length,
     totalReleases: releases.length,
     activeReleases: releases.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
-    pendingReleases: releases.filter(r => r.status === RELEASE_STATUSES.UNDER_REVIEW).length,
+          pendingReleases: releases.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length,
     totalStreams: SONGS.reduce((sum, song) => sum + (song.streams || 0), 0),
     totalRevenue: ARTISTS.reduce((sum, artist) => sum + (artist.totalEarnings || 0), 0)
   };
@@ -352,7 +352,7 @@ export default function AdminContentPage() {
                   <div className="flex items-center space-x-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       mainRelease.status === RELEASE_STATUSES.LIVE ? 'bg-green-100 text-green-800' :
-                      mainRelease.status === RELEASE_STATUSES.UNDER_REVIEW ? 'bg-yellow-100 text-yellow-800' :
+                      mainRelease.status === RELEASE_STATUSES.IN_REVIEW ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {RELEASE_STATUS_LABELS[mainRelease.status] || mainRelease.status}
@@ -623,9 +623,9 @@ export default function AdminContentPage() {
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       selectedItem.status === 'live' 
                         ? 'bg-green-100 text-green-800'
-                        : selectedItem.status === 'under_review' || selectedItem.status === 'In Review'
+                        : selectedItem.status === 'in_review' || selectedItem.status === 'In Review'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : selectedItem.status === 'approval_required' || selectedItem.status === 'Approvals'
+                        : selectedItem.status === 'approvals' || selectedItem.status === 'Approvals'
                         ? 'bg-red-100 text-red-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
@@ -1436,8 +1436,8 @@ export default function AdminContentPage() {
                   <option value="all">All Status</option>
                   <option value={RELEASE_STATUSES.DRAFT}>Draft</option>
                   <option value={RELEASE_STATUSES.SUBMITTED}>Submitted</option>
-                  <option value={RELEASE_STATUSES.UNDER_REVIEW}>In Review</option>
-                  <option value={RELEASE_STATUSES.APPROVAL_REQUIRED}>Approvals</option>
+                                          <option value={RELEASE_STATUSES.IN_REVIEW}>In Review</option>
+                        <option value={RELEASE_STATUSES.APPROVALS}>Approvals</option>
                   <option value={RELEASE_STATUSES.LIVE}>Live</option>
                 </select>
               </div>
