@@ -180,27 +180,40 @@ export default function LabelAdminArtists() {
     
     const filteredArtists = users.filter(artist => 
       artist.role === 'artist' &&
-      artist.approvalStatus === 'approved' && 
+      (artist.approvalStatus === 'approved' || artist.approvalStatus === 'pending') && 
       artist.labelId === userLabelId
     );
     
     return filteredArtists.map(artist => {
-      // Calculate artist releases and earnings
-      const artistReleases = releases.filter(release => release.artistId === artist.id);
-      const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
-      const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
-      
-      return {
-        ...artist,
-        releases: artistReleases.length,
-        totalEarnings,
-        totalStreams,
-        followers: artist.followers || 0,
-        lastRelease: artistReleases.length > 0 ? 
-          artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
-          null,
-        avatar: artist.avatar || '🎤'
-      };
+      // Only calculate sensitive data for approved artists
+      if (artist.approvalStatus === 'approved') {
+        const artistReleases = releases.filter(release => release.artistId === artist.id);
+        const totalEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
+        const totalStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
+        
+        return {
+          ...artist,
+          releases: artistReleases.length,
+          totalEarnings,
+          totalStreams,
+          followers: artist.followers || 0,
+          lastRelease: artistReleases.length > 0 ? 
+            artistReleases.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))[0].submissionDate : 
+            null,
+          avatar: artist.avatar || '🎤'
+        };
+      } else {
+        // For pending artists, hide sensitive information
+        return {
+          ...artist,
+          releases: null,
+          totalEarnings: null,
+          totalStreams: null,
+          followers: null,
+          lastRelease: null,
+          avatar: artist.avatar || '🎤'
+        };
+      }
     });
   }, [userBrand]);
 
@@ -218,20 +231,24 @@ export default function LabelAdminArtists() {
                          artist.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (artist.primaryGenre && artist.primaryGenre.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (artist.genres && artist.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase())));
-    const matchesStatus = statusFilter === 'all' || artist.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || artist.approvalStatus === statusFilter;
     const matchesArtist = artistFilter === 'all' || artist.name === artistFilter;
     
     return matchesSearch && matchesStatus && matchesArtist;
   });
 
-  // Calculate label totals
+  // Calculate label totals (only approved artists)
+  const approvedArtists = labelArtists.filter(a => a.approvalStatus === 'approved');
+  const pendingArtists = labelArtists.filter(a => a.approvalStatus === 'pending');
+  
   const labelTotals = {
     totalArtists: labelArtists.length,
-    activeArtists: labelArtists.filter(a => a.status === 'active').length,
-    totalEarnings: labelArtists.reduce((sum, artist) => sum + artist.totalEarnings, 0),
-    totalStreams: labelArtists.reduce((sum, artist) => sum + artist.totalStreams, 0),
-    totalFollowers: labelArtists.reduce((sum, artist) => sum + artist.followers, 0),
-    totalReleases: labelArtists.reduce((sum, artist) => sum + artist.releases, 0)
+    approvedArtists: approvedArtists.length,
+    pendingArtists: pendingArtists.length,
+    totalEarnings: approvedArtists.reduce((sum, artist) => sum + (artist.totalEarnings || 0), 0),
+    totalStreams: approvedArtists.reduce((sum, artist) => sum + (artist.totalStreams || 0), 0),
+    totalFollowers: approvedArtists.reduce((sum, artist) => sum + (artist.followers || 0), 0),
+    totalReleases: approvedArtists.reduce((sum, artist) => sum + (artist.releases || 0), 0)
   };
 
   return (
@@ -258,7 +275,7 @@ export default function LabelAdminArtists() {
 
         {/* Stats */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,10 +289,20 @@ export default function LabelAdminArtists() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Artists</p>
-                  <p className="text-2xl font-bold text-gray-900">{labelTotals.activeArtists}</p>
+                  <p className="text-sm font-medium text-gray-600">Approved Artists</p>
+                  <p className="text-2xl font-bold text-gray-900">{labelTotals.approvedArtists}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+                  <p className="text-2xl font-bold text-gray-900">{labelTotals.pendingArtists}</p>
+                </div>
+                <div className="w-8 h-8 text-yellow-600">⏳</div>
               </div>
             </div>
             
@@ -325,16 +352,15 @@ export default function LabelAdminArtists() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Approval Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
+                  <option value="all">All Artists</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending Approval</option>
                 </select>
               </div>
               
@@ -382,30 +408,46 @@ export default function LabelAdminArtists() {
                     </div>
                   </div>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    artist.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    artist.approvalStatus === 'approved' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {artist.status}
+                    {artist.approvalStatus === 'approved' ? 'Approved' : 'Pending Approval'}
                   </span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Releases</p>
-                    <p className="text-lg font-semibold text-gray-900">{artist.releases}</p>
+                {artist.approvalStatus === 'approved' ? (
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Releases</p>
+                      <p className="text-lg font-semibold text-gray-900">{artist.releases}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Earnings</p>
+                      <p className="text-lg font-semibold text-gray-900">{formatCurrency(artist.totalEarnings, selectedCurrency)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Streams</p>
+                      <p className="text-lg font-semibold text-gray-900">{artist.totalStreams.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Followers</p>
+                      <p className="text-lg font-semibold text-gray-900">{artist.followers.toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Earnings</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatCurrency(artist.totalEarnings, selectedCurrency)}</p>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center">
+                      <div className="text-yellow-400 mr-3">⏳</div>
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800">Pending Approval</h4>
+                        <p className="text-sm text-yellow-700">
+                          Artist information will be available after approval is completed.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Streams</p>
-                    <p className="text-lg font-semibold text-gray-900">{artist.totalStreams.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Followers</p>
-                    <p className="text-lg font-semibold text-gray-900">{artist.followers.toLocaleString()}</p>
-                  </div>
-                </div>
+                )}
                 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
