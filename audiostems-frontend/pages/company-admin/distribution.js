@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
-import { getReleases } from '@/lib/mockDatabase';
+import { getReleases } from '@/lib/emptyData';
 import { getUserRole } from '@/lib/auth0-config';
 import { RELEASE_STATUS_LABELS } from '@/lib/constants';
 import NotificationModal from '@/components/shared/NotificationModal';

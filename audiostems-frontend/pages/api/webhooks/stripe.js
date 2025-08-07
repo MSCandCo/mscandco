@@ -1,5 +1,6 @@
 import { stripe } from '@/lib/stripe';
 import { buffer } from 'micro';
+import { getUsers } from '@/lib/emptyData';
 // Note: Database imports removed for Vercel deployment
 // TODO: Integrate with Supabase database
 

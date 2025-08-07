@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { ARTISTS, RELEASES, DASHBOARD_STATS } from '../../lib/mockData';
+import { ARTISTS, RELEASES, DASHBOARD_STATS } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {

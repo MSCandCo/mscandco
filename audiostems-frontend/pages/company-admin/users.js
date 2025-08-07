@@ -9,8 +9,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { getApprovedArtistsByLabel } from '@/lib/mockData';
-import { getUsers } from '@/lib/mockDatabase';
+import { getApprovedArtistsByLabel, getUsers } from '@/lib/emptyData';
 import { getUserRole } from '@/lib/auth0-config';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';

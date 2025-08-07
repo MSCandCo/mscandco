@@ -2,7 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
-import { ARTISTS } from '../../lib/mockData';
+import { ARTISTS } from '../../lib/emptyData';
 
 export default function LabelAdminProfile() {
   const { user, isAuthenticated, isLoading } = useAuth0();

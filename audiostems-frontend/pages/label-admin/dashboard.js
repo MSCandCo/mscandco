@@ -4,7 +4,7 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaUsers, FaMusic, FaChartLine, FaDollarSign, FaCalendar, FaEye, FaEdit, FaPlus, FaDownload, FaTimes, FaSearch, FaFilter } from 'react-icons/fa';
 import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Download, Search, Filter } from 'lucide-react';
-import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
+import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/emptyData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, GENRES, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';

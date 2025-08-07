@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { EmptyDashboard, EmptyAnalytics, LoadingState } from '@/components/shared/EmptyStates';
+import { getUsers, getReleases } from '@/lib/emptyData';
 
 // Default empty stats - to be replaced with real API data
 const getEmptyStats = () => ({
@@ -369,9 +370,10 @@ export default function RoleBasedDashboard() {
       case 'artist':
     
         const artistData = getUsers().find(u => u.role === 'artist' && u.id === 'artist_yhwh_msc') || getUsers().find(u => u.role === 'artist');
+        const brandName = artistData?.brand || 'YHWH MSC';
         return {
           title: 'Artist Dashboard',
-          subtitle: `Welcome to ${artistData.brand} - Your Music Career Hub`,
+          subtitle: `Welcome to ${brandName} - Your Music Career Hub`,
           description: 'Manage your releases, track earnings, and grow your audience',
           stats: [
             { label: 'Total Releases', value: (artistData?.totalReleases || 0).toString(), change: '+2 this month', changeType: 'positive' },
@@ -444,7 +446,15 @@ export default function RoleBasedDashboard() {
     }
   };
 
-  const dashboardContent = getDashboardContent();
+  const dashboardContent = userRole ? getDashboardContent() : null;
+
+  if (!dashboardContent) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingState message="Loading your dashboard..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

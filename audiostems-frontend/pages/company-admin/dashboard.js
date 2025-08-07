@@ -10,7 +10,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getUsers, getReleases } from '../../lib/mockDatabase';
+import { getUsers, getReleases } from '../../lib/emptyData';
 import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 
 export default function CompanyAdminDashboard() {

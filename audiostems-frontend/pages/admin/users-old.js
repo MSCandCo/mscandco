@@ -4,7 +4,7 @@ import { AdminRoute } from '@/components/auth/RoleProtectedRoute';
 import { Card, Button, Badge } from 'flowbite-react';
 import { useState } from 'react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { ARTISTS, ADMINS } from '@/lib/mockData';
+import { ARTISTS, ADMINS } from '@/lib/emptyData';
 
 export default function AdminUsersPage() {
   return (

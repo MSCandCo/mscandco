@@ -5,7 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
-import { getUserById } from '../../lib/mockDatabase';
+import { getUserById } from '../../lib/emptyData';
 
 export default function ArtistEarnings() {
   const { user, isAuthenticated, isLoading } = useAuth0();

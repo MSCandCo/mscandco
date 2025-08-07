@@ -5,7 +5,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getUserById } from '../../lib/mockDatabase';
+import { getUserById } from '../../lib/emptyData';
 import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistAnalytics() {

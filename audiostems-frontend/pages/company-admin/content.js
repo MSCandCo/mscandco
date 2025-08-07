@@ -8,7 +8,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { getReleases, getUsers } from '@/lib/mockDatabase';
+import { getReleases, getUsers } from '@/lib/emptyData';
 import { getUserRole } from '@/lib/auth0-config';
 import { RELEASE_STATUS_LABELS } from '@/lib/constants';
 

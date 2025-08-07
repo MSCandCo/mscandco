@@ -7,7 +7,7 @@ import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search, Plus } from 'lu
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 // Import centralized mock data
-import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/mockData';
+import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/emptyData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
 import CreateReleaseModal from '../../components/releases/CreateReleaseModal';

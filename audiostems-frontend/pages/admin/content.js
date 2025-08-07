@@ -9,7 +9,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { ARTISTS, RELEASES, SONGS } from '@/lib/mockData';
+import { ARTISTS, RELEASES, SONGS } from '@/lib/emptyData';
 import { getUserRole } from '@/lib/auth0-config';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
