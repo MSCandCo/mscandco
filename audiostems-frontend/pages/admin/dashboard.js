@@ -11,8 +11,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getDashboardStats } from '../../lib/mockData';
-import { getUsers, getReleases } from '../../lib/mockDatabase';
+import { getDashboardStats, getUsers, getReleases } from '../../lib/emptyData';
 import { getUserRole } from '../../lib/auth0-config';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '../../lib/constants';
 

@@ -3,10 +3,52 @@ import { Card, Badge } from 'flowbite-react';
 import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { getDashboardStats, DASHBOARD_STATS, MOCK_VIDEOS } from '@/lib/mockData';
 import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
-import { getUsers, getReleases } from '@/lib/mockDatabase';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+
+// Default empty stats - to be replaced with real API data
+const getEmptyStats = () => ({
+  superAdmin: {
+    totalUsers: 0,
+    totalRoles: 5,
+    totalSongs: 0,
+    activeProjects: 0,
+    totalRevenue: 0,
+    totalBrands: 2,
+    systemFeatures: 12
+  },
+  companyAdmin: {
+    activeProjects: 0,
+    brandRevenue: 0,
+    contentItems: 0,
+    brandUsers: 0,
+    brandRoles: 3,
+    totalViews: 0,
+    engagement: 0
+  },
+  labelAdmin: {
+    labelArtists: 0,
+    labelReleases: 0,
+    labelRevenue: 0,
+    labelStreams: 0,
+    activeContracts: 0,
+    labelCountries: 0,
+    totalTracks: 0
+  },
+  distributionPartner: {
+    distributedContent: 0,
+    partnerRevenue: 0,
+    totalReleases: 0,
+    successRate: 100,
+    totalViews: 0
+  },
+  artist: {
+    totalStreams: 0,
+    countries: 0,
+    topTrack: 'No tracks yet',
+    growth: 0
+  }
+});
 
 // Video component for artist dashboard
 const ArtistVideoSection = () => {
@@ -15,21 +57,10 @@ const ArtistVideoSection = () => {
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    // Randomly choose between highest performing and newest video
-    const isHighestPerforming = Math.random() > 0.5;
-    const video = isHighestPerforming ? MOCK_VIDEOS.featured : MOCK_VIDEOS.latest;
-    setCurrentVideo(video);
-    setVideoType(isHighestPerforming ? 'highest' : 'newest');
-    
-    // Switch videos every 30 seconds
-    const interval = setInterval(() => {
-      const newIsHighestPerforming = Math.random() > 0.5;
-      const newVideo = newIsHighestPerforming ? MOCK_VIDEOS.featured : MOCK_VIDEOS.latest;
-      setCurrentVideo(newVideo);
-      setVideoType(newIsHighestPerforming ? 'highest' : 'newest');
-    }, 30000);
-
-    return () => clearInterval(interval);
+    // TODO: Replace with real API call to fetch user's videos
+    // For now, show empty state - no videos to display
+    setCurrentVideo(null);
+    setVideoType('No Videos Available');
   }, []);
 
   if (!currentVideo) return null;
@@ -149,9 +180,9 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Company Overview`,
           description: 'Manage all brands, users, and platform settings',
           stats: [
-            { label: 'Total Users', value: DASHBOARD_STATS.superAdmin.totalUsers.toLocaleString(), change: '+12%', changeType: 'positive' },
-            { label: 'Active Projects', value: DASHBOARD_STATS.superAdmin.activeProjects.toString(), change: '+5%', changeType: 'positive' },
-            { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.superAdmin.totalRevenue, selectedCurrency), change: '+8%', changeType: 'positive' },
+            { label: 'Total Users', value: getEmptyStats().superAdmin.totalUsers.toLocaleString(), change: '+12%', changeType: 'positive' },
+            { label: 'Active Projects', value: getEmptyStats().superAdmin.activeProjects.toString(), change: '+5%', changeType: 'positive' },
+            { label: 'Revenue', value: formatCurrency(getEmptyStats().superAdmin.totalRevenue, selectedCurrency), change: '+8%', changeType: 'positive' },
             { label: 'Total Artists', value: getUsers().filter(u => u.role === 'artist').length.toString(), change: `${getReleases().length} releases`, changeType: 'neutral' }
           ],
           cards: [
@@ -160,21 +191,21 @@ export default function RoleBasedDashboard() {
               description: 'Manage all platform users and roles',
               icon: '👥',
               href: '/admin/users',
-              stats: { users: DASHBOARD_STATS.superAdmin.totalUsers, roles: DASHBOARD_STATS.superAdmin.totalRoles }
+              stats: { users: getEmptyStats().superAdmin.totalUsers, roles: getEmptyStats().superAdmin.totalRoles }
             },
             {
               title: 'Content Management',
               description: 'Oversee all platform content',
               icon: '📁',
               href: '/admin/content',
-              stats: { songs: DASHBOARD_STATS.superAdmin.totalSongs, projects: DASHBOARD_STATS.superAdmin.activeProjects }
+              stats: { songs: getEmptyStats().superAdmin.totalSongs, projects: getEmptyStats().superAdmin.activeProjects }
             },
             {
               title: 'System Settings',
               description: 'Configure platform settings',
               icon: '⚙️',
               href: '/admin/settings',
-              stats: { brands: DASHBOARD_STATS.superAdmin.totalBrands, features: DASHBOARD_STATS.superAdmin.systemFeatures }
+              stats: { brands: getEmptyStats().superAdmin.totalBrands, features: getEmptyStats().superAdmin.systemFeatures }
             }
           ]
         };
@@ -187,9 +218,9 @@ export default function RoleBasedDashboard() {
           description: 'Manage your brand users and content',
           stats: [
             { label: 'Brand Artists', value: getUsers().filter(u => u.role === 'artist' && u.brand === displayBrand?.displayName).length.toString(), change: '+8%', changeType: 'positive' },
-            { label: 'Active Projects', value: DASHBOARD_STATS.companyAdmin.activeProjects.toString(), change: '+3%', changeType: 'positive' },
-            { label: 'Revenue', value: formatCurrency(DASHBOARD_STATS.companyAdmin.brandRevenue, selectedCurrency), change: '+6%', changeType: 'positive' },
-            { label: 'Content Items', value: DASHBOARD_STATS.companyAdmin.contentItems.toString(), change: '+12%', changeType: 'positive' }
+            { label: 'Active Projects', value: getEmptyStats().companyAdmin.activeProjects.toString(), change: '+3%', changeType: 'positive' },
+            { label: 'Revenue', value: formatCurrency(getEmptyStats().companyAdmin.brandRevenue, selectedCurrency), change: '+6%', changeType: 'positive' },
+            { label: 'Content Items', value: getEmptyStats().companyAdmin.contentItems.toString(), change: '+12%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -197,21 +228,21 @@ export default function RoleBasedDashboard() {
               description: 'Manage brand users and permissions',
               icon: '👥',
               href: '/admin/users',
-              stats: { users: DASHBOARD_STATS.companyAdmin.brandUsers, roles: DASHBOARD_STATS.companyAdmin.brandRoles }
+              stats: { users: getEmptyStats().companyAdmin.brandUsers, roles: getEmptyStats().companyAdmin.brandRoles }
             },
             {
               title: 'Content Management',
               description: 'Manage brand content and projects',
               icon: '📁',
               href: '/admin/content',
-              stats: { songs: DASHBOARD_STATS.companyAdmin.contentItems, projects: DASHBOARD_STATS.companyAdmin.activeProjects }
+              stats: { songs: getEmptyStats().companyAdmin.contentItems, projects: getEmptyStats().companyAdmin.activeProjects }
             },
             {
               title: 'Analytics',
               description: 'View brand performance metrics',
               icon: '📈',
               href: '/admin/analytics',
-              stats: { views: DASHBOARD_STATS.companyAdmin.totalViews, engagement: DASHBOARD_STATS.companyAdmin.engagement }
+              stats: { views: getEmptyStats().companyAdmin.totalViews, engagement: getEmptyStats().companyAdmin.engagement }
             }
           ]
         };
@@ -223,10 +254,10 @@ export default function RoleBasedDashboard() {
           subtitle: 'Manage label artists, contracts, and revenue streams',
           description: 'Complete label administration and artist management platform',
           stats: [
-            { label: 'Label Artists', value: DASHBOARD_STATS.labelAdmin.labelArtists.toString(), change: '+3 this quarter', changeType: 'positive' },
-            { label: 'Active Releases', value: DASHBOARD_STATS.labelAdmin.labelReleases.toString(), change: '+12%', changeType: 'positive' },
-            { label: 'Label Revenue', value: formatCurrency(DASHBOARD_STATS.labelAdmin.labelRevenue, selectedCurrency), change: '+18%', changeType: 'positive' },
-            { label: 'Total Streams', value: `${(DASHBOARD_STATS.labelAdmin.labelStreams / 1000).toFixed(0)}K`, change: '+25%', changeType: 'positive' }
+            { label: 'Label Artists', value: getEmptyStats().labelAdmin.labelArtists.toString(), change: '+3 this quarter', changeType: 'positive' },
+            { label: 'Active Releases', value: getEmptyStats().labelAdmin.labelReleases.toString(), change: '+12%', changeType: 'positive' },
+            { label: 'Label Revenue', value: formatCurrency(getEmptyStats().labelAdmin.labelRevenue, selectedCurrency), change: '+18%', changeType: 'positive' },
+            { label: 'Total Streams', value: `${(getEmptyStats().labelAdmin.labelStreams / 1000).toFixed(0)}K`, change: '+25%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -234,28 +265,28 @@ export default function RoleBasedDashboard() {
               description: 'Manage label artists and their contracts',
               icon: '🎤',
               href: '/label-admin/artists',
-              stats: { artists: DASHBOARD_STATS.labelAdmin.labelArtists, contracts: DASHBOARD_STATS.labelAdmin.activeContracts }
+              stats: { artists: getEmptyStats().labelAdmin.labelArtists, contracts: getEmptyStats().labelAdmin.activeContracts }
             },
             {
               title: 'Revenue Tracking',
               description: 'Monitor label earnings and artist royalties',
               icon: '💰',
               href: '/label-admin/earnings',
-              stats: { revenue: DASHBOARD_STATS.labelAdmin.labelRevenue, releases: DASHBOARD_STATS.labelAdmin.labelReleases }
+              stats: { revenue: getEmptyStats().labelAdmin.labelRevenue, releases: getEmptyStats().labelAdmin.labelReleases }
             },
             {
               title: 'Performance Analytics',
               description: 'View label-wide performance metrics',
               icon: '📊',
               href: '/label-admin/analytics',
-              stats: { streams: DASHBOARD_STATS.labelAdmin.labelStreams, countries: DASHBOARD_STATS.labelAdmin.labelCountries }
+              stats: { streams: getEmptyStats().labelAdmin.labelStreams, countries: getEmptyStats().labelAdmin.labelCountries }
             },
             {
               title: 'All Releases',
               description: 'Manage all label releases and assets',
               icon: '🎵',
               href: '/label-admin/releases',
-              stats: { releases: DASHBOARD_STATS.labelAdmin.labelReleases, tracks: DASHBOARD_STATS.labelAdmin.totalTracks || 45 }
+              stats: { releases: getEmptyStats().labelAdmin.labelReleases, tracks: getEmptyStats().labelAdmin.totalTracks || 45 }
             }
           ]
         };
@@ -267,10 +298,10 @@ export default function RoleBasedDashboard() {
           subtitle: `Welcome to ${displayBrand?.displayName || 'MSC & Co'} - Content Distribution`,
           description: 'Manage content distribution and partner relationships',
           stats: [
-            { label: 'Distributed Content', value: DASHBOARD_STATS.distributionPartner.distributedContent.toString(), change: '+15%', changeType: 'positive' },
-            { label: 'Partner Revenue', value: formatCurrency(DASHBOARD_STATS.distributionPartner.partnerRevenue, selectedCurrency), change: '+12%', changeType: 'positive' },
+            { label: 'Distributed Content', value: getEmptyStats().distributionPartner.distributedContent.toString(), change: '+15%', changeType: 'positive' },
+            { label: 'Partner Revenue', value: formatCurrency(getEmptyStats().distributionPartner.partnerRevenue, selectedCurrency), change: '+12%', changeType: 'positive' },
             { label: 'Active Artists', value: getUsers().filter(u => u.role === 'artist').length.toString(), change: `${getReleases().length} total releases`, changeType: 'positive' },
-            { label: 'Success Rate', value: `${DASHBOARD_STATS.distributionPartner.successRate}%`, change: '+2%', changeType: 'positive' }
+            { label: 'Success Rate', value: `${getEmptyStats().distributionPartner.successRate}%`, change: '+2%', changeType: 'positive' }
           ],
           cards: [
             {
@@ -278,21 +309,21 @@ export default function RoleBasedDashboard() {
               description: 'Manage distributed content and releases',
               icon: '📁',
               href: '/distribution-partner/dashboard',
-              stats: { content: DASHBOARD_STATS.distributionPartner.distributedContent, releases: DASHBOARD_STATS.distributionPartner.totalReleases }
+              stats: { content: getEmptyStats().distributionPartner.distributedContent, releases: getEmptyStats().distributionPartner.totalReleases }
             },
             {
               title: 'Analytics',
               description: 'Track distribution performance',
               icon: '📈',
               href: '/partner/analytics',
-              stats: { views: DASHBOARD_STATS.distributionPartner.totalViews, revenue: DASHBOARD_STATS.distributionPartner.partnerRevenue }
+              stats: { views: getEmptyStats().distributionPartner.totalViews, revenue: getEmptyStats().distributionPartner.partnerRevenue }
             },
             {
               title: 'Earnings',
               description: 'View earnings from all distributed releases',
               icon: '💰',
               href: '/partner/reports',
-              stats: { earnings: formatCurrency(DASHBOARD_STATS.distributionPartner.partnerRevenue, selectedCurrency), releases: DASHBOARD_STATS.distributionPartner.totalReleases }
+              stats: { earnings: formatCurrency(getEmptyStats().distributionPartner.partnerRevenue, selectedCurrency), releases: getEmptyStats().distributionPartner.totalReleases }
             }
           ]
         };
@@ -381,10 +412,10 @@ export default function RoleBasedDashboard() {
               icon: '📈',
               href: '/artist/analytics',
               stats: { 
-                streams: `${(DASHBOARD_STATS.artist.totalStreams / 1000).toFixed(0)}K`, 
-                countries: DASHBOARD_STATS.artist.countries,
-                topTrack: DASHBOARD_STATS.artist.topTrack,
-                growth: formatGrowthPercentage(DASHBOARD_STATS.artist.growth)
+                streams: `${(getEmptyStats().artist.totalStreams / 1000).toFixed(0)}K`, 
+                countries: getEmptyStats().artist.countries,
+                topTrack: getEmptyStats().artist.topTrack,
+                growth: formatGrowthPercentage(getEmptyStats().artist.growth)
               }
             }
           ]

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
 import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
-import { ARTISTS } from '../../lib/mockData';
+import { ARTISTS } from '../../lib/emptyData';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
 

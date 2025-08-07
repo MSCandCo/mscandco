@@ -4,8 +4,7 @@ import { getUserRole, getUserBrand } from '../../lib/auth0-config';
 import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
 import { Plus, Music, TrendingUp, DollarSign } from 'lucide-react';
-import { getUsers, getReleases } from '../../lib/mockDatabase';
-import { ARTISTS, RELEASES } from '../../lib/mockData';
+import { getEmptyArtists, getEmptyReleases, EMPTY_STATES } from '../../lib/emptyStates';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import SuccessModal from '../../components/shared/SuccessModal';
 

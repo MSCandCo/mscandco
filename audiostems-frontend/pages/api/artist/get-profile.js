@@ -1,5 +1,5 @@
 // Import from Universal Mock Database
-import { getUserById } from '../../../lib/mockDatabase';
+import { getUserById } from '../../../lib/emptyData';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

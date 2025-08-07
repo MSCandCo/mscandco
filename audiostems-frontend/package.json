@@ -1,21 +1,13 @@
 {
-  "name": "msc-co-platform",
+  "name": "msc-and-co",
   "version": "0.1.0",
   "private": true,
   "description": "MSC & Co - Multi-brand music distribution and publishing platform",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "ssl": "npx local-ssl-proxy --key localhost+1-key.pem --cert localhost+1.pem --source 3000 --target 3001",
-    "stripe": "node scripts/stripe-cli.js",
-    "stripe:products": "node scripts/stripe-cli.js products",
-    "stripe:prices": "node scripts/stripe-cli.js prices",
-    "stripe:webhooks": "node scripts/stripe-cli.js webhooks",
-    "stripe:listen": "node scripts/stripe-cli.js listen",
-    "stripe:customers": "node scripts/stripe-cli.js customers",
-    "stripe:subscriptions": "node scripts/stripe-cli.js subscriptions"
+    "lint": "next lint"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",

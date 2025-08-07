@@ -1,7 +1,7 @@
 import { stripe } from '@/lib/stripe';
 import { buffer } from 'micro';
-// Note: Mock database imports removed for production deployment
-// In production, integrate with your real database or backend API
+// Note: Database imports removed for Vercel deployment
+// TODO: Integrate with Supabase database
 
 // Disable body parsing, need raw body for webhook signature verification
 export const config = {
