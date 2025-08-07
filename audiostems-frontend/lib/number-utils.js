@@ -28,10 +28,10 @@ export const formatNumber = (value, fallback = '---') => {
 /**
  * Formats a percentage and handles NaN values
  * @param {number} value - The percentage value (0-100)
- * @param {string} fallback - The fallback value (default: '---')
+ * @param {string} fallback - The fallback value (default: '---%')
  * @returns {string} - The formatted percentage or fallback
  */
-export const formatPercentage = (value, fallback = '---') => {
+export const formatPercentage = (value, fallback = '---%') => {
   const formatted = formatNumber(value, null);
   if (formatted === null || formatted === fallback) {
     return fallback;
@@ -42,10 +42,10 @@ export const formatPercentage = (value, fallback = '---') => {
 /**
  * Formats growth percentage with + sign and handles undefined values
  * @param {number} value - The growth percentage value
- * @param {string} fallback - The fallback value (default: '---')
+ * @param {string} fallback - The fallback value (default: '---%')
  * @returns {string} - Formatted growth percentage or fallback
  */
-export const formatGrowthPercentage = (value, fallback = '---') => {
+export const formatGrowthPercentage = (value, fallback = '---%') => {
   if (value === null || value === undefined || isNaN(value)) {
     return fallback;
   }

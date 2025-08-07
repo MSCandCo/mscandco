@@ -167,7 +167,9 @@ export default function CompanyAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-sm text-purple-100">Platform Health</div>
-                <div className="text-2xl font-bold">{Math.round((approvedArtists.length / artists.length) * 100)}%</div>
+                <div className="text-2xl font-bold">
+                  {artists.length > 0 ? Math.round((approvedArtists.length / artists.length) * 100) : 0}%
+                </div>
               </div>
             </div>
           </div>

@@ -318,7 +318,7 @@ export default function WorkflowVisualization() {
             {/* Progress Percentage */}
             <div className="text-right">
               <p className="text-lg font-bold text-blue-600">
-                {Math.round((currentIndex / (allStatuses.length - 1)) * 100)}%
+                {allStatuses.length > 1 ? Math.round((currentIndex / (allStatuses.length - 1)) * 100) : 0}%
               </p>
               <p className="text-xs text-gray-500">Complete</p>
             </div>
@@ -328,7 +328,7 @@ export default function WorkflowVisualization() {
           <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(currentIndex / (allStatuses.length - 1)) * 100}%` }}
+              style={{ width: `${allStatuses.length > 1 ? (currentIndex / (allStatuses.length - 1)) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
@@ -512,7 +512,7 @@ export default function WorkflowVisualization() {
                   <Activity className="w-8 h-8 text-green-600" />
                 </div>
                 <p className="text-2xl font-bold text-green-600">
-                  {formatNumber(Math.round((mockWorkflowData.filter(w => w.currentStatus === 'live').length / mockWorkflowData.length) * 100))}%
+                  {formatNumber(mockWorkflowData.length > 0 ? Math.round((mockWorkflowData.filter(w => w.currentStatus === 'live').length / mockWorkflowData.length) * 100) : 0)}%
                 </p>
                 <p className="text-sm text-gray-600">Success Rate</p>
               </div>

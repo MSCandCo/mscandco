@@ -26,9 +26,11 @@ export default function StatsCard({
       case 'currency':
         return formatCurrency(val, currency);
       case 'percentage':
+        if (isNaN(val) || val === null || val === undefined) return '---%';
         return `${val.toFixed(1)}%`;
       case 'number':
       default:
+        if (isNaN(val) || val === null || val === undefined) return '---';
         return val.toLocaleString();
     }
   };
@@ -98,7 +100,10 @@ export default function StatsCard({
             <div className={`flex items-center space-x-1 mt-1 ${getChangeColor()}`}>
               {getChangeIcon()}
               <span className="text-xs font-medium">
-                {changeType === 'percentage' ? `${Math.abs(change).toFixed(1)}%` : Math.abs(change).toLocaleString()}
+                {changeType === 'percentage' ? 
+                  (isNaN(change) ? '---%' : `${Math.abs(change).toFixed(1)}%`) : 
+                  (isNaN(change) ? '---' : Math.abs(change).toLocaleString())
+                }
                 {changeType === 'percentage' ? '' : ` ${change > 0 ? 'more' : 'less'}`}
               </span>
             </div>

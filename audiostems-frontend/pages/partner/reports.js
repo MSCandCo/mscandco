@@ -1066,7 +1066,7 @@ export default function PartnerReports() {
                   <p className="text-sm font-medium text-teal-600 mb-1">Paid Out</p>
                   <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.paidOut, selectedCurrency)}</p>
                   <p className="text-xs text-teal-600 font-medium mt-1">
-                    ✅ {Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100)}% completed
+                    ✅ {earningsData.totalEarnings > 0 ? Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100) : 0}% completed
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-teal-500 rounded-lg flex items-center justify-center">

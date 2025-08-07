@@ -208,7 +208,9 @@ function AdminAnalytics() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-green-50 rounded">
                   <span className="font-medium">Completion Rate</span>
-                  <span className="text-green-600 font-bold">{Math.round((workflowMetrics.completedReleases / workflowMetrics.totalReleases) * 100)}%</span>
+                  <span className="text-green-600 font-bold">
+                    {workflowMetrics.totalReleases > 0 ? Math.round((workflowMetrics.completedReleases / workflowMetrics.totalReleases) * 100) : 0}%
+                  </span>
                 </div>
               </div>
             </Card>

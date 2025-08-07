@@ -373,14 +373,14 @@ export default function SuperAdminDistribution() {
                 <div className="mt-8 bg-gradient-to-r from-red-50 to-purple-50 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-lg font-bold text-gray-900">Platform-Wide Progress</span>
-                    <span className="text-2xl font-bold text-red-600">
-                      {Math.round((workflowStats.live / workflowStats.total) * 100) || 0}%
-                    </span>
+                                  <span className="text-2xl font-bold text-red-600">
+                {workflowStats.total > 0 ? Math.round((workflowStats.live / workflowStats.total) * 100) : 0}%
+              </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-4">
                     <div 
                       className="bg-gradient-to-r from-red-500 to-purple-500 h-4 rounded-full transition-all duration-500" 
-                      style={{ width: `${Math.round((workflowStats.live / workflowStats.total) * 100) || 0}%` }}
+                      style={{ width: `${workflowStats.total > 0 ? Math.round((workflowStats.live / workflowStats.total) * 100) : 0}%` }}
                     ></div>
                   </div>
                   <div className="text-sm text-gray-600 mt-2 flex justify-between">
