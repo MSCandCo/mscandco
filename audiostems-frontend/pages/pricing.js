@@ -124,6 +124,7 @@ const getRoleSpecificPlans = (role) => {
           yearlyPrice: 99.99,
           yearlySavings: 19.89,
           stripeProductKey: 'artist_starter',
+          isSubscription: true,
           features: [
             'Up to 10 releases per year',
             'Basic analytics and reporting',
@@ -139,6 +140,7 @@ const getRoleSpecificPlans = (role) => {
           yearlyPrice: 199.99,
           yearlySavings: 39.89,
           stripeProductKey: 'artist_pro',
+          isSubscription: true,
           features: [
             'Unlimited releases per year',
             'Advanced analytics and reporting',
@@ -156,121 +158,55 @@ const getRoleSpecificPlans = (role) => {
         }
       ];
 
-    case 'company_admin':
-      return [
-        {
-          name: 'Company Admin',
-          monthlyPrice: 'Free',
-          yearlyPrice: 'Free',
-          yearlySavings: '',
-          isFree: true,
-          features: [
-            'Unlimited Artists Management',
-            'Label Analytics Dashboard',
-            'Artist Content Oversight',
-            'Advanced Reporting Tools',
-            'Release Management',
-            'Artist Performance Tracking',
-            'Label Branding Options',
-            'Priority Email Support',
-            'Content Approval Workflows',
-            'Revenue Tracking',
-            'Artist Roster Management',
-            'Release Calendar Management',
-            'Label Analytics & Insights',
-            'Multi-Artist Dashboard',
-            'Content Distribution Oversight',
-            'Label Performance Metrics',
-            'Artist Development Tools',
-            'Release Coordination',
-            'Label Brand Management',
-            'Advanced Content Controls',
-            'Full Platform Administration',
-            'User Management',
-            'System Configuration',
-            'Brand Management',
-            'Advanced Analytics',
-            'Priority Support'
-          ]
-        }
-      ];
-
     case 'label_admin':
       return [
         {
-          name: 'Label Admin',
+          name: 'Label Admin Starter',
           monthlyPrice: 29.99,
           yearlyPrice: 299.99,
           yearlySavings: 59.89,
-          stripeProductKey: 'label_admin',
+          stripeProductKey: 'label_admin_starter',
+          isSubscription: true,
           features: [
-            'Unlimited Artists Management',
-            'Label Analytics Dashboard',
-            'Artist Content Oversight',
-            'Advanced Reporting Tools',
-            'Release Management',
-            'Artist Performance Tracking',
-            'Label Branding Options',
-            'Priority Email Support',
-            'Content Approval Workflows',
-            'Revenue Tracking',
-            'Artist Roster Management',
-            'Release Calendar Management',
-            'Label Analytics & Insights',
-            'Multi-Artist Dashboard',
-            'Content Distribution Oversight',
-            'Label Performance Metrics',
-            'Artist Development Tools',
-            'Release Coordination',
-            'Label Brand Management',
-            'Advanced Content Controls'
-          ]
-        }
-      ];
-
-    case 'super_admin':
-      return [
-        {
-          name: 'Platform Basic',
-          monthlyPrice: 499.99,
-          yearlyPrice: 4999.99,
-          yearlySavings: 999.89,
-          features: [
-            'Single Brand Management',
-            'Basic Platform Analytics',
-            'Email Support',
-            'Standard Administration'
+            'Manage up to 10 artists',
+            'Basic label analytics dashboard',
+            'Artist content oversight',
+            'Basic reporting tools',
+            'Release management',
+            'Artist performance tracking',
+            'Email support',
+            'Content approval workflows',
+            'Basic revenue tracking'
           ]
         },
         {
-          name: 'Platform Enterprise',
-          monthlyPrice: 999.99,
-          yearlyPrice: 9999.99,
-          yearlySavings: 1999.89,
+          name: 'Label Admin Pro',
+          monthlyPrice: 49.99,
+          yearlyPrice: 499.99,
+          yearlySavings: 99.89,
+          stripeProductKey: 'label_admin_pro',
+          isSubscription: true,
           features: [
-            'Multi-Brand Management',
-            'Platform Analytics',
-            'User Management',
-            'System Administration',
-            'Custom Branding',
-            'API Access',
-            'Dedicated Support'
-          ]
-        },
-        {
-          name: 'Platform Ultimate',
-          monthlyPrice: 1999.99,
-          yearlyPrice: 19999.99,
-          yearlySavings: 3999.89,
-          features: [
-            'Unlimited Brands',
-            'Advanced Platform Analytics',
-            'Priority Support',
-            'White-label Options',
-            'Full API Access',
-            'Dedicated Account Manager',
-            'Custom Integrations',
-            'On-premise Options'
+            'Unlimited artists management',
+            'Advanced label analytics dashboard',
+            'Comprehensive artist content oversight',
+            'Advanced reporting tools',
+            'Full release management suite',
+            'Detailed artist performance tracking',
+            'Label branding options',
+            'Priority email and phone support',
+            'Advanced content approval workflows',
+            'Comprehensive revenue tracking',
+            'Artist roster management',
+            'Release calendar management',
+            'Label analytics & insights',
+            'Multi-artist dashboard',
+            'Content distribution oversight',
+            'Label performance metrics',
+            'Artist development tools',
+            'Release coordination',
+            'Label brand management',
+            'Advanced content controls'
           ]
         }
       ];
@@ -279,21 +215,70 @@ const getRoleSpecificPlans = (role) => {
       return [
         {
           name: 'Distribution Partner',
-          monthlyPrice: 'Free',
-          yearlyPrice: 'Free',
+          monthlyPrice: 'Included',
+          yearlyPrice: 'Included',
           yearlySavings: '',
           isFree: true,
+          isIntegral: true,
           features: [
-            'Full Distribution Analytics',
-            'Complete Content Management',
-            'Release Approval Workflows',
-            'Partner Reporting Dashboard',
-            'API Access',
-            'Priority Support',
-            'Artist Management Tools',
-            'Revenue Tracking',
-            'Custom Reporting',
-            'Direct Platform Access'
+            'Full distribution analytics',
+            'Complete content management',
+            'Release approval workflows',
+            'Partner reporting dashboard',
+            'API access',
+            'Priority support',
+            'Artist management tools',
+            'Revenue tracking',
+            'Custom reporting',
+            'Direct platform access'
+          ]
+        }
+      ];
+
+    case 'company_admin':
+      return [
+        {
+          name: 'Company Admin',
+          monthlyPrice: 'Included',
+          yearlyPrice: 'Included',
+          yearlySavings: '',
+          isFree: true,
+          isIntegral: true,
+          features: [
+            'Full platform administration',
+            'User management',
+            'System configuration',
+            'Brand management',
+            'Advanced analytics',
+            'Priority support',
+            'Artist & label oversight',
+            'Revenue management',
+            'Content approval controls',
+            'Platform monitoring'
+          ]
+        }
+      ];
+
+    case 'super_admin':
+      return [
+        {
+          name: 'Super Admin',
+          monthlyPrice: 'Included',
+          yearlyPrice: 'Included',
+          yearlySavings: '',
+          isFree: true,
+          isIntegral: true,
+          features: [
+            'Complete platform oversight',
+            'All user role management',
+            'System administration',
+            'Platform configuration',
+            'Advanced analytics access',
+            'Priority support',
+            'Database management',
+            'Security controls',
+            'Audit trails',
+            'Emergency access controls'
           ]
         }
       ];
@@ -301,13 +286,31 @@ const getRoleSpecificPlans = (role) => {
     default:
       return [
         {
-          name: 'Basic Plan',
+          name: 'Artist Starter',
           monthlyPrice: 9.99,
           yearlyPrice: 99.99,
           yearlySavings: 19.89,
+          stripeProductKey: 'artist_starter',
+          isSubscription: true,
           features: [
-            'Basic Features',
-            'Email Support'
+            'Up to 10 releases per year',
+            'Basic analytics and reporting',
+            'Email support',
+            'Distribution to major platforms'
+          ]
+        },
+        {
+          name: 'Label Admin Starter',
+          monthlyPrice: 29.99,
+          yearlyPrice: 299.99,
+          yearlySavings: 59.89,
+          stripeProductKey: 'label_admin_starter',
+          isSubscription: true,
+          features: [
+            'Manage up to 10 artists',
+            'Basic label analytics',
+            'Email support',
+            'Basic reporting tools'
           ]
         }
       ];
@@ -361,12 +364,12 @@ function Pricing() {
       setUserRole(role);
       setPlans(getRoleSpecificPlans(role));
     } else {
-      // Show all plans for non-authenticated users
-      const allPlans = [
+      // Show subscription plans for non-authenticated users (Artist and Label Admin only)
+      const subscriptionPlans = [
         ...getRoleSpecificPlans('artist'),
         ...getRoleSpecificPlans('label_admin')
       ];
-      setPlans(allPlans);
+      setPlans(subscriptionPlans);
     }
   }, [isAuthenticated, user]);
 
@@ -463,13 +466,18 @@ function Pricing() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
                   <div className="mb-2">
                     <span className="text-3xl font-bold text-gray-900">
-                      {chargingInterval === 'monthly' ? sharedFormatCurrency(plan.monthlyPrice, selectedCurrency) : sharedFormatCurrency(plan.yearlyPrice, selectedCurrency)}
+                      {plan.isIntegral || plan.isFree 
+                        ? (chargingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice)
+                        : (chargingInterval === 'monthly' ? sharedFormatCurrency(plan.monthlyPrice, selectedCurrency) : sharedFormatCurrency(plan.yearlyPrice, selectedCurrency))
+                      }
                     </span>
-                    <span className="text-gray-500">
-                      /{chargingInterval === 'monthly' ? 'month' : 'year'}
-                    </span>
+                    {!plan.isIntegral && !plan.isFree && (
+                      <span className="text-gray-500">
+                        /{chargingInterval === 'monthly' ? 'month' : 'year'}
+                      </span>
+                    )}
                   </div>
-                  {chargingInterval === 'yearly' && (
+                  {chargingInterval === 'yearly' && !plan.isIntegral && !plan.isFree && plan.yearlySavings && (
                     <div className="flex items-center justify-center space-x-2">
                       <span className="text-sm text-gray-500 line-through">
                         {sharedFormatCurrency(plan.monthlyPrice, selectedCurrency)}/month
@@ -491,7 +499,8 @@ function Pricing() {
                 </ul>
 
                 <button
-                  className="
+                  className={`
+                    ${plan.isIntegral ? 'opacity-50 cursor-not-allowed' : ''}
                     bg-transparent 
                     text-[#1f2937] 
                     border 
@@ -511,21 +520,28 @@ function Pricing() {
                     focus:ring-2
                     focus:ring-[#1f2937]
                     w-full
-                  "
+                  `}
                   style={{
                     backgroundColor: 'transparent',
                     color: '#1f2937',
                     borderColor: '#1f2937'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#1f2937';
-                    e.target.style.color = 'white';
+                    if (!plan.isIntegral) {
+                      e.target.style.backgroundColor = '#1f2937';
+                      e.target.style.color = 'white';
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
-                    e.target.style.color = '#1f2937';
+                    if (!plan.isIntegral) {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.color = '#1f2937';
+                    }
                   }}
                   onClick={() => {
+                    if (plan.isIntegral) {
+                      return; // Do nothing for integral roles
+                    }
                     if (!isAuthenticated) {
                       window.location.href = '/login';
                     } else {
@@ -533,10 +549,13 @@ function Pricing() {
                       // Subscribe to selected plan
                     }
                   }}
+                  disabled={plan.isIntegral}
                 >
-                  {isAuthenticated 
-                    ? (plan.name === 'Artist Pro' ? 'Upgrade to Pro' : plan.name === 'Artist Starter' ? 'Switch to Starter' : 'Select Plan')
-                    : 'Sign Up'}
+                  {plan.isIntegral 
+                    ? 'Included with Platform'
+                    : isAuthenticated 
+                      ? (plan.name.includes('Pro') ? 'Upgrade to Pro' : plan.name.includes('Starter') ? 'Select Plan' : 'Select Plan')
+                      : 'Sign Up'}
                 </button>
               </div>
             ))}
