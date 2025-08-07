@@ -458,6 +458,7 @@ export default function AdminUsersPage() {
       {showAddUserModal && (
         <UserModal
           title="Add New User"
+          userRole={userRole}
           onClose={() => setShowAddUserModal(false)}
           onSave={handleSaveUser}
         />
@@ -501,7 +502,7 @@ export default function AdminUsersPage() {
 }
 
 // User Modal Component
-function UserModal({ title, user = null, onClose, onSave }) {
+function UserModal({ title, user = null, userRole, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
