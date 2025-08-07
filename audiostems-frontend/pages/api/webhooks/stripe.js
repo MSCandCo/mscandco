@@ -1,6 +1,7 @@
 import { stripe } from '@/lib/stripe';
 import { buffer } from 'micro';
-import { getUsers, updateUser } from '@/lib/mockDatabase';
+// Note: Mock database imports removed for production deployment
+// In production, integrate with your real database or backend API
 
 // Disable body parsing, need raw body for webhook signature verification
 export const config = {
