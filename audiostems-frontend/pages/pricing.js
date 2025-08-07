@@ -125,13 +125,23 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: 19.89,
           stripeProductKey: 'artist_starter',
           isSubscription: true,
+          restrictions: {
+            maxReleases: 10,
+            analyticsLevel: 'basic',
+            supportLevel: 'email',
+            brandingCustomization: false,
+            socialMediaIntegration: false,
+            marketingTools: false,
+            prioritySupport: false
+          },
           features: [
             'Up to 10 releases per year',
-            'Basic analytics and reporting',
-            'Email support',
-            'Distribution to major platforms (Spotify, Apple Music, etc.)',
-            'Basic earnings tracking',
-            'Release management tools'
+            'Basic analytics dashboard',
+            'Email support only',
+            'Distribution to 5+ major platforms',
+            'Basic earnings overview',
+            'Standard release management',
+            'Basic artist profile'
           ]
         },
         {
@@ -141,19 +151,28 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: 39.89,
           stripeProductKey: 'artist_pro',
           isSubscription: true,
+          restrictions: {
+            maxReleases: -1, // unlimited
+            analyticsLevel: 'advanced',
+            supportLevel: 'priority',
+            brandingCustomization: true,
+            socialMediaIntegration: true,
+            marketingTools: true,
+            prioritySupport: true
+          },
           features: [
             'Unlimited releases per year',
-            'Advanced analytics and reporting',
-            'Priority email and phone support',
+            'Advanced analytics & insights',
+            'Priority email & phone support',
             'Custom branding options',
-            'Distribution to all major platforms',
-            'Detailed earnings tracking and reporting',
-            'Advanced release management tools',
+            'Distribution to 15+ platforms',
+            'Detailed earnings & royalty tracking',
+            'Advanced release management',
             'Social media integration',
             'Marketing campaign tools',
             'Priority customer service',
-            'Advanced royalty tracking',
-            'Custom artist profile optimisation'
+            'Advanced artist profile customization',
+            'Release scheduling & promotion'
           ]
         }
       ];
@@ -167,15 +186,25 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: 59.89,
           stripeProductKey: 'label_admin_starter',
           isSubscription: true,
+          restrictions: {
+            maxArtists: 10,
+            analyticsLevel: 'basic',
+            supportLevel: 'email',
+            brandingCustomization: false,
+            advancedReporting: false,
+            multiLabelManagement: false,
+            prioritySupport: false,
+            apiAccess: false
+          },
           features: [
             'Manage up to 10 artists',
             'Basic label analytics dashboard',
             'Artist content oversight',
             'Basic reporting tools',
-            'Release management',
-            'Artist performance tracking',
-            'Email support',
-            'Content approval workflows',
+            'Standard release management',
+            'Basic artist performance tracking',
+            'Email support only',
+            'Simple content approval workflows',
             'Basic revenue tracking'
           ]
         },
@@ -186,27 +215,33 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: 99.89,
           stripeProductKey: 'label_admin_pro',
           isSubscription: true,
+          restrictions: {
+            maxArtists: -1, // unlimited
+            analyticsLevel: 'advanced',
+            supportLevel: 'priority',
+            brandingCustomization: true,
+            advancedReporting: true,
+            multiLabelManagement: true,
+            prioritySupport: true,
+            apiAccess: true
+          },
           features: [
             'Unlimited artists management',
-            'Advanced label analytics dashboard',
+            'Advanced label analytics & insights',
             'Comprehensive artist content oversight',
-            'Advanced reporting tools',
+            'Advanced reporting & export tools',
             'Full release management suite',
             'Detailed artist performance tracking',
-            'Label branding options',
-            'Priority email and phone support',
+            'Custom label branding options',
+            'Priority email & phone support',
             'Advanced content approval workflows',
-            'Comprehensive revenue tracking',
-            'Artist roster management',
-            'Release calendar management',
-            'Label analytics & insights',
-            'Multi-artist dashboard',
-            'Content distribution oversight',
-            'Label performance metrics',
+            'Comprehensive revenue & royalty tracking',
+            'Multi-label roster management',
+            'Release calendar & scheduling',
             'Artist development tools',
-            'Release coordination',
-            'Label brand management',
-            'Advanced content controls'
+            'API access for integrations',
+            'White-label options',
+            'Advanced content distribution controls'
           ]
         }
       ];
@@ -364,12 +399,12 @@ function Pricing() {
       setUserRole(role);
       setPlans(getRoleSpecificPlans(role));
     } else {
-      // Show subscription plans for non-authenticated users (Artist and Label Admin only)
-      const subscriptionPlans = [
+      // Show all 4 subscription plans in one row for non-authenticated users
+      const allSubscriptionPlans = [
         ...getRoleSpecificPlans('artist'),
         ...getRoleSpecificPlans('label_admin')
       ];
-      setPlans(subscriptionPlans);
+      setPlans(allSubscriptionPlans);
     }
   }, [isAuthenticated, user]);
 
@@ -456,7 +491,7 @@ function Pricing() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <div
                 key={index}
