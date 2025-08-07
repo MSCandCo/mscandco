@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import { EmptyDashboard, EmptyAnalytics, LoadingState } from '@/components/shared/EmptyStates';
 
 // Default empty stats - to be replaced with real API data
 const getEmptyStats = () => ({

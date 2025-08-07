@@ -22,7 +22,8 @@ import {
   isStatusEditableByArtist, 
   isStatusRequiringApproval 
 } from '../../lib/constants';
-import { getReleasesByArtist, getArtistById } from '../../lib/mockData';
+import { getReleasesByArtist, getArtistById } from '../../lib/emptyData';
+import { EmptyReleases, LoadingState } from '../../components/shared/EmptyStates';
 
 /*
  * 🔄 DISTRIBUTION PARTNER WORKFLOW:
@@ -483,22 +484,35 @@ export default function ArtistReleases() {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-          {filteredReleases.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Releases Found</h3>
-              <p className="text-gray-500 mb-4">
-                {releases.length === 0 
-                  ? 'Get started by creating your first release.'
-                  : 'No releases match your current filters.'
-                }
-              </p>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-              >
-                Create New Release
-              </button>
+          {isLoadingData ? (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <LoadingState message="Loading your releases..." />
+            </div>
+          ) : filteredReleases.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border">
+              {releases.length === 0 ? (
+                <EmptyReleases 
+                  onCreateRelease={() => setIsCreateModalOpen(true)}
+                  userRole="artist"
+                />
+              ) : (
+                <div className="p-8 text-center">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No releases match your filters</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search criteria or clearing the filters.</p>
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                      setGenreFilter('all');
+                      setTypeFilter('all');
+                    }}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
