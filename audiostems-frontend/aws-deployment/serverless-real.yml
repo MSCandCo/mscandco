@@ -1,0 +1,30 @@
+service: msc-co-real-platform
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  timeout: 30
+  memorySize: 1024
+
+custom:
+  customDomain:
+    domainName: staging.mscandco.com
+    certificateName: '*.mscandco.com'
+    createRoute53Record: false
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+
+functions:
+  realPlatform:
+    handler: src/lambda/platform.handler
+    events:
+      - httpApi:
+          path: /
+          method: GET
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+
+plugins:
+  - serverless-domain-manager

@@ -1,0 +1,19 @@
+service: msc-co-real-platform
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  timeout: 30
+  memorySize: 1024
+
+functions:
+  realPlatform:
+    handler: src/lambda/platform.handler
+    events:
+      - httpApi:
+          path: /
+          method: GET
+      - httpApi:
+          path: /{proxy+}
+          method: ANY

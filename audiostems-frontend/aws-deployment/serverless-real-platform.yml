@@ -1,0 +1,79 @@
+service: msc-co-platform-real
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  timeout: 30
+  memorySize: 1024
+  environment:
+    NODE_ENV: production
+    # Auth0 Configuration
+    AUTH0_DOMAIN: ${env:AUTH0_DOMAIN, 'dev-71sr26bf3lpgxzv3.us.auth0.com'}
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID, 'your-client-id'}
+    AUTH0_CLIENT_SECRET: ${env:AUTH0_CLIENT_SECRET, 'your-client-secret'}
+    AUTH0_AUDIENCE: ${env:AUTH0_AUDIENCE, ''}
+    AUTH0_BASE_URL: https://staging.mscandco.com
+    
+    # Stripe Configuration  
+    STRIPE_PUBLISHABLE_KEY: ${env:STRIPE_PUBLISHABLE_KEY, 'pk_test_your-key'}
+    STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY, 'sk_test_your-key'}
+    STRIPE_WEBHOOK_SECRET: ${env:STRIPE_WEBHOOK_SECRET, 'whsec_your-secret'}
+    
+    # Platform Configuration
+    NEXT_PUBLIC_API_URL: https://staging.mscandco.com/api
+    NEXT_PUBLIC_SITE_URL: https://staging.mscandco.com
+    
+    # Feature Flags
+    ENABLE_AUTH0: true
+    ENABLE_STRIPE: true
+    ENABLE_ROLE_SYSTEM: true
+
+custom:
+  customDomain:
+    domainName: staging.mscandco.com
+    certificateName: '*.mscandco.com'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    apiType: http
+    autoDomain: false
+
+functions:
+  mscCoPlatform:
+    handler: src/lambda/real-platform-handler.handler
+    events:
+      - httpApi:
+          path: /
+          method: GET
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+    environment:
+      PLATFORM_MODE: real
+      USER_ROLES: "Artist Starter,Artist Pro,Label Admin,Distribution Partner,Company Admin"
+
+plugins:
+  - serverless-domain-manager
+  - serverless-nextjs-plugin
+
+package:
+  individually: true
+  include:
+    - src/**
+    - ../pages/**
+    - ../components/**
+    - ../lib/**
+    - ../styles/**
+    - ../public/**
+    - ../package.json
+    - ../next.config.js
+    - ../tailwind.config.js
+    - ../jsconfig.json
+  exclude:
+    - node_modules/**
+    - .next/**
+    - .git/**
+    - '*.md'
+    - aws-deployment/**
+    - docker/**

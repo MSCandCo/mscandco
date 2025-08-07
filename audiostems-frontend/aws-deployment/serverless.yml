@@ -1,0 +1,497 @@
+# MSC & Co Music Distribution Platform - Ultimate AWS Serverless Architecture
+# Enterprise-grade deployment with global performance and infinite scalability
+
+service: msc-co-music-platform
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'production'}
+  region: ${opt:region, 'us-east-1'}
+  
+  # Environment variables
+  environment:
+    NODE_ENV: production
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    
+    # Database
+    DATABASE_URL: ${self:custom.databaseUrl}
+    
+    # Auth0 Integration
+    AUTH0_DOMAIN: ${env:AUTH0_DOMAIN}
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID}
+    AUTH0_CLIENT_SECRET: ${env:AUTH0_CLIENT_SECRET}
+    
+    # AWS Cognito
+    COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+    COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+    
+    # S3 Storage
+    MUSIC_FILES_BUCKET: ${self:custom.musicFilesBucket}
+    ASSETS_BUCKET: ${self:custom.assetsBucket}
+    
+    # CloudFront CDN
+    CDN_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
+    
+  # IAM permissions for ultimate access
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:DeleteObject
+        - s3:ListBucket
+      Resource:
+        - "arn:aws:s3:::${self:custom.musicFilesBucket}/*"
+        - "arn:aws:s3:::${self:custom.assetsBucket}/*"
+    
+    - Effect: Allow
+      Action:
+        - rds-data:*
+      Resource: !GetAtt AuroraCluster.DBClusterArn
+    
+    - Effect: Allow
+      Action:
+        - cognito-idp:*
+      Resource: !GetAtt CognitoUserPool.Arn
+    
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+        - cloudwatch:PutMetricData
+      Resource: "*"
+
+# Custom variables for the ultimate deployment
+custom:
+  musicFilesBucket: msc-co-music-files-${self:provider.stage}
+  assetsBucket: msc-co-assets-${self:provider.stage}
+  databaseUrl: !Sub 
+    - "postgresql://mscco:${password}@${endpoint}:5432/mscco_production"
+    - endpoint: !GetAtt AuroraCluster.Endpoint.Address
+      password: ${env:DATABASE_PASSWORD}
+
+# Lambda functions for all API endpoints
+functions:
+  # Authentication & User Management
+  auth:
+    handler: src/lambda/auth/handler.main
+    events:
+      - http:
+          path: /api/auth/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Music Management & Distribution  
+  music:
+    handler: src/lambda/music/handler.main
+    events:
+      - http:
+          path: /api/music/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 300
+    memorySize: 3008
+
+  # Artist & Label Management
+  artists:
+    handler: src/lambda/artists/handler.main
+    events:
+      - http:
+          path: /api/artists/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Analytics & Reporting
+  analytics:
+    handler: src/lambda/analytics/handler.main
+    events:
+      - http:
+          path: /api/analytics/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Distribution & Publishing
+  distribution:
+    handler: src/lambda/distribution/handler.main
+    events:
+      - http:
+          path: /api/distribution/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Revenue & Payments
+  revenue:
+    handler: src/lambda/revenue/handler.main
+    events:
+      - http:
+          path: /api/revenue/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Admin & Management
+  admin:
+    handler: src/lambda/admin/handler.main
+    events:
+      - http:
+          path: /api/admin/{proxy+}
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 1024
+
+  # Next.js Server-Side Rendering
+  nextApp:
+    handler: src/lambda/nextjs/handler.main
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+    timeout: 30
+    memorySize: 2048
+
+# AWS Resources - The Ultimate Serverless Infrastructure
+resources:
+  Resources:
+    # AWS RDS Serverless Aurora PostgreSQL - Auto-scaling Database
+    AuroraCluster:
+      Type: AWS::RDS::DBCluster
+      Properties:
+        DBClusterIdentifier: msc-co-aurora-${self:provider.stage}
+        Engine: aurora-postgresql
+        EngineMode: serverless
+        EngineVersion: 13.7
+        MasterUsername: mscco
+        MasterUserPassword: ${env:DATABASE_PASSWORD}
+        DatabaseName: mscco_production
+        ScalingConfiguration:
+          AutoPause: false
+          MinCapacity: 2
+          MaxCapacity: 64
+          SecondsUntilAutoPause: 300
+        VpcSecurityGroupIds:
+          - !Ref DatabaseSecurityGroup
+        DBSubnetGroupName: !Ref DatabaseSubnetGroup
+        BackupRetentionPeriod: 30
+        DeletionProtection: true
+        
+    # Database Security Group
+    DatabaseSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Aurora Serverless
+        VpcId: !Ref VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+    # Database Subnet Group
+    DatabaseSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnet group for Aurora Serverless
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+        Tags:
+          - Key: Name
+            Value: msc-co-db-subnet-group
+
+    # AWS S3 - Music Files Storage with Intelligent Tiering
+    MusicFilesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.musicFilesBucket}
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        IntelligentTieringConfigurations:
+          - Id: IntelligentTiering
+            Status: Enabled
+            Prefix: ""
+            OptionalFields:
+              - BucketKeyStatus
+        LifecycleConfiguration:
+          Rules:
+            - Id: MusicFilesLifecycle
+              Status: Enabled
+              Transitions:
+                - TransitionInDays: 30
+                  StorageClass: STANDARD_IA
+                - TransitionInDays: 90
+                  StorageClass: GLACIER
+                - TransitionInDays: 365
+                  StorageClass: DEEP_ARCHIVE
+
+    # AWS S3 - Assets Storage
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.assetsBucket}
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+
+    # AWS CloudFront - Global CDN (400+ Edge Locations)
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          Comment: MSC & Co Music Platform CDN
+          DefaultRootObject: index.html
+          PriceClass: PriceClass_All
+          HttpVersion: http2
+          
+          # Ultimate Caching Strategy
+          DefaultCacheBehavior:
+            TargetOriginId: ApiGatewayOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad  # CachingOptimized
+            OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf  # CORS-S3Origin
+            
+          # Music Files Caching Behavior
+          CacheBehaviors:
+            - PathPattern: "/music/*"
+              TargetOriginId: MusicFilesOrigin
+              ViewerProtocolPolicy: redirect-to-https
+              AllowedMethods:
+                - GET
+                - HEAD
+              CachedMethods:
+                - GET
+                - HEAD
+              Compress: true
+              CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimizedForUncompressedObjects
+              
+          Origins:
+            # API Gateway Origin
+            - Id: ApiGatewayOrigin
+              DomainName: 
+                Fn::Join:
+                  - ""
+                  - - Ref: RestApi
+                    - ".execute-api."
+                    - ${self:provider.region}
+                    - ".amazonaws.com"
+              OriginPath: /${self:provider.stage}
+              CustomOriginConfig:
+                HTTPPort: 443
+                HTTPSPort: 443
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols:
+                  - TLSv1.2
+                  
+            # S3 Music Files Origin
+            - Id: MusicFilesOrigin
+              DomainName: !GetAtt MusicFilesBucket.RegionalDomainName
+              S3OriginConfig:
+                OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+
+    # CloudFront Origin Access Identity
+    CloudFrontOriginAccessIdentity:
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: MSC & Co Music Platform OAI
+
+    # AWS WAF - Ultimate Security & DDoS Protection
+    WebACL:
+      Type: AWS::WAFv2::WebACL
+      Properties:
+        Name: msc-co-waf-${self:provider.stage}
+        Scope: CLOUDFRONT
+        Description: Ultimate WAF protection for MSC & Co
+        DefaultAction:
+          Allow: {}
+        Rules:
+          # Rate Limiting
+          - Name: RateLimitRule
+            Priority: 1
+            Statement:
+              RateBasedStatement:
+                Limit: 10000
+                AggregateKeyType: IP
+            Action:
+              Block: {}
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: RateLimitRule
+              
+          # AWS Managed Core Rule Set
+          - Name: AWSManagedRulesCommonRuleSet
+            Priority: 2
+            OverrideAction:
+              None: {}
+            Statement:
+              ManagedRuleGroupStatement:
+                VendorName: AWS
+                Name: AWSManagedRulesCommonRuleSet
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: CommonRuleSet
+
+          # SQL Injection Protection
+          - Name: AWSManagedRulesSQLiRuleSet
+            Priority: 3
+            OverrideAction:
+              None: {}
+            Statement:
+              ManagedRuleGroupStatement:
+                VendorName: AWS
+                Name: AWSManagedRulesSQLiRuleSet
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: SQLiRuleSet
+
+    # AWS Cognito - User Pool Integration
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: msc-co-users-${self:provider.stage}
+        UsernameAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireUppercase: true
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Required: true
+            Mutable: true
+          - Name: name
+            AttributeDataType: String
+            Required: true
+            Mutable: true
+          - Name: user_role
+            AttributeDataType: String
+            Required: false
+            Mutable: true
+
+    # Cognito User Pool Client
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref CognitoUserPool
+        ClientName: msc-co-client-${self:provider.stage}
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+          - USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        SupportedIdentityProviders:
+          - COGNITO
+
+    # VPC for Ultimate Security
+    VPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsHostnames: true
+        EnableDnsSupport: true
+        Tags:
+          - Key: Name
+            Value: msc-co-vpc
+
+    # Private Subnets for Database
+    PrivateSubnet1:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: !Select [0, !GetAZs ""]
+        Tags:
+          - Key: Name
+            Value: msc-co-private-subnet-1
+
+    PrivateSubnet2:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.0.2.0/24
+        AvailabilityZone: !Select [1, !GetAZs ""]
+        Tags:
+          - Key: Name
+            Value: msc-co-private-subnet-2
+
+    # Lambda Security Group
+    LambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Lambda functions
+        VpcId: !Ref VPC
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            CidrIp: 0.0.0.0/0
+
+  # Outputs for reference
+  Outputs:
+    ApiGatewayUrl:
+      Description: API Gateway URL
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: RestApi
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/${self:provider.stage}"
+
+    CloudFrontDomain:
+      Description: CloudFront Distribution Domain
+      Value: !GetAtt CloudFrontDistribution.DomainName
+
+    DatabaseEndpoint:
+      Description: Aurora Serverless Endpoint
+      Value: !GetAtt AuroraCluster.Endpoint.Address
+
+    MusicFilesBucket:
+      Description: S3 Music Files Bucket
+      Value: !Ref MusicFilesBucket
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+  - serverless-domain-manager

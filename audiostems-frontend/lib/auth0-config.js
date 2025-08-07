@@ -3,7 +3,7 @@ export const auth0Config = {
   domain: process.env.NEXT_PUBLIC_AUTH0_DOMAIN || 'dev-x2t2bdk6z050yxkr.uk.auth0.com',
   clientId: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || 'MyeJlwvUbUH3fsCZiDElp45W3EfdZvac',
   authorizationParams: {
-    redirect_uri: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3001/dashboard',
+    redirect_uri: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3002/dashboard',
     audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || 'https://dev-x2t2bdk6z050yxkr.uk.auth0.com/api/v2/',
     scope: 'openid profile email read:user_idp_tokens'
   },
