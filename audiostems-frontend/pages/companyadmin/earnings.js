@@ -36,6 +36,9 @@ export default function CompanyAdminEarnings() {
   const [showEarningsDetails, setShowEarningsDetails] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
 
+  // Revenue Approval States (Company Admin can also approve)
+  const [pendingReports, setPendingReports] = useState([]); // TODO: Load from Supabase revenue_reports table where status = 'pending'
+
   const {
     confirmModal,
     notificationModal,
@@ -46,6 +49,29 @@ export default function CompanyAdminEarnings() {
     closeConfirmModal,
     closeNotificationModal
   } = useModals();
+
+  // Revenue Approval Functions
+  const handleApproveRevenue = (reportId) => {
+    const report = pendingReports.find(r => r.id === reportId);
+    if (report) {
+      setPendingReports(prev => prev.filter(r => r.id !== reportId));
+      showSuccess(
+        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been approved and will be distributed to artists and labels.`,
+        'Revenue Approved'
+      );
+    }
+  };
+
+  const handleRejectRevenue = (reportId) => {
+    const report = pendingReports.find(r => r.id === reportId);
+    if (report) {
+      setPendingReports(prev => prev.filter(r => r.id !== reportId));
+      showWarning(
+        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been rejected and returned to distribution partner.`,
+        'Revenue Rejected'
+      );
+    }
+  };
 
   // Company Admin Revenue Split Configuration (should be loaded from backend)
   const [revenueSplit] = useState({
@@ -336,6 +362,69 @@ export default function CompanyAdminEarnings() {
               </div>
             </div>
           </div>
+
+          {/* Revenue Approval Section */}
+          {pendingReports.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Revenue Approval</h3>
+                  <p className="text-gray-600">Review and approve revenue reports requiring Company Admin approval</p>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {pendingReports.length} report{pendingReports.length !== 1 ? 's' : ''} pending
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {pendingReports.map((report) => (
+                      <tr key={report.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {report.platform}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(report.amount, selectedCurrency)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.period}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {report.submittedDate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleApproveRevenue(report.id)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectRevenue(report.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Filters */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">

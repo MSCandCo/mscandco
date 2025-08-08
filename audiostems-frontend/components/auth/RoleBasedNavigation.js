@@ -36,13 +36,13 @@ export default function RoleBasedNavigation() {
     return router.pathname === path;
   };
 
-  // Get nav link classes with active state
+  // Get nav link classes with active state (using footer color scheme)
   const getNavLinkClasses = (path) => {
     const baseClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200";
     if (isActivePage(path)) {
-      return `${baseClasses} text-blue-600 font-semibold`;
+      return `${baseClasses} text-gray-800 font-semibold`;
     }
-    return `${baseClasses} text-gray-900 hover:text-blue-600`;
+    return `${baseClasses} text-gray-400 hover:text-gray-800`;
   };
 
   // Use shared currency formatting
@@ -153,18 +153,18 @@ export default function RoleBasedNavigation() {
                 >
                   Content Management
                 </Link>
-                <Link
-                  href="/partner/analytics"
-                  className={getNavLinkClasses('/partner/analytics')}
-                >
-                  Analytics
-                </Link>
-                <Link
-                  href="/partner/reports"
-                  className={getNavLinkClasses('/partner/reports')}
-                >
-                  Earnings
-                </Link>
+                        <Link
+          href="/distributionpartner/analytics"
+          className={getNavLinkClasses('/distributionpartner/analytics')}
+        >
+          Analytics
+        </Link>
+        <Link
+          href="/distributionpartner/reports"
+          className={getNavLinkClasses('/distributionpartner/reports')}
+        >
+          Finance
+        </Link>
               </div>
             </div>
 
@@ -173,7 +173,7 @@ export default function RoleBasedNavigation() {
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   <span className="text-gray-700">Hi, {getDistributionPartnerDisplayName()}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -239,28 +239,28 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
-                  href="/dashboard"
-                  className={getNavLinkClasses('/dashboard')}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className={getNavLinkClasses('/admin/users')}
+                  href="/superadmin/users"
+                  className={getNavLinkClasses('/superadmin/users')}
                 >
                   Users
                 </Link>
                 <Link
-                  href="/admin/content"
-                  className={getNavLinkClasses('/admin/content')}
+                  href="/superadmin/content"
+                  className={getNavLinkClasses('/superadmin/content')}
                 >
                   Content
                 </Link>
                 <Link
-                  href="/admin/analytics"
-                  className={getNavLinkClasses('/admin/analytics')}
+                  href="/superadmin/analytics"
+                  className={getNavLinkClasses('/superadmin/analytics')}
                 >
                   Analytics
+                </Link>
+                <Link
+                  href="/superadmin/earnings"
+                  className={getNavLinkClasses('/superadmin/earnings')}
+                >
+                  Earnings
                 </Link>
                 <Link
                   href="/distribution/workflow"
@@ -282,9 +282,9 @@ export default function RoleBasedNavigation() {
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
-                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <span className="text-gray-700">Super Admin</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
@@ -385,7 +385,7 @@ export default function RoleBasedNavigation() {
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   <span className="text-gray-700">{user?.email || getDisplayName()}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -490,7 +490,7 @@ export default function RoleBasedNavigation() {
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   <span className="text-gray-700">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'YHWH MSC'}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -551,8 +551,8 @@ export default function RoleBasedNavigation() {
               href={item.href}
               className={`text-sm font-medium flex items-center space-x-1 transition-colors duration-200 ${
                 isActivePage(item.href) 
-                  ? 'text-blue-600 font-semibold' 
-                  : 'text-gray-500 hover:text-blue-600'
+                  ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
               }`}
             >
               <item.icon className="w-5 h-5" />
@@ -602,8 +602,8 @@ export default function RoleBasedNavigation() {
               href="/about" 
               className={`text-sm transition-colors duration-200 ${
                 isActivePage('/about') 
-                  ? 'text-blue-600 font-semibold' 
-                  : 'text-gray-500 hover:text-blue-600'
+                  ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
               }`}
             >
               About
@@ -612,8 +612,8 @@ export default function RoleBasedNavigation() {
               href="/support" 
               className={`text-sm transition-colors duration-200 ${
                 isActivePage('/support') 
-                  ? 'text-blue-600 font-semibold' 
-                  : 'text-gray-500 hover:text-blue-600'
+                  ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
               }`}
             >
               Support
@@ -621,7 +621,7 @@ export default function RoleBasedNavigation() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
               {userRole?.replace('_', ' ').toUpperCase()}
             </span>
             

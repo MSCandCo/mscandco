@@ -69,13 +69,13 @@ function Header({ largeLogo = false }) {
     return router.pathname === path;
   };
 
-  // Get nav link classes with blue active state
+  // Get nav link classes with footer color scheme
   const getNavLinkClasses = (path) => {
     const baseClasses = "transition-colors duration-200";
     if (isActivePage(path)) {
-      return `${baseClasses} text-blue-600 font-semibold`;
+      return `${baseClasses} text-gray-800 font-semibold`;
     }
-    return `${baseClasses} text-gray-500 hover:text-blue-600`;
+    return `${baseClasses} text-gray-400 hover:text-gray-800`;
   };
 
   // Get display name with role and label information

@@ -548,9 +548,8 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Revenue Split Configuration - Super Admin Control */}
-        {console.log('Checking Super Admin condition:', userRole === 'super_admin', 'Role:', userRole)}
         {userRole === 'super_admin' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">General Revenue Splits</h3>
@@ -571,9 +570,9 @@ export default function AdminUsersPage() {
                 <div>
                   <h4 className="font-bold text-gray-900">Total Platform Revenue</h4>
                   <p className="font-bold text-purple-600" style={{
-                    fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(userStats.totalEarnings, selectedCurrency).length))}px`
+                    fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(userStats.totalRevenue, selectedCurrency).length))}px`
                   }}>
-                    {formatCurrency(userStats.totalEarnings, selectedCurrency)}
+                    {formatCurrency(userStats.totalRevenue, selectedCurrency)}
                   </p>
                   <p className="text-sm text-gray-600">Across all users, labels, and artists</p>
                 </div>
@@ -582,11 +581,11 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Complete Split Overview - 5 Step Flow */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-red-700">{revenueSplit.distributionPartnerName}</p>
+                    <p className="text-sm font-medium text-red-700">Code Group</p>
                     <p className="text-2xl font-bold text-red-600">{revenueSplit.distributionPartnerPercentage}%</p>
                     <p className="text-xs text-red-500">Step 1: First deduction</p>
                   </div>
@@ -641,32 +640,32 @@ export default function AdminUsersPage() {
 
             {/* Example Calculation with Platform Revenue - Complete 5-Step Flow */}
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-gray-900 mb-3">Complete Platform Split Example: {formatCurrency(userStats.totalEarnings, selectedCurrency)}</h4>
+              <h4 className="font-medium text-gray-900 mb-3">Complete Platform Split Example: {formatCurrency(userStats.totalRevenue, selectedCurrency)}</h4>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
                 <div>
-                  <span className="text-red-600 font-medium">{revenueSplit.distributionPartnerName}:</span>
+                  <span className="text-red-600 font-medium">Code Group:</span>
                   <br />
-                  <span className="text-lg font-bold text-red-600">{formatCurrency(calculateSplitAmounts(userStats.totalEarnings).distributionPartner, selectedCurrency)}</span>
+                  <span className="text-lg font-bold text-red-600">{formatCurrency(calculateSplitAmounts(userStats.totalRevenue).distributionPartner, selectedCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-purple-600 font-medium">Company Admin:</span>
                   <br />
-                  <span className="text-lg font-bold text-purple-600">{formatCurrency(calculateSplitAmounts(userStats.totalEarnings).companyAdmin, selectedCurrency)}</span>
+                  <span className="text-lg font-bold text-purple-600">{formatCurrency(calculateSplitAmounts(userStats.totalRevenue).companyAdmin, selectedCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-gray-600 font-medium">Final Pool:</span>
                   <br />
-                  <span className="text-lg font-bold text-gray-700">{formatCurrency(calculateSplitAmounts(userStats.totalEarnings).afterCompanyAdmin, selectedCurrency)}</span>
+                  <span className="text-lg font-bold text-gray-700">{formatCurrency(calculateSplitAmounts(userStats.totalRevenue).afterCompanyAdmin, selectedCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-blue-600 font-medium">All Label Admins:</span>
                   <br />
-                  <span className="text-lg font-bold text-blue-600">{formatCurrency(calculateSplitAmounts(userStats.totalEarnings).labelAdmin, selectedCurrency)}</span>
+                  <span className="text-lg font-bold text-blue-600">{formatCurrency(calculateSplitAmounts(userStats.totalRevenue).labelAdmin, selectedCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-green-600 font-medium">All Artists:</span>
                   <br />
-                  <span className="text-lg font-bold text-green-600">{formatCurrency(calculateSplitAmounts(userStats.totalEarnings).artist, selectedCurrency)}</span>
+                  <span className="text-lg font-bold text-green-600">{formatCurrency(calculateSplitAmounts(userStats.totalRevenue).artist, selectedCurrency)}</span>
                 </div>
               </div>
             </div>
@@ -774,7 +773,7 @@ export default function AdminUsersPage() {
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4">Individual Label Admin Percentages</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {allUsers.filter(u => u.role === 'label_admin').map((labelAdmin) => (
+                    {users.filter(u => u.role === 'label_admin').map((labelAdmin) => (
                       <div key={labelAdmin.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div>
@@ -817,7 +816,7 @@ export default function AdminUsersPage() {
                   <h4 className="text-lg font-semibold text-gray-900 mb-4">Individual Artist Percentages</h4>
                   <p className="text-sm text-gray-600 mb-4">Override default percentages for specific artists with custom agreements</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {allUsers.filter(u => u.role === 'artist').map((artist) => (
+                    {users.filter(u => u.role === 'artist').map((artist) => (
                       <div key={artist.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div>

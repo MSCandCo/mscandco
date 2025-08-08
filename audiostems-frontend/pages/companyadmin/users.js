@@ -32,8 +32,10 @@ export default function CompanyAdminUsersPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Revenue Split Configuration State (Company Admin has limited control)
+  // Revenue Split Configuration State (Company Admin has full control)
   const [revenueSplit, setRevenueSplit] = useState({
+    distributionPartnerPercentage: 15,  // Default: 15% (Code Group)
+    companyAdminPercentage: 10,         // Default: 10% (Company Admin)
     labelAdminPercentage: 25,           // Default: 25% of final pool (after Code Group & Company Admin)
     artistPercentage: 75,               // Default: 75% of final pool (after Code Group & Company Admin)
   });
@@ -415,7 +417,7 @@ export default function CompanyAdminUsersPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-bold text-gray-900">General Revenue Splits</h3>
-              <p className="text-sm text-gray-600">Company Admin control over label and artist revenue distribution within your brand</p>
+              <p className="text-sm text-gray-600">Company Admin full control over complete revenue distribution flow including Code Group and Company Admin percentages</p>
             </div>
             <button
               onClick={() => setShowSplitConfig(!showSplitConfig)}
@@ -437,20 +439,53 @@ export default function CompanyAdminUsersPage() {
                   {formatCurrency(userStats.totalRevenue, selectedCurrency)}
                 </p>
                 <p className="text-sm text-gray-600">Across all brand users and artists</p>
-                <p className="text-xs text-gray-500 mt-1">After Code Group (15%) and Company Admin (10%) deductions</p>
+                <p className="text-xs text-gray-500 mt-1">After Code Group ({revenueSplit.distributionPartnerPercentage}%) and Company Admin ({revenueSplit.companyAdminPercentage}%) deductions</p>
               </div>
               <Building2 className="w-12 h-12 text-purple-500" />
             </div>
           </div>
 
-          {/* Split Overview - Final Pool Distribution */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Complete Split Overview - 5 Step Flow */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-red-700">Code Group</p>
+                  <p className="text-2xl font-bold text-red-600">{revenueSplit.distributionPartnerPercentage}%</p>
+                  <p className="text-xs text-red-500">Step 1: First deduction</p>
+                </div>
+                <Target className="w-8 h-8 text-red-500" />
+              </div>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700">Company Admin</p>
+                  <p className="text-2xl font-bold text-purple-600">{revenueSplit.companyAdminPercentage}%</p>
+                  <p className="text-xs text-purple-500">Step 2: From remainder</p>
+                </div>
+                <Building2 className="w-8 h-8 text-purple-500" />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Final Pool</p>
+                  <p className="text-2xl font-bold text-gray-600">{100 - revenueSplit.distributionPartnerPercentage - revenueSplit.companyAdminPercentage}%</p>
+                  <p className="text-xs text-gray-500">Step 3: Available</p>
+                </div>
+                <DollarSign className="w-8 h-8 text-gray-500" />
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-blue-700">Label Admin</p>
                   <p className="text-2xl font-bold text-blue-600">{revenueSplit.labelAdminPercentage}%</p>
-                  <p className="text-xs text-blue-500">Of final pool</p>
+                  <p className="text-xs text-blue-500">Step 4: Of final pool</p>
                 </div>
                 <UserCheck className="w-8 h-8 text-blue-500" />
               </div>
@@ -461,7 +496,7 @@ export default function CompanyAdminUsersPage() {
                 <div>
                   <p className="text-sm font-medium text-green-700">Artist</p>
                   <p className="text-2xl font-bold text-green-600">{revenueSplit.artistPercentage}%</p>
-                  <p className="text-xs text-green-500">Of final pool</p>
+                  <p className="text-xs text-green-500">Step 5: Of final pool</p>
                 </div>
                 <Users className="w-8 h-8 text-green-500" />
               </div>
@@ -471,20 +506,76 @@ export default function CompanyAdminUsersPage() {
           {/* Configuration Panel */}
           {showSplitConfig && (
             <div className="border-t border-gray-200 pt-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                  <Target className="w-5 h-5 text-green-600 mr-2" />
                   <div>
-                    <p className="font-medium text-yellow-800">Company Admin Revenue Control</p>
-                    <p className="text-sm text-yellow-700">Control revenue distribution within your brand only. Code Group and Company Admin percentages are set by Super Admin.</p>
+                    <p className="font-medium text-green-800">Company Admin Revenue Control</p>
+                    <p className="text-sm text-green-700">Full control over revenue distribution including Code Group and Company Admin percentages for your brand operations.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Default Label Admin Percentage (of final pool)
+                    Code Group Percentage
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={revenueSplit.distributionPartnerPercentage}
+                      onChange={(e) => handleSplitChange('distributionPartnerPercentage', parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={revenueSplit.distributionPartnerPercentage}
+                        onChange={(e) => handleSplitChange('distributionPartnerPercentage', e.target.value)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      />
+                      <span className="text-gray-500">%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Step 1: First deduction</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Admin Percentage
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={revenueSplit.companyAdminPercentage}
+                      onChange={(e) => handleSplitChange('companyAdminPercentage', parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={revenueSplit.companyAdminPercentage}
+                        onChange={(e) => handleSplitChange('companyAdminPercentage', e.target.value)}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      />
+                      <span className="text-gray-500">%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Step 2: From remainder</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Default Label Admin Percentage
                   </label>
                   <div className="flex items-center space-x-3">
                     <input
@@ -507,7 +598,7 @@ export default function CompanyAdminUsersPage() {
                       <span className="text-gray-500">%</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Artist gets {revenueSplit.artistPercentage}%</p>
+                  <p className="text-xs text-gray-500 mt-1">Step 3: Artist gets {revenueSplit.artistPercentage}%</p>
                 </div>
               </div>
 

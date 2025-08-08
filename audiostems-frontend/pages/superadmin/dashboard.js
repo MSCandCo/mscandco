@@ -408,42 +408,6 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Revenue Split Configuration - Link to Users Page */}
-      {userRole === 'super_admin' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">General Revenue Splits</h3>
-              <p className="text-sm text-gray-600">Super Admin control over complete revenue distribution flow including individual user adjustments</p>
-            </div>
-            <button
-              onClick={() => router.push('/superadmin/users')}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configure Revenue Splits
-            </button>
-          </div>
-
-          {/* Platform Revenue Overview */}
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-gray-900">Total Platform Revenue</h4>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(totalPlatformRevenue, selectedCurrency).length))}px`
-                }}>
-                  {formatCurrency(totalPlatformRevenue, selectedCurrency)}
-                </p>
-                <p className="text-sm text-gray-600">Across all users, labels, and artists</p>
-                <p className="text-xs text-gray-500 mt-2">Configure individual user percentages in Users Management</p>
-              </div>
-              <Globe className="w-12 h-12 text-purple-500" />
-            </div>
-          </div>
-        </div>
-      )}
-
 
 
       {/* Enhanced Quick Actions */}

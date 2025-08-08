@@ -331,14 +331,14 @@ export default function RoleBasedDashboard() {
               title: 'Analytics',
               description: 'Track distribution performance',
               icon: '📈',
-              href: '/partner/analytics',
+              href: '/distributionpartner/analytics',
               stats: { views: getEmptyStats().distributionPartner.totalViews, revenue: getEmptyStats().distributionPartner.partnerRevenue }
             },
             {
               title: 'Earnings',
               description: 'View earnings from all distributed releases',
               icon: '💰',
-              href: '/partner/reports',
+              href: '/distributionpartner/reports',
               stats: { earnings: formatCurrency(getEmptyStats().distributionPartner.partnerRevenue, selectedCurrency), releases: getEmptyStats().distributionPartner.totalReleases }
             }
           ]

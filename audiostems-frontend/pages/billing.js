@@ -279,6 +279,7 @@ export default function Billing() {
   const [messageType, setMessageType] = useState('error'); // 'success', 'error', 'info'
   const [upgradeTimestamp, setUpgradeTimestamp] = useState(null); // Track upgrades to force re-render
   const [currentSessionUpgrade, setCurrentSessionUpgrade] = useState(false); // Session-only upgrade state
+  const [userRole, setUserRole] = useState(null); // Track user role for component rendering
 
   // Auto-detect currency based on user's location (using shared currency system)
   useEffect(() => {
@@ -311,10 +312,11 @@ export default function Billing() {
   // SIMPLE INITIALIZATION - Check only the simple flag
   useEffect(() => {
     if (user?.sub) {
-      const userRole = getUserRole(user);
+      const currentUserRole = getUserRole(user);
+      setUserRole(currentUserRole);
       let hasUpgraded = false;
       
-      if (userRole === 'label_admin') {
+      if (currentUserRole === 'label_admin') {
         hasUpgraded = localStorage.getItem(`label_admin_upgraded_${user.sub}`) === 'true';
         console.log('🔄 LABEL ADMIN SIMPLE INIT:', { userId: user.sub, hasUpgraded });
       } else {
@@ -385,8 +387,8 @@ export default function Billing() {
       setLoading(true);
       
       // Get user-specific billing data
-      const userRole = getUserRole(user);
-      const userBillingData = getRoleSpecificPlans(userRole, user, upgradeTimestamp, currentSessionUpgrade);
+      const currentUserRole = userRole || getUserRole(user);
+      const userBillingData = getRoleSpecificPlans(currentUserRole, user, upgradeTimestamp, currentSessionUpgrade);
       
       setBillingData(userBillingData);
       setLoading(false);

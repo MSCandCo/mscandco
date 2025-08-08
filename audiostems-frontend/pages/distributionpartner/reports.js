@@ -45,11 +45,32 @@ export default function PartnerReports() {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   
-  // Filter states
-  const [selectedArtist, setSelectedArtist] = useState('all');
+  // Filter states (for main page filtering)
+  const [selectedArtistFilter, setSelectedArtistFilter] = useState('all');
   const [selectedRelease, setSelectedRelease] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Revenue reporting states
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [revenueReports, setRevenueReports] = useState([]); // TODO: Load from Supabase revenue_reports table
+  const [newReport, setNewReport] = useState({
+    platform: '',
+    amount: '',
+    date: '',
+    selectedAssets: [],
+    notes: ''
+  });
+  const [artistSearch, setArtistSearch] = useState('');
+  const [releaseSearch, setReleaseSearch] = useState('');
+  const [selectedArtistForReport, setSelectedArtistForReport] = useState(null);
+  const [selectedReleaseForReport, setSelectedReleaseForReport] = useState(null);
+  const [availableAssets, setAvailableAssets] = useState([]);
+  
+  // TODO: Connect to Supabase for real data
+  const [artists, setArtists] = useState([]); // TODO: Load from Supabase artists table
+  const [releases, setReleases] = useState([]); // TODO: Load from Supabase releases table  
+  const [assets, setAssets] = useState([]); // TODO: Load from Supabase assets table
   
   // Currency state
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
@@ -61,6 +82,104 @@ export default function PartnerReports() {
     showWarning,
     closeNotificationModal
   } = useModals();
+
+  // Revenue reporting functions
+  const handleReportRevenue = () => {
+    setShowReportModal(true);
+  };
+
+  const handleSubmitReport = () => {
+    if (!newReport.platform || !newReport.amount || !newReport.date) {
+      showError('Please fill in all required fields', 'Missing Information');
+      return;
+    }
+
+    if (newReport.selectedAssets.length === 0) {
+      showError('Please select at least one asset', 'Missing Assets');
+      return;
+    }
+
+    const report = {
+      id: Date.now(),
+      platform: newReport.platform,
+      amount: parseFloat(newReport.amount),
+      currency: selectedCurrency,
+      date: newReport.date,
+      status: 'pending',
+      submittedDate: new Date().toISOString().split('T')[0],
+      assets: newReport.selectedAssets.map(asset => asset.name),
+      artistId: selectedArtistForReport?.id,
+      artistName: selectedArtistForReport?.stageName || selectedArtistForReport?.name,
+      releaseId: selectedReleaseForReport?.id,
+      releaseName: selectedReleaseForReport?.title,
+      notes: newReport.notes
+    };
+
+    // TODO: Submit to Supabase revenue_reports table
+    setRevenueReports(prev => [report, ...prev]);
+    
+    // Reset form
+    setNewReport({ platform: '', amount: '', date: '', selectedAssets: [], notes: '' });
+    setArtistSearch('');
+    setReleaseSearch('');
+    setSelectedArtistForReport(null);
+    setSelectedReleaseForReport(null);
+    setAvailableAssets([]);
+    setShowReportModal(false);
+    
+    showWarning('Revenue report submitted successfully! Awaiting approval from admin.', 'Report Submitted');
+  };
+
+  // Calculate totals from real data
+  const pendingTotal = revenueReports
+    .filter(report => report.status === 'pending')
+    .reduce((sum, report) => sum + report.amount, 0);
+  
+  const approvedThisMonth = revenueReports
+    .filter(report => report.status === 'approved' && report.approvedDate?.startsWith(new Date().toISOString().slice(0, 7)))
+    .reduce((sum, report) => sum + report.amount, 0);
+    
+  const totalReported = revenueReports
+    .reduce((sum, report) => sum + report.amount, 0);
+
+  // Filter functions for artist/release search
+  const filteredArtists = artists.filter(artist => 
+    artist.name.toLowerCase().includes(artistSearch.toLowerCase()) ||
+    (artist.stageName && artist.stageName.toLowerCase().includes(artistSearch.toLowerCase()))
+  );
+
+  const filteredReleases = releases.filter(release => 
+    (!selectedArtistForReport || release.artistId === selectedArtistForReport.id) &&
+    release.title.toLowerCase().includes(releaseSearch.toLowerCase())
+  );
+
+  // Handler functions for form interactions
+  const handleArtistSelect = (artist) => {
+    setSelectedArtistForReport(artist);
+    setArtistSearch(artist.stageName || artist.name);
+    setReleaseSearch('');
+    setSelectedReleaseForReport(null);
+    setAvailableAssets([]);
+    setNewReport(prev => ({ ...prev, selectedAssets: [] }));
+  };
+
+  const handleReleaseSelect = (release) => {
+    setSelectedReleaseForReport(release);
+    setReleaseSearch(release.title);
+    // TODO: Load assets for this release from Supabase
+    const releaseAssets = assets.filter(asset => asset.releaseId === release.id);
+    setAvailableAssets(releaseAssets);
+    setNewReport(prev => ({ ...prev, selectedAssets: [] }));
+  };
+
+  const handleAssetToggle = (asset) => {
+    setNewReport(prev => ({
+      ...prev,
+      selectedAssets: prev.selectedAssets.find(a => a.id === asset.id)
+        ? prev.selectedAssets.filter(a => a.id !== asset.id)
+        : [...prev.selectedAssets, asset]
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -428,7 +547,7 @@ export default function PartnerReports() {
 
   // Filter and search functions
   const clearAllFilters = () => {
-    setSelectedArtist('all');
+    setSelectedArtistFilter('all');
     setSelectedRelease('all');
     setSelectedAsset('all');
     setSearchQuery('');
@@ -436,7 +555,7 @@ export default function PartnerReports() {
 
   const applyFilters = () => {
     console.log('Applying earnings filters:', {
-      artist: selectedArtist,
+      artist: selectedArtistFilter,
       release: selectedRelease,
       asset: selectedAsset,
       search: searchQuery,
@@ -451,13 +570,13 @@ export default function PartnerReports() {
     let filteredData = [...detailedEarningsData];
 
     // Apply artist filter
-    if (selectedArtist !== 'all') {
+    if (selectedArtistFilter !== 'all') {
       const artistMap = {
         'yhwh_msc': 'YHWH MSC',
         'audio_msc': 'Audio MSC',
         'independent': 'Independent Artists'
       };
-      filteredData = filteredData.filter(item => item.artist === artistMap[selectedArtist]);
+      filteredData = filteredData.filter(item => item.artist === artistMap[selectedArtistFilter]);
     }
 
     // Apply release filter  
@@ -578,12 +697,12 @@ export default function PartnerReports() {
       doc.text(`Period: ${selectedPeriod}`, 20, 35);
       doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
       
-      if (selectedArtist !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) {
+      if (selectedArtistFilter !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) {
         let filtersText = 'Filters: ';
         const activeFilters = [];
-        if (selectedArtist !== 'all') activeFilters.push(`Artist: ${mockArtists.find(a => a.id === selectedArtist)?.name}`);
-        if (selectedRelease !== 'all') activeFilters.push(`Release: ${mockReleases.find(r => r.id === selectedRelease)?.name}`);
-        if (selectedAsset !== 'all') activeFilters.push(`Asset: ${mockAssets.find(a => a.id === selectedAsset)?.name}`);
+        if (selectedArtistFilter !== 'all') activeFilters.push(`Artist: ${artists.find(a => a.id === selectedArtistFilter)?.name || 'Unknown'}`);
+        if (selectedRelease !== 'all') activeFilters.push(`Release: ${releases.find(r => r.id === selectedRelease)?.name || 'Unknown'}`);
+        if (selectedAsset !== 'all') activeFilters.push(`Asset: ${assets.find(a => a.id === selectedAsset)?.name || 'Unknown'}`);
         if (searchQuery) activeFilters.push(`Search: "${searchQuery}"`);
         filtersText += activeFilters.join(', ');
         doc.text(filtersText, 20, 55);
@@ -793,8 +912,8 @@ export default function PartnerReports() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Earnings Reports</h1>
-                <p className="text-sm text-gray-500">Earnings from all distributed releases and assets</p>
+                <h1 className="text-2xl font-bold text-gray-900">Finance & Revenue Management</h1>
+                <p className="text-sm text-gray-500">Report and manage revenue from all distributed releases and assets across platforms</p>
               </div>
               <div className="flex items-center space-x-6">
                 {/* Currency Selector */}
@@ -889,6 +1008,115 @@ export default function PartnerReports() {
             </div>
           </div>
 
+          {/* Revenue Reporting Section */}
+          <div className="mb-6 bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Revenue Reporting</h3>
+              <button 
+                onClick={handleReportRevenue}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                + Report New Revenue
+              </button>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-blue-800">Revenue Flow Process</p>
+                  <p className="text-sm text-blue-700">Report revenue from all platforms → Approval by Super Admin/Company Admin → Distribution to artists and labels</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Pending Approvals Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="text-sm font-medium text-yellow-800">Pending Approval</div>
+                <div className="text-2xl font-bold text-yellow-900">{sharedFormatCurrency(pendingTotal, selectedCurrency)}</div>
+                <div className="text-sm text-yellow-700">
+                  {revenueReports.length === 0 ? 'No reports submitted yet' : `${revenueReports.filter(r => r.status === 'pending').length} reports awaiting approval`}
+                </div>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-sm font-medium text-green-800">Approved This Month</div>
+                <div className="text-2xl font-bold text-green-900">{sharedFormatCurrency(approvedThisMonth, selectedCurrency)}</div>
+                <div className="text-sm text-green-700">
+                  {revenueReports.length === 0 ? 'No reports approved yet' : `${revenueReports.filter(r => r.status === 'approved').length} reports approved`}
+                </div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-sm font-medium text-blue-800">Total Reported</div>
+                <div className="text-2xl font-bold text-blue-900">{sharedFormatCurrency(totalReported, selectedCurrency)}</div>
+                <div className="text-sm text-blue-700">
+                  {revenueReports.length === 0 ? 'Start by reporting revenue' : `${revenueReports.length} total reports submitted`}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Reports List */}
+          <div className="mb-6 bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue Reports</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assets</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {revenueReports.map((report) => (
+                    <tr key={report.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {report.platform}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {sharedFormatCurrency(report.amount, selectedCurrency)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {report.period}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          report.status === 'pending' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : report.status === 'approved'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {report.submittedDate}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div className="max-w-xs truncate">
+                          {report.assets.join(', ')}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {revenueReports.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No revenue reports submitted yet. Click "Report New Revenue" to get started.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Filters Section */}
           <div className="mb-6 bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Search</h3>
@@ -913,13 +1141,14 @@ export default function PartnerReports() {
                 </label>
                 <select
                   id="reports-artist-filter"
-                  value={selectedArtist}
-                  onChange={(e) => setSelectedArtist(e.target.value)}
+                                          value={selectedArtistFilter}
+                        onChange={(e) => setSelectedArtistFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {mockArtists.map((artist) => (
+                  <option value="all">All Artists</option>
+                  {artists.map((artist) => (
                     <option key={artist.id} value={artist.id}>
-                      {artist.name}
+                      {artist.stageName || artist.name}
                     </option>
                   ))}
                 </select>
@@ -979,10 +1208,10 @@ export default function PartnerReports() {
                 Clear All
               </button>
               <div className="text-sm text-gray-500">
-                {(selectedArtist !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) && (
+                {(selectedArtistFilter !== 'all' || selectedRelease !== 'all' || selectedAsset !== 'all' || searchQuery) && (
                   <span>
                     Filters active: {[
-                      selectedArtist !== 'all' && 'Artist',
+                      selectedArtistFilter !== 'all' && 'Artist',
                       selectedRelease !== 'all' && 'Release', 
                       selectedAsset !== 'all' && 'Asset',
                       searchQuery && 'Search'
@@ -1261,6 +1490,196 @@ export default function PartnerReports() {
           </div>
         </div>
       </div>
+        {/* Revenue Report Modal */}
+        {showReportModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Report New Revenue</h3>
+                  <button
+                    onClick={() => setShowReportModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Platform *</label>
+                    <select
+                      value={newReport.platform}
+                      onChange={(e) => setNewReport(prev => ({ ...prev, platform: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select Platform</option>
+                      <option value="Spotify">Spotify</option>
+                      <option value="Apple Music">Apple Music</option>
+                      <option value="YouTube Music">YouTube Music</option>
+                      <option value="Amazon Music">Amazon Music</option>
+                      <option value="Deezer">Deezer</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Revenue Amount *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={newReport.amount}
+                        onChange={(e) => setNewReport(prev => ({ ...prev, amount: e.target.value }))}
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                      <input
+                        type="date"
+                        value={newReport.date}
+                        onChange={(e) => setNewReport(prev => ({ ...prev, date: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Artist Search */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Search Artist *</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={artistSearch}
+                        onChange={(e) => setArtistSearch(e.target.value)}
+                        placeholder="Type artist name or stage name..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      {artistSearch && filteredArtists.length > 0 && !selectedArtistForReport && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                          {filteredArtists.map((artist) => (
+                            <button
+                              key={artist.id}
+                              onClick={() => handleArtistSelect(artist)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                            >
+                              <div className="font-medium">{artist.stageName || artist.name}</div>
+                              {artist.stageName && <div className="text-sm text-gray-500">{artist.name}</div>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {artistSearch && filteredArtists.length === 0 && artists.length === 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-gray-500 text-sm">
+                          No artists found. Artists need to be added to the platform first.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Release Search */}
+                  {selectedArtistForReport && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Search Release *</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={releaseSearch}
+                          onChange={(e) => setReleaseSearch(e.target.value)}
+                          placeholder="Type release title..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {releaseSearch && filteredReleases.length > 0 && !selectedReleaseForReport && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                            {filteredReleases.map((release) => (
+                              <button
+                                key={release.id}
+                                onClick={() => handleReleaseSelect(release)}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                              >
+                                <div className="font-medium">{release.title}</div>
+                                <div className="text-sm text-gray-500">{release.type}</div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {releaseSearch && filteredReleases.length === 0 && releases.length === 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-gray-500 text-sm">
+                            No releases found for this artist.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Assets Selection */}
+                  {selectedReleaseForReport && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Select Assets *</label>
+                      {availableAssets.length === 0 ? (
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 text-sm">
+                          No assets found for this release. Assets need to be uploaded first.
+                        </div>
+                      ) : (
+                        <div className="border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto">
+                          {availableAssets.map((asset) => (
+                            <label key={asset.id} className="flex items-center py-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={newReport.selectedAssets.find(a => a.id === asset.id) !== undefined}
+                                onChange={() => handleAssetToggle(asset)}
+                                className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm">{asset.name}</span>
+                              <span className="ml-2 text-xs text-gray-500">({asset.type})</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {newReport.selectedAssets.length > 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Selected: {newReport.selectedAssets.map(a => a.name).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                    <textarea
+                      value={newReport.notes}
+                      onChange={(e) => setNewReport(prev => ({ ...prev, notes: e.target.value }))}
+                      rows="3"
+                      placeholder="Additional information about this revenue report..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowReportModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitReport}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Submit Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
             {/* Branded Modals */}
         <NotificationModal
           isOpen={notificationModal.isOpen}

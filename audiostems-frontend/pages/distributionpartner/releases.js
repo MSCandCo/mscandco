@@ -6,7 +6,7 @@ export default function DistributionPartnerReleases() {
 
   useEffect(() => {
     // Redirect to analytics since "All Releases" is now "Analytics"
-    router.push('/partner/analytics');
+    router.push('/distributionpartner/analytics');
   }, [router]);
 
   return (

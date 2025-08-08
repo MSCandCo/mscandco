@@ -47,7 +47,10 @@ export default function SuperAdminEarnings() {
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showEarningsDetails, setShowEarningsDetails] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
-  const [viewMode, setViewMode] = useState('overview'); // overview, detailed, analytics, config
+  const [viewMode, setViewMode] = useState('approval'); // approval, overview, detailed, analytics, config
+  
+  // Revenue Approval States
+  const [pendingReports, setPendingReports] = useState([]); // TODO: Load from Supabase revenue_reports table where status = 'pending'
 
   const {
     confirmModal,
@@ -59,6 +62,29 @@ export default function SuperAdminEarnings() {
     closeConfirmModal,
     closeNotificationModal
   } = useModals();
+
+  // Revenue Approval Functions
+  const handleApproveRevenue = (reportId) => {
+    const report = pendingReports.find(r => r.id === reportId);
+    if (report) {
+      setPendingReports(prev => prev.filter(r => r.id !== reportId));
+      showSuccess(
+        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been approved and will be distributed to artists and labels.`,
+        'Revenue Approved'
+      );
+    }
+  };
+
+  const handleRejectRevenue = (reportId) => {
+    const report = pendingReports.find(r => r.id === reportId);
+    if (report) {
+      setPendingReports(prev => prev.filter(r => r.id !== reportId));
+      showWarning(
+        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been rejected and returned to distribution partner.`,
+        'Revenue Rejected'
+      );
+    }
+  };
 
   // Get user role
   const userRole = getUserRole(user);
@@ -397,6 +423,7 @@ export default function SuperAdminEarnings() {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">
               {[
+                { id: 'approval', name: 'Revenue Approval', icon: CheckCircle },
                 { id: 'overview', name: 'Revenue Overview', icon: BarChart3 },
                 { id: 'detailed', name: 'Detailed Breakdown', icon: Eye },
                 { id: 'analytics', name: 'Platform Analytics', icon: TrendingUp },
@@ -417,6 +444,82 @@ export default function SuperAdminEarnings() {
               ))}
             </nav>
           </div>
+
+          {/* Revenue Approval */}
+          {viewMode === 'approval' && (
+            <div className="p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Pending Revenue Reports</h3>
+                <p className="text-gray-600">Review and approve revenue reports submitted by distribution partners</p>
+              </div>
+
+              {pendingReports.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">All Reports Approved</h4>
+                  <p className="text-gray-500">No pending revenue reports require approval</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assets</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {pendingReports.map((report) => (
+                        <tr key={report.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="text-sm font-medium text-gray-900">{report.platform}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{formatCurrency(report.amount, selectedCurrency)}</div>
+                            <div className="text-sm text-gray-500">{report.currency}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {report.period}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{report.submittedDate}</div>
+                            <div className="text-sm text-gray-500">by {report.submittedBy}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="max-w-xs truncate">
+                              {report.assets.join(', ')}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleApproveRevenue(report.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRejectRevenue(report.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Revenue Overview */}
           {viewMode === 'overview' && (

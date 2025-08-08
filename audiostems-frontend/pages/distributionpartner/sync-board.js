@@ -6,7 +6,7 @@ export default function DistributionPartnerSyncBoard() {
 
   useEffect(() => {
     // Redirect to earnings since "Sync Board" is now "Earnings"
-    router.push('/partner/reports');
+    router.push('/distributionpartner/reports');
   }, [router]);
 
   return (
