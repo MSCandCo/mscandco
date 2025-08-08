@@ -61,10 +61,14 @@ export const getUserRole = (user) => {
   // Check multiple possible locations for role metadata
   const userRole = user['https://mscandco.com/role'] || 
                   user.user_metadata?.role || 
+                  user.app_metadata?.role ||
                   'artist';
   
+  console.log('getUserRole - User:', user);
+  console.log('getUserRole - Detected role:', userRole);
   
   const result = USER_ROLES[userRole?.toUpperCase()] || USER_ROLES.ARTIST;
+  console.log('getUserRole - Final result:', result);
   return result;
 };
 

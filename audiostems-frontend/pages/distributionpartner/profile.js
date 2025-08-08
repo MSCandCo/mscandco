@@ -6,7 +6,7 @@ export default function DistributionPartnerProfile() {
 
   useEffect(() => {
     // Redirect to dashboard and trigger profile modal
-    router.push('/distribution-partner/dashboard?profile=open');
+    router.push('/distributionpartner/dashboard?profile=open');
   }, [router]);
 
   return (

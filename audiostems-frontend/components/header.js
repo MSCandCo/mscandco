@@ -84,7 +84,7 @@ function Header({ largeLogo = false }) {
     const userBrandInfo = getUserBrand(user);
     
     // Get first and last name
-    const firstName = profileData?.firstName || user?.given_name || 'User';
+    const firstName = profileData?.firstName || user?.given_name || '';
     const lastName = profileData?.lastName || user?.family_name || '';
     const fullName = `${firstName} ${lastName}`.trim();
     
@@ -102,15 +102,20 @@ function Header({ largeLogo = false }) {
     
     // For label admin, show "Hi First Last, Label Admin at Label Name"
     if (userRole === 'label_admin') {
-      return `${fullName}, ${roleDisplay} at ${labelName}`;
+      return `${fullName || user?.email || 'User'}, ${roleDisplay} at ${labelName}`;
     }
     
     // For other roles, show "Hi First Last, Role"
     if (userRole && userRole !== 'artist') {
-      return `${fullName}, ${roleDisplay}`;
+      return `${fullName || user?.email || 'User'}, ${roleDisplay}`;
     }
     
-    // For artists or fallback, just show name
+    // For artists: show full name if available, otherwise show email
+    if (userRole === 'artist') {
+      return fullName || user?.email || 'User';
+    }
+    
+    // Fallback
     return fullName || user?.email || 'User';
   };
 
@@ -181,7 +186,10 @@ function Header({ largeLogo = false }) {
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <Link href="/dashboard">
+                    <Link href={
+                      getUserRole(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                      '/dashboard'
+                    }>
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                         <HiUser className="w-4 h-4 mr-3 text-gray-400" />
                         Dashboard

@@ -43,7 +43,11 @@ export default function LabelAdminProfile() {
       iban: ''
     },
     profileCompletion: 0,
-    isVerified: false
+    isVerified: false,
+    
+    // Registration Status
+    isCompanyInfoSet: false, // Track if company info has been set (non-editable after first set)
+    registrationDate: null // Track when label was first registered
   });
 
   const [formData, setFormData] = useState({ ...profile });
@@ -148,12 +152,26 @@ export default function LabelAdminProfile() {
   const handleSave = async () => {
     console.log('🚨 EXPLICIT handleSave called by user action!');
     
+    // Validation: If company info is not set, require essential fields
+    if (!profile.isCompanyInfoSet) {
+      const requiredFields = ['companyName', 'labelName', 'businessType', 'country'];
+      const missingFields = requiredFields.filter(field => !formData[field] || formData[field].trim() === '');
+      
+      if (missingFields.length > 0) {
+        setErrors({
+          message: `Please complete your label registration! Missing required fields: ${missingFields.join(', ')}`
+        });
+        return;
+      }
+    }
+    
     if (!validateForm()) {
       console.log('❌ Form validation failed');
       return;
     }
 
     setIsSaving(true);
+    setErrors({});
     
     try {
       // Simulate API call
@@ -163,13 +181,24 @@ export default function LabelAdminProfile() {
       updatedProfile.profileCompletion = 100;
       updatedProfile.isVerified = true;
       
+      // Check if company info is being set for the first time
+      if (!profile.isCompanyInfoSet && formData.companyName && formData.labelName && formData.businessType && formData.country) {
+        updatedProfile.isCompanyInfoSet = true;
+        updatedProfile.registrationDate = new Date().toISOString();
+        console.log('Label company info registered for the first time');
+      }
+      
       setProfile(updatedProfile);
       setIsEditing(false);
       
-      // 🎯 ONLY SET SUCCESS MODAL ON EXPLICIT SAVE
-      console.log('✅ Setting success modal after explicit save');
-      setSuccessTitle('Profile Updated!');
-      setSuccessMessage('Your profile has been updated successfully.');
+      // Show success message for first-time registration or regular update
+      if (!profile.isCompanyInfoSet && updatedProfile.isCompanyInfoSet) {
+        setSuccessTitle('Label Registration Complete!');
+        setSuccessMessage('Your label company information has been saved and cannot be changed.');
+      } else {
+        setSuccessTitle('Profile Updated!');
+        setSuccessMessage('Your profile has been updated successfully.');
+      }
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -352,39 +381,143 @@ export default function LabelAdminProfile() {
               {/* Company Information */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Information</h2>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center">
-                    <div className="text-yellow-600 mr-2">⚠️</div>
-                    <div>
-                      <h3 className="text-sm font-medium text-yellow-800">Company Information Locked</h3>
-                      <p className="text-sm text-yellow-700">
-                        Company information was set on 15/06/2023 and cannot be modified. Please contact support if you need to update this information.
-                      </p>
+                
+                {/* First-time Registration Warning */}
+                {!profile.isCompanyInfoSet && (
+                  <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-amber-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-amber-800">
+                          Complete Your Label Registration
+                        </h3>
+                        <p className="mt-1 text-sm text-amber-700">
+                          Please complete your company information to finalize your label admin profile. 
+                          This information cannot be changed after registration and is used for all official documentation.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+                
+                {/* Error/Success Messages */}
+                {errors.message && (
+                  <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+                    {errors.message}
+                  </div>
+                )}
+                
+                {/* Company Info Locked Message (after registration) */}
+                {profile.isCompanyInfoSet && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center">
+                      <div className="text-yellow-600 mr-2">🔒</div>
+                      <div>
+                        <h3 className="text-sm font-medium text-yellow-800">Company Information Locked</h3>
+                        <p className="text-sm text-yellow-700">
+                          Company information was registered on {profile.registrationDate ? new Date(profile.registrationDate).toLocaleDateString() : '15/06/2023'} and cannot be modified. Please contact support if you need to update this information.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Label Name</label>
-                    <p className="text-gray-900">{profile.labelName}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Label Name
+                      {profile.isCompanyInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
+                    {isEditing && !profile.isCompanyInfoSet ? (
+                      <input
+                        type="text"
+                        value={formData.labelName}
+                        onChange={(e) => handleInputChange('labelName', e.target.value)}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter your label name"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{profile.labelName || 'Not set - Please set your label name'}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                    <p className="text-gray-900">{profile.companyName}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Name
+                      {profile.isCompanyInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
+                    {isEditing && !profile.isCompanyInfoSet ? (
+                      <input
+                        type="text"
+                        value={formData.companyName}
+                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter your company name"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{profile.companyName || 'Not set - Please set your company name'}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-                    <p className="text-gray-900">{profile.position}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business Type
+                      {profile.isCompanyInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
+                    {isEditing && !profile.isCompanyInfoSet ? (
+                      <select
+                        value={formData.businessType}
+                        onChange={(e) => handleInputChange('businessType', e.target.value)}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      >
+                        <option value="">Select business type</option>
+                        <option value="Independent Label">Independent Label</option>
+                        <option value="Major Label">Major Label</option>
+                        <option value="Distribution Company">Distribution Company</option>
+                        <option value="Music Publisher">Music Publisher</option>
+                        <option value="Entertainment Company">Entertainment Company</option>
+                      </select>
+                    ) : (
+                      <p className="text-gray-900">{profile.businessType || 'Not set - Please select business type'}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                    <p className="text-gray-900">{profile.department}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Country
+                      {profile.isCompanyInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
+                    {isEditing && !profile.isCompanyInfoSet ? (
+                      <input
+                        type="text"
+                        value={formData.country}
+                        onChange={(e) => handleInputChange('country', e.target.value)}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter your country"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{profile.country || 'Not set - Please set your country'}</p>
+                    )}
                   </div>
                 </div>
+                
+                {!profile.isCompanyInfoSet && (
+                  <p className="text-xs text-amber-600 mt-4">
+                    ⚠️ Important: Company information cannot be changed after initial registration
+                  </p>
+                )}
               </div>
             </div>
 

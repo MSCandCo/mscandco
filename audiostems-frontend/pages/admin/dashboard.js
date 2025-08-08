@@ -246,7 +246,7 @@ export default function AdminDashboard() {
             {userRole === 'super_admin' ? 'Platform Earnings Overview' : 'Earnings Overview'}
           </h3>
           <button
-            onClick={() => router.push(userRole === 'super_admin' ? '/admin/earnings' : '/company-admin/earnings')}
+            onClick={() => router.push(userRole === 'super_admin' ? '/admin/earnings' : '/companyadmin/earnings')}
             className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
           >
             <DollarSign className="w-4 h-4 mr-2" />
@@ -876,7 +876,7 @@ export default function AdminDashboard() {
           </button>
           
           <button
-            onClick={() => router.push(userRole === 'super_admin' ? '/admin/distribution' : '/company-admin/workflow')}
+            onClick={() => router.push(userRole === 'super_admin' ? '/admin/distribution' : '/companyadmin/workflow')}
             className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
           >
             <Activity className="w-8 h-8 text-yellow-600 mb-2" />

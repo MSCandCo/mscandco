@@ -546,7 +546,7 @@ export default function LabelAdminDashboard() {
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link href="/label-admin/earnings" className="block">
+        <Link href="/labeladmin/earnings" className="block">
           <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center">
               <div className="bg-green-100 p-3 rounded-lg">
@@ -560,7 +560,7 @@ export default function LabelAdminDashboard() {
           </div>
         </Link>
 
-        <Link href="/label-admin/artists" className="block">
+        <Link href="/labeladmin/artists" className="block">
           <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center">
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -574,7 +574,7 @@ export default function LabelAdminDashboard() {
           </div>
         </Link>
 
-        <Link href="/label-admin/releases" className="block">
+        <Link href="/labeladmin/releases" className="block">
           <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center">
               <div className="bg-purple-100 p-3 rounded-lg">
@@ -615,7 +615,7 @@ export default function LabelAdminDashboard() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings, selectedCurrency)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link href={`/label-admin/artists?search=${encodeURIComponent(artist.artist)}`} className="text-blue-600 hover:text-blue-900">
+                    <Link href={`/labeladmin/artists?search=${encodeURIComponent(artist.artist)}`} className="text-blue-600 hover:text-blue-900">
                       View Details
                     </Link>
                   </td>
@@ -654,7 +654,7 @@ export default function LabelAdminDashboard() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(release.earnings, selectedCurrency)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{release.streams.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link href={`/label-admin/releases?search=${encodeURIComponent(release.projectName)}`} className="text-blue-600 hover:text-blue-900">
+                    <Link href={`/labeladmin/releases?search=${encodeURIComponent(release.projectName)}`} className="text-blue-600 hover:text-blue-900">
                       View Details
                     </Link>
                   </td>

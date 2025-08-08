@@ -192,21 +192,21 @@ export default function RoleBasedDashboard() {
               title: 'User Management',
               description: 'Manage all platform users and roles',
               icon: '👥',
-              href: '/admin/users',
+              href: '/superadmin/users',
               stats: { users: getEmptyStats().superAdmin.totalUsers, roles: getEmptyStats().superAdmin.totalRoles }
             },
             {
               title: 'Content Management',
               description: 'Oversee all platform content',
               icon: '📁',
-              href: '/admin/content',
+              href: '/superadmin/content',
               stats: { songs: getEmptyStats().superAdmin.totalSongs, projects: getEmptyStats().superAdmin.activeProjects }
             },
             {
               title: 'System Settings',
               description: 'Configure platform settings',
               icon: '⚙️',
-              href: '/admin/settings',
+              href: '/superadmin/settings',
               stats: { brands: getEmptyStats().superAdmin.totalBrands, features: getEmptyStats().superAdmin.systemFeatures }
             }
           ]
@@ -229,22 +229,36 @@ export default function RoleBasedDashboard() {
               title: 'User Management',
               description: 'Manage brand users and permissions',
               icon: '👥',
-              href: '/admin/users',
+              href: '/companyadmin/users',
               stats: { users: getEmptyStats().companyAdmin.brandUsers, roles: getEmptyStats().companyAdmin.brandRoles }
             },
             {
               title: 'Content Management',
               description: 'Manage brand content and projects',
               icon: '📁',
-              href: '/admin/content',
+              href: '/companyadmin/content',
               stats: { songs: getEmptyStats().companyAdmin.contentItems, projects: getEmptyStats().companyAdmin.activeProjects }
             },
             {
               title: 'Analytics',
               description: 'View brand performance metrics',
               icon: '📈',
-              href: '/admin/analytics',
+              href: '/companyadmin/analytics',
               stats: { views: getEmptyStats().companyAdmin.totalViews, engagement: getEmptyStats().companyAdmin.engagement }
+            },
+            {
+              title: 'Earnings',
+              description: 'Track brand revenue and earnings',
+              icon: '💰',
+              href: '/companyadmin/earnings',
+              stats: { revenue: getEmptyStats().companyAdmin.brandRevenue, growth: '+6%' }
+            },
+            {
+              title: 'Workflow',
+              description: 'Manage distribution workflows',
+              icon: '⚡',
+              href: '/companyadmin/distribution',
+              stats: { active: getEmptyStats().companyAdmin.activeProjects, completed: getEmptyStats().companyAdmin.contentItems }
             }
           ]
         };
@@ -266,28 +280,28 @@ export default function RoleBasedDashboard() {
               title: 'Artist Management',
               description: 'Manage label artists and their contracts',
               icon: '🎤',
-              href: '/label-admin/artists',
+              href: '/labeladmin/artists',
               stats: { artists: getEmptyStats().labelAdmin.labelArtists, contracts: getEmptyStats().labelAdmin.activeContracts }
             },
             {
               title: 'Revenue Tracking',
               description: 'Monitor label earnings and artist royalties',
               icon: '💰',
-              href: '/label-admin/earnings',
+              href: '/labeladmin/earnings',
               stats: { revenue: getEmptyStats().labelAdmin.labelRevenue, releases: getEmptyStats().labelAdmin.labelReleases }
             },
             {
               title: 'Performance Analytics',
               description: 'View label-wide performance metrics',
               icon: '📊',
-              href: '/label-admin/analytics',
+              href: '/labeladmin/analytics',
               stats: { streams: getEmptyStats().labelAdmin.labelStreams, countries: getEmptyStats().labelAdmin.labelCountries }
             },
             {
               title: 'All Releases',
               description: 'Manage all label releases and assets',
               icon: '🎵',
-              href: '/label-admin/releases',
+              href: '/labeladmin/releases',
               stats: { releases: getEmptyStats().labelAdmin.labelReleases, tracks: getEmptyStats().labelAdmin.totalTracks || 45 }
             }
           ]
@@ -310,7 +324,7 @@ export default function RoleBasedDashboard() {
               title: 'Content Management',
               description: 'Manage distributed content and releases',
               icon: '📁',
-              href: '/distribution-partner/dashboard',
+              href: '/distributionpartner/dashboard',
               stats: { content: getEmptyStats().distributionPartner.distributedContent, releases: getEmptyStats().distributionPartner.totalReleases }
             },
             {
@@ -597,7 +611,7 @@ export default function RoleBasedDashboard() {
                 
                 {approvedArtists.length > 4 && (
                   <div className="mt-4 text-center">
-                    <Link href="/label-admin/artists">
+                    <Link href="/labeladmin/artists">
                       <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         View {approvedArtists.length - 4} more artists →
                       </button>

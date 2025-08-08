@@ -12,8 +12,19 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    // Redirect role-specific users to their dedicated dashboards
+    if (isAuthenticated && user) {
+      const userRole = getUserRole(user);
+      if (userRole === 'super_admin') {
+        router.push('/superadmin/dashboard');
+        return;
+      }
+      // Company Admin now sees smart dashboard, no redirect needed
+    }
+  }, [isAuthenticated, isLoading, router, user]);
 
   if (isLoading) {
     return (

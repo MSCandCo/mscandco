@@ -71,7 +71,7 @@ export default function RoleBasedNavigation() {
     const userBrandInfo = getUserBrand(user);
     
     // Get first and last name
-    const firstName = profileData?.firstName || user?.given_name || 'User';
+    const firstName = profileData?.firstName || user?.given_name || '';
     const lastName = profileData?.lastName || user?.family_name || '';
     const fullName = `${firstName} ${lastName}`.trim();
     
@@ -87,17 +87,22 @@ export default function RoleBasedNavigation() {
     const roleDisplay = roleDisplayMap[userRole] || 'User';
     const labelName = userBrandInfo?.displayName || userBrandInfo?.name || 'Platform';
     
-    // For label admin, show "First Last, Label Admin at Label Name"
+    // For label admin, show "First Last, Label Admin at Label Name" or "email, Label Admin at Label Name"
     if (userRole === 'label_admin') {
-      return `${fullName}, ${roleDisplay} at ${labelName}`;
+      return `${fullName || user?.email || 'User'}, ${roleDisplay} at ${labelName}`;
     }
     
-    // For other roles, show "First Last, Role"
+    // For other non-artist roles, show "First Last, Role" or "email, Role"
     if (userRole && userRole !== 'artist') {
-      return `${fullName}, ${roleDisplay}`;
+      return `${fullName || user?.email || 'User'}, ${roleDisplay}`;
     }
     
-    // For artists or fallback, just show name
+    // For artists: show full name if available, otherwise show email
+    if (userRole === 'artist') {
+      return fullName || user?.email || 'User';
+    }
+    
+    // Fallback
     return fullName || user?.email || 'User';
   };
 
@@ -143,8 +148,8 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
-                  href="/distribution-partner/dashboard"
-                  className={getNavLinkClasses('/distribution-partner/dashboard')}
+                  href="/distributionpartner/dashboard"
+                  className={getNavLinkClasses('/distributionpartner/dashboard')}
                 >
                   Content Management
                 </Link>
@@ -177,7 +182,13 @@ export default function RoleBasedNavigation() {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
-                      href="/distribution-partner/profile"
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/distributionpartner/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
@@ -280,6 +291,12 @@ export default function RoleBasedNavigation() {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
                       href="/admin/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
@@ -331,38 +348,32 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
-                  href="/company-admin/dashboard"
-                  className={getNavLinkClasses('/company-admin/dashboard')}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/company-admin/users"
-                  className={getNavLinkClasses('/company-admin/users')}
+                  href="/companyadmin/users"
+                  className={getNavLinkClasses('/companyadmin/users')}
                 >
                   Users
                 </Link>
                 <Link
-                  href="/company-admin/content"
-                  className={getNavLinkClasses('/company-admin/content')}
+                  href="/companyadmin/content"
+                  className={getNavLinkClasses('/companyadmin/content')}
                 >
                   Content
                 </Link>
                 <Link
-                  href="/company-admin/analytics"
-                  className={getNavLinkClasses('/company-admin/analytics')}
+                  href="/companyadmin/analytics"
+                  className={getNavLinkClasses('/companyadmin/analytics')}
                 >
                   Analytics
                 </Link>
                 <Link
-                  href="/company-admin/earnings"
-                  className={getNavLinkClasses('/company-admin/earnings')}
+                  href="/companyadmin/earnings"
+                  className={getNavLinkClasses('/companyadmin/earnings')}
                 >
                   Earnings
                 </Link>
                 <Link
-                  href="/company-admin/distribution"
-                  className={getNavLinkClasses('/company-admin/distribution')}
+                  href="/companyadmin/distribution"
+                  className={getNavLinkClasses('/companyadmin/distribution')}
                 >
                   Workflow
                 </Link>
@@ -376,14 +387,20 @@ export default function RoleBasedNavigation() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <span className="text-gray-700">{user?.email || getDisplayName()}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
-                      href="/company-admin/profile"
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/companyadmin/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
@@ -434,32 +451,26 @@ export default function RoleBasedNavigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
-                  href="/dashboard"
-                  className={getNavLinkClasses('/dashboard')}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/label-admin/artists"
-                  className={getNavLinkClasses('/label-admin/artists')}
+                  href="/labeladmin/artists"
+                  className={getNavLinkClasses('/labeladmin/artists')}
                 >
                   My Artists
                 </Link>
                 <Link
-                  href="/label-admin/releases"
-                  className={getNavLinkClasses('/label-admin/releases')}
+                  href="/labeladmin/releases"
+                  className={getNavLinkClasses('/labeladmin/releases')}
                 >
                   All Releases
                 </Link>
                 <Link
-                  href="/label-admin/earnings"
-                  className={getNavLinkClasses('/label-admin/earnings')}
+                  href="/labeladmin/earnings"
+                  className={getNavLinkClasses('/labeladmin/earnings')}
                 >
                   Earnings
                 </Link>
                 <Link
-                  href="/label-admin/analytics"
-                  className={getNavLinkClasses('/label-admin/analytics')}
+                  href="/labeladmin/analytics"
+                  className={getNavLinkClasses('/labeladmin/analytics')}
                 >
                   Analytics
                 </Link>
@@ -481,14 +492,20 @@ export default function RoleBasedNavigation() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <span className="text-gray-700">Hi, {getDisplayName()}</span>
+                  <span className="text-gray-700">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'YHWH MSC'}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
-                      href="/label-admin/profile"
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/labeladmin/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile

@@ -94,7 +94,11 @@ export default function ArtistProfile() {
     // Admin Approval Status
     pendingChanges: [],
     lastApprovedBy: '',
-    lastApprovedDate: ''
+    lastApprovedDate: '',
+    
+    // Registration Status
+    isBasicInfoSet: false, // Track if basic info has been set (non-editable after first set)
+    registrationDate: null // Track when artist was first registered
   });
 
   const [formData, setFormData] = useState({ ...profile });
@@ -154,24 +158,58 @@ export default function ArtistProfile() {
   };
 
   const handleSave = async () => {
+    // Validation: If basic info is not set, require essential fields
+    if (!profile.isBasicInfoSet) {
+      const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'nationality', 'country', 'city'];
+      const missingFields = requiredFields.filter(field => !formData[field] || formData[field].trim() === '');
+      
+      if (missingFields.length > 0) {
+        setErrors({
+          message: `Please complete your artist registration! Missing required fields: ${missingFields.join(', ')}`
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
+    setErrors({});
+    
     try {
+      const updatedData = { ...formData };
+      
+      // Check if basic info is being set for the first time
+      if (!profile.isBasicInfoSet && formData.firstName && formData.lastName && formData.dateOfBirth && formData.nationality && formData.country && formData.city) {
+        updatedData.isBasicInfoSet = true;
+        updatedData.registrationDate = new Date().toISOString();
+        console.log('Artist basic info registered for the first time');
+      }
+      
       const response = await fetch('/api/artist/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updatedData),
       });
       
       if (response.ok) {
-        setProfile(formData);
+        setProfile(updatedData);
         setIsEditing(false);
-        // Show success message
+        
+        // Show success message for first-time registration
+        if (!profile.isBasicInfoSet && updatedData.isBasicInfoSet) {
+          setErrors({
+            message: 'Artist registration completed! Your basic information has been saved and cannot be changed.',
+            type: 'success'
+          });
+        }
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      // Show error message
+      setErrors({
+        message: 'Error saving profile. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsSaving(false);
     }
@@ -280,6 +318,39 @@ export default function ArtistProfile() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
               
+              {/* First-time Registration Warning */}
+              {!profile.isBasicInfoSet && (
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-amber-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-amber-800">
+                        Complete Your Artist Registration
+                      </h3>
+                      <p className="mt-1 text-sm text-amber-700">
+                        Please complete your basic information to finalize your artist profile. 
+                        This information cannot be changed after registration and is used for all official documentation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Error/Success Messages */}
+              {errors.message && (
+                <div className={`mb-6 p-4 rounded-lg ${
+                  errors.type === 'success' 
+                    ? 'bg-green-50 border border-green-200 text-green-700' 
+                    : 'bg-red-50 border border-red-200 text-red-700'
+                }`}>
+                  {errors.message}
+                </div>
+              )}
+              
               {/* Locked Personal Information */}
               <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-center mb-3">
@@ -288,57 +359,122 @@ export default function ArtistProfile() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       value={formData.firstName}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
+                      placeholder={!profile.isBasicInfoSet ? "Enter your first name" : ""}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       value={formData.lastName}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
+                      placeholder={!profile.isBasicInfoSet ? "Enter your last name" : ""}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date of Birth
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="date"
                       value={formData.dateOfBirth}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nationality
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       value={formData.nationality}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('nationality', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
+                      placeholder={!profile.isBasicInfoSet ? "Enter your nationality" : ""}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Country
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       value={formData.country}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
+                      placeholder={!profile.isBasicInfoSet ? "Enter your country" : ""}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City
+                      {profile.isBasicInfoSet && (
+                        <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       value={formData.city}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      disabled={profile.isBasicInfoSet || !isEditing}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profile.isBasicInfoSet || !isEditing
+                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      }`}
+                      placeholder={!profile.isBasicInfoSet ? "Enter your city" : ""}
                     />
                   </div>
                 </div>
