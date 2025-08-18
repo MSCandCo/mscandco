@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole } from '@/lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole } from '@/lib/user-utils';
 
 export default function DistributionIndex() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const userRole = getUserRole(user);
       
       // Redirect based on role
@@ -18,7 +18,7 @@ export default function DistributionIndex() {
         router.replace('/dashboard');
       }
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

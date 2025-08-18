@@ -1,8 +1,8 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 import { getStripe } from '@/lib/stripe';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -266,7 +266,7 @@ const getRoleSpecificPlans = (userRole, user, forceRefresh = null, sessionUpgrad
 };
 
 export default function Billing() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -329,10 +329,10 @@ export default function Billing() {
   }, [user?.sub]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && user) {
       loadBillingData();
     }
-  }, [isAuthenticated, user]); // REMOVE upgrade dependencies - they cause reload conflicts
+  }, [user, user]); // REMOVE upgrade dependencies - they cause reload conflicts
 
   // Handle successful payment return from Stripe
   useEffect(() => {
@@ -572,7 +572,7 @@ export default function Billing() {
   }
 
   // Allow access to billing for all authenticated users
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -597,7 +597,7 @@ export default function Billing() {
                 <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">No Billing Required</h1>
                 <p className="text-gray-600">
-                  As a {userRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}, 
+                  As a {String(userRole || 'user').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}, 
                   you have full access to the platform without any billing requirements.
                 </p>
               </div>

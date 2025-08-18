@@ -149,18 +149,19 @@ div[class*="Track"] input:first-child {
   @apply max-w-[160px] flex-shrink-0 !important;
 }
 
-/* ULTIMATE FIX: Target ANY grid or flex layout with track-like inputs */
-.grid input:first-child,
-.flex input:first-child,
-div:first-child input {
-  @apply max-w-[160px] !important;
-}
+
 
 /* Force ALL input fields in ANY multi-column layout to respect sizing */
 .grid-cols-5 input:nth-child(1),
 .grid-cols-4 input:nth-child(1),
 .grid-cols-3 input:nth-child(1) {
   @apply max-w-[160px] !important;
+}
+
+/* Custom font size for registration form inputs only */
+form input.text-lg {
+    font-size: 0.9rem !important;
+    line-height: 1.75rem;
 }
 
 /* Emergency override for ANY form with numeric track numbers */
@@ -209,4 +210,9 @@ form input[type="text"]:first-child,
 .track-listing input[type="text"]:first-child,
 div[class*="listing"] input[type="text"]:first-child {
   @apply max-w-[160px] !important;
+}
+
+/* Video text shadow utilities for better visibility */
+.text-shadow-lg {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0px 0px 8px rgba(0, 0, 0, 0.6);
 }

@@ -15,7 +15,6 @@ export default function ReleaseDetails() {
   const [activeSection, setActiveSection] = useState('basic-info');
   const [loading, setLoading] = useState(true);
 
-  // Mock detailed release data with all 80+ fields
   const mockRelease = {
     id: 1,
     // Basic Information

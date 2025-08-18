@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole } from '@/lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
 import { ARTISTS, RELEASES } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -35,7 +35,7 @@ ChartJS.register(
 );
 
 export default function PartnerAnalytics() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedTimeframe, setSelectedTimeframe] = useState('all-time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -73,7 +73,7 @@ export default function PartnerAnalytics() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

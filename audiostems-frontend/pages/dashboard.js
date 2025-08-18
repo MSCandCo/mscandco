@@ -1,30 +1,30 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRoleSync } from '@/lib/user-utils';
 import RoleBasedDashboard from '@/components/dashboard/RoleBasedDashboard';
 
 export default function Dashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) {
       router.push('/login');
       return;
     }
 
     // Redirect role-specific users to their dedicated dashboards
-    if (isAuthenticated && user) {
-      const userRole = getUserRole(user);
+    if (user) {
+      const userRole = getUserRoleSync(user);
       if (userRole === 'super_admin') {
         router.push('/superadmin/dashboard');
         return;
       }
       // Company Admin now sees smart dashboard, no redirect needed
     }
-  }, [isAuthenticated, isLoading, router, user]);
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -37,11 +37,11 @@ export default function Dashboard() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null; // Will redirect to login
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
 
   return (
     <>

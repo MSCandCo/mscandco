@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import { 
   User, Mail, Building2, Shield, Calendar, 
@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
-import { getUserRole, getUserBrand } from '@/lib/auth0-config';
+import { getUserRole, getUserBrand } from '@/lib/user-utils';
 import Avatar from '@/components/shared/Avatar';
 
 export default function CompanyAdminProfile() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +41,7 @@ export default function CompanyAdminProfile() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (role !== 'company_admin') {
         router.push('/dashboard');
@@ -59,10 +59,10 @@ export default function CompanyAdminProfile() {
       }
       
       setLoading(false);
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [isLoading, user, user, router]);
 
   const handleEdit = () => {
     setIsEditing(true);

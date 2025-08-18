@@ -1,11 +1,11 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 
 
 export default function ArtistProfile() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -104,11 +104,11 @@ export default function ArtistProfile() {
   const [formData, setFormData] = useState({ ...profile });
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && user) {
       // Load profile data from API
       loadProfile();
     }
-  }, [isAuthenticated, user]);
+  }, [user, user]);
 
   const loadProfile = async () => {
     try {
@@ -124,7 +124,7 @@ export default function ArtistProfile() {
   };
 
   const handleInputChange = (field, value) => {
-    // Special handling for email and phone to sync with Auth0
+    // Special handling for email and phone to sync with Supabase
     if (field === 'email' && user?.email) {
       if (value !== user.email) {
         setSuccessMessage('Email must match your login credentials. Please contact support to change your login email.');
@@ -219,7 +219,7 @@ export default function ArtistProfile() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your profile.</div>;
   }
 

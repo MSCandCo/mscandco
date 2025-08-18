@@ -7,11 +7,11 @@ import { Check, X, Globe, ChevronDown } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import SEO from "@/components/seo";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import MainLayout from "@/components/layouts/mainLayout";
 import { openCustomerPortal } from "@/lib/utils";
 import { COMPANY_INFO } from "@/lib/brand-config";
-import { getUserRole } from "@/lib/auth0-config";
+import { getUserRole } from "@/lib/user-utils";
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 // Currency configuration
@@ -353,7 +353,7 @@ const getRoleSpecificPlans = (role) => {
 };
 
 function Pricing() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -394,7 +394,7 @@ function Pricing() {
 
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && user) {
       const role = getUserRole(user);
       setUserRole(role);
       setPlans(getRoleSpecificPlans(role));
@@ -406,7 +406,7 @@ function Pricing() {
       ];
       setPlans(allSubscriptionPlans);
     }
-  }, [isAuthenticated, user]);
+  }, [user, user]);
 
   if (isLoading) {
     return (
@@ -453,10 +453,10 @@ function Pricing() {
             </div>
           </div>
           
-          {isAuthenticated && userRole && (
+          {user && userRole && (
             <div className="text-center mb-8">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {userRole.replace('_', ' ').toUpperCase()} Plans
+                {String(userRole || 'artist').replace('_', ' ').toUpperCase()} Plans
               </span>
             </div>
           )}
@@ -577,7 +577,7 @@ function Pricing() {
                     if (plan.isIntegral) {
                       return; // Do nothing for integral roles
                     }
-                    if (!isAuthenticated) {
+                    if (!user) {
                       window.location.href = '/login';
                     } else {
                       // Handle subscription logic
@@ -588,7 +588,7 @@ function Pricing() {
                 >
                   {plan.isIntegral 
                     ? 'Included with Platform'
-                    : isAuthenticated 
+                    : user 
                       ? (plan.name.includes('Pro') ? 'Upgrade to Pro' : plan.name.includes('Starter') ? 'Select Plan' : 'Select Plan')
                       : 'Sign Up'}
                 </button>

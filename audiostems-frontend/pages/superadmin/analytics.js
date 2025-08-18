@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -9,21 +9,21 @@ import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";
 import CurrencySelector, { formatCurrency, useCurrencySync } from "@/components/shared/CurrencySelector";
-import { getUserRole } from "@/lib/auth0-config";
+import { getUserRole } from "@/lib/user-utils";
 import { formatNumber, safeDivide, safeRound } from "@/lib/number-utils";
 
 function AdminAnalytics() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // Check if user is admin (example: email ends with @mscandco.com)
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
+    if (!user || !user?.email?.endsWith('@mscandco.com')) {
       router.push('/');
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   // Business operations analytics data for admin dashboard
   const mockWorkflowStats = [
@@ -89,7 +89,6 @@ function AdminAnalytics() {
     completedReleases: mockWorkflowStats.filter(w => w.currentStatus === 'live').length
   };
 
-  // Use mock data instead of API calls
   const workflowStats = { data: mockWorkflowStats };
   const userStats = { data: mockUserStats };
   const platformStats = { data: mockPlatformStats };
@@ -98,7 +97,7 @@ function AdminAnalytics() {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
+  if (!user || !user?.email?.endsWith('@mscandco.com')) {
     return null;
   }
 

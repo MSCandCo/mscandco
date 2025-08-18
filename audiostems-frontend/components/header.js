@@ -1,15 +1,15 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { Dropdown } from 'flowbite-react';
 import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
 import { HiDownload } from 'react-icons/hi';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
-import { getUserRole, getUserBrand } from '@/lib/auth0-config';
+import { getUserRoleSync, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect, useRef } from 'react';
 
 function Header({ largeLogo = false }) {
-  const { user, isAuthenticated, logout } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const userBrand = getBrandByUser(user);
   const [profileData, setProfileData] = useState(null);
@@ -18,7 +18,7 @@ function Header({ largeLogo = false }) {
 
   // Fetch profile data to get first and last name
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user) {
       fetch('/api/artist/get-profile')
         .then(res => res.json())
         .then(data => {
@@ -26,7 +26,7 @@ function Header({ largeLogo = false }) {
         })
         .catch(err => console.error('Error fetching profile:', err));
     }
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -78,45 +78,9 @@ function Header({ largeLogo = false }) {
     return `${baseClasses} text-gray-400 hover:text-gray-800`;
   };
 
-  // Get display name with role and label information
+  // Simple display name - no complex logic, no async calls
   const getDisplayName = () => {
-    const userRole = getUserRole(user);
-    const userBrandInfo = getUserBrand(user);
-    
-    // Get first and last name
-    const firstName = profileData?.firstName || user?.given_name || '';
-    const lastName = profileData?.lastName || user?.family_name || '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    
-    // Role display mapping
-    const roleDisplayMap = {
-      'label_admin': 'Label Admin',
-      'artist': 'Artist',
-      'distribution_partner': 'Distribution Partner',
-      'super_admin': 'Super Admin',
-      'company_admin': 'Company Admin'
-    };
-    
-    const roleDisplay = roleDisplayMap[userRole] || 'User';
-    const labelName = userBrandInfo?.displayName || userBrandInfo?.name || 'Platform';
-    
-    // For label admin, show "Hi First Last, Label Admin at Label Name"
-    if (userRole === 'label_admin') {
-      return `${fullName || user?.email || 'User'}, ${roleDisplay} at ${labelName}`;
-    }
-    
-    // For other roles, show "Hi First Last, Role"
-    if (userRole && userRole !== 'artist') {
-      return `${fullName || user?.email || 'User'}, ${roleDisplay}`;
-    }
-    
-    // For artists: show full name if available, otherwise show email
-    if (userRole === 'artist') {
-      return fullName || user?.email || 'User';
-    }
-    
-    // Fallback
-    return fullName || user?.email || 'User';
+    return user?.email || 'User';
   };
 
   return (
@@ -138,7 +102,7 @@ function Header({ largeLogo = false }) {
           </Link>
           <div className="flex-1 flex justify-end items-center">
             <ul className="flex items-center">
-              {!isAuthenticated && (
+              {!user && (
                 <li className="px-5 py-2">
                   <Link 
                     href="/pricing" 
@@ -165,7 +129,7 @@ function Header({ largeLogo = false }) {
                 </Link>
               </li>
             </ul>
-            {isAuthenticated ? (
+            {user ? (
               <div 
                 className="relative"
                 ref={dropdownRef}
@@ -178,7 +142,7 @@ function Header({ largeLogo = false }) {
                   type="button"
                 >
                   <span className="sr-only">Open user menu</span>
-                  Hi, {getDisplayName()}
+                  Hi, {user?.email ? String(user.email) : 'User'}
                   <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
                   </svg>
@@ -187,7 +151,7 @@ function Header({ largeLogo = false }) {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                     <Link href={
-                      getUserRole(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
                       '/dashboard'
                     }>
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
@@ -216,11 +180,7 @@ function Header({ largeLogo = false }) {
                     </button>
                     <hr className="my-1 border-gray-200" />
                     <button
-                      onClick={() => logout({ 
-                        logoutParams: { 
-                          returnTo: window.location.origin 
-                        } 
-                      })}
+                                            onClick={() => router.push('/logout')}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
                       <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />

@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -51,15 +51,15 @@ ChartJS.register(
 );
 
 function ArtistEarnings() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -72,14 +72,13 @@ function ArtistEarnings() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null;
   }
 
   // Import and use shared currency system
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
-  // Mock data for demonstration
   const earningsData = {
     totalEarnings: 2450.75,
     thisMonth: 345.20,

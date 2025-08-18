@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock } from 'react-icons/fa';
 import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock, AlertCircle } from 'lucide-react';
@@ -31,8 +31,8 @@ const downloadAllReleasesExcel = async (releases) => {
   }
 };
 
-// Comprehensive mock data for distribution partner - covers all statuses, types, and scenarios
-const mockAllReleases = [
+const mockAllReleases = []; 
+/*
   {
     id: 1,
     projectName: 'Urban Beats Collection',
@@ -315,10 +315,10 @@ const mockAllReleases = [
     mediabase: 'Submitted',
     notes: 'Powerful rock anthem with strong commercial appeal'
   }
-];
+*/
 
-// Comprehensive mock data for edit requests and amendments - covers all artists and scenarios
-const mockEditRequests = [
+const mockEditRequests = [];
+/*
   {
     id: 101,
     projectName: 'Urban Beats Collection',
@@ -1025,10 +1025,10 @@ const mockEditRequests = [
       { role: 'Songwriter', name: 'YHWH MSC' }
     ]
   }
-];
+*/
 
 export default function DistributionPartnerDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [activeTab, setActiveTab] = useState('all-releases');
   const [selectedRelease, setSelectedRelease] = useState(null);
@@ -1213,7 +1213,7 @@ export default function DistributionPartnerDashboard() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated || userRole !== 'distribution_partner') {
+  if (!user || userRole !== 'distribution_partner') {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 

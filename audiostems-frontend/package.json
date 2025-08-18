@@ -10,9 +10,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.4.0",
-    "@auth0/auth0-spa-js": "^2.2.0",
-    "@auth0/nextjs-auth0": "^4.8.0",
     "@headlessui/react": "^1.7.15",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -22,7 +19,7 @@
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-slot": "^1.0.2",
     "@stripe/stripe-js": "^7.7.0",
-    "auth0": "^4.27.0",
+    "@supabase/supabase-js": "^2.55.0",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",

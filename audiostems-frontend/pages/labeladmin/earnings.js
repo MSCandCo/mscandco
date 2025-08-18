@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaDollarSign, FaChartLine, FaTrendingUp, FaTrendingDown, FaCalendar, FaFilter } from 'react-icons/fa';
 import { DollarSign, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
@@ -136,7 +136,7 @@ const calculateEarningsData = (userBrand) => {
 };
 
 export default function LabelAdminEarnings() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -154,7 +154,7 @@ export default function LabelAdminEarnings() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated || userRole !== 'label_admin') {
+  if (!user || userRole !== 'label_admin') {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 

@@ -1,11 +1,11 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS } from '../../lib/emptyData';
 
 export default function LabelAdminProfile() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -64,7 +64,7 @@ export default function LabelAdminProfile() {
   // 🎯 CLEAN PROFILE LOADING - No auto-triggers
   useEffect(() => {
     console.log('📝 FRESH Profile useEffect running...');
-    if (isAuthenticated && user) {
+    if (user && user) {
       console.log('✅ Loading profile data - NO AUTO SUCCESS');
       
       const mockProfile = {
@@ -109,7 +109,7 @@ export default function LabelAdminProfile() {
       setProfile(mockProfile);
       setFormData(mockProfile);
     }
-  }, [isAuthenticated, user, userBrand]);
+  }, [user, user, userBrand]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -229,7 +229,7 @@ export default function LabelAdminProfile() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS, RELEASES, DASHBOARD_STATS } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
@@ -35,7 +35,7 @@ ChartJS.register(
 );
 
 export default function LabelAdminAnalytics() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedTimeframe, setSelectedTimeframe] = useState('6-months');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -148,7 +148,7 @@ export default function LabelAdminAnalytics() {
     );
   }
 
-  if (!isAuthenticated || userRole !== 'label_admin') {
+  if (!user || userRole !== 'label_admin') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

@@ -8,8 +8,8 @@ import axios from "axios";
 import NextNProgress from "nextjs-progressbar";
 import Header from "@/components/header";
 import RoleBasedNavigation from "@/components/auth/RoleBasedNavigation";
-import Auth0ProviderWrapper from "@/components/providers/Auth0Provider";
-import { useAuth0 } from "@auth0/auth0-react";
+import { AuthProvider, useUser } from "@/components/providers/SupabaseProvider";
+import Head from "next/head";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,7 +17,8 @@ const inter = Inter({
 });
 
 function AppContent({ Component, pageProps }) {
-  const { isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
+  const isAuthenticated = !!user;
   
   // Use role-based navigation for authenticated users, old header for public pages
   const NavigationComponent = isAuthenticated ? RoleBasedNavigation : Header;
@@ -34,8 +35,11 @@ export default function App({ Component, pageProps }) {
   
   return (
     <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </Head>
       <NextNProgress color="#0117df" />
-      <Auth0ProviderWrapper>
+      <AuthProvider>
         <div className={inter.className}>
           <SWRConfig
             value={{
@@ -46,7 +50,7 @@ export default function App({ Component, pageProps }) {
             <AppContent Component={Component} pageProps={pageProps} />
           </SWRConfig>
         </div>
-      </Auth0ProviderWrapper>
+      </AuthProvider>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import { 
   Users, Search, Filter, Plus, Eye, Trash2, 
@@ -11,7 +11,7 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { getApprovedArtistsByLabel, getUsers } from '@/lib/emptyData';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
@@ -19,7 +19,7 @@ import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
 
 export default function AdminUsersPage() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
@@ -67,7 +67,6 @@ export default function AdminUsersPage() {
   // Debug: Log user role to help diagnose visibility issue
   console.log('Super Admin Users Page - User Role:', userRole, 'User:', user);
 
-  // Get all users data from universal mock database based on current user role
   const getAllUsers = () => {
     const allUsers = getUsers().map(user => {
       if (user.role === 'label_admin') {
@@ -110,7 +109,7 @@ export default function AdminUsersPage() {
 
   // Check admin access and load users
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (!['super_admin', 'company_admin'].includes(role)) {
         router.push('/dashboard');
@@ -121,7 +120,7 @@ export default function AdminUsersPage() {
       setUsers(getAllUsers());
       setLoading(false);
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   // Filter users
   const filteredUsers = users.filter(user => {

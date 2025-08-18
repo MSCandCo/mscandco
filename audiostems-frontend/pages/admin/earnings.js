@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -29,13 +29,13 @@ import {
 } from 'lucide-react';
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { formatNumber, formatPercentage, safeDivide } from '@/lib/number-utils';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 import { useModals } from '@/hooks/useModals';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
 
 export default function SuperAdminEarnings() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
@@ -65,17 +65,17 @@ export default function SuperAdminEarnings() {
 
   // Check super admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (!['super_admin', 'company_admin'].includes(role)) {
         router.push('/dashboard');
         return;
       }
       setLoading(false);
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [isLoading, user, user, router]);
 
   // Super Admin Global Revenue Split Configuration
   const [globalRevenueSplit, setGlobalRevenueSplit] = useState({

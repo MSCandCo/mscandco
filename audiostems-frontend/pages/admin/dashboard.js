@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import { 
   Users, FileText, Music, BarChart3, PieChart, 
@@ -12,11 +12,11 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { getDashboardStats, getUsers, getReleases } from '../../lib/emptyData';
-import { getUserRole } from '../../lib/auth0-config';
+import { getUserRole } from '../../lib/user-utils';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '../../lib/constants';
 
 export default function AdminDashboard() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (!['super_admin', 'company_admin'].includes(role)) {
         router.push('/dashboard');
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
       }
       setLoading(false);
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   // Loading state
   if (isLoading || loading) {

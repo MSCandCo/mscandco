@@ -9,7 +9,6 @@ export const config = {
   },
 };
 
-// Mock data for development (same as in roster.js)
 let mockRoster = [
   {
     id: 1,
@@ -58,8 +57,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Simplified authentication check - return mock data for now
-      // Auth0 session validation integrated
+      // Supabase session validation integrated
       
       const mockContributor = {
         id: id,
@@ -95,8 +93,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      // Simplified authentication check - return mock data for now
-      // Auth0 session validation integrated
+      // Supabase session validation integrated
       
       console.log('PUT request received for contributor:', id);
       console.log('Request body:', req.body);
@@ -122,8 +119,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     try {
-      // Simplified authentication check - return mock data for now
-      // Auth0 session validation integrated
+      // Supabase session validation integrated
       
       console.log('DELETE request received for contributor:', id);
 

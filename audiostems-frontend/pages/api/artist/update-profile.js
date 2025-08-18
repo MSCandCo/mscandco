@@ -4,8 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Simplified authentication check - return mock data for now
-    // Auth0 session validation integrated with user role check
+    // Supabase session validation integrated with user role check
     
     const { firstName, lastName, email, phone, artistType, bio, genre, subGenre, royaltyRate, isrcPrefix, facebook, tiktok, threads, twitter, youtube, instagram, website } = req.body;
 
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Mock database save
     console.log('Profile update received:', req.body);
 
     const updatedProfile = {

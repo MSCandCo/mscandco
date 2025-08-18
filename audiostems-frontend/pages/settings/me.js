@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { apiRoute } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { Formik } from "formik";
 import React from "react";
 
 function MePage() {
-  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { user } = useUser();
 
   return (
     <MainLayout>

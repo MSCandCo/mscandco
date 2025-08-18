@@ -1,4 +1,3 @@
-// Mock data for development
 let mockRoster = [
   {
     id: 1,

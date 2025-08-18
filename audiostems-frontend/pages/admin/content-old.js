@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { ARTISTS, RELEASES, SONGS } from "@/lib/emptyData";
-import { getUserRole } from "@/lib/auth0-config";
+import { getUserRole } from "@/lib/user-utils";
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from "@/lib/constants";
 
 function AdminContent() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("songs");
   const [showModal, setShowModal] = useState(false);
@@ -27,12 +27,11 @@ function AdminContent() {
   // Check if user is admin
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
+    if (!user || !user?.email?.endsWith('@mscandco.com')) {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
-  // Comprehensive mock data for admin content management - matches our database
   const mockSongs = [
     { id: 1, title: 'Urban Beat', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 45000, duration: '3:30' },
     { id: 2, title: 'Street Rhythm', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 38000, duration: '4:15' },
@@ -80,7 +79,6 @@ function AdminContent() {
     { id: 8, name: 'Country', songs: 3, artists: 1, color: '#06B6D4' }
   ];
 
-  // Use mock data instead of API calls
   const songs = { data: mockSongs };
   const stems = { data: mockStems };
   const artists = { data: mockArtists };
@@ -90,7 +88,7 @@ function AdminContent() {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated || !user?.email?.endsWith('@mscandco.com')) {
+  if (!user || !user?.email?.endsWith('@mscandco.com')) {
     return null;
   }
 

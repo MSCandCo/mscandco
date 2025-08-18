@@ -1,6 +1,6 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
@@ -9,7 +9,7 @@ import { getUserById } from '../../lib/emptyData';
 import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistAnalytics() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
@@ -103,7 +103,7 @@ export default function ArtistAnalytics() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your analytics.</div>;
   }
 

@@ -1,4 +1,4 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import Head from 'next/head';
 import { AdminRoute } from '@/components/auth/RoleProtectedRoute';
 import { Card, Button, Badge } from 'flowbite-react';
@@ -15,10 +15,9 @@ export default function AdminUsersPage() {
 }
 
 function AdminUsersContent() {
-  const { user } = useAuth0();
+  const { user } = useUser();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
-  // Comprehensive mock user data - includes all artists and roles from our database
   const mockUsers = [
     {
       id: 1,

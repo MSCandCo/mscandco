@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaFilter, FaSearch } from 'react-icons/fa';
 import { Eye, Edit, Play, CheckCircle, FileText, Filter, Search, Plus } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
-// Import centralized mock data
 import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/emptyData';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS, RELEASE_STATUS_COLORS, getStatusLabel, getStatusColor, getStatusIcon } from '../../lib/constants';
 import { downloadSingleReleaseExcel, downloadMultipleReleasesExcel } from '../../lib/excel-utils';
@@ -23,7 +22,7 @@ const downloadReleaseExcel = async (release) => {
 };
 
 export default function LabelAdminReleases() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [showReleaseDetails, setShowReleaseDetails] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -40,7 +39,7 @@ export default function LabelAdminReleases() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated || userRole !== 'label_admin') {
+  if (!user || userRole !== 'label_admin') {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 

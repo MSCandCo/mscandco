@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaPlus, FaMusic, FaChartLine, FaDollarSign } from 'react-icons/fa';
 import { Plus, Music, TrendingUp, DollarSign } from 'lucide-react';
@@ -8,9 +8,10 @@ import { getEmptyArtists, getEmptyReleases, EMPTY_STATES } from '../../lib/empty
 import { getUsers, getReleases } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import SuccessModal from '../../components/shared/SuccessModal';
+import YHWHVideo from '@/components/shared/YHWHVideo';
 
 export default function LabelAdminArtists() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showAddArtist, setShowAddArtist] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -231,7 +232,7 @@ export default function LabelAdminArtists() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated || userRole !== 'label_admin') {
+  if (!user || userRole !== 'label_admin') {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 
@@ -278,13 +279,28 @@ export default function LabelAdminArtists() {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
+        {/* Video Hero Banner */}
+        <div className="relative mb-8 px-4 sm:px-0">
+          <YHWHVideo 
+            artistName="YHWH"
+            songTitle="Label Artists Showcase"
+            className="aspect-video shadow-2xl"
+            showControls={true}
+          />
+          {/* Overlapping Page Header */}
+          <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
+            <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white">
+              <h1 className="text-4xl font-bold mb-2">My Artists</h1>
+              <p className="text-lg opacity-90">Manage your label's artists and their releases</p>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Artists</h1>
-                <p className="text-sm text-gray-500">Manage your label's artists and their releases</p>
                 {artistCount.isLimited && (
                   <div className="mt-3 flex items-center space-x-2">
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${

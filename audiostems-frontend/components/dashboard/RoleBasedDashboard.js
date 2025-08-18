@@ -1,8 +1,9 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { Card, Badge } from 'flowbite-react';
-import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
+import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import YHWHVideo from '@/components/shared/YHWHVideo';
 import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { EmptyDashboard, EmptyAnalytics, LoadingState } from '@/components/shared/EmptyStates';
@@ -54,76 +55,22 @@ const getEmptyStats = () => ({
 
 // Video component for artist dashboard
 const ArtistVideoSection = () => {
-  const [currentVideo, setCurrentVideo] = useState(null);
-  const [videoType, setVideoType] = useState('');
-  const [isMuted, setIsMuted] = useState(false);
-
-  useEffect(() => {
-    // TODO: Replace with real API call to fetch user's videos
-    // For now, show empty state - no videos to display
-    setCurrentVideo(null);
-    setVideoType('No Videos Available');
-  }, []);
-
-  if (!currentVideo) return null;
 
   return (
-    <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
-      {/* Video Player */}
-      <div className="relative aspect-video">
-        <video
-          src={currentVideo.url}
-          className="w-full h-full object-cover"
-          autoPlay
-          loop
-          muted={isMuted}
-          playsInline
-          controls={false}
-        />
-        
-        {/* Video Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        
-        {/* Video Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold mb-1">{currentVideo.title}</h3>
-              <div className="flex items-center space-x-4 text-sm opacity-90">
-                <span>{currentVideo.views} views</span>
-                <span>{currentVideo.likes} likes</span>
-                <span>{videoType === 'highest' ? '🔥 Trending' : '🆕 New Release'}</span>
-              </div>
-            </div>
-            
-            {/* Mute Control */}
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="bg-black/30 hover:bg-black/50 backdrop-blur-sm rounded-full p-3 transition-all duration-200"
-              title={isMuted ? 'Unmute' : 'Mute'}
-            >
-              {isMuted ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <YHWHVideo 
+      artistName="YHWH"
+      songTitle="Featured Track"
+      className="aspect-video shadow-2xl"
+      showControls={true}
+    />
   );
 };
 
 export default function RoleBasedDashboard() {
-  const { user, isAuthenticated } = useAuth0();
+  const { user } = useUser();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
-  if (!isAuthenticated || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -134,7 +81,7 @@ export default function RoleBasedDashboard() {
     );
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const displayBrand = getDefaultDisplayBrand(user);
   const userBrand = getUserBrand(user);
 

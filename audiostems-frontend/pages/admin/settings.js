@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import { 
   Settings, Shield, Globe, Database, Server, Bell, 
@@ -9,13 +9,13 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 import NotificationModal from '@/components/shared/NotificationModal';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import useModals from '@/hooks/useModals';
 
 export default function SuperAdminSettings() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('platform');
@@ -37,17 +37,17 @@ export default function SuperAdminSettings() {
 
   // Check super admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (role !== 'super_admin') {
         router.push('/dashboard');
         return;
       }
       setLoading(false);
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [isLoading, user, user, router]);
 
   // Platform Configuration State
   const [platformConfig, setPlatformConfig] = useState({
@@ -383,15 +383,15 @@ export default function SuperAdminSettings() {
       </div>
 
       <div className="space-y-8">
-        {/* Auth0 Configuration */}
+        {/* Supabase Configuration */}
         <div className="border border-gray-200 rounded-lg p-6">
           <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
             <Key className="w-5 h-5 mr-2 text-blue-600" />
-            Auth0 Configuration
+            Supabase Configuration
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Auth0 Domain</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Supabase Domain</label>
               <input
                 type="text"
                 value={integrationConfig.auth0Domain}

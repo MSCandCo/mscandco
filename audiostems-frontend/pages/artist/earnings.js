@@ -1,6 +1,6 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect, useRef } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
@@ -8,7 +8,7 @@ import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 import { getUserById } from '../../lib/emptyData';
 
 export default function ArtistEarnings() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
@@ -106,7 +106,7 @@ export default function ArtistEarnings() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your earnings.</div>;
   }
 

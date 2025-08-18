@@ -1,5 +1,5 @@
 import { stripe, STRIPE_CONFIG } from '../../../lib/stripe';
-import { getUserRole } from '../../../lib/auth0-config';
+import { getUserRole } from '../../../lib/user-utils';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

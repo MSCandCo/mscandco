@@ -1,10 +1,10 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import Layout from '../components/layouts/mainLayout';
 import Container from '../components/container';
 import { useState } from 'react';
 
 export default function Support() {
-  const { isAuthenticated, user } = useAuth0();
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('faq');
 
   const faqs = [

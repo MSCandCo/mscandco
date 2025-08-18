@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Card, Badge } from 'flowbite-react';
 import moment from 'moment';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 import { formatNumber as globalFormatNumber } from '@/lib/number-utils';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
@@ -59,7 +59,7 @@ const statusConfig = {
 };
 
 export default function WorkflowVisualization() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showArchived, setShowArchived] = useState(false);
@@ -75,14 +75,14 @@ export default function WorkflowVisualization() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (role !== 'company_admin' && role !== 'super_admin') {
         router.push('/dashboard');
         return;
       }
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   // Filter workflows based on status and archive state
   const filteredWorkflows = useMemo(() => {

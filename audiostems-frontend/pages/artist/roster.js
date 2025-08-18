@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole } from '../../lib/user-utils';
 import { 
   FaPlus, 
   FaEdit, 
@@ -20,141 +20,11 @@ import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
 import Avatar from '@/components/shared/Avatar';
-
-// Mock contributor videos data
-const mockContributorVideos = [
-  {
-    id: 'cv-001',
-    contributor: 'Sarah Johnson',
-    title: 'Guitar Solo - Midnight Sessions',
-    url: '/videos/contributor-guitar-solo.mp4',
-    views: '156K',
-    likes: '8.2K',
-    contributorType: 'guitarist',
-    performance: 'featured'
-  },
-  {
-    id: 'cv-002',
-    contributor: 'Mike Chen',
-    title: 'Drum Performance - Studio Session',
-    url: '/videos/contributor-drum-performance.mp4',
-    views: '89K',
-    likes: '4.5K',
-    contributorType: 'drummer',
-    performance: 'featured'
-  },
-  {
-    id: 'cv-003',
-    contributor: 'Alex Rivera',
-    title: 'Vocal Recording - Behind the Scenes',
-    url: '/videos/contributor-vocal-recording.mp4',
-    views: '234K',
-    likes: '12.1K',
-    contributorType: 'vocalist',
-    performance: 'featured'
-  },
-  {
-    id: 'cv-004',
-    contributor: 'DJ K-Lo',
-    title: 'Producer Session - Beat Making',
-    url: '/videos/contributor-producer-session.mp4',
-    views: '178K',
-    likes: '9.3K',
-    contributorType: 'producer',
-    performance: 'featured'
-  },
-  {
-    id: 'cv-005',
-    contributor: 'The Midnight Collective',
-    title: 'Band Performance - Live Studio',
-    url: '/videos/contributor-band-performance.mp4',
-    views: '445K',
-    likes: '23.7K',
-    contributorType: 'group',
-    performance: 'featured'
-  }
-];
-
-// Video component for roster page
-const ContributorVideoSection = () => {
-  const [currentVideo, setCurrentVideo] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
-
-  useEffect(() => {
-    // Randomly choose a contributor video
-    const randomVideo = mockContributorVideos[Math.floor(Math.random() * mockContributorVideos.length)];
-    setCurrentVideo(randomVideo);
-    
-    // Switch videos every 45 seconds
-    const interval = setInterval(() => {
-      const newRandomVideo = mockContributorVideos[Math.floor(Math.random() * mockContributorVideos.length)];
-      setCurrentVideo(newRandomVideo);
-    }, 45000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!currentVideo) return null;
-
-  return (
-    <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
-      {/* Video Player */}
-      <div className="relative aspect-video">
-        <video
-          src={currentVideo.url}
-          className="w-full h-full object-cover"
-          autoPlay
-          loop
-          muted={isMuted}
-          playsInline
-          controls={false}
-        />
-        
-        {/* Video Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        
-        {/* Video Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold mb-1">{currentVideo.title}</h3>
-              <div className="flex items-center space-x-4 text-sm opacity-90">
-                <span className="font-medium">{currentVideo.contributor}</span>
-                <span>•</span>
-                <span>{currentVideo.contributorType}</span>
-                <span>•</span>
-                <span>{currentVideo.views} views</span>
-                <span>•</span>
-                <span>{currentVideo.likes} likes</span>
-              </div>
-            </div>
-            
-            {/* Mute Control */}
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="bg-black/30 hover:bg-black/50 backdrop-blur-sm rounded-full p-3 transition-all duration-200"
-              title={isMuted ? 'Unmute' : 'Mute'}
-            >
-              {isMuted ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import YHWHVideo from '@/components/shared/YHWHVideo';
 
 export default function ArtistRoster() {
 
-  const { user, isLoading: authLoading } = useAuth0();
+  const { user, isLoading: authLoading } = useUser();
   const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -377,7 +247,12 @@ export default function ArtistRoster() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Video Hero Banner */}
         <div className="relative mb-8 px-4 sm:px-0">
-          <ContributorVideoSection />
+          <YHWHVideo 
+            artistName="YHWH"
+            songTitle="Contributor Showcase"
+            className="aspect-video shadow-2xl"
+            showControls={true}
+          />
           {/* Overlapping Page Header */}
           <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
             <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-6 text-white">

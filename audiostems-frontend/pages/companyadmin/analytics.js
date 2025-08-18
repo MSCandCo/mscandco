@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import { 
   BarChart3, TrendingUp, Users, Clock, 
@@ -9,10 +9,10 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { getReleases, getUsers } from '@/lib/emptyData';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 
 export default function CompanyAdminAnalytics() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
@@ -28,17 +28,17 @@ export default function CompanyAdminAnalytics() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (role !== 'company_admin') {
         router.push('/dashboard');
         return;
       }
       setLoading(false);
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [isLoading, user, user, router]);
 
   // Business Operations Analytics
   const businessMetrics = {

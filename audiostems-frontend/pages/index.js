@@ -7,7 +7,7 @@ import { apiRoute, resourceUrl } from "@/lib/utils";
 import { Tab, Transition } from "@headlessui/react";
 import classNames from "classnames";
 import { Button } from "flowbite-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from "@/components/providers/SupabaseProvider";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
@@ -71,14 +71,14 @@ export default function Home() {
     apiRoute("/playlists?populate=*&sort=createdAt:desc&pagination[limit]=8")
   );
 
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (user && !isLoading) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [user, isLoading, router]);
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -92,7 +92,7 @@ export default function Home() {
   }
 
   // Don't render homepage content for authenticated users (will redirect)
-  if (isAuthenticated) {
+  if (user) {
     return null;
   }
 

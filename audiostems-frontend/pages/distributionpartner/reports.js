@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole } from '@/lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { formatGrowthPercentage } from '@/lib/number-utils';
@@ -40,7 +40,7 @@ ChartJS.register(
 );
 
 export default function PartnerReports() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -192,7 +192,7 @@ export default function PartnerReports() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -396,7 +396,6 @@ export default function PartnerReports() {
     }
   ];
 
-  // Detailed mock earnings data for export with Other Platforms
   const detailedEarningsData = [
     {
       month: 'January 2024',
@@ -487,7 +486,6 @@ export default function PartnerReports() {
     }
   ];
 
-  // Comprehensive mock data for filters - matches full database
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
     { id: 'yhwh_msc', name: 'YHWH MSC' },

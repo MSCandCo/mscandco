@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
@@ -15,7 +15,7 @@ import ExportSettingsModal from "@/components/export/ExportSettingsModal";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 function DistributionPartnerDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all-creations");
   const [showFilters, setShowFilters] = useState(false);
@@ -28,10 +28,10 @@ function DistributionPartnerDashboard() {
   // Check if user is distribution partner
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
+    if (!user || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   const { data: creations, mutate: mutateCreations } = useSWR(
     apiRoute("/creations?populate=*&sort=createdAt:desc")
@@ -53,7 +53,7 @@ function DistributionPartnerDashboard() {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
+  if (!user || !user || user['https://mscandco.com/role'] !== 'distribution_partner') {
     return null;
   }
 

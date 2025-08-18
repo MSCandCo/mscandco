@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { 
@@ -11,10 +11,10 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { getUsers, getReleases } from '../../lib/emptyData';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 
 export default function CompanyAdminDashboard() {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
@@ -50,7 +50,6 @@ export default function CompanyAdminDashboard() {
 
   
   
-  // Calculate real statistics from mock database
   const totalRevenue = artists.reduce((total, artist) => total + (artist.totalRevenue || artist.totalEarnings || 0), 0);
   const totalStreams = artists.reduce((total, artist) => total + (artist.totalStreams || 0), 0);
   const totalReleases = artists.reduce((total, artist) => total + (artist.totalReleases || 0), 0);
@@ -122,7 +121,7 @@ export default function CompanyAdminDashboard() {
 
   // Check admin access
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && user) {
       const role = getUserRole(user);
       if (role !== 'company_admin') {
         router.push('/dashboard');
@@ -130,7 +129,7 @@ export default function CompanyAdminDashboard() {
       }
       setLoading(false);
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [user, isLoading, user, router]);
 
   // Loading state
   if (isLoading || loading) {

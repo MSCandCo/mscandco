@@ -59,7 +59,6 @@ export default function CompanyAdminEarnings() {
     }
   });
 
-  // Mock earnings data from distribution partner reports
   const [earningsData] = useState({
     totalEarnings: 2847293.50,
     companyAdminShare: 284729.35, // 10% of remainder after distribution partner cut

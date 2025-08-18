@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaUsers, FaMusic, FaChartLine, FaDollarSign, FaCalendar, FaEye, FaEdit, FaPlus, FaDownload, FaTimes, FaSearch, FaFilter } from 'react-icons/fa';
 import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Download, Search, Filter } from 'lucide-react';
@@ -32,7 +32,7 @@ const downloadAllReleasesExcel = async (releases) => {
 };
 
 export default function LabelAdminDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showAddArtist, setShowAddArtist] = useState(false);
@@ -190,7 +190,7 @@ export default function LabelAdminDashboard() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated || userRole !== 'label_admin') {
+  if (!user || userRole !== 'label_admin') {
     return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   }
 

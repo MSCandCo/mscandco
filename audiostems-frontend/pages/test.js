@@ -30,7 +30,7 @@ export default function TestPage() {
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>✅ Next.js 15.3.5 running</li>
                 <li>✅ Tailwind CSS active</li>
-                <li>✅ Auth0 ready</li>
+                <li>✅ Supabase ready</li>
                 <li>✅ Stripe integration ready</li>
                 <li>✅ All improvements intact</li>
               </ul>

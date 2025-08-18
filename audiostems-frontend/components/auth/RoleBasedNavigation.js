@@ -1,7 +1,7 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { getUserRole, getDefaultDisplayBrand, getUserBrand } from '@/lib/auth0-config';
+import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
 import { Dropdown } from "flowbite-react";
 import {
   FileText,
@@ -18,7 +18,7 @@ import { useState, useEffect } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 export default function RoleBasedNavigation() {
-  const { user, isAuthenticated, logout } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const [fundsData, setFundsData] = useState({
@@ -49,7 +49,7 @@ export default function RoleBasedNavigation() {
 
   // Fetch profile data to get first and last name
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && user) {
       fetch('/api/artist/get-profile')
         .then(res => res.json())
         .then(data => {
@@ -57,53 +57,19 @@ export default function RoleBasedNavigation() {
         })
         .catch(err => console.error('Error fetching profile:', err));
     }
-  }, [isAuthenticated, user]);
+  }, [user, user]);
 
-  if (!isAuthenticated || !user) {
+  if (!user || !user) {
     return null;
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const displayBrand = getDefaultDisplayBrand(user);
 
   // Get display name with role and label information
   const getDisplayName = () => {
-    const userBrandInfo = getUserBrand(user);
-    
-    // Get first and last name
-    const firstName = profileData?.firstName || user?.given_name || '';
-    const lastName = profileData?.lastName || user?.family_name || '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    
-    // Role display mapping
-    const roleDisplayMap = {
-      'label_admin': 'Label Admin',
-      'artist': 'Artist',
-      'distribution_partner': 'Distribution Partner',
-      'super_admin': 'Super Admin',
-      'company_admin': 'Company Admin'
-    };
-    
-    const roleDisplay = roleDisplayMap[userRole] || 'User';
-    const labelName = userBrandInfo?.displayName || userBrandInfo?.name || 'Platform';
-    
-    // For label admin, show "First Last, Label Admin at Label Name" or "email, Label Admin at Label Name"
-    if (userRole === 'label_admin') {
-      return `${fullName || user?.email || 'User'}, ${roleDisplay} at ${labelName}`;
-    }
-    
-    // For other non-artist roles, show "First Last, Role" or "email, Role"
-    if (userRole && userRole !== 'artist') {
-      return `${fullName || user?.email || 'User'}, ${roleDisplay}`;
-    }
-    
-    // For artists: show full name if available, otherwise show email
-    if (userRole === 'artist') {
-      return fullName || user?.email || 'User';
-    }
-    
-    // Fallback
-    return fullName || user?.email || 'User';
+    // Simple approach - just return email, no async calls
+    return user?.email || 'User';
   };
 
   const getDistributionPartnerDisplayName = () => {
@@ -622,7 +588,7 @@ export default function RoleBasedNavigation() {
 
           <div className="flex items-center space-x-2">
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {userRole?.replace('_', ' ').toUpperCase()}
+              {String(userRole || '').replace('_', ' ').toUpperCase()}
             </span>
             
             <Dropdown

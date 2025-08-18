@@ -3,7 +3,7 @@ import { apiRoute, resourceUrl } from "@/lib/utils";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import axios from "axios";
 import { Button } from "flowbite-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { saveAs } from "file-saver";
 import React, {
@@ -49,7 +49,7 @@ function Player({ children }) {
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState();
   const [song, setSong] = useState(false);
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -89,7 +89,7 @@ function Player({ children }) {
   }, [song]);
 
   const downloadSong = async () => {
-    if (isAuthenticated) {
+    if (user) {
       try {
         const { data: songFile, headers } = await axios.get(
           apiRoute(`/song/download/${song.id}`),

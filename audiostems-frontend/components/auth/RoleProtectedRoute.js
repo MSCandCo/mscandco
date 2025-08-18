@@ -1,7 +1,7 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { getUserRole } from '@/lib/auth0-config';
+import { getUserRole } from '@/lib/user-utils';
 
 export default function RoleProtectedRoute({ 
   children, 
@@ -9,11 +9,11 @@ export default function RoleProtectedRoute({
   fallback = null,
   redirectTo = '/dashboard'
 }) {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
+    if (!isLoading && user && user) {
       const userRole = getUserRole(user);
       
       // If no specific roles are required, allow access
@@ -27,7 +27,7 @@ export default function RoleProtectedRoute({
         router.push(redirectTo);
       }
     }
-  }, [isAuthenticated, isLoading, user, allowedRoles, router, redirectTo]);
+  }, [user, isLoading, user, allowedRoles, router, redirectTo]);
 
   // Show loading state
   if (isLoading) {
@@ -42,7 +42,7 @@ export default function RoleProtectedRoute({
   }
 
   // Show fallback if not authenticated
-  if (!isAuthenticated) {
+  if (!user) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

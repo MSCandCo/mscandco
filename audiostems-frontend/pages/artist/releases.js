@@ -1,9 +1,8 @@
 // 🎯 ARTIST RELEASES - CLEAN & OPTIMIZED
-// Uses centralized data from lib/mockData.js - NO duplicate data
 
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { getUserRole, getUserBrand } from '../../lib/auth0-config';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { getUserRole, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
@@ -38,7 +37,7 @@ import { EmptyReleases, LoadingState } from '../../components/shared/EmptyStates
  */
 
 export default function ArtistReleases() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isLoading } = useUser();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [releases, setReleases] = useState([]);
   const [profileData, setProfileData] = useState(null);
@@ -100,10 +99,10 @@ export default function ArtistReleases() {
       }
     };
 
-    if (isAuthenticated && !isLoading) {
+    if (user && !isLoading) {
       loadData();
     }
-  }, [isAuthenticated, isLoading, user?.sub]);
+  }, [user, isLoading, user?.sub]);
 
   // 🎯 Calculate release counts for starter plan limits
   const releaseCount = useMemo(() => {
@@ -268,7 +267,7 @@ export default function ArtistReleases() {
     );
   }
 
-  if (!isAuthenticated || userRole !== 'artist') {
+  if (!user || userRole !== 'artist') {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
