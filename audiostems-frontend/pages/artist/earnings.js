@@ -1,6 +1,6 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect, useRef } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, ChevronDown, Globe } from 'lucide-react';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
@@ -16,76 +16,20 @@ export default function ArtistEarnings() {
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
 
-  // Get artist data from universal database
-  const artistData = getUserById('artist_yhwh_msc') || getUserById('artist_global_superstar') || { totalRevenue: 12450, totalStreams: 875000 };
-  
+  // Earnings data - will be populated from real API data
   const [earningsData] = useState({
-    totalEarnings: artistData.totalRevenue || artistData.totalEarnings || 12450,
-    pendingEarnings: Math.round((artistData.totalRevenue || 12450) * 0.19), // 19% pending
-    heldEarnings: Math.round((artistData.totalRevenue || 12450) * 0.13), // 13% held
-    pendingWithdrawal: Math.round((artistData.totalRevenue || 12450) * 0.03), // 3% in transit
+    totalEarnings: 0,
+    pendingEarnings: 0,
+    heldEarnings: 0,
+    pendingWithdrawal: 0,
     minimumCashoutThreshold: 100,
     minimumBalance: 100,
-    thisMonth: Math.round((artistData.totalRevenue || 12450) * 0.28), // 28% this month
-    lastMonth: Math.round((artistData.totalRevenue || 12450) * 0.23), // 23% last month  
-    thisYear: artistData.totalRevenue || artistData.totalEarnings || 12450,
-    lastYear: Math.round((artistData.totalRevenue || 12450) * 0.72), // 72% of current
-    monthlyData: [
-      { month: 'Jan', earnings: 2100, streams: 45000 },
-      { month: 'Feb', earnings: 1800, streams: 38000 },
-      { month: 'Mar', earnings: 2400, streams: 52000 },
-      { month: 'Apr', earnings: 2200, streams: 48000 },
-      { month: 'May', earnings: 2800, streams: 61000 },
-      { month: 'Jun', earnings: 3200, streams: 72000 },
-      { month: 'Jul', earnings: 2900, streams: 65000 },
-      { month: 'Aug', earnings: 3100, streams: 68000 },
-      { month: 'Sep', earnings: 2600, streams: 58000 },
-      { month: 'Oct', earnings: 2400, streams: 52000 },
-      { month: 'Nov', earnings: 2800, streams: 61000 },
-      { month: 'Dec', earnings: 3500, streams: 78000 }
-    ],
-    recentTransactions: [
-      {
-        id: 1,
-        type: 'streaming',
-        amount: 450,
-        date: '2024-01-15',
-        platform: 'Spotify',
-        status: 'paid'
-      },
-      {
-        id: 2,
-        type: 'download',
-        amount: 120,
-        date: '2024-01-14',
-        platform: 'iTunes',
-        status: 'pending'
-      },
-      {
-        id: 3,
-        type: 'streaming',
-        amount: 380,
-        date: '2024-01-13',
-        platform: 'Apple Music',
-        status: 'paid'
-      },
-      {
-        id: 4,
-        type: 'sync',
-        amount: 800,
-        date: '2024-01-12',
-        platform: 'Film License',
-        status: 'paid'
-      },
-      {
-        id: 5,
-        type: 'streaming',
-        amount: 290,
-        date: '2024-01-11',
-        platform: 'YouTube Music',
-        status: 'pending'
-      }
-    ]
+    thisMonth: 0,
+    lastMonth: 0,
+    thisYear: 0,
+    lastYear: 0,
+    monthlyData: [],
+    recentTransactions: []
   });
 
 
@@ -110,7 +54,7 @@ export default function ArtistEarnings() {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your earnings.</div>;
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // Only allow artists to access this page

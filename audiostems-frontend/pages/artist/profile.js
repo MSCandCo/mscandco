@@ -1,7 +1,9 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
+import { NationalityDropdown, CountryDropdown, CityDropdown } from '../../components/shared/IntelligentDropdowns';
+import { GENRES, VOCAL_TYPES } from '../../lib/constants';
 
 
 export default function ArtistProfile() {
@@ -223,7 +225,7 @@ export default function ArtistProfile() {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your profile.</div>;
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   if (userRole !== 'artist') {
     return (
       <Layout>
@@ -237,11 +239,7 @@ export default function ArtistProfile() {
     );
   }
 
-  const genres = [
-    'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Country', 'Jazz', 'Classical',
-    'Folk', 'Blues', 'Reggae', 'Latin', 'World', 'Alternative', 'Indie', 'Metal',
-    'Punk', 'Soul', 'Funk', 'Gospel', 'EDM', 'House', 'Techno', 'Trap', 'Dubstep'
-  ];
+  // Use centralized genres constant
 
   const artistTypes = [
     'Solo Artist',
@@ -266,7 +264,7 @@ export default function ArtistProfile() {
     'Banjo', 'Mandolin', 'Ukulele', 'Accordion', 'Organ', 'Harp', 'Percussion'
   ];
 
-  const vocalTypes = ['Soprano', 'Alto', 'Tenor', 'Baritone', 'Bass', 'Mixed'];
+  // Use centralized vocal types constant
 
   return (
     <Layout>
@@ -424,17 +422,11 @@ export default function ArtistProfile() {
                         <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
                       )}
                     </label>
-                    <input
-                      type="text"
+                    <NationalityDropdown
                       value={formData.nationality}
-                      onChange={(e) => handleInputChange('nationality', e.target.value)}
+                      onChange={(value) => handleInputChange('nationality', value)}
                       disabled={profile.isBasicInfoSet || !isEditing}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        profile.isBasicInfoSet || !isEditing
-                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
-                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
-                      }`}
-                      placeholder={!profile.isBasicInfoSet ? "Enter your nationality" : ""}
+                      className={profile.isBasicInfoSet || !isEditing ? 'opacity-60' : ''}
                     />
                   </div>
                   <div>
@@ -444,17 +436,11 @@ export default function ArtistProfile() {
                         <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
                       )}
                     </label>
-                    <input
-                      type="text"
+                    <CountryDropdown
                       value={formData.country}
-                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      onChange={(value) => handleInputChange('country', value)}
                       disabled={profile.isBasicInfoSet || !isEditing}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        profile.isBasicInfoSet || !isEditing
-                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
-                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
-                      }`}
-                      placeholder={!profile.isBasicInfoSet ? "Enter your country" : ""}
+                      className={profile.isBasicInfoSet || !isEditing ? 'opacity-60' : ''}
                     />
                   </div>
                   <div>
@@ -464,17 +450,11 @@ export default function ArtistProfile() {
                         <span className="ml-2 text-xs text-amber-600">(Cannot be changed after registration)</span>
                       )}
                     </label>
-                    <input
-                      type="text"
+                    <CityDropdown
                       value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      onChange={(value) => handleInputChange('city', value)}
                       disabled={profile.isBasicInfoSet || !isEditing}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        profile.isBasicInfoSet || !isEditing
-                          ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
-                          : 'border-amber-300 bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
-                      }`}
-                      placeholder={!profile.isBasicInfoSet ? "Enter your city" : ""}
+                      className={profile.isBasicInfoSet || !isEditing ? 'opacity-60' : ''}
                     />
                   </div>
                 </div>
@@ -551,7 +531,7 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Select Genre</option>
-                    {genres.map(genre => (
+                    {GENRES.map(genre => (
                       <option key={genre} value={genre}>{genre}</option>
                     ))}
                   </select>
@@ -565,7 +545,7 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Select Vocal Type</option>
-                    {vocalTypes.map(type => (
+                    {VOCAL_TYPES.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>

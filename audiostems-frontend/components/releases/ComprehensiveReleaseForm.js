@@ -1,865 +1,843 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Save, 
-  Send, 
-  Upload, 
-  Plus, 
-  Trash2, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  Music,
-  Image as ImageIcon,
-  Calendar,
-  DollarSign,
-  Users,
-  Globe,
-  FileText,
-  Edit3
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash, FaUser, FaCopy } from 'react-icons/fa';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { RELEASE_TYPES, GENRES, VOCAL_TYPES, SONG_KEYS, LANGUAGES } from '../../lib/constants';
 
-const ComprehensiveReleaseForm = ({ 
-  release = null, 
-  onSave, 
-  onSubmit,
-  isEditing = true,
-  isSaving = false,
-  isSubmitting = false,
-  errors = {},
-  userRole = 'artist',
-  autoSaveEnabled = true
-}) => {
-  // Form state management
+// Comprehensive release form with asset-level data collection
+export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRelease = null, userRole = 'artist' }) {
   const [formData, setFormData] = useState({
-    // Basic Release Information
+    // Project/Release Level Data
     projectName: '',
-    artistName: '',
-    releaseTitle: '',
-    releaseType: 'single',
-    primaryGenre: '',
-    secondaryGenres: [],
-    language: 'English',
-    releaseDate: '',
-    originalReleaseDate: '',
-    
-    // Catalog & Identification
+    releaseType: 'Single', // Single, EP, Album
+    expectedReleaseDate: '',
+    primaryArtist: '',
+    label: '',
     catalogueNo: '',
-    barcode: '',
     upc: '',
-    isrc: '',
-    tunecode: '',
-    iceWorkKey: '',
-    iswc: '',
-    bowi: '',
     
-    // Publishing Information
-    composer: '',
-    lyricist: '',
-    publisher: '',
-    publisherSplit: 0,
-    publishingType: 'exclusive',
-    pro: '',
-    caeIpi: '',
-    
-    // Audio Information
-    duration: '',
-    bpm: null,
-    songKey: '',
-    explicit: false,
-    
-    // Production Credits
-    producer: '',
-    coproducer: '',
-    executiveProducer: '',
-    mixingEngineer: '',
-    masteringEngineer: '',
-    recordingEngineer: '',
-    assistantProducer: '',
-    additionalProduction: '',
-    engineer: '',
-    editing: '',
-    
-    // Studio Information
-    recordingStudio: '',
-    masteringStudio: '',
-    recordingLocation: '',
-    
-    // Instrumentation
-    keyboards: '',
-    programming: '',
-    bass: '',
-    drums: '',
-    guitars: '',
-    organ: '',
-    percussion: '',
-    strings: '',
-    additionalInstrumentation: '',
-    
-    // Creative Information
-    designArtDirection: '',
-    artworkPhotographer: '',
-    artworkDesigner: '',
-    
-    // Professional Contacts
-    management: '',
-    bookingAgent: '',
-    pressContact: '',
-    labelContact: '',
-    
-    // Online Presence & Marketing
-    website: '',
-    socialMedia: {
-      facebook: '',
-      instagram: '',
-      twitter: '',
-      youtube: '',
-      tiktok: '',
-      soundcloud: '',
-      bandcamp: ''
-    },
-    
-    // Distribution & Platforms
-    distributionPlatforms: [],
-    excludedTerritories: [],
-    distributionStartDate: '',
-    distributionEndDate: '',
-    digitalReleaseDate: '',
-    physicalReleaseDate: '',
-    
-    // Rights & Licensing
-    masterOwner: '',
-    publishingOwner: '',
-    copyrightHolder: '',
-    copyrightYear: new Date().getFullYear(),
-    recordingYear: new Date().getFullYear(),
-    publishingYear: new Date().getFullYear(),
-    
-    // Commercial Information
-    suggestedRetailPrice: '',
-    wholesalePrice: '',
-    digitalPrice: '',
-    
-    // File Information
-    audioFiles: [],
-    artworkFiles: [],
-    lyricFiles: [],
-    
-    // Additional Metadata
-    mood: '',
-    tempo: '',
-    instruments: [],
-    vocals: '',
-    songwriters: [],
-    
-    // Marketing & Promotion
-    marketingPlan: '',
-    targetAudience: '',
-    campaignBudget: '',
-    promotionalAssets: [],
-    
-    // Legal & Business
-    splitSheets: [],
-    contracts: [],
-    clearances: [],
-    
-    // Release Notes & Internal
-    releaseNotes: '',
-    internalNotes: '',
-    specialInstructions: '',
-    
-    // Workflow specific fields
-    status: 'draft',
-    workflowStep: 'artist_creation',
-    artistCanEdit: true,
-    labelAdminId: null,
-    companyAdminId: null,
-    distributionPartnerId: null,
-    
-    // Revenue split
-    artistPercentage: 70,
-    labelPercentage: 20,
-    companyPercentage: 10,
-    distributionPartnerPercentage: 10,
-    useCustomSplit: false
-  });
-
-  // UI state
-  const [expandedSections, setExpandedSections] = useState({
-    basic: true,
-    catalog: false,
-    publishing: false,
-    audio: false,
-    production: false,
-    creative: false,
-    marketing: false,
-    distribution: false,
-    legal: false,
-    revenue: false
-  });
-
-  // Auto-save management
-  const [lastSaved, setLastSaved] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const autoSaveTimeoutRef = useRef(null);
-
-  // Initialize form with existing release data
-  useEffect(() => {
-    if (release) {
-      setFormData(prevData => ({
-        ...prevData,
-        ...release
-      }));
-    }
-  }, [release]);
-
-  // Auto-save functionality
-  useEffect(() => {
-    if (autoSaveEnabled && hasUnsavedChanges && formData.projectName) {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
+    // Assets (individual tracks)
+    assets: [{
+      // Basic Asset Info
+      songTitle: '',
+      assetPosition: 1,
+      duration: '',
+      explicit: false,
+      version: '',
+      altTitle: '',
       
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        handleAutoSave();
-      }, 3000); // Auto-save after 3 seconds of inactivity
-    }
+      // Audio Details
+      bpm: '',
+      songKey: '',
+      language: 'English',
+      vocalType: '',
+      mood: '',
+      tags: [],
+      lyrics: '',
+      
+      // Genre & Classification
+      genre: '',
+      subGenre: '',
+      
+      // Rights & Publishing
+      isrc: '',
+      iswc: '',
+      copyrightYear: new Date().getFullYear(),
+      copyrightOwner: '',
+      pLine: '',
+      cLine: '',
+      
+      // Previous Release Info
+      previouslyReleased: false,
+      previousReleaseDate: '',
+      recordingCountry: '',
+      
+      // Contributors (People who will be added to roster)
+      contributors: {
+        // Primary Contributors
+        composers: [],
+        producers: [],
+        featuredArtists: [],
+        backgroundVocalists: [],
+        
+        // Technical Contributors
+        mixingEngineers: [],
+        masteringEngineers: [],
+        recordingEngineers: [],
+        
+        // Musicians
+        keyboardists: [],
+        guitarists: [],
+        bassists: [],
+        drummers: [],
+        
+        // Other
+        executiveProducers: [],
+        coProducers: [],
+        assistantProducers: []
+      },
+      
+      // Publishing Information
+      publishingInfo: {
+        publishers: [],
+        publishingAdmins: [],
+        pro: '',
+        caeIpi: '',
+        publisherIpi: '',
+        publishingAdminIpi: '',
+        bmWorkNumber: '',
+        ascapWorkNumber: '',
+        territory: 'Worldwide'
+      },
+      
+      // Recording Details
+      recordingInfo: {
+        recordingStudio: '',
+        masteringStudio: '',
+        recordingDate: ''
+      }
+    }]
+  });
 
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
+  const [expandedAssets, setExpandedAssets] = useState([0]);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // All dropdown options come from centralized constants
+
+  // Add new asset
+  const addAsset = () => {
+    const newAsset = {
+      ...formData.assets[0], // Copy structure from first asset
+      songTitle: '',
+      assetPosition: formData.assets.length + 1,
+      contributors: {
+        composers: [],
+        producers: [],
+        featuredArtists: [],
+        backgroundVocalists: [],
+        mixingEngineers: [],
+        masteringEngineers: [],
+        recordingEngineers: [],
+        keyboardists: [],
+        guitarists: [],
+        bassists: [],
+        drummers: [],
+        executiveProducers: [],
+        coProducers: [],
+        assistantProducers: []
       }
     };
-  }, [formData, hasUnsavedChanges, autoSaveEnabled]);
 
-  const handleAutoSave = async () => {
-    if (onSave && userRole !== 'distribution_partner') {
-      try {
-        await onSave({ ...formData, status: 'draft' });
-        setLastSaved(new Date());
-        setHasUnsavedChanges(false);
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-      }
-    }
-  };
-
-  const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      assets: [...prev.assets, newAsset]
     }));
-    setHasUnsavedChanges(true);
+
+    setExpandedAssets(prev => [...prev, formData.assets.length]);
   };
 
-  const handleNestedChange = (parent, field, value) => {
+  // Remove asset
+  const removeAsset = (index) => {
+    if (formData.assets.length <= 1) return; // Don't allow removing the last asset
+    
     setFormData(prev => ({
       ...prev,
-      [parent]: {
-        ...prev[parent],
-        [field]: value
-      }
+      assets: prev.assets.filter((_, i) => i !== index).map((asset, i) => ({
+        ...asset,
+        assetPosition: i + 1
+      }))
     }));
-    setHasUnsavedChanges(true);
+
+    setExpandedAssets(prev => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i));
   };
 
-  const handleArrayChange = (field, index, value) => {
-    setFormData(prev => {
-      const newArray = [...(prev[field] || [])];
-      newArray[index] = value;
-      return {
-        ...prev,
-        [field]: newArray
-      };
-    });
-    setHasUnsavedChanges(true);
-  };
-
-  const addArrayItem = (field, defaultValue = '') => {
+  // Update asset data
+  const updateAsset = (assetIndex, field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: [...(prev[field] || []), defaultValue]
+      assets: prev.assets.map((asset, i) => 
+        i === assetIndex ? { ...asset, [field]: value } : asset
+      )
     }));
-    setHasUnsavedChanges(true);
   };
 
-  const removeArrayItem = (field, index) => {
+  // Update nested asset data (like contributors)
+  const updateAssetNested = (assetIndex, section, field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: (prev[field] || []).filter((_, i) => i !== index)
+      assets: prev.assets.map((asset, i) => 
+        i === assetIndex ? {
+          ...asset,
+          [section]: {
+            ...asset[section],
+            [field]: value
+          }
+        } : asset
+      )
     }));
-    setHasUnsavedChanges(true);
   };
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
+  // Add contributor to asset
+  const addContributor = (assetIndex, contributorType) => {
+    const newContributor = {
+      id: Date.now(),
+      name: '',
+      role: contributorType,
+      isni: '',
+      pro: '',
+      caeIpi: ''
+    };
+
+    setFormData(prev => ({
       ...prev,
-      [section]: !prev[section]
+      assets: prev.assets.map((asset, i) => 
+        i === assetIndex ? {
+          ...asset,
+          contributors: {
+            ...asset.contributors,
+            [contributorType]: [...asset.contributors[contributorType], newContributor]
+          }
+        } : asset
+      )
     }));
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(formData);
-      setHasUnsavedChanges(false);
-    }
+  // Remove contributor from asset
+  const removeContributor = (assetIndex, contributorType, contributorId) => {
+    setFormData(prev => ({
+      ...prev,
+      assets: prev.assets.map((asset, i) => 
+        i === assetIndex ? {
+          ...asset,
+          contributors: {
+            ...asset.contributors,
+            [contributorType]: asset.contributors[contributorType].filter(c => c.id !== contributorId)
+          }
+        } : asset
+      )
+    }));
   };
 
-  const handleSubmit = () => {
-    if (onSubmit) {
-      const submitData = {
-        ...formData,
-        status: getNextStatus()
-      };
-      onSubmit(submitData);
-    }
+  // Update contributor data
+  const updateContributor = (assetIndex, contributorType, contributorId, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      assets: prev.assets.map((asset, i) => 
+        i === assetIndex ? {
+          ...asset,
+          contributors: {
+            ...asset.contributors,
+            [contributorType]: asset.contributors[contributorType].map(c => 
+              c.id === contributorId ? { ...c, [field]: value } : c
+            )
+          }
+        } : asset
+      )
+    }));
   };
 
-  const getNextStatus = () => {
-    if (userRole === 'artist' || userRole === 'label_admin') {
-      return 'submitted';
-    } else if (userRole === 'distribution_partner') {
-      return 'in_review';
-    }
-    return 'draft';
+  // Copy contributors from one asset to another
+  const copyContributors = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      assets: prev.assets.map((asset, i) => 
+        i === toIndex ? {
+          ...asset,
+          contributors: { ...prev.assets[fromIndex].contributors }
+        } : asset
+      )
+    }));
   };
 
-  const canEdit = () => {
-    if (userRole === 'distribution_partner') return true;
-    if (userRole === 'company_admin' || userRole === 'super_admin') return true;
-    return formData.artistCanEdit;
-  };
-
-  // Form section components
-  const SectionHeader = ({ title, section, icon: Icon, description }) => (
-    <div 
-      className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 border-b hover:bg-gray-100 transition-colors"
-      onClick={() => toggleSection(section)}
-    >
-      <div className="flex items-center space-x-3">
-        <Icon className="h-5 w-5 text-blue-600" />
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          {description && <p className="text-sm text-gray-600">{description}</p>}
-        </div>
-      </div>
-      {expandedSections[section] ? 
-        <ChevronUp className="h-5 w-5 text-gray-500" /> : 
-        <ChevronDown className="h-5 w-5 text-gray-500" />
-      }
-    </div>
-  );
-
-  const FormField = ({ 
-    label, 
-    field, 
-    type = 'text', 
-    options = [], 
-    disabled = false,
-    required = false,
-    placeholder = '',
-    description = '',
-    className = 'md:col-span-1',
-    parent = null
-  }) => {
-    const value = parent ? formData[parent]?.[field] || '' : formData[field] || '';
-    const hasError = parent ? errors[`${parent}.${field}`] : errors[field];
-    const isDisabled = disabled || !canEdit();
-
-    return (
-      <div className={className}>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-        
-        {type === 'select' ? (
-          <select
-            value={value}
-            onChange={(e) => parent ? 
-              handleNestedChange(parent, field, e.target.value) : 
-              handleInputChange(field, e.target.value)
-            }
-            disabled={isDisabled}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isDisabled ? 'bg-gray-100 cursor-not-allowed' : ''
-            } ${hasError ? 'border-red-500' : 'border-gray-300'}`}
-          >
-            <option value="">{placeholder || `Select ${label}`}</option>
-            {options.map(option => (
-              <option key={option.value || option} value={option.value || option}>
-                {option.label || option}
-              </option>
-            ))}
-          </select>
-        ) : type === 'textarea' ? (
-          <textarea
-            value={value}
-            onChange={(e) => parent ? 
-              handleNestedChange(parent, field, e.target.value) : 
-              handleInputChange(field, e.target.value)
-            }
-            disabled={isDisabled}
-            placeholder={placeholder}
-            rows={3}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isDisabled ? 'bg-gray-100 cursor-not-allowed' : ''
-            } ${hasError ? 'border-red-500' : 'border-gray-300'}`}
-          />
-        ) : type === 'checkbox' ? (
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={!!value}
-              onChange={(e) => parent ? 
-                handleNestedChange(parent, field, e.target.checked) : 
-                handleInputChange(field, e.target.checked)
-              }
-              disabled={isDisabled}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="ml-2 text-sm text-gray-600">{description || label}</span>
-          </div>
-        ) : (
-          <input
-            type={type}
-            value={value}
-            onChange={(e) => parent ? 
-              handleNestedChange(parent, field, e.target.value) : 
-              handleInputChange(field, e.target.value)
-            }
-            disabled={isDisabled}
-            placeholder={placeholder}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isDisabled ? 'bg-gray-100 cursor-not-allowed' : ''
-            } ${hasError ? 'border-red-500' : 'border-gray-300'}`}
-          />
-        )}
-        
-        {description && type !== 'checkbox' && (
-          <p className="mt-1 text-xs text-gray-500">{description}</p>
-        )}
-        {hasError && (
-          <p className="mt-1 text-sm text-red-600">{hasError}</p>
-        )}
-      </div>
+  // Toggle asset expansion
+  const toggleAssetExpansion = (index) => {
+    setExpandedAssets(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
     );
   };
 
-  // Form options
-  const releaseTypes = [
-    'single', 'ep', 'album', 'mixtape', 'compilation', 'remix', 'live_album', 'soundtrack'
-  ];
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const genres = [
-    'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Country', 'Jazz', 'Classical',
-    'Folk', 'Blues', 'Reggae', 'Latin', 'World', 'Alternative', 'Indie', 'Metal',
-    'Punk', 'Soul', 'Funk', 'Gospel', 'EDM', 'House', 'Techno', 'Trap', 'Dubstep'
-  ];
+    try {
+      // Collect all unique contributors for roster population
+      const allContributors = new Set();
+      
+      formData.assets.forEach(asset => {
+        Object.values(asset.contributors).forEach(contributorArray => {
+          contributorArray.forEach(contributor => {
+            if (contributor.name.trim()) {
+              allContributors.add(JSON.stringify({
+                name: contributor.name,
+                role: contributor.role,
+                isni: contributor.isni || '',
+                pro: contributor.pro || '',
+                caeIpi: contributor.caeIpi || ''
+              }));
+            }
+          });
+        });
+      });
 
-  const publishingTypes = [
-    { value: 'exclusive', label: 'Exclusive' },
-    { value: 'co_publishing', label: 'Co-Publishing' },
-    { value: 'administration', label: 'Administration' },
-    { value: 'sub_publishing', label: 'Sub-Publishing' }
-  ];
+      const submitData = {
+        ...formData,
+        allContributors: Array.from(allContributors).map(c => JSON.parse(c)),
+        submissionDate: new Date().toISOString(),
+        status: 'draft'
+      };
 
-  const languages = [
-    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Japanese',
-    'Korean', 'Mandarin', 'Hindi', 'Arabic', 'Russian', 'Other'
-  ];
+      // Submit to API
+      const response = await fetch('/api/releases/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create release');
+      }
+
+      const result = await response.json();
+      console.log('Release created successfully:', result);
+      console.log(`Added ${result.contributorsAdded.length} contributors to roster`);
+      
+      // Close modal on success
+      onClose();
+      
+    } catch (error) {
+      console.error('Error submitting release:', error);
+      setErrors({ submit: 'Error creating release. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className="space-y-6">
-      {/* Auto-save indicator */}
-      {autoSaveEnabled && (userRole === 'artist' || userRole === 'label_admin') && (
-        <div className="flex items-center justify-between text-sm bg-blue-50 p-3 rounded-lg">
-          <div className="flex items-center space-x-2">
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                <span className="text-blue-700">Auto-saving draft...</span>
-              </>
-            ) : lastSaved ? (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-green-700">
-                  Auto-saved at {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </>
-            ) : hasUnsavedChanges ? (
-              <>
-                <Clock className="h-4 w-4 text-amber-600" />
-                <span className="text-amber-700">Changes will be auto-saved</span>
-              </>
-            ) : null}
-          </div>
-          {formData.status !== 'draft' && !formData.artistCanEdit && (
-            <span className="text-sm text-amber-600 font-medium">
-              Read-only: Submit a change request to edit
-            </span>
-          )}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {existingRelease ? 'Edit Release' : 'Create New Release'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <FaTimes className="w-6 h-6" />
+          </button>
         </div>
-      )}
 
-      {/* Basic Release Information */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <SectionHeader 
-          title="Basic Release Information" 
-          section="basic"
-          icon={Music}
-          description="Essential details about your release"
-        />
-        
-        {expandedSections.basic && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField 
-                label="Project Name" 
-                field="projectName" 
-                required 
-                placeholder="Enter project name"
-              />
-              <FormField 
-                label="Artist Name" 
-                field="artistName" 
-                required 
-                placeholder="Primary artist name"
-              />
-              <FormField 
-                label="Release Title" 
-                field="releaseTitle" 
-                required 
-                placeholder="Official release title"
-              />
-              <FormField 
-                label="Release Type" 
-                field="releaseType" 
-                type="select"
-                options={releaseTypes}
-                required
-              />
-              <FormField 
-                label="Primary Genre" 
-                field="primaryGenre" 
-                type="select"
-                options={genres}
-                required
-              />
-              <FormField 
-                label="Language" 
-                field="language" 
-                type="select"
-                options={languages}
-              />
-              <FormField 
-                label="Release Date" 
-                field="releaseDate" 
-                type="date"
-                required
-              />
-              <FormField 
-                label="Original Release Date" 
-                field="originalReleaseDate" 
-                type="date"
-                description="For re-releases or remasters"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Catalog & Identification */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <SectionHeader 
-          title="Catalog & Identification" 
-          section="catalog"
-          icon={FileText}
-          description="Unique identifiers and catalog information"
-        />
-        
-        {expandedSections.catalog && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField 
-                label="Catalogue Number" 
-                field="catalogueNo" 
-                placeholder="CAT-001"
-              />
-              <FormField 
-                label="Barcode/UPC" 
-                field="barcode" 
-                placeholder="1234567890123"
-              />
-              <FormField 
-                label="UPC" 
-                field="upc" 
-                placeholder="Universal Product Code"
-              />
-              <FormField 
-                label="ISRC" 
-                field="isrc" 
-                placeholder="USRC17607839"
-                description="International Standard Recording Code"
-              />
-              <FormField 
-                label="Tunecode" 
-                field="tunecode" 
-                placeholder="TCXXXX"
-              />
-              <FormField 
-                label="ICE Work Key" 
-                field="iceWorkKey" 
-                placeholder="ICE work identifier"
-              />
-              <FormField 
-                label="ISWC" 
-                field="iswc" 
-                placeholder="T-034.524.680-1"
-                description="International Standard Musical Work Code"
-              />
-              <FormField 
-                label="BOWI" 
-                field="bowi" 
-                placeholder="Board of Works identifier"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Publishing Information */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <SectionHeader 
-          title="Publishing Information" 
-          section="publishing"
-          icon={Edit3}
-          description="Songwriter and publishing details"
-        />
-        
-        {expandedSections.publishing && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField 
-                label="Composer/Author" 
-                field="composer" 
-                placeholder="Primary composer"
-              />
-              <FormField 
-                label="Lyricist" 
-                field="lyricist" 
-                placeholder="Lyric writer"
-              />
-              <FormField 
-                label="Publisher" 
-                field="publisher" 
-                placeholder="Publishing company"
-              />
-              <FormField 
-                label="Publisher Split %" 
-                field="publisherSplit" 
-                type="number"
-                placeholder="50"
-              />
-              <FormField 
-                label="Publishing Type" 
-                field="publishingType" 
-                type="select"
-                options={publishingTypes}
-              />
-              <FormField 
-                label="PRO" 
-                field="pro" 
-                placeholder="Performance Rights Organization"
-              />
-              <FormField 
-                label="CAE/IPI" 
-                field="caeIpi" 
-                placeholder="Composer/Author identifier"
-                className="md:col-span-2"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Audio Information */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <SectionHeader 
-          title="Audio Information" 
-          section="audio"
-          icon={Music}
-          description="Technical audio details"
-        />
-        
-        {expandedSections.audio && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <FormField 
-                label="Duration" 
-                field="duration" 
-                placeholder="3:45"
-                description="MM:SS format"
-              />
-              <FormField 
-                label="BPM" 
-                field="bpm" 
-                type="number"
-                placeholder="120"
-              />
-              <FormField 
-                label="Song Key" 
-                field="songKey" 
-                placeholder="C Major"
-              />
-              <FormField 
-                label="Explicit Content" 
-                field="explicit" 
-                type="checkbox"
-                description="Contains explicit content"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Production Credits */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <SectionHeader 
-          title="Production Credits" 
-          section="production"
-          icon={Users}
-          description="Production team and technical credits"
-        />
-        
-        {expandedSections.production && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="Producer" field="producer" />
-              <FormField label="Co-Producer" field="coproducer" />
-              <FormField label="Executive Producer" field="executiveProducer" />
-              <FormField label="Mixing Engineer" field="mixingEngineer" />
-              <FormField label="Mastering Engineer" field="masteringEngineer" />
-              <FormField label="Recording Engineer" field="recordingEngineer" />
-              <FormField label="Assistant Producer" field="assistantProducer" />
-              <FormField label="Additional Production" field="additionalProduction" />
-              <FormField label="Engineer" field="engineer" />
-              <FormField label="Editing" field="editing" />
-              <FormField label="Recording Studio" field="recordingStudio" />
-              <FormField label="Mastering Studio" field="masteringStudio" />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Revenue Split Configuration */}
-      {(userRole === 'artist' || userRole === 'distribution_partner') && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <SectionHeader 
-            title="Revenue Split Configuration" 
-            section="revenue"
-            icon={DollarSign}
-            description="How earnings will be distributed"
-          />
-          
-          {expandedSections.revenue && (
-            <div className="p-6">
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
-                  Distribution Partner takes {formData.distributionPartnerPercentage || 10}% off the top. 
-                  The remaining revenue is split according to these percentages.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField 
-                  label="Artist Percentage" 
-                  field="artistPercentage" 
-                  type="number"
-                  placeholder="70"
-                  description="Artist's share of net revenue"
-                />
-                <FormField 
-                  label="Label Percentage" 
-                  field="labelPercentage" 
-                  type="number"
-                  placeholder="20"
-                  description="Label's share of net revenue"
-                />
-                <FormField 
-                  label="Company Percentage" 
-                  field="companyPercentage" 
-                  type="number"
-                  placeholder="10"
-                  description="Company's share of net revenue"
+        <form onSubmit={handleSubmit} className="p-6">
+          {/* Project Level Information */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Project Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.projectName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, projectName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter project name"
+                  required
                 />
               </div>
-              
-              <div className="mt-4">
-                <FormField 
-                  label="Use Custom Split" 
-                  field="useCustomSplit" 
-                  type="checkbox"
-                  description="Enable custom revenue split for this release"
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Release Type *
+                </label>
+                <select
+                  value={formData.releaseType}
+                  onChange={(e) => setFormData(prev => ({ ...prev, releaseType: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  {RELEASE_TYPES.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primary Artist *
+                </label>
+                <input
+                  type="text"
+                  value={formData.primaryArtist}
+                  onChange={(e) => setFormData(prev => ({ ...prev, primaryArtist: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Primary artist name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Expected Release Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.expectedReleaseDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, expectedReleaseDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6 border-t bg-white p-6 rounded-lg shadow">
-        <div className="flex items-center space-x-4">
-          {hasUnsavedChanges && (
-            <span className="text-sm text-amber-600 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              Unsaved changes
-            </span>
-          )}
-        </div>
-        
-        <div className="flex space-x-3">
-          {canEdit() && (
-            <>
+          {/* Assets Section */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Assets ({formData.assets.length})
+              </h3>
               <button
                 type="button"
-                onClick={handleSave}
-                disabled={isSaving || !hasUnsavedChanges}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={addAsset}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                {isSaving ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
+                <FaPlus className="w-4 h-4 mr-2" />
+                Add Asset
               </button>
-              
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <Send className="h-4 w-4" />
+            </div>
+
+            {formData.assets.map((asset, assetIndex) => (
+              <div key={assetIndex} className="border border-gray-200 rounded-lg mb-4">
+                <div 
+                  className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer"
+                  onClick={() => toggleAssetExpansion(assetIndex)}
+                >
+                  <div className="flex items-center">
+                    <FaMusic className="w-4 h-4 mr-3 text-gray-500" />
+                    <span className="font-medium">
+                      Asset {asset.assetPosition}: {asset.songTitle || 'Untitled'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {formData.assets.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAsset(assetIndex);
+                        }}
+                        className="text-red-600 hover:text-red-800 p-1"
+                      >
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    )}
+                    {expandedAssets.includes(assetIndex) ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
+                  </div>
+                </div>
+
+                {expandedAssets.includes(assetIndex) && (
+                  <div className="p-6">
+                    {/* Basic Asset Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Song Title *
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.songTitle}
+                          onChange={(e) => updateAsset(assetIndex, 'songTitle', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Enter song title"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.duration}
+                          onChange={(e) => updateAsset(assetIndex, 'duration', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="3:45"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          BPM
+                        </label>
+                        <input
+                          type="number"
+                          value={asset.bpm}
+                          onChange={(e) => updateAsset(assetIndex, 'bpm', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="120"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Song Key
+                        </label>
+                        <select
+                          value={asset.songKey}
+                          onChange={(e) => updateAsset(assetIndex, 'songKey', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select key</option>
+                          {SONG_KEYS.map(key => (
+                            <option key={key} value={key}>{key}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Genre
+                        </label>
+                        <select
+                          value={asset.genre}
+                          onChange={(e) => updateAsset(assetIndex, 'genre', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select genre</option>
+                          {GENRES.map(genre => (
+                            <option key={genre} value={genre}>{genre}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Language
+                        </label>
+                        <select
+                          value={asset.language}
+                          onChange={(e) => updateAsset(assetIndex, 'language', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {LANGUAGES.map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Contributors Section - This populates the roster */}
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-md font-semibold text-gray-900">Contributors</h4>
+                        {assetIndex > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => copyContributors(0, assetIndex)}
+                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
+                          >
+                            <FaCopy className="w-3 h-3 mr-1" />
+                            Copy from Asset 1
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Primary Contributors */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Producers */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Producers
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'producers')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.producers.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'producers', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Producer name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'producers', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Featured Artists */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Featured Artists
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'featuredArtists')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.featuredArtists.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'featuredArtists', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Featured artist name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'featuredArtists', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Composers */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Composers
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'composers')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.composers.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'composers', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Composer name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'composers', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Musicians */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Keyboardists
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'keyboardists')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.keyboardists.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'keyboardists', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Keyboardist name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'keyboardists', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Guitarists */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Guitarists
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'guitarists')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.guitarists.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'guitarists', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Guitarist name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'guitarists', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Engineers */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Mixing Engineers
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addContributor(assetIndex, 'mixingEngineers')}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          {asset.contributors.mixingEngineers.map(contributor => (
+                            <div key={contributor.id} className="flex items-center space-x-2 mb-2">
+                              <input
+                                type="text"
+                                value={contributor.name}
+                                onChange={(e) => updateContributor(assetIndex, 'mixingEngineers', contributor.id, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Mixing engineer name"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContributor(assetIndex, 'mixingEngineers', contributor.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rights Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ISRC
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.isrc}
+                          onChange={(e) => updateAsset(assetIndex, 'isrc', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="USRC17607839"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Copyright Year
+                        </label>
+                        <input
+                          type="number"
+                          value={asset.copyrightYear}
+                          onChange={(e) => updateAsset(assetIndex, 'copyrightYear', parseInt(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          min="1900"
+                          max={new Date().getFullYear() + 1}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Explicit Content */}
+                    <div className="mb-4">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={asset.explicit}
+                          onChange={(e) => updateAsset(assetIndex, 'explicit', e.target.checked)}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">This track contains explicit content</span>
+                      </label>
+                    </div>
+                  </div>
                 )}
-                <span>
-                  {isSubmitting ? 'Submitting...' : 
-                   userRole === 'artist' || userRole === 'label_admin' ? 'Submit for Review' : 
-                   'Update Release'}
-                </span>
-              </button>
-            </>
+              </div>
+            ))}
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Release'}
+            </button>
+          </div>
+
+          {errors.submit && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{errors.submit}</p>
+            </div>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );
-};
-
-export default ComprehensiveReleaseForm;
+}

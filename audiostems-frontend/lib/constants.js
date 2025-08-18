@@ -74,11 +74,41 @@ export const RELEASE_TYPES = [
   'Single',
   'EP',
   'Album',
-  'Compilation',
-  'Live',
-  'Remix',
   'Mixtape',
-  'Soundtrack'
+  'Compilation',
+  'Remix',
+  'Live',
+  'Soundtrack',
+  'Instrumental',
+  'Acapella',
+  'Demo',
+  'Bootleg',
+  'Split',
+  'Cover',
+  'Reissue',
+  'Deluxe Edition'
+];
+
+// Vocal Type Constants
+export const VOCAL_TYPES = [
+  'Lead Vocals',
+  'Backing Vocals', 
+  'Harmony',
+  'Rap',
+  'Spoken Word',
+  'Instrumental'
+];
+
+// Song Key Constants
+export const SONG_KEYS = [
+  'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B',
+  'Cm', 'C#m', 'Dm', 'D#m', 'Ebm', 'Em', 'Fm', 'F#m', 'Gbm', 'Gm', 'G#m', 'Abm', 'Am', 'A#m', 'Bbm', 'Bm'
+];
+
+// Language Constants
+export const LANGUAGES = [
+  'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Dutch', 
+  'Japanese', 'Korean', 'Chinese', 'Arabic', 'Hindi', 'Russian', 'Other'
 ];
 
 // User Role Constants

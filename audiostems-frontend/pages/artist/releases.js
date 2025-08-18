@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
 import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
-import CreateReleaseModal from '../../components/releases/CreateReleaseModal';
+import ComprehensiveReleaseForm from '../../components/releases/ComprehensiveReleaseForm';
 import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
 import { 
   RELEASE_STATUSES, 
@@ -63,7 +63,7 @@ export default function ArtistReleases() {
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // 🎯 Load data from centralized source
@@ -317,7 +317,7 @@ export default function ArtistReleases() {
                 }`}
               >
                 <FaPlus className="w-4 h-4" />
-                <span>New Release</span>
+                <span>Create New Release</span>
               </button>
             </div>
 
@@ -522,7 +522,7 @@ export default function ArtistReleases() {
 
         {/* Modals */}
         {isCreateModalOpen && (
-          <CreateReleaseModal
+          <ComprehensiveReleaseForm
             isOpen={isCreateModalOpen}
             onClose={() => {
               setIsCreateModalOpen(false);

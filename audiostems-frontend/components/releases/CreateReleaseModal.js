@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
-import { GENRES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
+import { GENRES, RELEASE_TYPES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
 import { ARTISTS } from '../../lib/emptyData';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
@@ -417,22 +417,9 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
                 }`}
               >
                 <option value="">Select release type</option>
-                <option value="Single">Single</option>
-                <option value="EP">EP</option>
-                <option value="Album">Album</option>
-                <option value="Mixtape">Mixtape</option>
-                <option value="Compilation">Compilation</option>
-                <option value="Remix">Remix</option>
-                <option value="Live">Live</option>
-                <option value="Soundtrack">Soundtrack</option>
-                <option value="Instrumental">Instrumental</option>
-                <option value="Acapella">Acapella</option>
-                <option value="Demo">Demo</option>
-                <option value="Bootleg">Bootleg</option>
-                <option value="Split">Split</option>
-                <option value="Cover">Cover</option>
-                <option value="Reissue">Reissue</option>
-                <option value="Deluxe">Deluxe Edition</option>
+                {RELEASE_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
               {errors.releaseType && (
                 <p className="text-red-500 text-sm mt-1">{errors.releaseType}</p>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole } from '../../lib/user-utils';
+import { getUserRoleSync } from '../../lib/user-utils';
 import { 
   FaPlus, 
   FaEdit, 

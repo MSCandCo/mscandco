@@ -1,6 +1,6 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import { Calendar, ChevronDown } from 'lucide-react';
@@ -16,86 +16,18 @@ export default function ArtistAnalytics() {
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  // Get artist data from universal database
-  const artistData = getUserById('artist_yhwh_msc') || getUserById('artist_global_superstar') || { totalRevenue: 12450, totalStreams: 875000 };
-  
+  // Analytics data - will be populated from real API data
   const [analyticsData] = useState({
-    totalStreams: artistData.totalStreams || 456789,
-    totalFollowers: Math.round((artistData.totalStreams || 456789) / 10), // ~10% of streams as followers
-    totalPlays: Math.round((artistData.totalStreams || 456789) * 1.5), // 1.5x streams as plays
-    totalRevenue: artistData.totalRevenue || artistData.totalEarnings || 12450,
-    monthlyData: [
-      { month: 'Jan', streams: 45000, followers: 1200, revenue: 2100 },
-      { month: 'Feb', streams: 38000, followers: 1350, revenue: 1800 },
-      { month: 'Mar', streams: 52000, followers: 1500, revenue: 2400 },
-      { month: 'Apr', streams: 48000, followers: 1650, revenue: 2200 },
-      { month: 'May', streams: 61000, followers: 1800, revenue: 2800 },
-      { month: 'Jun', streams: 72000, followers: 2000, revenue: 3200 },
-      { month: 'Jul', streams: 65000, followers: 2200, revenue: 2900 },
-      { month: 'Aug', streams: 68000, followers: 2400, revenue: 3100 },
-      { month: 'Sep', streams: 58000, followers: 2600, revenue: 2600 },
-      { month: 'Oct', streams: 52000, followers: 2800, revenue: 2400 },
-      { month: 'Nov', streams: 61000, followers: 3000, revenue: 2800 },
-      { month: 'Dec', streams: 78000, followers: 3200, revenue: 3500 }
-    ],
-    topTracks: [
-      {
-        id: 1,
-        title: 'Summer Vibes',
-        streams: 89000,
-        revenue: 890,
-        growth: 15.2
-      },
-      {
-        id: 2,
-        title: 'Midnight Dreams',
-        streams: 67000,
-        revenue: 670,
-        growth: 8.7
-      },
-      {
-        id: 3,
-        title: 'Ocean Waves',
-        streams: 54000,
-        revenue: 540,
-        growth: 12.3
-      },
-      {
-        id: 4,
-        title: 'City Lights',
-        streams: 43000,
-        revenue: 430,
-        growth: 5.9
-      },
-      {
-        id: 5,
-        title: 'Mountain Air',
-        streams: 38000,
-        revenue: 380,
-        growth: 18.1
-      }
-    ],
-    platformBreakdown: [
-      { platform: 'Spotify', streams: 234000, percentage: 45 },
-      { platform: 'Apple Music', streams: 156000, percentage: 30 },
-      { platform: 'YouTube Music', streams: 78000, percentage: 15 },
-      { platform: 'Amazon Music', streams: 52000, percentage: 10 }
-    ],
+    totalStreams: 0,
+    totalFollowers: 0,
+    totalPlays: 0,
+    totalRevenue: 0,
+    monthlyData: [],
+    topTracks: [],
+    platformBreakdown: [],
     audienceInsights: {
-      topCountries: [
-        { country: 'United States', streams: 156000, percentage: 34 },
-        { country: 'United Kingdom', streams: 89000, percentage: 19 },
-        { country: 'Canada', streams: 67000, percentage: 15 },
-        { country: 'Germany', streams: 45000, percentage: 10 },
-        { country: 'Australia', streams: 34000, percentage: 7 }
-      ],
-      ageGroups: [
-        { age: '18-24', percentage: 35 },
-        { age: '25-34', percentage: 28 },
-        { age: '35-44', percentage: 20 },
-        { age: '45-54', percentage: 12 },
-        { age: '55+', percentage: 5 }
-      ]
+      topCountries: [],
+      ageGroups: []
     }
   });
 
@@ -107,7 +39,7 @@ export default function ArtistAnalytics() {
     return <div className="flex items-center justify-center min-h-screen">Please log in to view your analytics.</div>;
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // Only allow artists to access this page
@@ -125,13 +57,15 @@ export default function ArtistAnalytics() {
   }
 
   const getCurrentPeriodData = () => {
+    if (analyticsData.monthlyData.length === 0) return { streams: 0, followers: 0, revenue: 0 };
     const currentMonth = new Date().getMonth();
-    return analyticsData.monthlyData[currentMonth];
+    return analyticsData.monthlyData[currentMonth] || { streams: 0, followers: 0, revenue: 0 };
   };
 
   const getPreviousPeriodData = () => {
+    if (analyticsData.monthlyData.length === 0) return { streams: 0, followers: 0, revenue: 0 };
     const previousMonth = new Date().getMonth() - 1;
-    return analyticsData.monthlyData[previousMonth >= 0 ? previousMonth : 11];
+    return analyticsData.monthlyData[previousMonth >= 0 ? previousMonth : 11] || { streams: 0, followers: 0, revenue: 0 };
   };
 
   const getPercentageChange = (current, previous) => {

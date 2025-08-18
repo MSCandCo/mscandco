@@ -1,45 +1,5 @@
-let mockRoster = [
-  {
-    id: 1,
-    name: 'John Smith',
-    type: 'solo_artist',
-    isni: '0000000123456789',
-    thumbnail: null,
-    createdAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    id: 2,
-    name: 'The Midnight Echoes',
-    type: 'group',
-    isni: '0000000123456790',
-    thumbnail: null,
-    createdAt: '2024-01-16T14:20:00Z'
-  },
-  {
-    id: 3,
-    name: 'Sarah Johnson',
-    type: 'producer',
-    isni: '0000000123456791',
-    thumbnail: null,
-    createdAt: '2024-01-17T09:15:00Z'
-  },
-  {
-    id: 4,
-    name: 'Mike Davis',
-    type: 'guitarist',
-    isni: '0000000123456792',
-    thumbnail: null,
-    createdAt: '2024-01-18T16:45:00Z'
-  },
-  {
-    id: 5,
-    name: 'Lisa Chen',
-    type: 'vocalist',
-    isni: '0000000123456793',
-    thumbnail: null,
-    createdAt: '2024-01-19T11:30:00Z'
-  }
-];
+// Roster will be populated from release contributors
+let mockRoster = [];
 
 export default async function handler(req, res) {
   try {
