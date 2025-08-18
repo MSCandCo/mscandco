@@ -1,6 +1,6 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { ARTISTS } from '../../lib/emptyData';
 

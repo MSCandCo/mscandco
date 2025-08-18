@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronRight, Mail, Lock, Shield, User, Check, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-// Smart dropdowns will be implemented later
+import { NationalityDropdown, CountryDropdown, CityDropdown } from '../shared/IntelligentDropdowns';
 
 const MultiStepRegistration = () => {
   const router = useRouter();
@@ -1220,17 +1220,11 @@ const MultiStepRegistration = () => {
               <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">
                 Nationality
               </label>
-              <select
-                id="nationality"
-                name="nationality"
-                className="w-full px-4 py-3 text-lg bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937] focus:border-transparent transition-all duration-300"
+              <NationalityDropdown
                 value={formData.nationality}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">
-                  {detectingNationality ? '🌍 Detecting location...' : 'Select nationality'}
-                </option>
+                onChange={(value) => setFormData({...formData, nationality: value})}
+                className="w-full"
+              />
                 {smartNationalities.slice(0, 5).map((nationality, index) => {
                   const cleanNationality = nationality.replace(/^[📍⭐]\s/, '');
                   return (

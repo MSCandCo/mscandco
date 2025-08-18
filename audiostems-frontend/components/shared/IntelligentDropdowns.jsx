@@ -339,3 +339,178 @@ export function CityDropdown({ value, onChange, disabled = false, className = ""
     />
   );
 }
+
+// Country codes for phone numbers
+const COUNTRY_CODES = [
+  { code: '+1', country: 'United States', flag: '🇺🇸' },
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+1', country: 'Canada', flag: '🇨🇦' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+31', country: 'Netherlands', flag: '🇳🇱' },
+  { code: '+46', country: 'Sweden', flag: '🇸🇪' },
+  { code: '+47', country: 'Norway', flag: '🇳🇴' },
+  { code: '+45', country: 'Denmark', flag: '🇩🇰' },
+  { code: '+358', country: 'Finland', flag: '🇫🇮' },
+  { code: '+353', country: 'Ireland', flag: '🇮🇪' },
+  { code: '+32', country: 'Belgium', flag: '🇧🇪' },
+  { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+  { code: '+43', country: 'Austria', flag: '🇦🇹' },
+  { code: '+39', country: 'Italy', flag: '🇮🇹' },
+  { code: '+34', country: 'Spain', flag: '🇪🇸' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+82', country: 'South Korea', flag: '🇰🇷' },
+  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+  { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+56', country: 'Chile', flag: '🇨🇱' },
+  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+51', country: 'Peru', flag: '🇵🇪' },
+  { code: '+58', country: 'Venezuela', flag: '🇻🇪' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+66', country: 'Thailand', flag: '🇹🇭' },
+  { code: '+63', country: 'Philippines', flag: '🇵🇭' },
+  { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
+  { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+  { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+  { code: '+233', country: 'Ghana', flag: '🇬🇭' },
+  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
+  { code: '+212', country: 'Morocco', flag: '🇲🇦' },
+  { code: '+972', country: 'Israel', flag: '🇮🇱' },
+  { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+  { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  { code: '+48', country: 'Poland', flag: '🇵🇱' },
+  { code: '+420', country: 'Czech Republic', flag: '🇨🇿' },
+  { code: '+36', country: 'Hungary', flag: '🇭🇺' },
+  { code: '+40', country: 'Romania', flag: '🇷🇴' },
+  { code: '+359', country: 'Bulgaria', flag: '🇧🇬' },
+  { code: '+385', country: 'Croatia', flag: '🇭🇷' },
+  { code: '+381', country: 'Serbia', flag: '🇷🇸' },
+  { code: '+386', country: 'Slovenia', flag: '🇸🇮' },
+  { code: '+421', country: 'Slovakia', flag: '🇸🇰' },
+  { code: '+370', country: 'Lithuania', flag: '🇱🇹' },
+  { code: '+371', country: 'Latvia', flag: '🇱🇻' },
+  { code: '+372', country: 'Estonia', flag: '🇪🇪' },
+  { code: '+380', country: 'Ukraine', flag: '🇺🇦' },
+  { code: '+375', country: 'Belarus', flag: '🇧🇾' },
+  { code: '+30', country: 'Greece', flag: '🇬🇷' }
+];
+
+// Top country codes (most commonly used)
+const TOP_COUNTRY_CODES = ['+1', '+44', '+49', '+33', '+39', '+34', '+61'];
+
+export function CountryCodeDropdown({ value, onChange, disabled = false, className = "" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
+
+  const filteredCodes = COUNTRY_CODES.filter(item => 
+    !searchTerm || 
+    item.code.includes(searchTerm) ||
+    item.country.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Sort by: top codes first, then alphabetical
+  const sortedCodes = [
+    ...filteredCodes.filter(item => TOP_COUNTRY_CODES.includes(item.code)),
+    ...filteredCodes.filter(item => !TOP_COUNTRY_CODES.includes(item.code))
+  ];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSelect = (code) => {
+    onChange(code);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
+  const selectedItem = COUNTRY_CODES.find(item => item.code === value);
+
+  return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full px-3 py-2 border rounded-md text-left flex justify-between items-center min-w-[120px] ${
+          disabled 
+            ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 
+            : 'border-gray-300 bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+        }`}
+      >
+        <span className="flex items-center">
+          {selectedItem ? (
+            <>
+              <span className="mr-2">{selectedItem.flag}</span>
+              <span>{selectedItem.code}</span>
+            </>
+          ) : (
+            <span className="text-gray-500">Code</span>
+          )}
+        </span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
+          <div className="p-2 border-b border-gray-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search country or code..."
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+          
+          <div className="max-h-48 overflow-y-auto">
+            {sortedCodes.map((item, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleSelect(item.code)}
+                className={`w-full px-3 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none flex items-center ${
+                  value === item.code ? 'bg-blue-100 text-blue-900' : 'text-gray-900'
+                }`}
+              >
+                <span className="mr-3">{item.flag}</span>
+                <span className="font-mono font-medium mr-3">{item.code}</span>
+                <span className="text-sm text-gray-600">{item.country}</span>
+              </button>
+            ))}
+            
+            {sortedCodes.length === 0 && (
+              <div className="px-3 py-2 text-gray-500 text-sm">
+                No country codes found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

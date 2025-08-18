@@ -111,6 +111,30 @@ export const LANGUAGES = [
   'Japanese', 'Korean', 'Chinese', 'Arabic', 'Hindi', 'Russian', 'Other'
 ];
 
+// Artist Type Constants
+export const ARTIST_TYPES = [
+  'Solo Artist',
+  'Band Group',
+  'DJ',
+  'Duo',
+  'Orchestra',
+  'Ensemble',
+  'Collective',
+  'Producer',
+  'Composer',
+  'Singer-Songwriter',
+  'Rapper',
+  'Instrumentalist',
+  'Choir'
+];
+
+// Instrument Constants
+export const INSTRUMENTS = [
+  'Vocals', 'Guitar', 'Bass', 'Drums', 'Piano', 'Keyboard', 'Synthesizer',
+  'Saxophone', 'Trumpet', 'Violin', 'Cello', 'Flute', 'Clarinet', 'Harmonica',
+  'Banjo', 'Mandolin', 'Ukulele', 'Accordion', 'Organ', 'Harp', 'Percussion'
+];
+
 // User Role Constants
 export const USER_ROLES = {
   SUPER_ADMIN: 'super_admin',

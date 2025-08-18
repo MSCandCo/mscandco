@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Avatar from '../../components/shared/Avatar';
 import { SuccessModal } from '../../components/shared/SuccessModal';
 
@@ -20,22 +20,20 @@ export default function AdminProfile() {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Get user context
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // Admin profile data
   const [profileData, setProfileData] = useState({
-    firstName: 'Admin',
-    lastName: 'User',
-    email: user?.email || 'company.admin.yhwh@mscandco.com',
-    phone: '+44 20 7946 0958',
-    position: userRole === 'super_admin' ? 'Super Administrator' : 'Company Administrator',
-    department: 'Administration',
-    location: 'London, UK',
-    timezone: 'GMT+0',
-    bio: userRole === 'super_admin' 
-      ? 'Super Administrator with full platform access and oversight responsibilities.'
-      : 'Company Administrator responsible for brand management and user oversight.',
+    firstName: '',
+    lastName: '',
+    email: user?.email || '',
+    phone: '',
+    position: '',
+    department: '',
+    location: '',
+    timezone: '',
+    bio: '',
     avatar: null, // This will show completion needs improvement
     permissions: userRole === 'super_admin' 
       ? ['Full System Access', 'User Management', 'Ghost Login', 'Platform Settings', 'Audit Logs']
@@ -56,7 +54,7 @@ export default function AdminProfile() {
   // Check admin access
   useEffect(() => {
     if (!isLoading && user) {
-      const role = getUserRole(user);
+      const role = getUserRoleSync(user);
       if (!['super_admin', 'company_admin'].includes(role)) {
         router.push('/dashboard');
         return;

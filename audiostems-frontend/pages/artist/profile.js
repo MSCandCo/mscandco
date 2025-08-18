@@ -2,8 +2,10 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
-import { NationalityDropdown, CountryDropdown, CityDropdown } from '../../components/shared/IntelligentDropdowns';
-import { GENRES, VOCAL_TYPES } from '../../lib/constants';
+import { NationalityDropdown, CountryDropdown, CityDropdown, CountryCodeDropdown } from '../../components/shared/IntelligentDropdowns';
+import { GENRES, VOCAL_TYPES, ARTIST_TYPES, INSTRUMENTS } from '../../lib/constants';
+import ChangeRequestModal from '../../components/profile/ChangeRequestModal';
+import { supabase } from '../../lib/supabase';
 
 
 export default function ArtistProfile() {
@@ -11,6 +13,7 @@ export default function ArtistProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
   const [profile, setProfile] = useState({
     // Personal Information (Locked - Admin approval required)
     firstName: '',
@@ -27,9 +30,11 @@ export default function ArtistProfile() {
     artistType: '',
     email: '',
     phone: '',
+    countryCode: '+44', // Default to UK
     
     // Music Information
     primaryGenre: '',
+    secondaryGenre: '',
     secondaryGenres: [],
     instruments: [],
     vocalType: '',
@@ -52,7 +57,6 @@ export default function ArtistProfile() {
     isrcPrefix: '',
     upcPrefix: '',
     distributorId: '',
-    royaltyRate: '',
     paymentMethod: '',
     taxId: '',
     bankInfo: {
@@ -103,7 +107,14 @@ export default function ArtistProfile() {
     registrationDate: null // Track when artist was first registered
   });
 
-  const [formData, setFormData] = useState({ ...profile });
+  const [formData, setFormData] = useState({});
+  
+  // Initialize form data when profile loads
+  useEffect(() => {
+    if (profile && Object.keys(profile).length > 0) {
+      setFormData({ ...profile });
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (user && user) {
@@ -114,11 +125,34 @@ export default function ArtistProfile() {
 
   const loadProfile = async () => {
     try {
-      const response = await fetch('/api/artist/get-profile');
+      console.log('Loading artist profile...');
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add authorization header if session exists
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+        console.log('Using authenticated session for profile load');
+      } else {
+        console.log('No session found, using fallback mode');
+      }
+      
+      const response = await fetch('/api/artist/profile', {
+        headers
+      });
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Profile loaded successfully:', data);
         setProfile(data);
         setFormData(data);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to load profile:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -160,6 +194,8 @@ export default function ArtistProfile() {
   };
 
   const handleSave = async () => {
+    console.log('Save button clicked, starting save process...');
+    
     // Validation: If basic info is not set, require essential fields
     if (!profile.isBasicInfoSet) {
       const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'nationality', 'country', 'city'];
@@ -175,6 +211,7 @@ export default function ArtistProfile() {
 
     setIsSaving(true);
     setErrors({});
+    console.log('Starting save with data:', formData);
     
     try {
       const updatedData = { ...formData };
@@ -186,25 +223,56 @@ export default function ArtistProfile() {
         console.log('Artist basic info registered for the first time');
       }
       
-      const response = await fetch('/api/artist/update-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log('Saving profile data...', updatedData);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add authorization header if session exists
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+        console.log('Using authenticated session for profile save');
+      } else {
+        console.log('No session found, using fallback mode for save');
+      }
+      
+      const response = await fetch('/api/artist/profile', {
+        method: 'PUT',
+        headers,
         body: JSON.stringify(updatedData),
       });
       
+      console.log('Save response received:', response.status);
+      
       if (response.ok) {
-        setProfile(updatedData);
+        const result = await response.json();
+        console.log('Save successful:', result);
+        setProfile(result.profile);
+        setFormData(result.profile);
         setIsEditing(false);
         
         // Show success message for first-time registration
-        if (!profile.isBasicInfoSet && updatedData.isBasicInfoSet) {
+        if (!profile.isBasicInfoSet && result.profile.isBasicInfoSet) {
           setErrors({
             message: 'Artist registration completed! Your basic information has been saved and cannot be changed.',
             type: 'success'
           });
+        } else {
+          setErrors({
+            message: 'Profile updated successfully!',
+            type: 'success'
+          });
         }
+      } else {
+        const errorData = await response.json();
+        console.error('Save failed:', errorData);
+        setErrors({
+          message: errorData.error || 'Error saving profile. Please try again.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -213,6 +281,7 @@ export default function ArtistProfile() {
         type: 'error'
       });
     } finally {
+      console.log('Save process completed, setting isSaving to false');
       setIsSaving(false);
     }
   };
@@ -241,30 +310,42 @@ export default function ArtistProfile() {
 
   // Use centralized genres constant
 
-  const artistTypes = [
-    'Solo Artist',
-    'Band Group', 
-    'DJ',
-    'Duo',
-    'Orchestra',
-    'Ensemble',
-    'Collective',
-    'Producer',
-    'Composer',
-    'Singer-Songwriter',
-    'Rapper',
-    'Instrumentalist',
-    'Choir',
-    'Other'
-  ];
-
-  const instruments = [
-    'Vocals', 'Guitar', 'Bass', 'Drums', 'Piano', 'Keyboard', 'Synthesizer',
-    'Saxophone', 'Trumpet', 'Violin', 'Cello', 'Flute', 'Clarinet', 'Harmonica',
-    'Banjo', 'Mandolin', 'Ukulele', 'Accordion', 'Organ', 'Harp', 'Percussion'
-  ];
+  // Use centralized constants for all dropdowns
 
   // Use centralized vocal types constant
+
+  // Handle change request submission
+  const handleChangeRequest = async (changeRequestData) => {
+    try {
+      const response = await fetch('/api/profile/change-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(changeRequestData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit change request');
+      }
+
+      const result = await response.json();
+      console.log('Change request submitted:', result);
+      
+      // Show success message
+      setErrors({
+        message: 'Change request submitted successfully! You will be notified when it is reviewed.',
+        type: 'success'
+      });
+      
+    } catch (error) {
+      console.error('Error submitting change request:', error);
+      setErrors({
+        message: 'Error submitting change request. Please try again.',
+        type: 'error'
+      });
+    }
+  };
 
   return (
     <Layout>
@@ -278,12 +359,22 @@ export default function ArtistProfile() {
             </div>
             <div className="flex space-x-3">
               {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
-                >
-                  Edit Profile
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                  >
+                    Edit Profile
+                  </button>
+                  {profile.isBasicInfoSet && (
+                    <button
+                      onClick={() => setShowChangeRequestModal(true)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Request Changes
+                    </button>
+                  )}
+                </>
               ) : (
                 <>
                   <button
@@ -484,7 +575,7 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Select Artist Type</option>
-                    {artistTypes.map(type => (
+                    {ARTIST_TYPES.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
@@ -501,16 +592,24 @@ export default function ArtistProfile() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="+1 (555) 123-4567"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
-                      errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
+                  <div className="flex space-x-2">
+                    <CountryCodeDropdown
+                      value={formData.countryCode || '+44'}
+                      onChange={(value) => handleInputChange('countryCode', value)}
+                      disabled={!isEditing}
+                      className="w-32"
+                    />
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="1234567890"
+                      className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+                        errors.phone ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
                   {errors.phone && (
                     <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                   )}
@@ -531,6 +630,20 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Select Genre</option>
+                    {GENRES.map(genre => (
+                      <option key={genre} value={genre}>{genre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Genre</label>
+                  <select
+                    value={formData.secondaryGenre}
+                    onChange={(e) => handleInputChange('secondaryGenre', e.target.value)}
+                    disabled={!isEditing}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  >
+                    <option value="">Select Secondary Genre (Optional)</option>
                     {GENRES.map(genre => (
                       <option key={genre} value={genre}>{genre}</option>
                     ))}
@@ -620,18 +733,7 @@ export default function ArtistProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Royalty Rate (%)</label>
-                  <input
-                    type="number"
-                    value={formData.royaltyRate}
-                    onChange={(e) => handleInputChange('royaltyRate', e.target.value)}
-                    disabled={!isEditing}
-                    min="0"
-                    max="100"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
+
               </div>
             </div>
 
@@ -784,6 +886,14 @@ export default function ArtistProfile() {
           </div>
         </div>
       </div>
+
+      {/* Change Request Modal */}
+      <ChangeRequestModal
+        isOpen={showChangeRequestModal}
+        onClose={() => setShowChangeRequestModal(false)}
+        currentProfile={profile}
+        onSubmit={handleChangeRequest}
+      />
     </Layout>
   );
 } 

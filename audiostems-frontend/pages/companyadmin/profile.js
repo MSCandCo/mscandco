@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
-import { getUserRole, getUserBrand } from '@/lib/user-utils';
+import { getUserRoleSync, getUserBrand } from '@/lib/user-utils';
 import Avatar from '@/components/shared/Avatar';
 
 export default function CompanyAdminProfile() {
@@ -36,13 +36,13 @@ export default function CompanyAdminProfile() {
   });
 
   // Get user context
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // Check admin access
   useEffect(() => {
     if (!isLoading && user) {
-      const role = getUserRole(user);
+      const role = getUserRoleSync(user);
       if (role !== 'company_admin') {
         router.push('/dashboard');
         return;

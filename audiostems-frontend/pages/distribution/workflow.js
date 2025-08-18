@@ -21,7 +21,7 @@ import {
 } from '@/lib/workflowService';
 
 // Generate workflow data from Universal Database
-const mockWorkflowData = generateWorkflowData();
+const mockWorkflowData = []; // Empty - will be populated from real data
 
 
 // Status configuration with colors and icons
