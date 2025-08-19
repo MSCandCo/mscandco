@@ -1,456 +1,390 @@
-import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { useState } from 'react';
 import Layout from '../../components/layouts/mainLayout';
-import { FaDollarSign, FaChartLine, FaTrendingUp, FaTrendingDown, FaCalendar, FaFilter } from 'react-icons/fa';
-import { DollarSign, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
-import { RELEASES, ARTISTS, DASHBOARD_STATS } from '../../lib/emptyData';
+import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3, Users, Percent } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { formatNumber, safeRound } from '../../lib/number-utils';
-
-// Calculate earnings data from centralized RELEASES and ARTISTS data
-const calculateEarningsData = (userBrand) => {
-  const labelName = userBrand?.displayName || 'MSC & Co';
-  
-  // Get approved artists for this label
-  const labelArtists = ARTISTS.filter(artist => 
-    artist.status === 'active' && 
-    (artist.label === labelName || artist.brand === labelName)
-  );
-  
-  // Get releases for label artists
-  const labelArtistIds = labelArtists.map(artist => artist.id);
-  const labelReleases = RELEASES.filter(release => 
-    labelArtistIds.includes(release.artistId)
-  );
-  
-  // Calculate total earnings from releases
-  const totalEarnings = labelReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
-  
-  // Calculate total streams
-  const totalStreams = labelReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
-  
-  // Generate monthly breakdown (last 6 months)
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const currentDate = new Date();
-  const monthlyBreakdown = [];
-  
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const monthName = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    
-    // Calculate earnings for this month (simplified distribution)
-    const monthEarnings = Math.round(totalEarnings * (0.15 + Math.random() * 0.1));
-    const monthStreams = Math.round(totalStreams * (0.15 + Math.random() * 0.1));
-    
-    monthlyBreakdown.push({
-      month: `${monthName} ${year}`,
-      earnings: monthEarnings,
-      streams: monthStreams
-    });
-  }
-  
-  // Calculate artist breakdown
-  const artistBreakdown = labelArtists.map(artist => {
-    const artistReleases = labelReleases.filter(release => release.artistId === artist.id);
-    const artistEarnings = artistReleases.reduce((sum, release) => sum + (release.earnings || 0), 0);
-    const artistStreams = artistReleases.reduce((sum, release) => sum + (release.streams || 0), 0);
-    
-    return {
-      artist: artist.name,
-      earnings: artistEarnings,
-      streams: artistStreams,
-      releases: artistReleases.length
-    };
-  }).sort((a, b) => b.earnings - a.earnings);
-  
-  // Generate recent transactions from releases
-  const recentTransactions = [];
-  let transactionId = 1;
-  
-  // Add earnings transactions from recent releases
-  labelReleases
-    .filter(release => release.earnings > 0)
-    .slice(0, 8)
-    .forEach(release => {
-      // Split earnings into platform-specific transactions
-      const platforms = ['Spotify', 'Apple Music', 'YouTube Music', 'Amazon Music'];
-      const platformEarnings = release.earnings / platforms.length;
-      
-      platforms.slice(0, Math.min(2, platforms.length)).forEach(platform => {
-        recentTransactions.push({
-          id: transactionId++,
-          type: 'earnings',
-          amount: Math.round(platformEarnings),
-          description: `${release.projectName} - ${platform}`,
-          date: release.lastUpdated,
-          status: 'completed'
-        });
-      });
-    });
-  
-  // Add some withdrawal transactions
-  recentTransactions.push(
-    {
-      id: transactionId++,
-      type: 'withdrawal',
-      amount: -2500,
-      description: 'Withdrawal to bank account',
-      date: '2024-01-10',
-      status: 'pending'
-    },
-    {
-      id: transactionId++,
-      type: 'withdrawal',
-      amount: -3500,
-      description: 'Withdrawal to bank account',
-      date: '2024-01-01',
-      status: 'completed'
-    }
-  );
-  
-  // Sort by date (most recent first)
-  recentTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-  
-  const thisMonth = monthlyBreakdown[monthlyBreakdown.length - 1]?.earnings || 0;
-  const lastMonth = monthlyBreakdown[monthlyBreakdown.length - 2]?.earnings || 0;
-  const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth * 100) : 0;
-  
-  const minimumBalance = 1000;
-  const pendingWithdrawal = 2500;
-  const heldEarnings = Math.round(totalEarnings * 0.3); // 30% of total earnings held
-  
-  return {
-    totalEarnings,
-    thisMonth,
-    lastMonth,
-    growth: formatNumber(safeRound(growth, 1)),
-    minimumBalance,
-    pendingWithdrawal,
-    heldEarnings,
-    monthlyBreakdown,
-    artistBreakdown,
-    recentTransactions: recentTransactions.slice(0, 10)
-  };
-};
 
 export default function LabelAdminEarnings() {
   const { user, isLoading } = useUser();
-  const [selectedPeriod, setSelectedPeriod] = useState('6months');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [activeTab, setActiveTab] = useState('basic');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
-
-  const userRole = getUserRole(user);
-  const userBrand = getUserBrand(user);
-
-  // Calculate earnings data from centralized sources
-  const earningsData = useMemo(() => {
-    return calculateEarningsData(userBrand);
-  }, [userBrand]);
+  
+  // Mock user plan - in real app, this would come from label subscription data
+  const [labelPlan] = useState('starter'); // 'starter' or 'pro'
+  const hasProAccess = labelPlan === 'pro';
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading earnings...</p>
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
-  if (!user || userRole !== 'label_admin') {
-    return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
+  if (!user) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-gray-600">Please log in to view earnings.</p>
+        </div>
+      </Layout>
+    );
   }
 
-  const getAvailableForWithdrawal = () => {
-    return Math.max(0, earningsData.heldEarnings - earningsData.minimumBalance - earningsData.pendingWithdrawal);
-  };
-
-  // Use shared currency formatting function
-
-  const getGrowthColor = (growth) => {
-    return growth >= 0 ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getGrowthIcon = (growth) => {
-    return growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />;
-  };
-
-  return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Label Earnings</h1>
-                <p className="text-sm text-gray-500">Track earnings across all your artists</p>
-              </div>
-              <div className="flex items-center space-x-4 flex-wrap">
-                <select
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="7days">Last 7 Days</option>
-                  <option value="30days">Last 30 Days</option>
-                  <option value="6months">Last 6 Months</option>
-                  <option value="12months">Last 12 Months</option>
-                  <option value="year">This Year</option>
-                  <option value="custom">Custom Range</option>
-                </select>
-                {selectedPeriod === 'custom' && (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium text-gray-700">From:</label>
-                      <input
-                        type="date"
-                        value={customStartDate}
-                        onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium text-gray-700">To:</label>
-                      <input
-                        type="date"
-                        value={customEndDate}
-                        onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (customStartDate && customEndDate) {
-                          console.log(`Applying custom date range for earnings: ${customStartDate} to ${customEndDate}`);
-                          // Refresh earnings data with custom date range
-                        } else {
-                          alert('Please select both start and end dates');
-                        }
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Apply
-                    </button>
-                  </>
-                )}
-                <CurrencySelector 
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  compact={true}
-                />
-              </div>
+  const renderBasicEarnings = () => (
+    <div className="space-y-8">
+      {/* Label Earnings Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Label Revenue</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">All artists</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.totalEarnings, selectedCurrency)}</p>
-                  <div className="flex items-center mt-2">
-                    {getGrowthIcon(earningsData.growth)}
-                    <span className={`text-sm font-medium ml-1 ${getGrowthColor(earningsData.growth)}`}>
-                      {earningsData.growth}% from last month
-                    </span>
-                  </div>
-                </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
-              </div>
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Label Share</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">Your earnings</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.thisMonth, selectedCurrency)}</p>
-                  <p className="text-sm text-gray-500 mt-1">vs {formatCurrency(earningsData.lastMonth, selectedCurrency)} last month</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Available Balance</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(earningsData.heldEarnings, selectedCurrency)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</p>
-                </div>
-                <DollarSign className="w-8 h-8 text-purple-600" />
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Available for Withdrawal</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(getAvailableForWithdrawal(), selectedCurrency)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Amount above minimum balance</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-orange-600" />
-              </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Percent className="w-6 h-6 text-blue-600" />
             </div>
           </div>
+        </div>
 
-          {/* Revenue Trends Chart */}
-          <div className="bg-white rounded-lg shadow-sm border mb-8">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Revenue Trends</h3>
-              <p className="text-sm text-gray-500">Monthly earnings over the last 6 months</p>
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Artist Payouts</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">Paid to artists</p>
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {earningsData.monthlyBreakdown.map((month, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 text-sm font-medium text-gray-700">{month.month}</div>
-                      <div className="flex-1">
-                        <div className="bg-gray-200 rounded-full h-3 w-48">
-                          <div 
-                            className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                            style={{ 
-                              width: `${Math.min(100, (month.earnings / Math.max(...earningsData.monthlyBreakdown.map(m => m.earnings))) * 100)}%` 
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.earnings, selectedCurrency)}</div>
-                      <div className="text-xs text-gray-500">{month.streams.toLocaleString()} streams</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-purple-600" />
             </div>
           </div>
+        </div>
 
-          {/* My Funds */}
-          <div className="bg-white rounded-lg shadow-sm border mb-8">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">My Funds</h3>
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Growth</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">0%</p>
+              <p className="text-sm text-gray-500 mt-1">vs last month</p>
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(earningsData.heldEarnings, selectedCurrency)}
-                  </div>
-                  <div className="text-sm text-gray-600">Available Balance</div>
-                  <div className="text-xs text-gray-500 mt-1">Minimum {formatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Label Revenue Chart */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Label Revenue Overview</h3>
+        <div className="h-80 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
+          <div className="text-center">
+            <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Revenue chart will appear here</p>
+            <p className="text-gray-400 text-sm mt-2">Sign artists and release music to start earning</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Artist Revenue Summary */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Artist Revenue Summary</h3>
+        <div className="text-center py-12">
+          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">No artist revenue yet</p>
+          <p className="text-gray-400 text-sm mt-2">Artist earnings breakdown will appear here</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAdvancedEarnings = () => (
+    <div className="space-y-12">
+      {/* Advanced Label Earnings Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Total Revenue</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Percent className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Label Share</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Artist Payouts</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">0%</p>
+            <p className="text-sm text-gray-600">Growth Rate</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <CreditCard className="w-6 h-6 text-indigo-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Revenue Breakdowns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Revenue by Artist</h3>
+          <div className="space-y-4">
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No artists signed yet</p>
+              <p className="text-sm text-gray-400 mt-2">Artist revenue breakdown will appear here</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Revenue by Platform</h3>
+          <div className="space-y-4">
+            {[
+              { platform: 'Spotify', revenue: 0, percentage: 0, color: 'bg-green-500' },
+              { platform: 'Apple Music', revenue: 0, percentage: 0, color: 'bg-gray-800' },
+              { platform: 'YouTube Music', revenue: 0, percentage: 0, color: 'bg-red-500' },
+              { platform: 'Amazon Music', revenue: 0, percentage: 0, color: 'bg-blue-500' },
+              { platform: 'Deezer', revenue: 0, percentage: 0, color: 'bg-purple-500' }
+            ].map((platform, index) => (
+              <div key={index} className="flex items-center justify-between py-3">
+                <div className="flex items-center">
+                  <div className={`w-4 h-4 rounded-full ${platform.color} mr-3`}></div>
+                  <span className="font-medium text-gray-900">{platform.platform}</span>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(getAvailableForWithdrawal(), selectedCurrency)}
-                  </div>
-                  <div className="text-sm text-gray-600">Available for Withdrawal</div>
-                  <div className="text-xs text-gray-500 mt-1">Amount above {formatCurrency(earningsData.minimumBalance, selectedCurrency)} minimum</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">
-                    {formatCurrency(earningsData.pendingWithdrawal, selectedCurrency)}
-                  </div>
-                  <div className="text-sm text-gray-600">Pending Withdrawal</div>
-                  <div className="text-xs text-gray-500 mt-1">In transit to your account</div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">{formatCurrency(platform.revenue, selectedCurrency)}</p>
+                  <p className="text-xs text-gray-500">{platform.percentage}%</p>
                 </div>
               </div>
-              <div className="mt-6 text-center">
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Label Split Configuration</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="font-medium text-gray-900">Default Label Share</span>
+              <span className="text-lg font-bold text-blue-600">20%</span>
+            </div>
+            <div className="flex justify-between items-center py-3 border-b border-gray-100">
+              <span className="font-medium text-gray-900">Default Artist Share</span>
+              <span className="text-lg font-bold text-green-600">80%</span>
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              Configure individual artist splits in their contracts
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Payout Schedule</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-3">
+              <span className="text-sm text-gray-600">Next artist payouts:</span>
+              <span className="text-sm font-medium text-gray-900">Not scheduled</span>
+            </div>
+            <div className="flex justify-between items-center py-3">
+              <span className="text-sm text-gray-600">Label payout frequency:</span>
+              <span className="text-sm font-medium text-gray-900">Monthly</span>
+            </div>
+            <div className="flex justify-between items-center py-3">
+              <span className="text-sm text-gray-600">Processing time:</span>
+              <span className="text-sm font-medium text-gray-900">3-5 business days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          
+          {/* Header with Tabs */}
+          <div className="mb-12">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900">Label Earnings</h1>
+                <p className="mt-2 text-lg text-gray-600">Track label revenue and manage artist payouts</p>
+              </div>
+              
+              {/* Currency and Period Selector */}
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                />
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d">Last 30 days</option>
+                    <option value="90d">Last 3 months</option>
+                    <option value="1y">Last year</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Earnings Tabs */}
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
                 <button
-                  disabled={getAvailableForWithdrawal() <= 0}
-                  className={`px-6 py-2 rounded-lg font-medium ${
-                    getAvailableForWithdrawal() > 0
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  onClick={() => setActiveTab('basic')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'basic'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {getAvailableForWithdrawal() > 0
-                    ? 'Withdraw'
-                    : 'No funds available'
-                  }
+                  Basic Earnings
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Included
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => hasProAccess ? setActiveTab('advanced') : null}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center ${
+                    activeTab === 'advanced' && hasProAccess
+                      ? 'border-purple-500 text-purple-600'
+                      : hasProAccess
+                      ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Advanced Earnings
+                  {hasProAccess ? (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Pro
+                    </span>
+                  ) : (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Pro Only
+                    </span>
+                  )}
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'basic' && renderBasicEarnings()}
+          
+          {activeTab === 'advanced' && hasProAccess && renderAdvancedEarnings()}
+          
+          {activeTab === 'advanced' && !hasProAccess && (
+            <div className="bg-white rounded-xl shadow-sm p-16 border border-gray-100 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Crown className="w-10 h-10 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Unlock Advanced Label Earnings</h2>
+                <p className="text-gray-600 mb-8">
+                  Get detailed artist revenue breakdowns, advanced payout management, 
+                  territory analysis, and comprehensive label financial insights.
+                </p>
+                
+                {/* Pro Features List */}
+                <div className="text-left mb-8 space-y-3">
+                  <div className="flex items-center text-gray-700">
+                    <Users className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Artist-specific revenue breakdown</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <PieChart className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Platform and territory analysis</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <CreditCard className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Advanced payout management</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <Download className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Detailed financial reporting</span>
+                  </div>
+                </div>
+
+                <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
+                  Upgrade to Pro Plan
                 </button>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Artist Breakdown */}
-          <div className="bg-white rounded-lg shadow-sm border mb-8">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Artist Breakdown</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Releases</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {earningsData.artistBreakdown.map((artist, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{artist.artist}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.releases}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(artist.earnings, selectedCurrency)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artist.streams.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900">View Details</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Recent Transactions */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {earningsData.recentTransactions.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-medium ${
-                          transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount, selectedCurrency)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          transaction.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {transaction.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Call to Action */}
+          <div className="mt-16 bg-white rounded-xl shadow-sm p-12 border border-gray-100 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Start Earning With Your Label</h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Sign artists to your label and start releasing music to generate revenue and build your catalog.
+              </p>
+              <a 
+                href="/labeladmin/artists" 
+                className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors"
+              >
+                <Users className="w-5 h-5 mr-2" />
+                Manage Artists
+              </a>
             </div>
           </div>
         </div>
       </div>
     </Layout>
   );
-} 
+}

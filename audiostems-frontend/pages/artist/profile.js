@@ -28,17 +28,21 @@ export default function ArtistProfile() {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
       
+      console.log('Making profile API request with headers:', headers);
       const response = await fetch('/api/artist/profile', { headers });
+      
+      console.log('Profile API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Profile loaded with locking data:', data);
+        console.log('Profile loaded successfully:', data);
         setProfile(data);
         setFormData(data);
       } else {
-        console.error('Failed to load profile');
+        const errorData = await response.json();
+        console.error('Failed to load profile:', response.status, errorData);
         setErrors({
-          message: 'Failed to load profile. Please refresh the page.',
+          message: `Failed to load profile: ${errorData.error || 'Unknown error'}`,
           type: 'error'
         });
       }
@@ -55,7 +59,22 @@ export default function ArtistProfile() {
 
   useEffect(() => {
     if (user) {
+      console.log('User detected, loading profile for:', user.email);
       loadProfile();
+      
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (isLoading2) {
+          console.error('Profile loading timeout after 10 seconds');
+          setIsLoading2(false);
+          setErrors({
+            message: 'Profile loading timed out. Please refresh the page.',
+            type: 'error'
+          });
+        }
+      }, 10000);
+      
+      return () => clearTimeout(timeout);
     }
   }, [user]);
 
@@ -170,13 +189,45 @@ export default function ArtistProfile() {
   };
 
   // Loading state
-  if (isLoading || isLoading2 || !profile) {
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading user...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isLoading2) {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile Not Found</h1>
+            <p className="text-gray-600 mb-4">Unable to load profile data.</p>
+            <button 
+              onClick={loadProfile}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+            >
+              Retry Loading
+            </button>
           </div>
         </div>
       </Layout>
