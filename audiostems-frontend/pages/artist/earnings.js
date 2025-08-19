@@ -1,388 +1,460 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { useState, useEffect, useRef } from 'react';
-import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
+import { useState } from 'react';
 import Layout from '../../components/layouts/mainLayout';
-import { Calendar, ChevronDown, Globe } from 'lucide-react';
-import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
-import { getUserById } from '../../lib/emptyData';
+import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3 } from 'lucide-react';
+import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 
 export default function ArtistEarnings() {
   const { user, isLoading } = useUser();
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [activeTab, setActiveTab] = useState('basic');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
-
-
-  // Earnings data - will be populated from real API data
-  const [earningsData] = useState({
-    totalEarnings: 0,
-    pendingEarnings: 0,
-    heldEarnings: 0,
-    pendingWithdrawal: 0,
-    minimumCashoutThreshold: 100,
-    minimumBalance: 100,
-    thisMonth: 0,
-    lastMonth: 0,
-    thisYear: 0,
-    lastYear: 0,
-    monthlyData: [],
-    recentTransactions: []
-  });
-
-
-
-  // Calculate available for withdrawal dynamically
-  const getAvailableForWithdrawal = () => {
-    // Available = Held Earnings - Minimum Balance - Pending Withdrawals
-    return Math.max(0, earningsData.heldEarnings - earningsData.minimumBalance - earningsData.pendingWithdrawal);
-  };
   
-  // Example calculations:
-  // - If heldEarnings = 1560, pendingWithdrawal = 320, availableForWithdrawal = 1560 - 100 - 320 = 1140
-  // - If heldEarnings = 80, pendingWithdrawal = 0, availableForWithdrawal = Math.max(0, 80 - 100 - 0) = 0
-  // - If heldEarnings = 100, pendingWithdrawal = 50, availableForWithdrawal = 100 - 100 - 50 = 0
-  // - If heldEarnings = 200, pendingWithdrawal = 50, availableForWithdrawal = 200 - 100 - 50 = 50
+  // Mock user plan - in real app, this would come from user subscription data
+  const [userPlan] = useState('starter'); // 'starter' or 'pro'
+  const hasProAccess = userPlan === 'pro';
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return <div className="flex items-center justify-center min-h-screen">Please log in to view your earnings.</div>;
-  }
-
-  const userRole = getUserRoleSync(user);
-  const userBrand = getUserBrand(user);
-
-  // Only allow artists to access this page
-  if (userRole !== 'artist') {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-            <p className="text-gray-600">This page is only available for artists.</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading earnings...</p>
           </div>
         </div>
       </Layout>
     );
   }
 
-  const getCurrentPeriodEarnings = () => {
-    switch (selectedPeriod) {
-      case 'month':
-        return earningsData.thisMonth;
-      case 'year':
-        return earningsData.thisYear;
-      case 'custom':
-        // For custom date range, calculate based on selected dates
-        if (customStartDate && customEndDate) {
-          // Mock calculation for custom date range
-          const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
-          const avgDailyEarnings = safeDivide(earningsData.totalEarnings, 365); // Assuming 1 year of data
-          return Math.round(avgDailyEarnings * daysDiff);
-        }
-        return earningsData.thisMonth; // Default to current month if no custom dates
-      case 'all':
-      default:
-        return earningsData.totalEarnings;
-    }
-  };
+  if (!user) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-gray-600">Please log in to view your earnings.</p>
+        </div>
+      </Layout>
+    );
+  }
 
-  const getPreviousPeriodEarnings = () => {
-    switch (selectedPeriod) {
-      case 'month':
-        return earningsData.lastMonth;
-      case 'year':
-        return earningsData.lastYear;
-      case 'custom':
-        // For custom date range, calculate previous period of same length
-        if (customStartDate && customEndDate) {
-          const daysDiff = Math.ceil((new Date(customEndDate) - new Date(customStartDate)) / (1000 * 60 * 60 * 24));
-          const avgDailyEarnings = safeDivide(earningsData.totalEarnings, 365); // Assuming 1 year of data
-          // Calculate previous period of same length (80% of current for demo)
-          return Math.round(avgDailyEarnings * daysDiff * 0.8);
-        }
-        return earningsData.lastMonth; // Default to last month if no custom dates
-      case 'all':
-      default:
-        return earningsData.totalEarnings * 0.8; // Assume 20% growth for demo
-    }
-  };
+  const renderBasicEarnings = () => (
+    <div className="space-y-8">
+      {/* Key Earnings Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Earnings</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">All time</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
 
-  const getPercentageChange = () => {
-    const current = getCurrentPeriodEarnings();
-    const previous = getPreviousPeriodEarnings();
-    if (previous === 0) return '---';
-    return formatNumber(safeRound(safeDivide((current - previous) * 100, previous), 1));
-  };
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">This Month</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">Current period</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Available</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(0, selectedCurrency)}</p>
+              <p className="text-sm text-gray-500 mt-1">Ready for payout</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'streaming': return '🎵';
-      case 'download': return '⬇️';
-      case 'sync': return '🎬';
-      default: return '💰';
-    }
-  };
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Growth</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">0%</p>
+              <p className="text-sm text-gray-500 mt-1">vs last month</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Earnings Chart */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Earnings Overview</h3>
+        <div className="h-80 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
+          <div className="text-center">
+            <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Earnings chart will appear here</p>
+            <p className="text-gray-400 text-sm mt-2">Release your first track to start earning</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Recent Transactions</h3>
+        <div className="text-center py-12">
+          <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">No transactions yet</p>
+          <p className="text-gray-400 text-sm mt-2">Your earnings and payouts will appear here</p>
+        </div>
+      </div>
+
+      {/* Payout Section */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Request Payout</h3>
+          <span className="text-sm text-gray-500">Minimum: {formatCurrency(100, selectedCurrency)}</span>
+        </div>
+        
+        <div className="bg-gray-50 rounded-lg p-6 text-center">
+          <p className="text-gray-600 mb-4">You need at least {formatCurrency(100, selectedCurrency)} to request a payout</p>
+          <button 
+            disabled 
+            className="bg-gray-300 text-gray-500 font-medium py-3 px-6 rounded-lg cursor-not-allowed"
+          >
+            Request Payout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAdvancedEarnings = () => (
+    <div className="space-y-12">
+      {/* Advanced Earnings Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Total Earnings</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Streaming Revenue</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <PieChart className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Sync Revenue</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">0%</p>
+            <p className="text-sm text-gray-600">Growth Rate</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <CreditCard className="w-6 h-6 text-indigo-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(0, selectedCurrency)}</p>
+            <p className="text-sm text-gray-600">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Revenue Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Revenue by Platform</h3>
+          <div className="space-y-4">
+            {[
+              { platform: 'Spotify', revenue: 0, percentage: 0, color: 'bg-green-500' },
+              { platform: 'Apple Music', revenue: 0, percentage: 0, color: 'bg-gray-800' },
+              { platform: 'YouTube Music', revenue: 0, percentage: 0, color: 'bg-red-500' },
+              { platform: 'Amazon Music', revenue: 0, percentage: 0, color: 'bg-blue-500' },
+              { platform: 'Deezer', revenue: 0, percentage: 0, color: 'bg-purple-500' }
+            ].map((platform, index) => (
+              <div key={index} className="flex items-center justify-between py-3">
+                <div className="flex items-center">
+                  <div className={`w-4 h-4 rounded-full ${platform.color} mr-3`}></div>
+                  <span className="font-medium text-gray-900">{platform.platform}</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">{formatCurrency(platform.revenue, selectedCurrency)}</p>
+                  <p className="text-xs text-gray-500">{platform.percentage}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Revenue by Territory</h3>
+          <div className="space-y-4">
+            {[
+              { country: '🇬🇧 United Kingdom', revenue: 0, percentage: 0 },
+              { country: '🇺🇸 United States', revenue: 0, percentage: 0 },
+              { country: '🇨🇦 Canada', revenue: 0, percentage: 0 },
+              { country: '🇩🇪 Germany', revenue: 0, percentage: 0 },
+              { country: '🇫🇷 France', revenue: 0, percentage: 0 }
+            ].map((territory, index) => (
+              <div key={index} className="flex items-center justify-between py-3">
+                <span className="font-medium text-gray-900">{territory.country}</span>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">{formatCurrency(territory.revenue, selectedCurrency)}</p>
+                  <p className="text-xs text-gray-500">{territory.percentage}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Transaction History */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Detailed Transaction History</h3>
+          <button className="flex items-center text-blue-600 hover:text-blue-700 font-medium">
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </button>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Platform</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Track</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Territory</th>
+                <th className="text-right py-3 px-4 font-medium text-gray-700">Streams</th>
+                <th className="text-right py-3 px-4 font-medium text-gray-700">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan="6" className="text-center py-12 text-gray-500">
+                  <CreditCard className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No transactions yet</p>
+                  <p className="text-sm mt-2">Detailed transaction data will appear here once you start earning</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Advanced Payout Management */}
+      <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Advanced Payout Management</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h4 className="font-medium text-gray-900 mb-4">Automatic Payouts</h4>
+            <div className="space-y-3">
+              <label className="flex items-center">
+                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span className="ml-3 text-sm text-gray-700">Enable automatic payouts</span>
+              </label>
+              <div className="ml-6">
+                <label className="block text-sm text-gray-600 mb-1">Minimum threshold</label>
+                <select className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                  <option>{formatCurrency(100, selectedCurrency)}</option>
+                  <option>{formatCurrency(250, selectedCurrency)}</option>
+                  <option>{formatCurrency(500, selectedCurrency)}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-gray-900 mb-4">Payment Schedule</h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Next payout date:</span>
+                <span className="text-sm font-medium text-gray-900">Not scheduled</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Payout frequency:</span>
+                <span className="text-sm font-medium text-gray-900">Monthly</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Processing time:</span>
+                <span className="text-sm font-medium text-gray-900">3-5 business days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Earnings Dashboard</h1>
-          <p className="text-gray-600">Track your revenue, payments, and earnings performance</p>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          
+          {/* Header with Tabs */}
+          <div className="mb-12">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900">Earnings</h1>
+                <p className="mt-2 text-lg text-gray-600">Track your revenue and manage payouts</p>
+              </div>
+              
+              {/* Currency and Period Selector */}
+              <div className="flex items-center space-x-4">
+                <CurrencySelector 
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={updateCurrency}
+                />
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d">Last 30 days</option>
+                    <option value="90d">Last 3 months</option>
+                    <option value="1y">Last year</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-        {/* Period Selector */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-2">
-              {[
-                { id: 'month', label: 'This Month' },
-                { id: 'year', label: 'This Year' },
-                { id: 'all', label: 'All Time' },
-                { id: 'custom', label: 'Custom Range' }
-              ].map((period) => (
+            {/* Earnings Tabs */}
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
                 <button
-                  key={period.id}
-                  onClick={() => {
-                    setSelectedPeriod(period.id);
-                    if (period.id === 'custom') {
-                      setShowCustomDateRange(true);
-                    } else {
-                      setShowCustomDateRange(false);
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium ${
-                    selectedPeriod === period.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  onClick={() => setActiveTab('basic')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'basic'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {period.label}
+                  Basic Earnings
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Included
+                  </span>
                 </button>
-              ))}
-            </div>
-            
-            {/* Currency Selector */}
-            <CurrencySelector
-              selectedCurrency={selectedCurrency}
-              onCurrencyChange={updateCurrency}
-              showLabel={true}
-            />
-          </div>
-        </div>
-
-        {/* Custom Date Range */}
-        {showCustomDateRange && (
-          <div className="mb-6">
-            <div className="flex items-center space-x-2">
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="Start date"
-              />
-              <span className="text-gray-600">to</span>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="End date"
-              />
+                
+                <button
+                  onClick={() => hasProAccess ? setActiveTab('advanced') : null}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center ${
+                    activeTab === 'advanced' && hasProAccess
+                      ? 'border-purple-500 text-purple-600'
+                      : hasProAccess
+                      ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Advanced Earnings
+                  {hasProAccess ? (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Pro
+                    </span>
+                  ) : (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Pro Only
+                    </span>
+                  )}
+                </button>
+              </nav>
             </div>
           </div>
-        )}
 
-        {/* Main Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {sharedFormatCurrency(earningsData.totalEarnings, selectedCurrency)}
+          {/* Tab Content */}
+          {activeTab === 'basic' && renderBasicEarnings()}
+          
+          {activeTab === 'advanced' && hasProAccess && renderAdvancedEarnings()}
+          
+          {activeTab === 'advanced' && !hasProAccess && (
+            <div className="bg-white rounded-xl shadow-sm p-16 border border-gray-100 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Crown className="w-10 h-10 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Unlock Advanced Earnings</h2>
+                <p className="text-gray-600 mb-8">
+                  Get detailed platform breakdowns, territory analysis, advanced payout management, 
+                  and comprehensive revenue insights.
                 </p>
-              </div>
-            </div>
-          </div>
+                
+                {/* Pro Features List */}
+                <div className="text-left mb-8 space-y-3">
+                  <div className="flex items-center text-gray-700">
+                    <PieChart className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Platform-specific revenue breakdown</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <BarChart3 className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Territory and demographic earnings</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <Download className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Advanced export and reporting</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <CreditCard className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Automatic payout management</span>
+                  </div>
+                </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <span className="text-2xl">📊</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Current Period</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {sharedFormatCurrency(getCurrentPeriodEarnings(), selectedCurrency)}
-                </p>
-                <p className={`text-sm ${getPercentageChange() > 0 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {getPercentageChange()}% vs previous period
-                </p>
+                <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
+                  Upgrade to Pro Plan
+                </button>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <span className="text-2xl">⏳</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {sharedFormatCurrency(earningsData.pendingEarnings, selectedCurrency)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <span className="text-2xl">📈</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Growth</p>
-                <p className={`text-2xl font-bold ${getPercentageChange() > 0 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {getPercentageChange()}%
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* My Funds Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">My Funds</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {sharedFormatCurrency(earningsData.heldEarnings, selectedCurrency)}
-              </div>
-              <div className="text-sm text-gray-600">Available Balance</div>
-              <div className="text-xs text-gray-500 mt-1">Minimum {sharedFormatCurrency(earningsData.minimumBalance, selectedCurrency)} held in account</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {sharedFormatCurrency(getAvailableForWithdrawal(), selectedCurrency)}
-              </div>
-              <div className="text-sm text-gray-600">Available for Withdrawal</div>
-              <div className="text-xs text-gray-500 mt-1">Amount above {sharedFormatCurrency(earningsData.minimumBalance, selectedCurrency)} minimum</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-amber-600">
-                {sharedFormatCurrency(earningsData.pendingWithdrawal, selectedCurrency)}
-              </div>
-              <div className="text-sm text-gray-600">Pending Withdrawal</div>
-              <div className="text-xs text-gray-500 mt-1">In transit to your account</div>
-            </div>
-            <div className="text-center">
-              <button
-                disabled={getAvailableForWithdrawal() <= 0}
-                className={`px-6 py-2 rounded-lg font-medium ${
-                  getAvailableForWithdrawal() > 0
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+          {/* Call to Action */}
+          <div className="mt-16 bg-white rounded-xl shadow-sm p-12 border border-gray-100 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Start Earning From Your Music</h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Release your music to start generating revenue from streams, downloads, and licensing across all major platforms.
+              </p>
+              <a 
+                href="/artist/releases" 
+                className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors"
               >
-                {getAvailableForWithdrawal() > 0
-                  ? 'Withdraw'
-                  : 'No funds available'
-                }
-              </button>
+                <DollarSign className="w-5 h-5 mr-2" />
+                Create Your First Release
+              </a>
             </div>
-          </div>
-        </div>
-
-        {/* Earnings Chart Placeholder */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Earnings Trend</h3>
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-gray-600">Earnings chart will be displayed here</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Transactions */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Platform
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {earningsData.recentTransactions.map((transaction) => (
-                  <tr key={transaction.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="mr-2">{getTypeIcon(transaction.type)}</span>
-                        <span className="text-sm font-medium text-gray-900 capitalize">
-                          {transaction.type}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {transaction.platform}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      {sharedFormatCurrency(transaction.amount, selectedCurrency)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(transaction.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {transaction.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
     </Layout>
   );
-} 
+}

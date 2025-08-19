@@ -1,386 +1,372 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState } from 'react';
-import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
+import { Calendar, TrendingUp, Users, Play, DollarSign, Crown, Lock } from 'lucide-react';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
-import { Calendar, ChevronDown } from 'lucide-react';
-import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getUserById } from '../../lib/emptyData';
-import { formatNumber, safeDivide, safeRound } from '../../lib/number-utils';
 
 export default function ArtistAnalytics() {
   const { user, isLoading } = useUser();
-  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
-  // Analytics data - will be populated from real API data
-  const [analyticsData] = useState({
-    totalStreams: 0,
-    totalFollowers: 0,
-    totalPlays: 0,
-    totalRevenue: 0,
-    monthlyData: [],
-    topTracks: [],
-    platformBreakdown: [],
-    audienceInsights: {
-      topCountries: [],
-      ageGroups: []
-    }
-  });
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [activeTab, setActiveTab] = useState('basic');
+  
+  // Mock user plan - in real app, this would come from user subscription data
+  const [userPlan] = useState('starter'); // 'starter' or 'pro'
+  const hasProAccess = userPlan === 'pro';
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return <div className="flex items-center justify-center min-h-screen">Please log in to view your analytics.</div>;
-  }
-
-  const userRole = getUserRoleSync(user);
-  const userBrand = getUserBrand(user);
-
-  // Only allow artists to access this page
-  if (userRole !== 'artist') {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-            <p className="text-gray-600">This page is only available for artists.</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading analytics...</p>
           </div>
         </div>
       </Layout>
     );
   }
 
-  const getCurrentPeriodData = () => {
-    if (analyticsData.monthlyData.length === 0) return { streams: 0, followers: 0, revenue: 0 };
-    const currentMonth = new Date().getMonth();
-    return analyticsData.monthlyData[currentMonth] || { streams: 0, followers: 0, revenue: 0 };
-  };
-
-  const getPreviousPeriodData = () => {
-    if (analyticsData.monthlyData.length === 0) return { streams: 0, followers: 0, revenue: 0 };
-    const previousMonth = new Date().getMonth() - 1;
-    return analyticsData.monthlyData[previousMonth >= 0 ? previousMonth : 11] || { streams: 0, followers: 0, revenue: 0 };
-  };
-
-  const getPercentageChange = (current, previous) => {
-    if (previous === 0) return '---';
-    return formatNumber(safeRound(safeDivide((current - previous) * 100, previous), 1));
-  };
-
-  return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-600">Track your performance, audience, and growth metrics</p>
+  if (!user) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-gray-600">Please log in to view your analytics.</p>
         </div>
+      </Layout>
+    );
+  }
 
-        {/* Period and Currency Selectors */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-2">
-              {[
-                { id: 'month', label: 'This Month' },
-                { id: 'quarter', label: 'This Quarter' },
-                { id: 'year', label: 'This Year' },
-                { id: 'custom', label: 'Custom Range' }
-              ].map((period) => (
-                <button
-                  key={period.id}
-                  onClick={() => {
-                    setSelectedPeriod(period.id);
-                    if (period.id === 'custom') {
-                      setShowCustomDateRange(true);
-                    } else {
-                      setShowCustomDateRange(false);
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium ${
-                    selectedPeriod === period.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {period.label}
-                </button>
-              ))}
+  const renderBasicAnalytics = () => (
+    <div className="space-y-8">
+      {/* Key Metrics - Clean and Spacious */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Streams</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">0</p>
+              <p className="text-sm text-gray-500 mt-1">All platforms</p>
             </div>
-            
-            {/* Currency Selector */}
-            <CurrencySelector
-              selectedCurrency={selectedCurrency}
-              onCurrencyChange={updateCurrency}
-              showLabel={true}
-              compact={true}
-            />
-          </div>
-        </div>
-
-        {showCustomDateRange && (
-          <div className="mb-6">
-            <div className="flex items-center space-x-2">
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md"
-              />
-              <span className="text-gray-600">to</span>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Main Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <span className="text-2xl">🎵</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Streams</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analyticsData.totalStreams.toLocaleString()}
-                </p>
-                <p className="text-sm text-green-600">
-                  +{getPercentageChange(getCurrentPeriodData().streams, getPreviousPeriodData().streams)}% vs last month
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-2xl">👥</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Social Footprint</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analyticsData.totalFollowers.toLocaleString()}
-                </p>
-                <p className="text-sm text-green-600">
-                  +{getPercentageChange(getCurrentPeriodData().followers, getPreviousPeriodData().followers)}% vs last month
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <span className="text-2xl">▶️</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Plays</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analyticsData.totalPlays.toLocaleString()}
-                </p>
-                <p className="text-sm text-green-600">
-                  +12.5% vs last month
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(analyticsData.totalRevenue, selectedCurrency)}
-                </p>
-                <p className="text-sm text-green-600">
-                  +{getPercentageChange(getCurrentPeriodData().revenue, getPreviousPeriodData().revenue)}% vs last month
-                </p>
-              </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Play className="w-6 h-6 text-blue-600" />
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 px-6">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveTab('social-footprint')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'social-footprint'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Social Footprint
-              </button>
-            </nav>
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Revenue</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">£0.00</p>
+              <p className="text-sm text-gray-500 mt-1">Net earnings</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Followers</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">0</p>
+              <p className="text-sm text-gray-500 mt-1">Across platforms</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Growth Rate</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">0%</p>
+              <p className="text-sm text-gray-500 mt-1">This period</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        
+        {/* Left Column - Charts */}
+        <div className="lg:col-span-2 space-y-8">
           
-          <div className="p-6">
-            {activeTab === 'overview' && (
-              <>
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Performance Chart */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trend</h3>
-            <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Performance Overview</h3>
+            <div className="h-80 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
               <div className="text-center">
-                <div className="text-4xl mb-2">📈</div>
-                <p className="text-gray-600">Performance chart will be displayed here</p>
+                <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Performance charts will appear here</p>
+                <p className="text-gray-400 text-sm mt-2">Connect your streaming platforms to see detailed analytics</p>
               </div>
             </div>
           </div>
 
           {/* Platform Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Breakdown</h3>
+          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Platform Breakdown</h3>
+            <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
+              <div className="text-center">
+                <Play className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Platform distribution charts will appear here</p>
+                <p className="text-gray-400 text-sm mt-2">See which platforms drive the most streams</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Insights */}
+        <div className="space-y-8">
+          
+          {/* Top Tracks */}
+          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Top Tracks</h3>
             <div className="space-y-4">
-              {analyticsData.platformBreakdown.map((platform, index) => (
-                <div key={platform.platform} className="flex items-center justify-between">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center">
-                    <div className="w-4 h-4 rounded-full mr-3" style={{
-                      backgroundColor: ['#1DB954', '#FA243C', '#FF0000', '#FF9900'][index]
-                    }}></div>
-                    <span className="text-sm font-medium text-gray-900">{platform.platform}</span>
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                      <Play className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Track {i}</p>
+                      <p className="text-sm text-gray-500">0 streams</p>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600">{platform.streams.toLocaleString()} streams</span>
-                    <span className="text-sm font-medium text-gray-900">{platform.percentage}%</span>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">0</p>
+                    <p className="text-xs text-gray-500">plays</p>
                   </div>
                 </div>
               ))}
             </div>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500">Release your first track to see performance data</p>
+            </div>
           </div>
-                </div>
 
-                {/* Top Tracks */}
-                <div className="bg-white rounded-lg shadow mb-8">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">Top Performing Tracks</h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Track
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Streams
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Revenue
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Growth
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {analyticsData.topTracks.map((track) => (
-                          <tr key={track.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <span className="text-2xl mr-3">🎵</span>
-                                <span className="text-sm font-medium text-gray-900">{track.title}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {track.streams.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                              {formatCurrency(track.revenue, selectedCurrency)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                track.growth > 0 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {track.growth > 0 ? '+' : ''}{track.growth}%
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          {/* Upgrade CTA for Basic Users */}
+          {!hasProAccess && (
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-8 border border-purple-100">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Crown className="w-8 h-8 text-purple-600" />
                 </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Unlock Advanced Analytics</h3>
+                <p className="text-gray-600 mb-6">
+                  Get detailed platform breakdowns, audience insights, career snapshots, and social footprint analysis.
+                </p>
+                <button className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
+                  Upgrade to Pro
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-                {/* Audience Insights */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Top Countries */}
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Countries</h3>
-                    <div className="space-y-4">
-                      {analyticsData.audienceInsights.topCountries.map((country, index) => (
-                        <div key={country.country} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{country.country}</span>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-600">{country.streams.toLocaleString()} streams</span>
-                            <span className="text-sm font-medium text-gray-900">{country.percentage}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+      {/* Call to Action */}
+      <div className="mt-16 bg-white rounded-xl shadow-sm p-12 border border-gray-100 text-center">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to See Your Analytics?</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Release your first track to start tracking streams, revenue, and audience engagement across all platforms.
+          </p>
+          <a 
+            href="/artist/releases" 
+            className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Create Your First Release
+          </a>
+        </div>
+      </div>
+    </div>
+  );
 
-                  {/* Age Groups */}
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Age Demographics</h3>
-                    <div className="space-y-4">
-                      {analyticsData.audienceInsights.ageGroups.map((ageGroup) => (
-                        <div key={ageGroup.age} className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-900">{ageGroup.age}</span>
-                          <div className="flex items-center space-x-4">
-                            <div className="w-32 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${ageGroup.percentage}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">{ageGroup.percentage}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-            
-            {activeTab === 'social-footprint' && (
-              <SocialFootprintIntegration />
-            )}
+  const renderAdvancedAnalytics = () => (
+    <div className="space-y-12">
+      {/* Advanced Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Play className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">0</p>
+            <p className="text-sm text-gray-600">Total Streams</p>
           </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">£0.00</p>
+            <p className="text-sm text-gray-600">Total Revenue</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">0</p>
+            <p className="text-sm text-gray-600">Social Footprint</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">0%</p>
+            <p className="text-sm text-gray-600">Growth Rate</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Crown className="w-6 h-6 text-indigo-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">Mainstream</p>
+            <p className="text-sm text-gray-600">Career Stage</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Analytics Content */}
+      <SocialFootprintIntegration />
+    </div>
+  );
+
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          
+          {/* Header with Tabs */}
+          <div className="mb-12">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900">Analytics</h1>
+                <p className="mt-2 text-lg text-gray-600">Track your music performance and audience insights</p>
+              </div>
+              
+              {/* Period Selector */}
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-5 h-5 text-gray-400" />
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="7d">Last 7 days</option>
+                  <option value="30d">Last 30 days</option>
+                  <option value="90d">Last 3 months</option>
+                  <option value="1y">Last year</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Analytics Tabs */}
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('basic')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'basic'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Basic Analytics
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Included
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => hasProAccess ? setActiveTab('advanced') : null}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center ${
+                    activeTab === 'advanced' && hasProAccess
+                      ? 'border-purple-500 text-purple-600'
+                      : hasProAccess
+                      ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Advanced Analytics
+                  {hasProAccess ? (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Pro
+                    </span>
+                  ) : (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Pro Only
+                    </span>
+                  )}
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'basic' && renderBasicAnalytics()}
+          
+          {activeTab === 'advanced' && hasProAccess && renderAdvancedAnalytics()}
+          
+          {activeTab === 'advanced' && !hasProAccess && (
+            <div className="bg-white rounded-xl shadow-sm p-16 border border-gray-100 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Crown className="w-10 h-10 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Unlock Advanced Analytics</h2>
+                <p className="text-gray-600 mb-8">
+                  Get access to comprehensive platform breakdowns, career snapshots, audience demographics, 
+                  social footprint analysis, and detailed performance insights.
+                </p>
+                
+                {/* Pro Features List */}
+                <div className="text-left mb-8 space-y-3">
+                  <div className="flex items-center text-gray-700">
+                    <Crown className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Career stage and momentum tracking</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <Users className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Detailed audience demographics</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <TrendingUp className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Platform-specific analytics</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <Play className="w-5 h-5 text-purple-600 mr-3" />
+                    <span>Social media footprint analysis</span>
+                  </div>
+                </div>
+
+                <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
+                  Upgrade to Pro Plan
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
   );
-} 
+}
