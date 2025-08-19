@@ -234,7 +234,14 @@ export function IntelligentDropdown({
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
         disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
         className={`w-full px-3 py-2 border rounded-md text-left flex justify-between items-center ${
           disabled 
             ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 
@@ -451,7 +458,14 @@ export function CountryCodeDropdown({ value, onChange, disabled = false, classNa
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
         disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
         className={`w-full px-3 py-2 border rounded-md text-left flex justify-between items-center min-w-[120px] ${
           disabled 
             ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 

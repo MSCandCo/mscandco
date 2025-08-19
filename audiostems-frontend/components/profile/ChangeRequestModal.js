@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaTimes, FaExclamationTriangle } from 'react-icons/fa';
 import { NationalityDropdown, CountryDropdown, CityDropdown } from '../shared/IntelligentDropdowns';
+import { formatDateOfBirth } from '../../lib/date-utils';
 
 export default function ChangeRequestModal({ isOpen, onClose, currentProfile, onSubmit }) {
   const [requestData, setRequestData] = useState({

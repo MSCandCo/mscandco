@@ -50,7 +50,7 @@ export default function RoleBasedNavigation() {
   // Fetch profile data to get first and last name
   useEffect(() => {
     if (user && user) {
-      fetch('/api/artist/get-profile')
+      fetch('/api/artist/profile')
         .then(res => res.json())
         .then(data => {
           setProfileData(data);
@@ -68,7 +68,10 @@ export default function RoleBasedNavigation() {
 
   // Get display name with role and label information
   const getDisplayName = () => {
-    // Simple approach - just return email, no async calls
+    // Use profile data if available, fallback to email
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName} ${profileData.lastName}`;
+    }
     return user?.email || 'User';
   };
 

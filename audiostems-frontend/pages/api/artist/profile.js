@@ -50,8 +50,9 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      // Get artist profile - query all available fields
-      const { data: profile, error } = await supabase
+      // Get artist profile - query all available fields using user's authenticated session
+      console.log('Querying profile for user ID:', user.id);
+      const { data: profile, error } = await userSupabase
         .from('user_profiles')
         .select(`
           id, email, first_name, last_name,
@@ -60,7 +61,9 @@ export default async function handler(req, res) {
           primary_genre, secondary_genre, vocal_type, years_active,
           record_label, publisher, website, bio,
           instagram, facebook, twitter, youtube, tiktok, threads, soundcloud, apple_music,
-          basic_profile_locked, isrc_prefix,
+          basic_profile_locked, isrc_prefix, short_bio, secondary_genres, instruments,
+          is_basic_info_set, profile_completed, registration_date,
+          locked_fields, profile_lock_status,
           created_at, updated_at
         `)
         .eq('id', user.id)
@@ -130,6 +133,8 @@ export default async function handler(req, res) {
         countryCode: profile.country_code || '+44',
         primaryGenre: profile.primary_genre || '',
         secondaryGenre: profile.secondary_genre || '',
+        secondaryGenres: profile.secondary_genres || [],
+        instruments: profile.instruments || [],
         vocalType: profile.vocal_type || '',
         yearsActive: profile.years_active || '',
         recordLabel: profile.record_label || '',
@@ -145,10 +150,14 @@ export default async function handler(req, res) {
         soundcloud: profile.soundcloud || '',
         isrcPrefix: profile.isrc_prefix || '',
         bio: profile.bio || '',
-        isBasicInfoSet: profile.basic_profile_locked || false,
-        profileCompleted: !!(profile.first_name && profile.last_name && profile.nationality && profile.country && profile.city),
+        shortBio: profile.short_bio || '',
+        isBasicInfoSet: profile.is_basic_info_set || false,
+        lockedFields: profile.locked_fields || {},
+        profileLockStatus: profile.profile_lock_status || 'unlocked',
+        profileCompleted: profile.profile_completed || false,
         createdAt: profile.created_at,
-        updatedAt: profile.updated_at
+        updatedAt: profile.updated_at,
+        registrationDate: profile.registration_date
       };
 
       return res.status(200).json(mappedProfile);
@@ -183,11 +192,13 @@ export default async function handler(req, res) {
         postal_code: profileData.postalCode,
         date_of_birth: profileData.dateOfBirth,
         artist_name: profileData.artistName,
-        artist_type: profileData.artistType,
+        artist_type: profileData.artistType || 'Solo Artist',
         phone: profileData.phone,
         country_code: profileData.countryCode,
         primary_genre: profileData.primaryGenre,
         secondary_genre: profileData.secondaryGenre,
+        secondary_genres: profileData.secondaryGenres || [],
+        instruments: profileData.instruments || [],
         vocal_type: profileData.vocalType,
         years_active: profileData.yearsActive,
         record_label: profileData.recordLabel,
@@ -203,16 +214,19 @@ export default async function handler(req, res) {
         soundcloud: profileData.soundcloud,
         isrc_prefix: profileData.isrcPrefix,
         bio: profileData.bio,
+        short_bio: profileData.shortBio,
+        is_basic_info_set: profileData.isBasicInfoSet,
+        profile_completed: profileData.profileCompleted,
         updated_at: new Date().toISOString()
       };
 
       // Check if this is the first time setting basic info (lock it after first save)
       if (profileData.firstName && profileData.lastName && profileData.nationality && profileData.country && profileData.city) {
-        updateData.basic_profile_locked = true;
+        updateData.is_basic_info_set = true;
       }
 
-      // Update profile in database
-      const { data: updatedProfile, error } = await supabase
+      // Update profile in database using user's authenticated session
+      const { data: updatedProfile, error } = await userSupabase
         .from('user_profiles')
         .upsert(updateData)
         .select()
@@ -242,6 +256,8 @@ export default async function handler(req, res) {
         countryCode: updatedProfile.country_code || '+44',
         primaryGenre: updatedProfile.primary_genre || '',
         secondaryGenre: updatedProfile.secondary_genre || '',
+        secondaryGenres: updatedProfile.secondary_genres || [],
+        instruments: updatedProfile.instruments || [],
         vocalType: updatedProfile.vocal_type || '',
         yearsActive: updatedProfile.years_active || '',
         recordLabel: updatedProfile.record_label || '',
@@ -257,10 +273,14 @@ export default async function handler(req, res) {
         soundcloud: updatedProfile.soundcloud || '',
         isrcPrefix: updatedProfile.isrc_prefix || '',
         bio: updatedProfile.bio || '',
-        isBasicInfoSet: updatedProfile.basic_profile_locked || false,
-        profileCompleted: !!(updatedProfile.first_name && updatedProfile.last_name && updatedProfile.nationality && updatedProfile.country && updatedProfile.city),
+        shortBio: updatedProfile.short_bio || '',
+        isBasicInfoSet: updatedProfile.is_basic_info_set || false,
+        lockedFields: updatedProfile.locked_fields || {},
+        profileLockStatus: updatedProfile.profile_lock_status || 'unlocked',
+        profileCompleted: updatedProfile.profile_completed || false,
         createdAt: updatedProfile.created_at,
-        updatedAt: updatedProfile.updated_at
+        updatedAt: updatedProfile.updated_at,
+        registrationDate: updatedProfile.registration_date
       };
 
       return res.status(200).json({
@@ -326,7 +346,7 @@ function getUserId(email) {
 function handleMockProfile(req, res) {
   const profiles = loadProfiles();
   const userEmail = 'info@htay.co.uk'; // Default for development
-  const userId = getUserId(userEmail);
+  const userId = '8a060dc5-1c94-4060-a1c3-a60224fc348d'; // Your actual UUID from database
 
   const defaultProfile = {
     id: userId,
@@ -362,8 +382,10 @@ function handleMockProfile(req, res) {
     soundcloud: '',
     isrcPrefix: '',
     bio: '',
-    isBasicInfoSet: false,
+    isBasicInfoSet: true,
     profileCompleted: false,
+    lockedFields: {"firstName": true, "lastName": true, "dateOfBirth": true, "nationality": true, "country": true, "city": true},
+    profileLockStatus: "locked",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };

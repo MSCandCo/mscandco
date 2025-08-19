@@ -19,9 +19,10 @@ function Header({ largeLogo = false }) {
   // Fetch profile data to get first and last name
   useEffect(() => {
     if (user) {
-      fetch('/api/artist/get-profile')
+      fetch('/api/artist/profile')
         .then(res => res.json())
         .then(data => {
+          console.log('Header profile data loaded:', data);
           setProfileData(data);
         })
         .catch(err => console.error('Error fetching profile:', err));
@@ -142,7 +143,14 @@ function Header({ largeLogo = false }) {
                   type="button"
                 >
                   <span className="sr-only">Open user menu</span>
-                  Hi, {user?.email ? String(user.email) : 'User'}
+                  Hi, {(() => {
+                    console.log('Header display - profileData:', profileData);
+                    console.log('Header display - user:', user);
+                    if (profileData?.firstName && profileData?.lastName) {
+                      return `${profileData.firstName} ${profileData.lastName}`;
+                    }
+                    return user?.email ? String(user.email) : 'User';
+                  })()}
                   <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
                   </svg>
