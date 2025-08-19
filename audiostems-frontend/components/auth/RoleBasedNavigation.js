@@ -1,4 +1,5 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
@@ -84,11 +85,7 @@ export default function RoleBasedNavigation() {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
-    logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
-    });
+    router.push('/logout');
   };
 
 
@@ -614,11 +611,7 @@ export default function RoleBasedNavigation() {
               <Dropdown.Divider />
               <Dropdown.Item
                 icon={LogOut}
-                onClick={() => logout({ 
-                  logoutParams: { 
-                    returnTo: window.location.origin 
-                  } 
-                })}
+                onClick={handleLogout}
               >
                 Logout
               </Dropdown.Item>
