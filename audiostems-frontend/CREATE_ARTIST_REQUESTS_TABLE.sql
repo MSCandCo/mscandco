@@ -38,7 +38,7 @@ CREATE POLICY "label_admins_own_requests" ON artist_requests
         EXISTS (
             SELECT 1 FROM user_role_assignments ura
             WHERE ura.user_id = auth.uid()
-            AND ura.role = 'label_admin'
+            AND ura.role_name = 'label_admin'
             AND artist_requests.requested_by_user_id = auth.uid()
         )
     );
@@ -50,7 +50,7 @@ CREATE POLICY "admins_all_requests" ON artist_requests
         EXISTS (
             SELECT 1 FROM user_role_assignments ura
             WHERE ura.user_id = auth.uid()
-            AND ura.role IN ('company_admin', 'super_admin')
+            AND ura.role_name IN ('company_admin', 'super_admin')
         )
     );
 
@@ -61,7 +61,7 @@ CREATE POLICY "label_admins_insert_requests" ON artist_requests
         EXISTS (
             SELECT 1 FROM user_role_assignments ura
             WHERE ura.user_id = auth.uid()
-            AND ura.role = 'label_admin'
+            AND ura.role_name = 'label_admin'
             AND artist_requests.requested_by_user_id = auth.uid()
         )
     );
