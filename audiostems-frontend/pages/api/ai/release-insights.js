@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import aceberAI from '@/lib/acceber-ai';
+import aceberAI from '@/lib/acceber-ai-mock';
 import chartmetric from '@/lib/chartmetric';
 
 const supabase = createClient(

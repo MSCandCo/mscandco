@@ -127,7 +127,7 @@ const AIEnhancedReleaseForm = ({ onReleaseCreated, onClose }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      // Get AI insights for release timing and revenue potential
+      // Get Acceber Intelligence AI insights for release timing and revenue potential
       const response = await fetch('/api/ai/release-insights', {
         method: 'POST',
         headers: {

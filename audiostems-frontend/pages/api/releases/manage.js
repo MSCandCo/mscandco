@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import chartmetric, { getTrackInsights } from '@/lib/chartmetric';
-import aceberAI, { analyzeArtistStrategy } from '@/lib/acceber-ai';
+import aceberAI, { analyzeArtistStrategy } from '@/lib/acceber-ai-mock';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
