@@ -187,3 +187,10 @@ export const isStatusControlledByDistributionPartner = (status) => {
 export const isStatusRequiringApproval = (status) => {
   return status === RELEASE_STATUSES.APPROVALS;
 };
+
+export const isStatusEditableByLabelAdmin = (status) => {
+  return [
+    RELEASE_STATUSES.DRAFT,
+    RELEASE_STATUSES.SUBMITTED
+  ].includes(status);
+};

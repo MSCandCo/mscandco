@@ -46,3 +46,4 @@ function Avatar({ name, image, size = "w-10 h-10", textSize = "text-sm" }) {
 }
 
 export default Avatar;
+export { Avatar };

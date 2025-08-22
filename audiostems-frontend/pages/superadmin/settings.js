@@ -5,7 +5,7 @@ import {
   Settings, Shield, Globe, Database, Server, Bell, 
   Lock, Users, Mail, Wifi, HardDrive, Activity,
   Eye, EyeOff, Save, RefreshCw, AlertTriangle,
-  CheckCircle, Clock, Zap, Building2, Key, Refresh,
+  CheckCircle, Clock, Zap, Building2, Key,
   Download, BarChart3
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
@@ -591,7 +591,7 @@ export default function SuperAdminSettings() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Database Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  <Refresh className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh Statistics
                 </button>
                 <button className="flex items-center justify-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
@@ -675,7 +675,7 @@ export default function SuperAdminSettings() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  <Refresh className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh Metrics
                 </button>
                 <button className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
