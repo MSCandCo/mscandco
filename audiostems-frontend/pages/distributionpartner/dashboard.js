@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole, getUserBrand } from '../../lib/user-utils';
+import { supabase } from '@/lib/supabase';
+import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaCheckCircle, FaPlay, FaFileText, FaFilter, FaSearch, FaTimes, FaDownload, FaClock } from 'react-icons/fa';
 import { Eye, Edit, CheckCircle, Play, FileText, Filter, Search, Download, Clock, AlertCircle } from 'lucide-react';
@@ -36,7 +37,7 @@ const mockAllReleases = [];
   {
     id: 1,
     projectName: 'Urban Beats Collection',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
@@ -53,17 +54,17 @@ const mockAllReleases = [];
       { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688', bpm: '145', songKey: 'A Minor' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Additional Production', name: 'Beat Maker' }
     ],
     // Comprehensive metadata
     songTitle: 'Urban Beat',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC',
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC',
     phoneticPronunciation: 'YAH-WAY EM-ES-SEE',
-    stylised: 'YHWH MSC',
-    akaFka: 'YHWH',
+    stylised: 'MSC & Co MSC',
+    akaFka: 'MSC & Co',
     artistType: 'Solo Artist',
     productTitle: 'Urban Beats Collection',
     altTitle: 'Urban Collection',
@@ -103,10 +104,10 @@ const mockAllReleases = [];
     releaseLabel: 'MSC & Co',
     distributionCompany: 'Code Group',
     copyrightYear: '2024',
-    copyrightOwner: 'YHWH MSC',
+    copyrightOwner: 'MSC & Co MSC',
     pLine: '℗ 2024 MSC & Co Records',
     cLine: '© 2024 MSC & Co Records',
-    composerAuthor: 'YHWH MSC',
+    composerAuthor: 'MSC & Co MSC',
     role: 'Composer, Lyricist',
     pro: 'ASCAP',
     caeIpi: '123456789',
@@ -121,8 +122,8 @@ const mockAllReleases = [];
     subPublisher: 'None',
     publishingType: 'Administration',
     territory: 'Worldwide',
-    executiveProducer: 'YHWH MSC',
-    producer: 'YHWH MSC',
+    executiveProducer: 'MSC & Co MSC',
+    producer: 'MSC & Co MSC',
     mixingEngineer: 'Studio Pro',
     masteringEngineer: 'Master Lab',
     coProducer: 'Beat Maker',
@@ -133,7 +134,7 @@ const mockAllReleases = [];
     additionalProduction: 'Beat Maker',
     recordingStudio: 'MSC Studio',
     keyboards: 'None',
-    programming: 'YHWH MSC',
+    programming: 'MSC & Co MSC',
     bass: 'None',
     drums: 'None',
     guitars: 'None',
@@ -149,22 +150,22 @@ const mockAllReleases = [];
     artistEmail: 'artist@msc.com',
     primaryContactNumber: '+1-555-123-4567',
     secondaryContactNumber: '+1-555-987-6543',
-    wikipedia: 'https://wikipedia.org/yhwh-msc',
-    socialMediaLink: 'https://instagram.com/yhwhmsc',
-    shazam: 'https://shazam.com/yhwh-msc',
-    tiktok: 'https://tiktok.com/@yhwhmsc',
-    instagram: 'https://instagram.com/yhwhmsc',
-    genius: 'https://genius.com/yhwh-msc',
-    allMusic: 'https://allmusic.com/yhwh-msc',
-    discogs: 'https://discogs.com/yhwh-msc',
-    musicbrainz: 'https://musicbrainz.org/yhwh-msc',
-    imdb: 'https://imdb.com/yhwh-msc',
-    jaxsta: 'https://jaxsta.com/yhwh-msc',
-    website: 'https://yhwhmsc.com',
-    youtube: 'https://youtube.com/yhwhmsc',
-    youtubeMusic: 'https://music.youtube.com/yhwh-msc',
-    knowledgePanel: 'https://google.com/yhwh-msc',
-    tourDates: 'https://tour.yhwhmsc.com',
+    wikipedia: 'https://wikipedia.org/msc-co',
+    socialMediaLink: 'https://instagram.com/mscandco',
+    shazam: 'https://shazam.com/msc-co',
+    tiktok: 'https://tiktok.com/@mscandco',
+    instagram: 'https://instagram.com/mscandco',
+    genius: 'https://genius.com/msc-co',
+    allMusic: 'https://allmusic.com/msc-co',
+    discogs: 'https://discogs.com/msc-co',
+    musicbrainz: 'https://musicbrainz.org/msc-co',
+    imdb: 'https://imdb.com/msc-co',
+    jaxsta: 'https://jaxsta.com/msc-co',
+    website: 'https://mscandco.com',
+    youtube: 'https://youtube.com/mscandco',
+    youtubeMusic: 'https://music.youtube.com/msc-co',
+    knowledgePanel: 'https://google.com/msc-co',
+    tourDates: 'https://tour.mscandco.com',
     spotifyUri: 'spotify:artist:123456789',
     appleId: '123456789',
     digitalAssetsFolder: '/assets/urban_beats',
@@ -178,7 +179,7 @@ const mockAllReleases = [];
   {
     id: 2,
     projectName: 'Rock Anthem',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Rock',
@@ -193,17 +194,17 @@ const mockAllReleases = [];
       { title: 'Rock Anthem', duration: '4:20', isrc: 'USRC12345689', bpm: '120', songKey: 'E Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Mix Engineer', name: 'Studio Pro' }
     ],
     // Comprehensive metadata
     songTitle: 'Rock Anthem',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC',
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC',
     phoneticPronunciation: 'YAH-WAY EM-ES-SEE',
-    stylised: 'YHWH MSC',
-    akaFka: 'YHWH',
+    stylised: 'MSC & Co MSC',
+    akaFka: 'MSC & Co',
     artistType: 'Solo Artist',
     productTitle: 'Rock Anthem',
     altTitle: 'Anthem',
@@ -243,10 +244,10 @@ const mockAllReleases = [];
     releaseLabel: 'MSC & Co',
     distributionCompany: 'Code Group',
     copyrightYear: '2024',
-    copyrightOwner: 'YHWH MSC',
+    copyrightOwner: 'MSC & Co MSC',
     pLine: '℗ 2024 MSC & Co Records',
     cLine: '© 2024 MSC & Co Records',
-    composerAuthor: 'YHWH MSC',
+    composerAuthor: 'MSC & Co MSC',
     role: 'Composer, Lyricist',
     pro: 'ASCAP',
     caeIpi: '123456789',
@@ -261,8 +262,8 @@ const mockAllReleases = [];
     subPublisher: 'None',
     publishingType: 'Administration',
     territory: 'Worldwide',
-    executiveProducer: 'YHWH MSC',
-    producer: 'YHWH MSC',
+    executiveProducer: 'MSC & Co MSC',
+    producer: 'MSC & Co MSC',
     mixingEngineer: 'Studio Pro',
     masteringEngineer: 'Master Lab',
     coProducer: 'None',
@@ -272,7 +273,7 @@ const mockAllReleases = [];
     recordingEngineer: 'Studio Pro',
     additionalProduction: 'None',
     recordingStudio: 'MSC Studio',
-    keyboards: 'YHWH MSC',
+    keyboards: 'MSC & Co MSC',
     programming: 'None',
     bass: 'Studio Bassist',
     drums: 'Studio Drummer',
@@ -289,22 +290,22 @@ const mockAllReleases = [];
     artistEmail: 'artist@msc.com',
     primaryContactNumber: '+1-555-123-4567',
     secondaryContactNumber: '+1-555-987-6543',
-    wikipedia: 'https://wikipedia.org/yhwh-msc',
-    socialMediaLink: 'https://instagram.com/yhwhmsc',
-    shazam: 'https://shazam.com/yhwh-msc',
-    tiktok: 'https://tiktok.com/@yhwhmsc',
-    instagram: 'https://instagram.com/yhwhmsc',
-    genius: 'https://genius.com/yhwh-msc',
-    allMusic: 'https://allmusic.com/yhwh-msc',
-    discogs: 'https://discogs.com/yhwh-msc',
-    musicbrainz: 'https://musicbrainz.org/yhwh-msc',
-    imdb: 'https://imdb.com/yhwh-msc',
-    jaxsta: 'https://jaxsta.com/yhwh-msc',
-    website: 'https://yhwhmsc.com',
-    youtube: 'https://youtube.com/yhwhmsc',
-    youtubeMusic: 'https://music.youtube.com/yhwh-msc',
-    knowledgePanel: 'https://google.com/yhwh-msc',
-    tourDates: 'https://tour.yhwhmsc.com',
+    wikipedia: 'https://wikipedia.org/msc-co',
+    socialMediaLink: 'https://instagram.com/mscandco',
+    shazam: 'https://shazam.com/msc-co',
+    tiktok: 'https://tiktok.com/@mscandco',
+    instagram: 'https://instagram.com/mscandco',
+    genius: 'https://genius.com/msc-co',
+    allMusic: 'https://allmusic.com/msc-co',
+    discogs: 'https://discogs.com/msc-co',
+    musicbrainz: 'https://musicbrainz.org/msc-co',
+    imdb: 'https://imdb.com/msc-co',
+    jaxsta: 'https://jaxsta.com/msc-co',
+    website: 'https://mscandco.com',
+    youtube: 'https://youtube.com/mscandco',
+    youtubeMusic: 'https://music.youtube.com/msc-co',
+    knowledgePanel: 'https://google.com/msc-co',
+    tourDates: 'https://tour.mscandco.com',
     spotifyUri: 'spotify:artist:123456789',
     appleId: '123456789',
     digitalAssetsFolder: '/assets/rock_anthem',
@@ -322,7 +323,7 @@ const mockEditRequests = [];
   {
     id: 101,
     projectName: 'Urban Beats Collection',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
@@ -338,7 +339,7 @@ const mockEditRequests = [];
       { title: 'City Lights', duration: '3:45', isrc: 'USRC12345688', bpm: '145', songKey: 'A Minor' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Mix Engineer', name: 'Studio Pro' }
     ],
     publishingNotes: 'Successfully completed album - requesting updates'
@@ -371,7 +372,7 @@ const mockEditRequests = [];
   {
     id: 103,
     projectName: 'Urban Beats Collection',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Hip Hop',
@@ -389,7 +390,7 @@ const mockEditRequests = [];
       { title: 'New Track 2', duration: '4:05', isrc: 'USRC12345694', bpm: '138', songKey: 'E Minor' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Additional Production', name: 'Beat Maker' }
     ],
     publishingNotes: 'Urban hip hop collection - added new tracks'
@@ -397,7 +398,7 @@ const mockEditRequests = [];
   {
     id: 3,
     projectName: 'Acoustic Dreams',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Acoustic',
@@ -412,18 +413,18 @@ const mockEditRequests = [];
       { title: 'Acoustic Dreams', duration: '4:20', isrc: 'USRC12345689', bpm: '90', songKey: 'G Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Songwriter', name: 'YHWH MSC' }
+      { role: 'Producer', name: 'MSC & Co MSC' },
+      { role: 'Songwriter', name: 'MSC & Co MSC' }
     ],
     songTitle: 'Acoustic Dreams',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 4,
     projectName: 'Electronic Fusion EP',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'EP',
     genre: 'Electronic',
@@ -441,18 +442,18 @@ const mockEditRequests = [];
       { title: 'Future Sounds', duration: '4:05', isrc: 'USRC12345693', bpm: '135', songKey: 'F Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Sound Engineer', name: 'Audio Pro' }
     ],
     songTitle: 'Digital Waves',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 5,
     projectName: 'Summer Vibes',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Pop',
@@ -467,18 +468,18 @@ const mockEditRequests = [];
       { title: 'Summer Vibes', duration: '3:45', isrc: 'USRC12345678', bpm: '120', songKey: 'C Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Songwriter', name: 'YHWH MSC' }
+      { role: 'Producer', name: 'MSC & Co MSC' },
+      { role: 'Songwriter', name: 'MSC & Co MSC' }
     ],
     songTitle: 'Summer Vibes',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 6,
     projectName: 'Midnight Sessions',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Album',
     genre: 'R&B',
@@ -495,19 +496,19 @@ const mockEditRequests = [];
       { title: 'City Lights', duration: '3:55', isrc: 'USRC12345684', bpm: '88', songKey: 'F Major' }
     ],
     credits: [
-      { role: 'Producer', name: 'YHWH MSC' },
-      { role: 'Songwriter', name: 'YHWH MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
+      { role: 'Songwriter', name: 'MSC & Co MSC' },
       { role: 'Mix Engineer', name: 'Studio Pro' }
     ],
     songTitle: 'Midnight Intro',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 7,
     projectName: 'Greatest Hits Collection',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Compilation',
     genre: 'Hip Hop',
@@ -523,18 +524,18 @@ const mockEditRequests = [];
       { title: 'Summer Vibes (Remastered)', duration: '4:00', isrc: 'USRC12345701', bpm: '120', songKey: 'G Major' }
     ],
     credits: [
-      { role: 'Compilation Producer', name: 'YHWH MSC' },
+      { role: 'Compilation Producer', name: 'MSC & Co MSC' },
       { role: 'Mastering Engineer', name: 'Audio Pro' }
     ],
     songTitle: 'Urban Beat (Remastered)',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 8,
     projectName: 'Urban Beat (Remix Package)',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Remix',
     genre: 'Electronic',
@@ -550,18 +551,18 @@ const mockEditRequests = [];
       { title: 'Urban Beat (Ambient Remix)', duration: '4:45', isrc: 'USRC12345711', bpm: '85', songKey: 'C Minor' }
     ],
     credits: [
-      { role: 'Original Artist', name: 'YHWH MSC' },
+      { role: 'Original Artist', name: 'MSC & Co MSC' },
       { role: 'Remix Producer', name: 'DJ Electronic' }
     ],
     songTitle: 'Urban Beat (Club Remix)',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 9,
     projectName: 'Live at Madison Square',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Live Album',
     genre: 'Hip Hop',
@@ -577,18 +578,18 @@ const mockEditRequests = [];
       { title: 'Summer Vibes (Live)', duration: '5:30', isrc: 'USRC12345721', bpm: '122', songKey: 'G Major' }
     ],
     credits: [
-      { role: 'Live Performance', name: 'YHWH MSC' },
+      { role: 'Live Performance', name: 'MSC & Co MSC' },
       { role: 'Live Recording Engineer', name: 'Concert Audio' }
     ],
     songTitle: 'Urban Beat (Live)',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     id: 10,
     projectName: 'Movie Score: Urban Dreams',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Soundtrack',
     genre: 'Ambient',
@@ -604,13 +605,13 @@ const mockEditRequests = [];
       { title: 'City Chase Scene', duration: '3:45', isrc: 'USRC12345731', bpm: '110', songKey: 'A Minor' }
     ],
     credits: [
-      { role: 'Composer', name: 'YHWH MSC' },
+      { role: 'Composer', name: 'MSC & Co MSC' },
       { role: 'Orchestrator', name: 'Film Music Pro' }
     ],
     songTitle: 'Opening Credits',
     companyName: 'MSC & Co Records',
-    legalName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    legalName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
 
   // DRAFT Status Examples
@@ -788,7 +789,7 @@ const mockEditRequests = [];
   {
     id: 16,
     projectName: 'Urban Beat (Remix Package)',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Remix',
     genre: 'Hip Hop',
@@ -805,7 +806,7 @@ const mockEditRequests = [];
       { title: 'Urban Beat (Trap Remix)', duration: '3:50', isrc: 'USRC12345736', bpm: '140', songKey: 'C Minor' }
     ],
     credits: [
-      { role: 'Original Artist', name: 'YHWH MSC' },
+      { role: 'Original Artist', name: 'MSC & Co MSC' },
       { role: 'Remix Producer', name: 'DJ ElectroMaster' },
       { role: 'Additional Remix', name: 'Ambient Artist' }
     ],
@@ -982,7 +983,7 @@ const mockEditRequests = [];
   {
     id: 25,
     projectName: 'Electronic Dreams Single',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Electronic',
@@ -997,8 +998,8 @@ const mockEditRequests = [];
       { title: 'Electronic Dreams', duration: '4:05', isrc: 'USRC12345755', bpm: '126', songKey: 'F# Minor' }
     ],
     credits: [
-      { role: 'Artist', name: 'YHWH MSC' },
-      { role: 'Producer', name: 'YHWH MSC' },
+      { role: 'Artist', name: 'MSC & Co MSC' },
+      { role: 'Producer', name: 'MSC & Co MSC' },
       { role: 'Sound Design', name: 'Synth Master' }
     ]
   },
@@ -1006,7 +1007,7 @@ const mockEditRequests = [];
   {
     id: 26,
     projectName: 'Acoustic Sessions',
-    artist: 'YHWH MSC',
+    artist: 'MSC & Co MSC',
     label: 'MSC & Co',
     releaseType: 'Single',
     genre: 'Acoustic',
@@ -1021,8 +1022,8 @@ const mockEditRequests = [];
       { title: 'Acoustic Sessions', duration: '3:55', isrc: 'USRC12345756', bpm: '75', songKey: 'D Major' }
     ],
     credits: [
-      { role: 'Artist', name: 'YHWH MSC' },
-      { role: 'Songwriter', name: 'YHWH MSC' }
+      { role: 'Artist', name: 'MSC & Co MSC' },
+      { role: 'Songwriter', name: 'MSC & Co MSC' }
     ]
   }
 */
@@ -1134,7 +1135,7 @@ export default function DistributionPartnerDashboard() {
   const [editProfileData, setEditProfileData] = useState({ ...profileData });
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
   // Memoize displayed releases based on hovered status for Release Board
@@ -1172,16 +1173,82 @@ export default function DistributionPartnerDashboard() {
       }, 100);
     }
     
-    setProfileData(updatedProfile);
-    setIsEditingProfile(false);
-    
-    // Here you would typically save to an API
+    // Save to database via API
+    saveProfileToDatabase(updatedProfile);
+  };
 
+  // Save profile to database
+  const saveProfileToDatabase = async (profileData) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      const response = await fetch('/api/distributionpartner/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      if (response.ok) {
+        const savedData = await response.json();
+        console.log('Profile saved successfully:', savedData);
+        
+        setProfileData(profileData);
+        setIsEditingProfile(false);
+        setShowProfileModal(false);
+        
+        showSuccess('Profile updated successfully!', 'Profile Saved');
+      } else {
+        const errorData = await response.json();
+        console.error('Profile save error:', errorData);
+        showError(`Failed to save profile: ${errorData.error || 'Unknown error'}`, 'Save Failed');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showError('Failed to save profile. Please check your connection and try again.', 'Save Error');
+    }
   };
 
   const handleProfileCancel = () => {
     setEditProfileData({ ...profileData });
     setIsEditingProfile(false);
+  };
+
+  // Load profile data from database
+  useEffect(() => {
+    if (user) {
+      loadProfileData();
+    }
+  }, [user]);
+
+  const loadProfileData = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      const response = await fetch('/api/distributionpartner/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Profile loaded:', data);
+        
+        if (data.profile) {
+          setProfileData(data.profile);
+        }
+      } else {
+        console.log('No existing profile found, using defaults');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
   };
 
   // Sync edit data when profile data changes
@@ -3278,7 +3345,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Copyright Owner (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.copyrightOwner || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.copyrightOwner || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">℗ P Line (Editable)</label>
@@ -3333,19 +3400,19 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishing || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishing || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publisher IPI (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publisherIpi || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publisherIpi || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing Admin (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdmin || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdmin || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publishing Admin IPI (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdminIpi || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.publishingAdminIpi || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Mechanical (Editable)</label>
@@ -3412,7 +3479,7 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Executive Producer (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Producer (Editable)</label>
@@ -3582,7 +3649,7 @@ export default function DistributionPartnerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Design / Art Direction (Read Only)</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Management (Editable)</label>
@@ -3976,7 +4043,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Executive Producer</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.executiveProducer || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Producer</label>
@@ -4056,7 +4123,7 @@ export default function DistributionPartnerDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Design/Art Direction</label>
-                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded">{editingRelease?.designArtDirection || 'MSC & Co MSC'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Management</label>

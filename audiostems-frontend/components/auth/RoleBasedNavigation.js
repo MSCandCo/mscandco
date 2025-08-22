@@ -15,7 +15,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 
 export default function RoleBasedNavigation() {
@@ -31,6 +31,60 @@ export default function RoleBasedNavigation() {
   });
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Load profile data for Distribution Partners
+  useEffect(() => {
+    if (user && getUserRoleSync(user) === 'distribution_partner') {
+      loadDistributionPartnerProfile();
+    }
+  }, [user]);
+
+  const loadDistributionPartnerProfile = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      const response = await fetch('/api/distributionpartner/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Navigation: Distribution Partner profile loaded:', data);
+        if (data.profile) {
+          setProfileData(data.profile);
+          console.log('Navigation: Profile data set:', data.profile);
+        }
+      } else {
+        console.log('Navigation: Failed to load profile, response:', response.status);
+      }
+    } catch (error) {
+      console.error('Error loading distribution partner profile:', error);
+    }
+  };
+
+  // Handle click outside dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    // Add event listener when dropdown is open
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   // Check if current page is active
   const isActivePage = (path) => {
@@ -73,14 +127,33 @@ export default function RoleBasedNavigation() {
     if (profileData?.firstName && profileData?.lastName) {
       return `${profileData.firstName} ${profileData.lastName}`;
     }
-    return user?.email || 'User';
+    if (user?.email) {
+      // Extract first name from email for compact display
+      const emailName = user.email.split('@')[0].replace(/[._]/g, ' ');
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    return 'User';
   };
 
   const getDistributionPartnerDisplayName = () => {
+    console.log('Distribution Partner Display Name - profileData:', profileData);
+    if (profileData?.firstName && profileData?.companyName) {
+      console.log('Using profile data:', `${profileData.firstName} from ${profileData.companyName}`);
+      return `${profileData.firstName} from ${profileData.companyName}`;
+    }
     if (profileData?.firstName) {
+      console.log('Using first name only:', `${profileData.firstName} from Code Group`);
       return `${profileData.firstName} from Code Group`;
     }
-    return `${user.email || 'User'} from Code Group`;
+    if (user?.email) {
+      // Extract first name from email for fallback
+      const emailName = user.email.split('@')[0].replace(/[._]/g, ' ');
+      const firstName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      console.log('Using email fallback:', `${firstName} from Code Group`);
+      return `${firstName} from Code Group`;
+    }
+    console.log('Using default fallback');
+    return 'User from Code Group';
   };
 
   const handleLogout = () => {
@@ -95,7 +168,7 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
@@ -136,7 +209,7 @@ export default function RoleBasedNavigation() {
 
             {/* Right side - User menu */}
             <div className="flex items-center space-x-3">
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -186,14 +259,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -235,6 +308,12 @@ export default function RoleBasedNavigation() {
                   Distribution
                 </Link>
                 <Link
+                  href="/superadmin/artist-requests"
+                  className={getNavLinkClasses('/superadmin/artist-requests')}
+                >
+                  Artist Requests
+                </Link>
+                <Link
                   href="/super-admin/ghost-login"
                   className={`${getNavLinkClasses('/super-admin/ghost-login')} border border-red-200 hover:border-red-300 ${isActivePage('/super-admin/ghost-login') ? 'text-red-600 border-red-400' : 'text-red-600 hover:text-red-800'}`}
                 >
@@ -245,7 +324,7 @@ export default function RoleBasedNavigation() {
 
             {/* Right side - User menu */}
             <div className="flex items-center space-x-3">
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -295,14 +374,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -318,6 +397,12 @@ export default function RoleBasedNavigation() {
                   className={getNavLinkClasses('/companyadmin/users')}
                 >
                   Users
+                </Link>
+                <Link
+                  href="/companyadmin/artist-requests"
+                  className={getNavLinkClasses('/companyadmin/artist-requests')}
+                >
+                  Artist Requests
                 </Link>
                 <Link
                   href="/companyadmin/content"
@@ -348,7 +433,7 @@ export default function RoleBasedNavigation() {
 
             {/* Right side - User menu */}
             <div className="flex items-center space-x-3">
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -398,14 +483,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -446,19 +531,20 @@ export default function RoleBasedNavigation() {
             {/* Right side - Balance and User menu */}
             <div className="flex items-center space-x-3">
               {/* Label Admin Balance Display */}
-              <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
+              <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
                 <Wallet className="w-4 h-4 text-gray-600" />
                 <span className="text-xs font-medium text-gray-900">
                   {sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)}
                 </span>
               </div>
               
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
-                  <span className="text-gray-700">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'YHWH MSC'}</span>
+                  <span className="text-gray-700 hidden sm:inline">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'MSC & Co'}</span>
+                  <span className="text-gray-700 sm:hidden">Label Admin</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
@@ -507,15 +593,15 @@ export default function RoleBasedNavigation() {
   ];
 
   return (
-    <header className="px-3 lg:px-[50px] py-1 h-[50px] border-b border-gray-200 bg-white">
+    <header className="px-3 lg:px-[50px] py-2 border-b border-gray-200 bg-white">
       <div className="w-full max-h-full flex justify-between items-center">
         {/* Left side - Navigation items */}
-        <div className="flex-1 flex items-center space-x-6">
+        <div className="flex-1 flex items-center space-x-4">
           {navigationItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`text-sm font-medium flex items-center space-x-1 transition-colors duration-200 ${
+              className={`text-xs sm:text-sm font-medium flex items-center space-x-1 transition-colors duration-200 ${
                 isActivePage(item.href) 
                   ? 'text-gray-800 font-semibold'
                     : 'text-gray-400 hover:text-gray-800'
@@ -531,11 +617,11 @@ export default function RoleBasedNavigation() {
         <div className="flex-1 flex justify-center">
           <Link href="/" className="flex items-center">
             <img 
-              src="/logos/yhwh-msc-logo.png" 
-              alt="YHWH MSC" 
-              className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+              src="/logos/msc-logo.png" 
+              alt="MSC & Co" 
+              className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
               onError={(e) => {
-                e.target.src = '/logos/yhwh-msc-logo.svg';
+                e.target.src = '/logos/msc-logo.svg';
                 e.target.onerror = () => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
@@ -543,16 +629,16 @@ export default function RoleBasedNavigation() {
               }}
             />
             <span className="text-lg font-bold text-gray-900 hidden">
-              {displayBrand?.displayName || 'YHWH MSC'}
+              {displayBrand?.displayName || 'MSC & Co'}
             </span>
           </Link>
         </div>
 
         {/* Right side - Utility links and user menu */}
-        <div className="flex-1 flex justify-end items-center space-x-3">
+        <div className="flex-1 flex justify-end items-center space-x-2">
           {/* Platform Funds Display - For artists and label admins */}
           {(userRole === 'artist' || userRole === 'label_admin') && (
-            <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
+            <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
               <Wallet className="w-4 h-4 text-gray-600" />
               <span className="text-xs font-medium text-gray-900">
                 {userRole === 'artist' 
@@ -595,7 +681,9 @@ export default function RoleBasedNavigation() {
               color="gray"
               size="sm"
               label={
-                <p>Hi, {getDisplayName()}</p>
+                <p className="text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">Hi, </span>{getDisplayName()}
+                </p>
               }
               dismissOnClick={false}
             >

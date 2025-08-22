@@ -8,6 +8,10 @@ export default function LabelAdminProfile() {
   const [errors, setErrors] = useState({});
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({});
+  const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
+  const [changeRequestField, setChangeRequestField] = useState('');
+  const [changeRequestValue, setChangeRequestValue] = useState('');
+  const [changeRequestReason, setChangeRequestReason] = useState('');
 
   // Load profile
   const loadProfile = async () => {
@@ -79,6 +83,50 @@ export default function LabelAdminProfile() {
     return profile?.lockedFields?.[fieldName] === true;
   };
 
+  // Handle change request submission
+  const handleChangeRequest = async () => {
+    if (!changeRequestField || !changeRequestValue) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/profile/change-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fieldName: changeRequestField,
+          currentValue: formData[changeRequestField] || '',
+          requestedValue: changeRequestValue,
+          reason: changeRequestReason
+        })
+      });
+      
+      if (response.ok) {
+        setErrors({
+          message: 'Change request submitted successfully! An admin will review your request.',
+          type: 'success'
+        });
+        setShowChangeRequestModal(false);
+        setChangeRequestField('');
+        setChangeRequestValue('');
+        setChangeRequestReason('');
+      } else {
+        const errorData = await response.json();
+        setErrors({
+          message: errorData.error || 'Failed to submit change request',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting change request:', error);
+      setErrors({
+        message: 'Error submitting change request. Please try again.',
+        type: 'error'
+      });
+    }
+  };
+
   // Handle input changes
   const handleInputChange = (field, value) => {
     if (isFieldLocked(field) && isEditing) {
@@ -106,10 +154,29 @@ export default function LabelAdminProfile() {
     setErrors({});
     
     try {
+      // Check if this is the first save (no locked fields yet)
+      const isFirstSave = !profile?.lockedFields || Object.keys(profile.lockedFields).length === 0;
+      
+      // If first save, add locking for label information fields
+      const saveData = {
+        ...formData,
+        ...(isFirstSave && {
+          lockedFields: {
+            firstName: true,
+            lastName: true,
+            labelName: true,
+            companyName: true,
+            email: true,
+            country: true
+          },
+          profileLockStatus: 'locked'
+        })
+      };
+      
       const response = await fetch('/api/labeladmin/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(saveData)
       });
       
       if (response.ok) {
@@ -118,10 +185,18 @@ export default function LabelAdminProfile() {
         setProfile(result.profile);
         setFormData(result.profile);
         setIsEditing(false);
-        setErrors({
-          message: 'Profile updated successfully!',
-          type: 'success'
-        });
+        
+        if (isFirstSave) {
+          setErrors({
+            message: 'Profile saved and locked successfully! Label information is now secured.',
+            type: 'success'
+          });
+        } else {
+          setErrors({
+            message: 'Profile updated successfully!',
+            type: 'success'
+          });
+        }
       } else {
         const errorData = await response.json();
         console.error('Save failed:', errorData);
@@ -157,24 +232,34 @@ export default function LabelAdminProfile() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Label Profile</h1>
+              <h1 className="text-xl font-bold text-gray-900">Label Profile</h1>
               <p className="mt-1 text-sm text-gray-600">
                 Manage your label information and settings
               </p>
             </div>
             <div className="flex space-x-3">
               {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
-                >
-                  Edit Profile
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                  >
+                    Edit Profile
+                  </button>
+                  {profile?.profileLockStatus === 'locked' && (
+                    <button
+                      onClick={() => setShowChangeRequestModal(true)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Request Changes
+                    </button>
+                  )}
+                </>
               ) : (
                 <>
                   <button
@@ -225,7 +310,7 @@ export default function LabelAdminProfile() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Label Information */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-50 rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Label Information</h2>
               
               {/* Locking Status */}
@@ -240,7 +325,7 @@ export default function LabelAdminProfile() {
                     <div className="ml-3">
                       <h3 className="text-sm font-medium text-amber-800">🔒 Profile Locked</h3>
                       <p className="mt-1 text-sm text-amber-700">
-                        Your basic label information is locked for security. Contact support to request changes to locked information.
+                        Your basic label information (name, company, email, country) is locked for security. Use "Request Changes" to submit modification requests for admin approval.
                       </p>
                     </div>
                   </div>
@@ -251,9 +336,6 @@ export default function LabelAdminProfile() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     First Name *
-                    {isFieldLocked('firstName') && (
-                      <span className="ml-2 text-xs text-red-600">🔒 Locked</span>
-                    )}
                   </label>
                   <input
                     type="text"
@@ -272,9 +354,6 @@ export default function LabelAdminProfile() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Last Name *
-                    {isFieldLocked('lastName') && (
-                      <span className="ml-2 text-xs text-red-600">🔒 Locked</span>
-                    )}
                   </label>
                   <input
                     type="text"
@@ -349,8 +428,8 @@ export default function LabelAdminProfile() {
                   <CountryDropdown
                     value={formData.country || ''}
                     onChange={(value) => handleInputChange('country', value)}
-                    disabled={!isEditing}
-                    className={!isEditing ? 'opacity-60' : ''}
+                    disabled={isFieldLocked('country') || !isEditing}
+                    className={isFieldLocked('country') || !isEditing ? 'opacity-60' : ''}
                   />
                 </div>
               </div>
@@ -574,6 +653,121 @@ export default function LabelAdminProfile() {
           </div>
         </div>
       </div>
+
+      {/* Change Request Modal */}
+      {showChangeRequestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto transform transition-all">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Request Profile Change</h3>
+                  <p className="text-sm text-gray-600 mt-1">Submit a request to modify locked label information</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowChangeRequestModal(false);
+                    setChangeRequestField('');
+                    setChangeRequestValue('');
+                    setChangeRequestReason('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Form Content */}
+              <div className="space-y-5">
+                {/* Field Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Field to Change</label>
+                  <select
+                    value={changeRequestField}
+                    onChange={(e) => setChangeRequestField(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white text-gray-900"
+                  >
+                    <option value="">Select field...</option>
+                    <option value="firstName">First Name</option>
+                    <option value="lastName">Last Name</option>
+                    <option value="labelName">Label Name</option>
+                    <option value="companyName">Company Name</option>
+                    <option value="email">Email</option>
+                    <option value="country">Country</option>
+                  </select>
+                </div>
+
+                {/* Current Value */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Existing Information</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={changeRequestField ? (formData[changeRequestField] || 'Not set') : ''}
+                      disabled
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-medium"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Requested Value */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Proposed Update</label>
+                  <input
+                    type="text"
+                    value={changeRequestValue}
+                    onChange={(e) => setChangeRequestValue(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter proposed update..."
+                  />
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Reason for Change</label>
+                  <textarea
+                    value={changeRequestReason}
+                    onChange={(e) => setChangeRequestReason(e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    placeholder="Explain why this change is needed..."
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowChangeRequestModal(false);
+                    setChangeRequestField('');
+                    setChangeRequestValue('');
+                    setChangeRequestReason('');
+                  }}
+                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleChangeRequest}
+                  disabled={!changeRequestField || !changeRequestValue || !changeRequestReason}
+                  className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed"
+                >
+                  Submit Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

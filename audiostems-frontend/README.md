@@ -5,7 +5,7 @@ A comprehensive music distribution and publishing platform supporting multiple b
 ## Brand Architecture
 
 - **MSC & Co** - Parent company and main platform
-- **YHWH MSC** - Gospel and Christian music distribution & publishing
+- **MSC & Co MSC** - Gospel and Christian music distribution & publishing
 - **Audio MSC** - General music distribution & licensing for film/TV/media
 
 ## Features
@@ -101,7 +101,7 @@ npm run dev
 
 The platform supports multiple brands through the `lib/brand-config.js` file:
 
-- **YHWH MSC**: Gospel and Christian music focus
+- **MSC & Co MSC**: Gospel and Christian music focus
 - **Audio MSC**: General music and licensing focus
 
 Each brand has its own:
@@ -133,7 +133,7 @@ Each brand has its own:
 
 ### Brand Domains
 - Main platform: mscandco.com
-- YHWH MSC: yhwh-msc.mscandco.com
+- MSC & Co MSC: yhwh-msc.mscandco.com
 - Audio MSC: audio-msc.mscandco.com
 
 ## Contributing

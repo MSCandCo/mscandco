@@ -78,7 +78,7 @@ export default function ArtistReleases() {
         }
         
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
-        const artistReleases = getReleasesByArtist('yhwh_msc');
+        const artistReleases = getReleasesByArtist('msc_co');
 
         // 🎯 SIMPLE PLAN CHECK - One source of truth
         if (user?.sub) {
@@ -92,7 +92,7 @@ export default function ArtistReleases() {
       } catch (error) {
         console.error('Error loading data:', error);
         // Fallback to centralized data
-        const artistReleases = getReleasesByArtist('yhwh_msc');
+        const artistReleases = getReleasesByArtist('msc_co');
 
         setReleases(artistReleases);
         setIsLoadingData(false);

@@ -46,9 +46,9 @@ function AdminUsersContent() {
     {
       id: 3,
       email: 'yhwh@mscandco.com',
-      name: 'YHWH MSC',
+      name: 'MSC & Co MSC',
       role: 'artist',
-      brand: 'YHWH MSC',
+      brand: 'MSC & Co MSC',
       status: 'active',
       lastLogin: '2024-01-16T09:20:00Z',
       releases: 6,

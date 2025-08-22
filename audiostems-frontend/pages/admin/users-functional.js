@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
       email: `${artist.name.toLowerCase().replace(/\s+/g, '.')}@artist.com`,
       name: artist.name,
       role: 'artist',
-      brand: artist.brand || artist.label || 'YHWH MSC',
+      brand: artist.brand || artist.label || 'MSC & Co MSC',
       status: artist.status || 'active',
       lastLogin: artist.lastLogin || '2024-01-15T10:30:00Z',
       releases: artist.releases || 0,
@@ -237,10 +237,8 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.totalUsers.toString().length))}px`
-                }}>{userStats.totalUsers}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Users</p>
+                <p className="font-bold text-gray-900 text-3xl">{userStats.totalUsers}</p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-xl">
                   <Users className="w-8 h-8 text-blue-600" />
@@ -251,10 +249,8 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="font-bold text-green-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.activeUsers.toString().length))}px`
-                }}>{userStats.activeUsers}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Users</p>
+                <p className="font-bold text-green-600 text-3xl">{userStats.activeUsers}</p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-xl">
                   <UserCheck className="w-8 h-8 text-green-600" />
@@ -265,10 +261,8 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">New This Month</p>
-                <p className="font-bold text-blue-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.newThisMonth.toString().length))}px`
-                }}>{userStats.newThisMonth}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">New This Month</p>
+                <p className="font-bold text-blue-600 text-3xl">{userStats.newThisMonth}</p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-xl">
                   <TrendingUp className="w-8 h-8 text-blue-600" />
@@ -279,10 +273,8 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(userStats.totalRevenue, selectedCurrency).length))}px`
-                }}>{formatCurrency(userStats.totalRevenue, selectedCurrency)}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="font-bold text-purple-600 text-3xl">{formatCurrency(userStats.totalRevenue, selectedCurrency)}</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-xl">
                   <DollarSign className="w-8 h-8 text-purple-600" />

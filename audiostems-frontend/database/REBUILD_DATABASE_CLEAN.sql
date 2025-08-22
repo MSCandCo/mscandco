@@ -318,7 +318,7 @@ BEGIN
             user_id_var, 'info@htay.co.uk', 'Henry', 'Taylor', '1989-11-06',
             'British', 'United Kingdom', 'London', 'H-Tay', 'Solo Artist',
             '1234567890', '+44', 'Hip Hop', 'House',
-            '15', 'YHWH MSC', 'MSC & Co', 'Jesus I love forever', 'I love Jesus',
+            '15', 'MSC & Co', 'MSC & Co', 'Premium music distribution', 'MSC & Co Label',
             true, false
         ) ON CONFLICT (id) DO UPDATE SET
             first_name = EXCLUDED.first_name,

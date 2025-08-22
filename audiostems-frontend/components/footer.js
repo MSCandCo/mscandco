@@ -81,8 +81,8 @@ function Footer() {
             <h4 className="font-bold">{COMPANY_INFO.name}</h4>
             <div className="mt-4 flex flex-col gap-3">
               <div className="text-sm">
-                <div className="font-semibold">{BRANDS.YHWH_MSC.displayName}</div>
-                <div className="text-gray-600">{BRANDS.YHWH_MSC.description}</div>
+                <div className="font-semibold">{BRANDS.MSC_CO.displayName}</div>
+                <div className="text-gray-600">{BRANDS.MSC_CO.description}</div>
               </div>
               <div className="text-sm">
                 <div className="font-semibold">{BRANDS.AUDIO_MSC.displayName}</div>

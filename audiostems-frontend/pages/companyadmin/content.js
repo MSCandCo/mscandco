@@ -49,7 +49,7 @@ export default function CompanyAdminContentPage() {
 
   // Group releases by label
   const releasesByLabel = allReleases.reduce((acc, release) => {
-    const label = release.label || 'YHWH MSC';
+    const label = release.label || 'MSC & Co MSC';
     if (!acc[label]) {
       acc[label] = [];
     }
@@ -69,7 +69,7 @@ export default function CompanyAdminContentPage() {
                          ((release.label || '').toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
-    const matchesLabel = labelFilter === 'all' || (release.label || 'YHWH MSC') === labelFilter;
+    const matchesLabel = labelFilter === 'all' || (release.label || 'MSC & Co MSC') === labelFilter;
     
     return matchesSearch && matchesStatus && matchesLabel;
   });
@@ -141,10 +141,8 @@ export default function CompanyAdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Assets</p>
-                <p className="font-bold text-blue-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalAssets.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Assets</p>
+                <p className="font-bold text-blue-600 text-3xl">
                   {contentStats.totalAssets}
                 </p>
               </div>
@@ -157,10 +155,8 @@ export default function CompanyAdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Artists</p>
-                <p className="font-bold text-green-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.activeArtists.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Artists</p>
+                <p className="font-bold text-green-600 text-3xl">
                   {contentStats.activeArtists}
                 </p>
               </div>
@@ -173,10 +169,8 @@ export default function CompanyAdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Streams</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalStreams.toLocaleString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Streams</p>
+                <p className="font-bold text-purple-600 text-3xl">
                   {contentStats.totalStreams.toLocaleString()}
                 </p>
               </div>
@@ -189,10 +183,8 @@ export default function CompanyAdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(contentStats.totalRevenue, selectedCurrency).length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="font-bold text-purple-600 text-3xl">
                   {formatCurrency(contentStats.totalRevenue, selectedCurrency)}
                 </p>
               </div>
@@ -321,7 +313,7 @@ export default function CompanyAdminContentPage() {
                         {release.artist}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {release.label || 'YHWH MSC'}
+                        {release.label || 'MSC & Co MSC'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
@@ -384,7 +376,7 @@ export default function CompanyAdminContentPage() {
                           {release.artist}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {release.label || 'YHWH MSC'}
+                          {release.label || 'MSC & Co MSC'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(release.status)}`}>
@@ -462,7 +454,7 @@ export default function CompanyAdminContentPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-                      <p className="text-sm text-gray-900">{selectedItem.label || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900">{selectedItem.label || 'MSC & Co MSC'}</p>
                     </div>
                     
                     <div>
@@ -534,7 +526,7 @@ export default function CompanyAdminContentPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-                      <p className="text-sm text-gray-900">{selectedItem.releaseInfo?.label || 'YHWH MSC'}</p>
+                      <p className="text-sm text-gray-900">{selectedItem.releaseInfo?.label || 'MSC & Co MSC'}</p>
                     </div>
                     
                     <div>

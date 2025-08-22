@@ -28,10 +28,10 @@ const testUsers = [
     email: 'info@htay.co.uk',
     password: 'password123',
     role: 'artist',
-    firstName: 'YHWH',
+    firstName: 'MSC & Co',
     lastName: 'MSC',
-    displayName: 'YHWH MSC',
-    artistName: 'YHWH MSC'
+    displayName: 'MSC & Co MSC',
+    artistName: 'MSC & Co MSC'
   },
   {
     email: 'artist@mscandco.com',

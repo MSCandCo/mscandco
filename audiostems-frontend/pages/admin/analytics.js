@@ -27,12 +27,12 @@ function AdminAnalytics() {
 
   // Business operations analytics data for admin dashboard
   const mockWorkflowStats = [
-    { id: 1, artist: 'YHWH MSC', release: 'Urban Beat', startDate: '2024-01-16', currentStatus: 'live', formCompletionTime: 18, statusProgression: { draft: 2, submitted: 1, in_review: 24, approvals: 12, live: 0 } },
+    { id: 1, artist: 'MSC & Co MSC', release: 'Urban Beat', startDate: '2024-01-16', currentStatus: 'live', formCompletionTime: 18, statusProgression: { draft: 2, submitted: 1, in_review: 24, approvals: 12, live: 0 } },
     { id: 2, artist: 'Global Superstar', release: 'Hit Single #1', startDate: '2024-01-15', currentStatus: 'approvals', formCompletionTime: 12, statusProgression: { draft: 1, submitted: 2, in_review: 36, approvals: 8 } },
     { id: 3, artist: 'Seoul Stars', release: 'Starlight', startDate: '2024-01-14', currentStatus: 'in_review', formCompletionTime: 25, statusProgression: { draft: 3, submitted: 1, in_review: 18 } },
     { id: 4, artist: 'Rock Legends', release: 'Opening Anthem', startDate: '2024-01-13', currentStatus: 'submitted', formCompletionTime: 8, statusProgression: { draft: 1, submitted: 6 } },
     { id: 5, artist: 'Carlos Mendez', release: 'Fuego', startDate: '2024-01-12', currentStatus: 'live', formCompletionTime: 22, statusProgression: { draft: 4, submitted: 2, in_review: 28, approvals: 15, live: 0 } },
-    { id: 6, artist: 'YHWH MSC', release: 'Street Rhythm', startDate: '2024-01-11', currentStatus: 'live', formCompletionTime: 15, statusProgression: { draft: 2, submitted: 1, in_review: 22, approvals: 10, live: 0 } },
+    { id: 6, artist: 'MSC & Co MSC', release: 'Street Rhythm', startDate: '2024-01-11', currentStatus: 'live', formCompletionTime: 15, statusProgression: { draft: 2, submitted: 1, in_review: 22, approvals: 10, live: 0 } },
     { id: 7, artist: 'Global Superstar', release: 'Radio Favorite', startDate: '2024-01-10', currentStatus: 'live', formCompletionTime: 9, statusProgression: { draft: 1, submitted: 1, in_review: 20, approvals: 8, live: 0 } },
     { id: 8, artist: 'Seoul Stars', release: 'Electric Love', startDate: '2024-01-09', currentStatus: 'live', formCompletionTime: 31, statusProgression: { draft: 5, submitted: 2, in_review: 32, approvals: 18, live: 0 } }
   ];
@@ -55,7 +55,7 @@ function AdminAnalytics() {
   ];
 
   const allUserStats = [
-    { id: 1, name: 'YHWH MSC', role: 'artist', status: 'active', releases: 6, totalEarnings: 28400, avgFormTime: 18, efficiency: 92 },
+    { id: 1, name: 'MSC & Co MSC', role: 'artist', status: 'active', releases: 6, totalEarnings: 28400, avgFormTime: 18, efficiency: 92 },
     { id: 2, name: 'Global Superstar', role: 'artist', status: 'active', releases: 3, totalEarnings: 145600, avgFormTime: 11, efficiency: 95 },
     { id: 3, name: 'Seoul Stars', role: 'artist', status: 'active', releases: 2, totalEarnings: 97200, avgFormTime: 28, efficiency: 78 },
     { id: 4, name: 'Rock Legends', role: 'artist', status: 'active', releases: 1, totalEarnings: 18400, avgFormTime: 8, efficiency: 98 },
@@ -66,7 +66,7 @@ function AdminAnalytics() {
     { id: 9, name: 'Acoustic Dreams', role: 'artist', status: 'inactive', releases: 0, totalEarnings: 0, avgFormTime: 0, efficiency: 0 },
     { id: 10, name: 'Film Composer Orchestra', role: 'artist', status: 'pending', releases: 0, totalEarnings: 0, avgFormTime: 0, efficiency: 0 },
     { id: 11, name: 'Nashville Dreams', role: 'artist', status: 'inactive', releases: 0, totalEarnings: 0, avgFormTime: 0, efficiency: 0 },
-    { id: 12, name: 'YHWH Label Admin', role: 'label_admin', status: 'active', releases: 12, totalEarnings: 156000, avgFormTime: 14, efficiency: 91 },
+    { id: 12, name: 'MSC & Co Label Admin', role: 'label_admin', status: 'active', releases: 12, totalEarnings: 156000, avgFormTime: 14, efficiency: 91 },
     { id: 13, name: 'Urban Sounds Label Admin', role: 'label_admin', status: 'active', releases: 8, totalEarnings: 98000, avgFormTime: 16, efficiency: 89 }
   ];
 

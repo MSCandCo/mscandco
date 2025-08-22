@@ -52,7 +52,7 @@ export default function CompanyAdminDistribution() {
     id: release.id,
     title: release.title,
     artist: release.artist,
-    label: release.label || 'YHWH MSC',
+    label: release.label || 'MSC & Co MSC',
     status: release.status,
     submittedDate: release.submittedDate || release.createdAt || '2023-12-01',
     currentStage: release.status,
@@ -361,7 +361,7 @@ export default function CompanyAdminDistribution() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                        {workflow.label || 'YHWH MSC'}
+                        {workflow.label || 'MSC & Co MSC'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

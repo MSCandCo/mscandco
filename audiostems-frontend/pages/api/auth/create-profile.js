@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       first_name: user.user_metadata?.given_name || user.user_metadata?.first_name || '',
       last_name: user.user_metadata?.family_name || user.user_metadata?.last_name || '',
       role: user.user_metadata?.role || 'artist',
-      brand: user.user_metadata?.brand || 'YHWH',
+      brand: user.user_metadata?.brand || 'MSC & Co',
       email_verified: user.email_confirmed_at ? true : false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()

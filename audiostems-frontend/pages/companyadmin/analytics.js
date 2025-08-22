@@ -8,6 +8,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import CustomDateRangePicker from '@/components/shared/CustomDateRangePicker';
 import { getReleases, getUsers } from '@/lib/emptyData';
 import { getUserRole } from '@/lib/user-utils';
 
@@ -16,6 +17,8 @@ export default function CompanyAdminAnalytics() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Get user role
   const userRole = getUserRole(user);
@@ -114,10 +117,8 @@ export default function CompanyAdminAnalytics() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="font-bold text-blue-600" style={{
-                  fontSize: `${Math.min(24, Math.max(14, 200 / (businessMetrics.activeArtists + labelAdmins.length).toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Users</p>
+                <p className="font-bold text-blue-600 text-3xl">
                   {businessMetrics.activeArtists + labelAdmins.length}
                 </p>
                 <div className="flex items-center mt-2 text-sm">
@@ -134,10 +135,8 @@ export default function CompanyAdminAnalytics() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Releases</p>
-                <p className="font-bold text-green-600" style={{
-                  fontSize: `${Math.min(24, Math.max(14, 200 / businessMetrics.totalReleases.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Releases</p>
+                <p className="font-bold text-green-600 text-3xl">
                   {businessMetrics.totalReleases}
                 </p>
                 <div className="flex items-center mt-2 text-sm">
@@ -154,10 +153,8 @@ export default function CompanyAdminAnalytics() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Platform Channels</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(24, Math.max(14, 200 / "10".length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Platform Channels</p>
+                <p className="font-bold text-purple-600 text-3xl">
                   10
                 </p>
                 <div className="flex items-center mt-2 text-sm">
@@ -174,7 +171,7 @@ export default function CompanyAdminAnalytics() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">System Efficiency</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">System Efficiency</p>
                 <p className="font-bold text-yellow-600" style={{
                   fontSize: `${Math.min(24, Math.max(14, 200 / `${businessMetrics.systemEfficiency}%`.length))}px`
                 }}>
@@ -194,10 +191,8 @@ export default function CompanyAdminAnalytics() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(20, Math.max(12, 160 / formatCurrency(businessMetrics.totalRevenue, selectedCurrency).length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="font-bold text-purple-600 text-3xl">
                   {formatCurrency(businessMetrics.totalRevenue, selectedCurrency)}
                 </p>
                 <div className="flex items-center mt-2 text-sm">

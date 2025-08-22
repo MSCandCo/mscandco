@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole } from '@/lib/user-utils';
+import { getUserRoleSync } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { formatGrowthPercentage } from '@/lib/number-utils';
@@ -42,8 +42,8 @@ ChartJS.register(
 export default function PartnerReports() {
   const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   
   // Filter states (for main page filtering)
   const [selectedArtistFilter, setSelectedArtistFilter] = useState('all');
@@ -74,6 +74,13 @@ export default function PartnerReports() {
   
   // Currency state
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+
+  // Handle date range changes
+  const handleDateRangeChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    console.log('Distribution Partner reports date range changed:', { start, end });
+  };
 
   // Initialize modals hook
   const {
@@ -203,7 +210,7 @@ export default function PartnerReports() {
     );
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   
   if (userRole !== 'distribution_partner') {
     return (
@@ -317,7 +324,7 @@ export default function PartnerReports() {
   // Artist earnings breakdown with Other Platforms
   const artistEarningsData = [
     {
-      artist: 'YHWH MSC',
+      artist: 'MSC & Co MSC',
       totalEarnings: 12345.67,
       monthlyEarnings: 2045.32,
       topTrack: 'Lost in Time',
@@ -399,7 +406,7 @@ export default function PartnerReports() {
   const detailedEarningsData = [
     {
       month: 'January 2024',
-      artist: 'YHWH MSC',
+      artist: 'MSC & Co MSC',
       release: 'Midnight Sessions',
       track: 'Lost in Time',
       platform: 'Spotify',
@@ -427,7 +434,7 @@ export default function PartnerReports() {
     },
     {
       month: 'February 2024',
-      artist: 'YHWH MSC',
+      artist: 'MSC & Co MSC',
       release: 'Urban Beats Collection',
       track: 'City Lights',
       platform: 'YouTube Music',
@@ -441,7 +448,7 @@ export default function PartnerReports() {
     },
     {
       month: 'March 2024',
-      artist: 'YHWH MSC',
+      artist: 'MSC & Co MSC',
       release: 'Lost in Time - Single',
       track: 'Lost in Time',
       platform: 'Other Platforms',
@@ -488,7 +495,7 @@ export default function PartnerReports() {
 
   const mockArtists = [
     { id: 'all', name: 'All Artists' },
-    { id: 'yhwh_msc', name: 'YHWH MSC' },
+    { id: 'yhwh_msc', name: 'MSC & Co MSC' },
     { id: 'global_superstar', name: 'Global Superstar' },
     { id: 'seoul_stars', name: 'Seoul Stars' },
     { id: 'rock_legends', name: 'Rock Legends' },
@@ -558,7 +565,7 @@ export default function PartnerReports() {
       asset: selectedAsset,
       search: searchQuery,
       period: selectedPeriod,
-      customDates: selectedPeriod === 'custom' ? { start: customStartDate, end: customEndDate } : null
+      customDates: selectedPeriod === 'custom' ? { start: startDate, end: endDate } : null
     });
     // Here you would typically call your API with the filter parameters
   };
@@ -570,7 +577,7 @@ export default function PartnerReports() {
     // Apply artist filter
     if (selectedArtistFilter !== 'all') {
       const artistMap = {
-        'yhwh_msc': 'YHWH MSC',
+        'yhwh_msc': 'MSC & Co MSC',
         'audio_msc': 'Audio MSC',
         'independent': 'Independent Artists'
       };

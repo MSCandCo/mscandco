@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
             Distribution & Publishing
           </h1>
           <p class="text-xl md:text-2xl mb-8 text-gray-200">
-            YHWH MSC - Discover highly curated roster of label-quality musicians and composers across gospel, christian, and general music licensing.
+            MSC & Co MSC - Discover highly curated roster of label-quality musicians and composers across gospel, christian, and general music licensing.
           </p>
           <button class="bg-white text-gray-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
             Create Free Account
@@ -81,10 +81,10 @@ exports.handler = async (event, context) => {
           </div>
         </div>
         <div class="lg:px-8 w-full sm:w-1/3 lg:w-1/4">
-          <h4 class="font-bold text-gray-900">YHWH MSC</h4>
+          <h4 class="font-bold text-gray-900">MSC & Co MSC</h4>
           <div class="mt-4 flex flex-col gap-3">
             <div class="text-sm">
-              <div class="font-semibold text-gray-900">YHWH MSC</div>
+              <div class="font-semibold text-gray-900">MSC & Co MSC</div>
               <div class="text-gray-600">Gospel and Christian music distribution and publishing</div>
             </div>
             <div class="text-sm">

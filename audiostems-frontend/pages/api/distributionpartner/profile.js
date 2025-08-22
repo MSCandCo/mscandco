@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Service role client for distribution partner operations
+// Service role client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -8,111 +8,64 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   try {
-    // Get user from session or use fallback
-    const authHeader = req.headers.authorization;
-    let user;
-    
-    if (authHeader) {
-      const userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      
-      const { data: { user: authUser }, error } = await userSupabase.auth.getUser();
-      if (error || !authUser) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      user = authUser;
-    } else {
-      // Development fallback - get distribution partner user from database
-      const { data: dbUser, error: dbError } = await supabase.auth.admin.getUserByEmail('codegroup@mscandco.com');
-      if (dbError || !dbUser.user) {
-        return res.status(404).json({ error: 'Distribution partner user not found' });
-      }
-      user = dbUser.user;
-    }
+    const partnerEmail = 'codegroup@mscandco.com';
 
     if (req.method === 'GET') {
-      // Get distribution partner profile
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('email', partnerEmail)
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Database error:', error);
         return res.status(500).json({ error: 'Failed to fetch profile' });
       }
 
       if (!profile) {
         return res.status(200).json({
-          id: user.id,
-          email: user.email,
-          firstName: '',
-          lastName: '',
-          companyName: '',
-          phone: '',
-          countryCode: '+44',
-          country: '',
-          website: '',
-          instagram: '',
-          facebook: '',
-          twitter: '',
-          youtube: '',
-          tiktok: '',
-          bio: '',
-          shortBio: '',
-          isBasicInfoSet: false,
-          profileCompleted: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          profile: {
+            email: partnerEmail,
+            firstName: '',
+            lastName: '',
+            companyName: '',
+            businessType: 'distribution',
+            phone: '',
+            countryCode: '+44',
+            country: '',
+            website: '',
+            bio: '',
+            isCompanyNameSet: false,
+            registrationDate: null
+          }
         });
       }
 
-      // Map for distribution partner format
-      const mappedProfile = {
-        id: profile.id,
-        email: profile.email,
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
-        companyName: profile.artist_name || '', // Use artist_name field for company name
-        phone: profile.phone || '',
-        countryCode: profile.country_code || '+44',
-        country: profile.country || '',
-        website: profile.website || '',
-        instagram: profile.instagram || '',
-        facebook: profile.facebook || '',
-        twitter: profile.twitter || '',
-        youtube: profile.youtube || '',
-        tiktok: profile.tiktok || '',
-        bio: profile.bio || '',
-        shortBio: profile.short_bio || '',
-        isBasicInfoSet: profile.is_basic_info_set || false,
-        profileCompleted: profile.profile_completed || false,
-        createdAt: profile.created_at,
-        updatedAt: profile.updated_at,
-        registrationDate: profile.registration_date
-      };
-
-      return res.status(200).json(mappedProfile);
+      return res.status(200).json({
+        profile: {
+          id: profile.id,
+          email: profile.email,
+          firstName: profile.first_name || '',
+          lastName: profile.last_name || '',
+          companyName: profile.company_name || profile.artist_name || '',
+          businessType: profile.business_type || 'distribution',
+          phone: profile.phone || '',
+          countryCode: profile.country_code || '+44',
+          country: profile.country || '',
+          website: profile.website || '',
+          bio: profile.bio || '',
+          shortBio: profile.short_bio || '',
+          isCompanyNameSet: !!(profile.company_name || profile.artist_name),
+          registrationDate: profile.created_at,
+          createdAt: profile.created_at,
+          updatedAt: profile.updated_at
+        }
+      });
     }
 
-    if (req.method === 'PUT') {
-      // Update distribution partner profile
-      const profileData = req.body;
-      
-      // Map distribution partner fields
-      const mappedData = {
-        ...profileData,
-        artistName: profileData.companyName, // Map company name to artist_name field
-        labelName: profileData.companyName
-      };
-
+    if (req.method === 'PUT' || req.method === 'POST') {
       const { data: result, error } = await supabase.rpc('update_user_profile', {
-        p_user_id: user.id,
-        p_profile_data: mappedData
+        p_email: partnerEmail,
+        p_profile_data: req.body
       });
 
       if (error) {

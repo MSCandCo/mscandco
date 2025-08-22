@@ -33,9 +33,9 @@ function AdminContent() {
   }, [user, isLoading, user, router]);
 
   const mockSongs = [
-    { id: 1, title: 'Urban Beat', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 45000, duration: '3:30' },
-    { id: 2, title: 'Street Rhythm', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 38000, duration: '4:15' },
-    { id: 3, title: 'City Lights', artist: 'YHWH MSC', genre: 'Hip Hop', status: 'active', streams: 42000, duration: '3:45' },
+    { id: 1, title: 'Urban Beat', artist: 'MSC & Co MSC', genre: 'Hip Hop', status: 'active', streams: 45000, duration: '3:30' },
+    { id: 2, title: 'Street Rhythm', artist: 'MSC & Co MSC', genre: 'Hip Hop', status: 'active', streams: 38000, duration: '4:15' },
+    { id: 3, title: 'City Lights', artist: 'MSC & Co MSC', genre: 'Hip Hop', status: 'active', streams: 42000, duration: '3:45' },
     { id: 4, title: 'Hit Single #1', artist: 'Global Superstar', genre: 'Pop', status: 'active', streams: 950000, duration: '3:25' },
     { id: 5, title: 'Radio Favorite', artist: 'Global Superstar', genre: 'Pop', status: 'active', streams: 890000, duration: '3:18' },
     { id: 6, title: 'Starlight', artist: 'Seoul Stars', genre: 'Pop', status: 'active', streams: 1500000, duration: '3:15' },
@@ -46,16 +46,16 @@ function AdminContent() {
   ];
 
   const mockStems = [
-    { id: 1, title: 'Urban Beat - Vocals', song: 'Urban Beat', artist: 'YHWH MSC', type: 'vocals', size: '15.2 MB' },
-    { id: 2, title: 'Urban Beat - Instrumental', song: 'Urban Beat', artist: 'YHWH MSC', type: 'instrumental', size: '18.4 MB' },
-    { id: 3, title: 'Urban Beat - Drums', song: 'Urban Beat', artist: 'YHWH MSC', type: 'drums', size: '12.1 MB' },
+    { id: 1, title: 'Urban Beat - Vocals', song: 'Urban Beat', artist: 'MSC & Co MSC', type: 'vocals', size: '15.2 MB' },
+    { id: 2, title: 'Urban Beat - Instrumental', song: 'Urban Beat', artist: 'MSC & Co MSC', type: 'instrumental', size: '18.4 MB' },
+    { id: 3, title: 'Urban Beat - Drums', song: 'Urban Beat', artist: 'MSC & Co MSC', type: 'drums', size: '12.1 MB' },
     { id: 4, title: 'Starlight - Vocals', song: 'Starlight', artist: 'Seoul Stars', type: 'vocals', size: '14.8 MB' },
     { id: 5, title: 'Starlight - Instrumental', song: 'Starlight', artist: 'Seoul Stars', type: 'instrumental', size: '16.3 MB' },
     { id: 6, title: 'Hit Single #1 - Acapella', song: 'Hit Single #1', artist: 'Global Superstar', type: 'vocals', size: '13.7 MB' }
   ];
 
   const mockArtists = [
-    { id: 1, name: 'YHWH MSC', genre: 'Hip Hop', songs: 6, totalStreams: 125000, status: 'active', label: 'MSC & Co' },
+    { id: 1, name: 'MSC & Co MSC', genre: 'Hip Hop', songs: 6, totalStreams: 125000, status: 'active', label: 'MSC & Co' },
     { id: 2, name: 'Global Superstar', genre: 'Pop', songs: 3, totalStreams: 2800000, status: 'active', label: 'Major Label Music' },
     { id: 3, name: 'Seoul Stars', genre: 'Pop', songs: 3, totalStreams: 4500000, status: 'active', label: 'K-Entertainment' },
     { id: 4, name: 'Rock Legends', genre: 'Rock', songs: 3, totalStreams: 1200000, status: 'active', label: 'Live Music Records' },

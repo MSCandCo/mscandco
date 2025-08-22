@@ -11,7 +11,7 @@ function SEO({ pageTitle, brand = null }) {
   return (
     <Head>
       <title>{fullTitle}</title>
-      <meta name="description" content="MSC & Co - Multi-brand music distribution and publishing platform. YHWH MSC for gospel/christian music. Audio MSC for general music and licensing." />
+      <meta name="description" content="MSC & Co - Multi-brand music distribution and publishing platform. MSC & Co MSC for gospel/christian music. Audio MSC for general music and licensing." />
       <meta name="keywords" content="music distribution, publishing, licensing, gospel music, christian music, film music, TV music, sync licensing" />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content="MSC & Co - Multi-brand music distribution and publishing platform" />

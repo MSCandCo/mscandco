@@ -6,6 +6,12 @@ body {
   @apply text-gray-800 font-medium text-sm;
 }
 
+/* Professional compact sizing - 10% reduction for better density */
+html {
+  font-size: 14.4px; /* 16px * 0.9 = 14.4px (10% reduction) */
+}
+
+
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer 10+ */

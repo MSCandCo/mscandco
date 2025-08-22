@@ -19,7 +19,7 @@ export default function ReleaseDetails() {
     id: 1,
     // Basic Information
     songTitle: "Midnight Dreams",
-    companyName: "YHWH MSC Records",
+    companyName: "MSC & Co MSC Records",
     legalName: "John Smith",
     artistName: "Midnight Artist",
     phoneticPronunciation: "mid-night art-ist",
@@ -50,8 +50,8 @@ export default function ReleaseDetails() {
     subGenre: "Ambient",
     
     // Label & Distribution
-    label: "YHWH MSC",
-    catalogueNo: "YHWH001",
+    label: "MSC & Co MSC",
+    catalogueNo: "MSC & Co001",
     format: "Digital",
     productType: "Single",
     barcode: "1234567890123",
@@ -69,21 +69,21 @@ export default function ReleaseDetails() {
     preReleaseUrl: "https://preview.example.com",
     releaseDate: "2024-03-01",
     releaseUrl: "https://release.example.com",
-    releaseLabel: "YHWH MSC",
+    releaseLabel: "MSC & Co MSC",
     distributionCompany: "Code Group",
     
     // Copyright Information
     copyrightYear: 2024,
-    copyrightOwner: "YHWH MSC",
-    pLine: "℗ 2024 YHWH MSC",
-    cLine: "© 2024 YHWH MSC",
+    copyrightOwner: "MSC & Co MSC",
+    pLine: "℗ 2024 MSC & Co MSC",
+    cLine: "© 2024 MSC & Co MSC",
     composer: "John Smith",
     role: "Composer",
     
     // Publishing Information
     pro: "ASCAP",
     caeIpi: "123456789",
-    publishing: "YHWH MSC Publishing",
+    publishing: "MSC & Co MSC Publishing",
     publisherIpi: "987654321",
     publishingAdmin: "Admin Company",
     publishingAdminIpi: "456789123",

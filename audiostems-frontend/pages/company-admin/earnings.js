@@ -52,7 +52,7 @@ export default function CompanyAdminEarnings() {
     distributionPartnerPercentage: 15, // Code Group takes 15%
     companyAdminPercentage: 10,        // Company Admin takes 10% of remainder
     individualLabelAdminPercentages: {
-      'yhwh-msc': 5,      // YHWH MSC gets 5% of final pool
+      'yhwh-msc': 5,      // MSC & Co MSC gets 5% of final pool
       'major-label': 25,   // Major Label gets 25% of final pool
       'k-entertainment': 30, // K-Entertainment gets 30% of final pool
       'indie-collective': 20  // Indie Collective gets 20% of final pool
@@ -72,7 +72,7 @@ export default function CompanyAdminEarnings() {
         id: 'asset-001',
         title: 'Urban Dynamics',
         artist: 'Alex Rivers',
-        labelAdmin: 'YHWH MSC',
+        labelAdmin: 'MSC & Co MSC',
         type: 'single',
         totalEarnings: 156789.45,
         companyAdminEarnings: 15678.95,

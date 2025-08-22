@@ -37,11 +37,11 @@ export default function CompanyAdminDashboard() {
   const userRole = getUserRole(user);
   const userBrand = getUserBrand(user);
 
-  // Company Admin manages entire YHWH MSC branch (all label admins + all artists)
+  // Company Admin manages entire MSC & Co MSC branch (all label admins + all artists)
   const allUsers = getUsers();
   const allReleases = getReleases();
   
-  // YHWH MSC branch includes ALL label admins and ALL artists
+  // MSC & Co MSC branch includes ALL label admins and ALL artists
   const labelAdmins = allUsers.filter(u => u.role === 'label_admin');
   const artists = allUsers.filter(u => u.role === 'artist');
   const jurisdictionUsers = [...labelAdmins, ...artists];
@@ -158,7 +158,7 @@ export default function CompanyAdminDashboard() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">Company Admin Dashboard</h1>
                 <p className="text-purple-100 text-lg">
-                  YHWH MSC Branch - All Labels & Artists Management
+                  MSC & Co MSC Branch - All Labels & Artists Management
                 </p>
                 <p className="text-purple-200 text-sm mt-2">
                   Managing {labelAdmins.length} label admins and {artists.length} artists
@@ -555,7 +555,7 @@ export default function CompanyAdminDashboard() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{labelAdmin.firstName} {labelAdmin.lastName}</p>
-                                <p className="text-sm text-gray-500">{labelAdmin.brand || 'YHWH MSC'}</p>
+                                <p className="text-sm text-gray-500">{labelAdmin.brand || 'MSC & Co MSC'}</p>
                               </div>
                             </div>
                             <div className="text-sm text-gray-600">

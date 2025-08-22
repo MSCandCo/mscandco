@@ -129,7 +129,7 @@ export default function AdminDashboard() {
 
   // Loading state
   if (isLoading || loading) {
-    return (
+  return (
       <MainLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
@@ -161,18 +161,16 @@ export default function AdminDashboard() {
             <div className="text-sm text-blue-100">Platform Health</div>
             <div className="text-2xl font-bold">98.5%</div>
           </div>
-        </div>
-      </div>
+              </div>
+                </div>
 
       {/* Key Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / adminData.totalUsers.toLocaleString().length))}px`
-                }}>{adminData.totalUsers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Users</p>
+                <p className="font-bold text-gray-900 text-3xl">{adminData.totalUsers.toLocaleString()}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+12% this month</span>
@@ -182,15 +180,13 @@ export default function AdminDashboard() {
               <Users className="w-8 h-8 text-blue-600" />
             </div>
           </div>
-        </div>
+                </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Releases</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / adminData.totalReleases.toString().length))}px`
-                }}>{adminData.totalReleases}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Releases</p>
+                <p className="font-bold text-gray-900 text-3xl">{adminData.totalReleases}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+8% this month</span>
@@ -198,17 +194,15 @@ export default function AdminDashboard() {
             </div>
             <div className="p-3 bg-green-100 rounded-xl">
               <Music className="w-8 h-8 text-green-600" />
-            </div>
-          </div>
-        </div>
-
+                        </div>
+                      </div>
+                    </div>
+                    
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(adminData.totalRevenue, selectedCurrency).length))}px`
-                }}>{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="font-bold text-gray-900 text-3xl">{formatCurrency(adminData.totalRevenue, selectedCurrency)}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+15% this month</span>
@@ -216,17 +210,15 @@ export default function AdminDashboard() {
             </div>
             <div className="p-3 bg-purple-100 rounded-xl">
               <DollarSign className="w-8 h-8 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
+                        </div>
+                      </div>
+                    </div>
+                    
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / (adminData.activeProjects || 23).toString().length))}px`
-                }}>{adminData.activeProjects || 23}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Projects</p>
+                <p className="font-bold text-gray-900 text-3xl">{adminData.activeProjects || 23}</p>
               <div className="flex items-center mt-2 text-sm">
                 <Activity className="w-4 h-4 text-yellow-500 mr-1" />
                 <span className="text-yellow-600">{adminData.pendingApprovals || 5} pending</span>
@@ -234,10 +226,10 @@ export default function AdminDashboard() {
             </div>
             <div className="p-3 bg-yellow-100 rounded-xl">
               <Target className="w-8 h-8 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-      </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
       {/* Platform Earnings Overview */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -279,21 +271,21 @@ export default function AdminDashboard() {
             </div>
             <div className="text-sm text-purple-700 mt-1">Earning Assets</div>
             <div className="text-xs text-purple-500 mt-1">Generating revenue</div>
-          </div>
-        </div>
-      </div>
-
+                        </div>
+                      </div>
+                    </div>
+                    
       {/* Super Admin Brand Overview / Company Admin Label Admins */}
       {userRole === 'super_admin' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-900">Platform Brands Overview</h3>
             <Building2 className="w-6 h-6 text-red-600" />
-          </div>
+                        </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: 'YHWH MSC', artists: 15, revenue: 2847293.50, status: 'active' },
+              { name: 'MSC & Co MSC', artists: 15, revenue: 2847293.50, status: 'active' },
               { name: 'Major Label Music', artists: 23, revenue: 3456789.23, status: 'active' },
               { name: 'K-Entertainment', artists: 12, revenue: 1789456.78, status: 'active' },
               { name: 'Indie Collective', artists: 8, revenue: 453753.99, status: 'pending' }
@@ -302,7 +294,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center mb-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
                     {brand.name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                      </div>
                   <div className="ml-3">
                     <div className="font-medium text-gray-900">{brand.name}</div>
                     <div className={`text-sm ${brand.status === 'active' ? 'text-green-600' : 'text-orange-600'}`}>
@@ -452,8 +444,8 @@ export default function AdminDashboard() {
             <div className="text-3xl font-bold text-green-600 mb-2">98.5%</div>
             <div className="text-sm text-gray-600">Platform Uptime</div>
             <div className="text-xs text-green-600 mt-1">All systems operational</div>
-          </div>
-          
+                  </div>
+
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-600 mb-2">45</div>
             <div className="text-sm text-gray-600">New Users Today</div>
@@ -491,9 +483,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-bold text-gray-900">Total Platform Revenue</h4>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(totalPlatformRevenue, selectedCurrency).length))}px`
-                }}>
+                <p className="font-bold text-purple-600 text-3xl">
                   {formatCurrency(totalPlatformRevenue, selectedCurrency)}
                 </p>
                 <p className="text-sm text-gray-600">Across all users, labels, and artists</p>
@@ -660,7 +650,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Step 2: From remainder</p>
-                </div>
+                    </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -972,4 +962,4 @@ export default function AdminDashboard() {
       </div>
     </MainLayout>
   );
-}
+} 

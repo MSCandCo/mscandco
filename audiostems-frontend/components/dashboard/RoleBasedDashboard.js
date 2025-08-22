@@ -3,7 +3,7 @@ import { Card, Badge } from 'flowbite-react';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import YHWHVideo from '@/components/shared/YHWHVideo';
+import MSCVideo from '@/components/shared/MSCVideo';
 import { formatPercentage, formatGrowthPercentage } from '@/lib/number-utils';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { EmptyDashboard, EmptyAnalytics, LoadingState } from '@/components/shared/EmptyStates';
@@ -57,8 +57,8 @@ const getEmptyStats = () => ({
 const ArtistVideoSection = () => {
 
   return (
-    <YHWHVideo 
-      artistName="YHWH"
+    <MSCVideo 
+      artistName="MSC & Co"
       songTitle="Featured Track"
       className="aspect-video shadow-2xl"
       showControls={true}
@@ -89,7 +89,7 @@ export default function RoleBasedDashboard() {
   const approvedArtists = useMemo(() => {
     if (userRole !== 'label_admin') return [];
     
-    const labelName = userBrand?.displayName || 'YHWH MSC';
+    const labelName = userBrand?.displayName || 'MSC & Co';
     
     const filteredArtists = getUsers().filter(user => 
       user.role === 'artist' &&
@@ -213,7 +213,7 @@ export default function RoleBasedDashboard() {
       case 'label_admin':
     
         return {
-          title: `${displayBrand?.displayName || 'YHWH MSC'} - Label Management Dashboard`,
+          title: `${displayBrand?.displayName || 'MSC & Co'} - Label Management Dashboard`,
           subtitle: 'Manage label artists, contracts, and revenue streams',
           description: 'Complete label administration and artist management platform',
           stats: [
@@ -330,8 +330,8 @@ export default function RoleBasedDashboard() {
 
       case 'artist':
     
-        const artistData = getUsers().find(u => u.role === 'artist' && u.id === 'artist_yhwh_msc') || getUsers().find(u => u.role === 'artist');
-        const brandName = artistData?.brand || 'YHWH MSC';
+        const artistData = getUsers().find(u => u.role === 'artist' && u.id === 'artist_msc_co') || getUsers().find(u => u.role === 'artist');
+        const brandName = artistData?.brand || 'MSC & Co';
         return {
           title: 'Artist Dashboard',
           subtitle: `Welcome to ${brandName} - Your Music Career Hub`,
@@ -527,7 +527,7 @@ export default function RoleBasedDashboard() {
               <div className="px-6 py-4 border-b border-gray-200">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Approved Artists</h3>
-                  <p className="text-sm text-gray-500">Artists under {userBrand?.displayName || 'YHWH MSC'} label</p>
+                  <p className="text-sm text-gray-500">Artists under {userBrand?.displayName || 'MSC & Co'} label</p>
                 </div>
               </div>
               

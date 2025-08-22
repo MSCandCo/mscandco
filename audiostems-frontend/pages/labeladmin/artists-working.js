@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Layout from '../../components/layouts/mainLayout';
 import { Users, Plus, Music, TrendingUp, DollarSign, Search } from 'lucide-react';
-import YHWHVideo from '@/components/shared/YHWHVideo';
+import MSCVideo from '@/components/shared/MSCVideo';
 
 export default function LabelAdminArtists() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,11 +29,11 @@ export default function LabelAdminArtists() {
           </div>
         </div>
 
-        {/* YHWH Video */}
+        {/* MSC & Co Video */}
         <div className="mb-8">
-          <YHWHVideo 
+          <MSCVideo 
             artistName="H-Tay"
-            songTitle="YHWH"
+            songTitle="Featured Track"
           />
         </div>
 

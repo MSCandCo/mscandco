@@ -1,18 +1,18 @@
 // Brand Configuration for MSC & Co Multi-Brand Platform
 
 export const BRANDS = {
-  YHWH_MSC: {
-    id: 'yhwh-msc',
-    name: 'YHWH MSC',
-    displayName: 'YHWH MSC',
-    description: 'Gospel and Christian music distribution and publishing',
-    focus: 'Gospel and Christian music distribution and publishing',
+  MSC_CO: {
+    id: 'msc-co',
+    name: 'MSC & Co',
+    displayName: 'MSC & Co',
+    description: 'Premium music distribution and publishing',
+    focus: 'Premium music distribution and publishing',
     services: [
-      'Gospel music distribution',
-      'Christian music publishing',
-      'Sync licensing for Christian media',
-      'Worship music distribution',
-      'Christian artist development'
+      'Music distribution',
+      'Music publishing',
+      'Sync licensing',
+      'Artist development',
+      'Label services'
     ],
     colorScheme: {
       primary: '#1a365d', // Deep blue
@@ -21,7 +21,7 @@ export const BRANDS = {
       background: '#f7fafc'
     },
     logo: '/logos/msc-logo.png',
-    emailDomain: 'yhwh-msc.mscandco.com'
+    emailDomain: 'msc-co.mscandco.com'
   },
   AUDIO_MSC: {
     id: 'audio-msc',
@@ -73,7 +73,7 @@ export const getBrandColorScheme = (brandId) => {
 export const BRAND_OPTIONS = [
   {
     value: 'yhwh-msc',
-    label: 'YHWH MSC',
+    label: 'MSC & Co',
     description: 'Gospel and Christian music distribution and publishing'
   },
   {
@@ -85,8 +85,8 @@ export const BRAND_OPTIONS = [
 
 // Company information
 export const COMPANY_INFO = {
-  name: 'YHWH MSC',
-  fullName: 'YHWH MSC',
+  name: 'MSC & Co',
+  fullName: 'MSC & Co',
   domain: 'mscandco.com',
   email: 'info@mscandco.com',
   support: 'support@mscandco.com',

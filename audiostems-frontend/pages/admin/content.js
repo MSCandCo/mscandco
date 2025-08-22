@@ -203,10 +203,8 @@ export default function AdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Assets</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalSongs.toString().length))}px`
-                }}>{contentStats.totalSongs}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Assets</p>
+                <p className="font-bold text-gray-900 text-3xl">{contentStats.totalSongs}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +12% this month
@@ -221,10 +219,8 @@ export default function AdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Artists</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalArtists.toString().length))}px`
-                }}>{contentStats.totalArtists}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Artists</p>
+                <p className="font-bold text-gray-900 text-3xl">{contentStats.totalArtists}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +8% this month
@@ -239,10 +235,8 @@ export default function AdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Streams</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / contentStats.totalStreams.toLocaleString().length))}px`
-                }}>{contentStats.totalStreams.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Streams</p>
+                <p className="font-bold text-gray-900 text-3xl">{contentStats.totalStreams.toLocaleString()}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +25% this month
@@ -257,10 +251,8 @@ export default function AdminContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-gray-900" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(contentStats.totalRevenue, selectedCurrency).length))}px`
-                }}>{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="font-bold text-gray-900 text-3xl">{formatCurrency(contentStats.totalRevenue, selectedCurrency)}</p>
                 <p className="text-sm text-green-600 flex items-center mt-2">
                   <TrendingUp className="w-4 h-4 mr-1" />
                   +18% this month
@@ -345,7 +337,7 @@ export default function AdminContentPage() {
             <div key={releaseName} className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <div>
+                <div>
                     <h3 className="text-lg font-semibold text-gray-900">{releaseName}</h3>
                     <p className="text-sm text-gray-500">by {mainRelease.artist}</p>
                   </div>
@@ -486,7 +478,7 @@ export default function AdminContentPage() {
           </tbody>
         </table>
       </div>
-    </div>
+          </div>
   );
 
   const renderAssets = () => (
@@ -1164,8 +1156,8 @@ export default function AdminContentPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </div>
-            
+          </div>
+
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="space-y-6">
                 {/* Basic Information */}
@@ -1246,7 +1238,7 @@ export default function AdminContentPage() {
                       <label className="block text-sm font-medium text-gray-700">Bit Depth</label>
                       <p className="text-sm text-gray-900">16-bit</p>
                     </div>
-                    <div>
+                <div>
                       <label className="block text-sm font-medium text-gray-700">Channels</label>
                       <p className="text-sm text-gray-900">Stereo</p>
                     </div>
@@ -1276,8 +1268,8 @@ export default function AdminContentPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Deezer</label>
                       <p className="text-sm text-gray-900">✅ Live - {Math.floor((selectedItem.streams || 0) * 0.05).toLocaleString()} streams</p>
-                    </div>
-                    <div>
+                </div>
+                <div>
                       <label className="block text-sm font-medium text-gray-700">Tidal</label>
                       <p className="text-sm text-gray-900">✅ Live - {Math.floor((selectedItem.streams || 0) * 0.05).toLocaleString()} streams</p>
                     </div>
@@ -1307,8 +1299,8 @@ export default function AdminContentPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Publisher</label>
                       <p className="text-sm text-gray-900">Self-Published</p>
-                    </div>
-                    <div>
+                </div>
+                <div>
                       <label className="block text-sm font-medium text-gray-700">Territory</label>
                       <p className="text-sm text-gray-900">Worldwide</p>
                     </div>
@@ -1396,7 +1388,7 @@ export default function AdminContentPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <div>
+                <div>
                 <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
                 <p className="mt-1 text-sm text-gray-500">
                   {userRole === 'company_admin' ? 'Manage and overview content for artists and label administrators' : 'Comprehensive platform content management'}

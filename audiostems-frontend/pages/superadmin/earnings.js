@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -28,6 +29,7 @@ import {
   Target
 } from 'lucide-react';
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { formatNumber, formatPercentage, safeDivide } from '@/lib/number-utils';
 import { getUserRole } from '@/lib/user-utils';
 import { useModals } from '@/hooks/useModals';
@@ -50,7 +52,9 @@ export default function SuperAdminEarnings() {
   const [viewMode, setViewMode] = useState('approval'); // approval, overview, detailed, analytics, config
   
   // Revenue Approval States
-  const [pendingReports, setPendingReports] = useState([]); // TODO: Load from Supabase revenue_reports table where status = 'pending'
+  const [pendingReports, setPendingReports] = useState([]);
+  const [allReports, setAllReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
 
   const {
     confirmModal,
@@ -64,25 +68,81 @@ export default function SuperAdminEarnings() {
   } = useModals();
 
   // Revenue Approval Functions
-  const handleApproveRevenue = (reportId) => {
-    const report = pendingReports.find(r => r.id === reportId);
-    if (report) {
-      setPendingReports(prev => prev.filter(r => r.id !== reportId));
-      showSuccess(
-        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been approved and will be distributed to artists and labels.`,
-        'Revenue Approved'
-      );
+  const handleApproveRevenue = async (reportId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/superadmin/revenue-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportId,
+          action: 'approve',
+          notes: 'Approved by Super Admin'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Revenue report approved:', result);
+        
+        // Reload reports to get updated data
+        await loadRevenueReports();
+        
+        showSuccess(
+          `Revenue report has been approved and will be processed for distribution.`,
+          'Revenue Approved'
+        );
+      } else {
+        const errorData = await response.json();
+        showError(`Failed to approve revenue report: ${errorData.error}`, 'Approval Failed');
+      }
+    } catch (error) {
+      console.error('Error approving revenue report:', error);
+      showError('Error approving revenue report. Please try again.', 'Approval Error');
     }
   };
 
-  const handleRejectRevenue = (reportId) => {
-    const report = pendingReports.find(r => r.id === reportId);
-    if (report) {
-      setPendingReports(prev => prev.filter(r => r.id !== reportId));
-      showWarning(
-        `Revenue report for ${report.platform} (${formatCurrency(report.amount, selectedCurrency)}) has been rejected and returned to distribution partner.`,
-        'Revenue Rejected'
-      );
+  const handleRejectRevenue = async (reportId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/superadmin/revenue-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportId,
+          action: 'reject',
+          notes: 'Rejected by Super Admin'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Revenue report rejected:', result);
+        
+        // Reload reports to get updated data
+        await loadRevenueReports();
+        
+        showWarning(
+          `Revenue report has been rejected and returned to the submitter.`,
+          'Revenue Rejected'
+        );
+      } else {
+        const errorData = await response.json();
+        showError(`Failed to reject revenue report: ${errorData.error}`, 'Rejection Failed');
+      }
+    } catch (error) {
+      console.error('Error rejecting revenue report:', error);
+      showError('Error rejecting revenue report. Please try again.', 'Rejection Error');
     }
   };
 
@@ -103,6 +163,46 @@ export default function SuperAdminEarnings() {
     }
   }, [isLoading, user, user, router]);
 
+  // Load revenue reports from database
+  useEffect(() => {
+    if (user && !isLoading) {
+      loadRevenueReports();
+    }
+  }, [user, isLoading]);
+
+  const loadRevenueReports = async () => {
+    try {
+      setReportsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/superadmin/revenue-reports', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded revenue reports:', data);
+        
+        setAllReports(data.reports || []);
+        setPendingReports(data.reports?.filter(r => r.status === 'pending') || []);
+      } else {
+        console.error('Failed to load revenue reports');
+        setAllReports([]);
+        setPendingReports([]);
+      }
+    } catch (error) {
+      console.error('Error loading revenue reports:', error);
+      setAllReports([]);
+      setPendingReports([]);
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
   // Super Admin Global Revenue Split Configuration
   const [globalRevenueSplit, setGlobalRevenueSplit] = useState({
     distributionPartnerPercentage: 15, // Code Group takes 15% first
@@ -110,7 +210,7 @@ export default function SuperAdminEarnings() {
     superAdminReserve: 2,              // Super Admin reserve fund (2%)
     platformMaintenanceFee: 1,         // Platform maintenance (1%)
     individualLabelAdminPercentages: {
-      'yhwh-msc': 5,           // YHWH MSC gets 5% of final pool
+      'yhwh-msc': 5,           // MSC & Co MSC gets 5% of final pool
       'major-label': 25,       // Major Label gets 25% of final pool
       'k-entertainment': 30,   // K-Entertainment gets 30% of final pool
       'indie-collective': 20,  // Indie Collective gets 20% of final pool
@@ -167,8 +267,8 @@ export default function SuperAdminEarnings() {
         id: 'asset-001',
         title: 'Urban Dynamics',
         artist: 'Alex Rivers',
-        labelAdmin: 'YHWH MSC',
-        brand: 'YHWH MSC',
+        labelAdmin: 'MSC & Co MSC',
+        brand: 'MSC & Co MSC',
         type: 'single',
         totalEarnings: 156789.45,
         distributionPartnerCut: 23518.42,

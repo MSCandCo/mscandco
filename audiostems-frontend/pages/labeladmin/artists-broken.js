@@ -8,7 +8,7 @@ import { getEmptyArtists, getEmptyReleases, EMPTY_STATES } from '../../lib/empty
 import { getUsers, getReleases } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import SuccessModal from '../../components/shared/SuccessModal';
-import YHWHVideo from '@/components/shared/YHWHVideo';
+import MSCVideo from '@/components/shared/MSCVideo';
 
 export default function LabelAdminArtists() {
   const { user, isLoading } = useUser();
@@ -187,7 +187,7 @@ export default function LabelAdminArtists() {
   const labelArtists = useMemo(() => {
     const users = getUsers();
     const releases = getReleases();
-    const userLabelId = userBrand?.id || 'yhwh_msc';
+    const userLabelId = userBrand?.id || 'msc_co';
     
     const filteredArtists = users.filter(artist => 
       artist.role === 'artist' &&
@@ -281,8 +281,8 @@ export default function LabelAdminArtists() {
       <div className="min-h-screen bg-gray-50">
         {/* Video Hero Banner */}
         <div className="relative mb-8 px-4 sm:px-0">
-          <YHWHVideo 
-            artistName="YHWH"
+          <MSCVideo 
+            artistName="MSC & Co"
             songTitle="Label Artists Showcase"
             className="aspect-video shadow-2xl"
             showControls={true}

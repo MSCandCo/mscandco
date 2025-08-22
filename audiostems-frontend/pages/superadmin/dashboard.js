@@ -108,10 +108,8 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="font-bold text-gray-900" style={{
-                fontSize: `${Math.min(32, Math.max(18, 280 / (adminData?.totalUsers?.toLocaleString()?.length || 1)))}px`
-              }}>{adminData?.totalUsers?.toLocaleString() || 0}</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Total Users</p>
+              <p className="font-bold text-gray-900 text-3xl">{adminData?.totalUsers?.toLocaleString() || 0}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+12% this month</span>
@@ -126,10 +124,8 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-600">Total Releases</p>
-              <p className="font-bold text-gray-900" style={{
-                fontSize: `${Math.min(32, Math.max(18, 280 / (adminData?.totalReleases?.toString()?.length || 1)))}px`
-              }}>{adminData?.totalReleases || 0}</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Total Releases</p>
+              <p className="font-bold text-gray-900 text-3xl">{adminData?.totalReleases || 0}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+8% this month</span>
@@ -144,10 +140,8 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="font-bold text-gray-900" style={{
-                fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(adminData?.totalRevenue || 0, selectedCurrency).length))}px`
-              }}>{formatCurrency(adminData?.totalRevenue || 0, selectedCurrency)}</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+              <p className="font-bold text-gray-900 text-3xl">{formatCurrency(adminData?.totalRevenue || 0, selectedCurrency)}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-green-600">+15% this month</span>
@@ -162,10 +156,8 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-600">Active Projects</p>
-              <p className="font-bold text-gray-900" style={{
-                fontSize: `${Math.min(32, Math.max(18, 280 / (adminData?.activeProjects || 23).toString().length))}px`
-              }}>{adminData?.activeProjects || 23}</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Active Projects</p>
+              <p className="font-bold text-gray-900 text-3xl">{adminData?.activeProjects || 23}</p>
               <div className="flex items-center mt-2 text-sm">
                 <Activity className="w-4 h-4 text-yellow-500 mr-1" />
                 <span className="text-yellow-600">{adminData?.pendingApprovals || 5} pending</span>
@@ -232,7 +224,7 @@ export default function AdminDashboard() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: 'YHWH MSC', artists: 15, revenue: 2847293.50, status: 'active' },
+              { name: 'MSC & Co MSC', artists: 15, revenue: 2847293.50, status: 'active' },
               { name: 'Major Label Music', artists: 23, revenue: 3456789.23, status: 'active' },
               { name: 'K-Entertainment', artists: 12, revenue: 1789456.78, status: 'active' },
               { name: 'Indie Collective', artists: 8, revenue: 453753.99, status: 'pending' }

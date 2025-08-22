@@ -20,7 +20,7 @@ import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
 import Avatar from '@/components/shared/Avatar';
-import YHWHVideo from '@/components/shared/YHWHVideo';
+import MSCVideo from '@/components/shared/MSCVideo';
 
 export default function ArtistRoster() {
 
@@ -247,8 +247,8 @@ export default function ArtistRoster() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Video Hero Banner */}
         <div className="relative mb-8 px-4 sm:px-0">
-          <YHWHVideo 
-            artistName="YHWH"
+          <MSCVideo 
+            artistName="MSC & Co"
             songTitle="Contributor Showcase"
             className="aspect-video shadow-2xl"
             showControls={true}

@@ -61,7 +61,7 @@ export default function LabelAdminDashboard() {
 
   // Get approved artists for this label
   const approvedArtists = useMemo(() => {
-    const labelName = userBrand?.displayName || 'YHWH MSC';
+    const labelName = userBrand?.displayName || 'MSC & Co';
     
     // Get artists approved for this label (approvalStatus: approved, and associated with label)
     const filteredArtists = ARTISTS.filter(artist => 
@@ -677,7 +677,7 @@ export default function LabelAdminDashboard() {
             <div className="flex justify-between items-center py-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {userBrand?.displayName || 'YHWH MSC'} - Label Management Dashboard
+                  {userBrand?.displayName || 'MSC & Co'} - Label Management Dashboard
                 </h1>
                 <p className="text-sm text-gray-500">Manage your artists and releases</p>
               </div>

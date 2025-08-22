@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { getUserRole } from '@/lib/user-utils';
+import { getUserRoleSync } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
 import { ARTISTS, RELEASES } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -37,8 +41,8 @@ ChartJS.register(
 export default function PartnerAnalytics() {
   const { user, isLoading } = useUser();
   const [selectedTimeframe, setSelectedTimeframe] = useState('all-time');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   
   // Filter states
   const [selectedArtist, setSelectedArtist] = useState('all');
@@ -62,6 +66,141 @@ export default function PartnerAnalytics() {
   // Currency sync hook
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
+  // Handle date range changes
+  const handleDateRangeChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    console.log('Distribution Partner analytics date range changed:', { start, end });
+  };
+
+  // Export functions
+  const exportToExcel = () => {
+    try {
+      // Prepare data for export
+      const analyticsData = [
+        ['Distribution Partner Analytics Report'],
+        ['Generated on:', new Date().toLocaleDateString()],
+        ['Date Range:', startDate && endDate ? `${startDate} to ${endDate}` : 'All Time'],
+        [''],
+        ['Platform Performance'],
+        ['Platform', 'Total Streams', 'Revenue', 'Market Share'],
+        ['Spotify', '2,456,789', sharedFormatCurrency(12450.75, selectedCurrency), '35.2%'],
+        ['Apple Music', '1,847,293', sharedFormatCurrency(9234.56, selectedCurrency), '26.4%'],
+        ['YouTube Music', '1,234,567', sharedFormatCurrency(6789.12, selectedCurrency), '17.8%'],
+        ['Amazon Music', '892,456', sharedFormatCurrency(4567.89, selectedCurrency), '12.8%'],
+        ['Other Platforms', '567,234', sharedFormatCurrency(2890.34, selectedCurrency), '7.8%'],
+        [''],
+        ['Revenue Breakdown'],
+        ['Category', 'Amount', 'Percentage'],
+        ['Streaming Revenue', sharedFormatCurrency(28450.75, selectedCurrency), '78.5%'],
+        ['Download Sales', sharedFormatCurrency(5234.67, selectedCurrency), '14.4%'],
+        ['Sync Licensing', sharedFormatCurrency(2567.89, selectedCurrency), '7.1%'],
+        [''],
+        ['Top Performing Artists'],
+        ['Artist', 'Total Streams', 'Revenue'],
+        ['MSC & Co MSC', '892,456', sharedFormatCurrency(8947.23, selectedCurrency)],
+        ['Global Superstar', '745,123', sharedFormatCurrency(7234.56, selectedCurrency)],
+        ['Seoul Stars', '623,789', sharedFormatCurrency(6123.45, selectedCurrency)]
+      ];
+
+      const worksheet = XLSX.utils.aoa_to_sheet(analyticsData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Analytics Report');
+      
+      // Auto-size columns
+      const colWidths = [
+        { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
+      ];
+      worksheet['!cols'] = colWidths;
+      
+      XLSX.writeFile(workbook, `Distribution_Partner_Analytics_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Error exporting to Excel. Please try again.');
+    }
+  };
+
+  const exportToPDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.text('Distribution Partner Analytics Report', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
+      doc.text(`Date Range: ${startDate && endDate ? `${startDate} to ${endDate}` : 'All Time'}`, 20, 45);
+      
+      // Platform Performance Table
+      doc.setFontSize(16);
+      doc.text('Platform Performance', 20, 65);
+      
+      const platformData = [
+        ['Platform', 'Total Streams', 'Revenue', 'Market Share'],
+        ['Spotify', '2,456,789', sharedFormatCurrency(12450.75, selectedCurrency), '35.2%'],
+        ['Apple Music', '1,847,293', sharedFormatCurrency(9234.56, selectedCurrency), '26.4%'],
+        ['YouTube Music', '1,234,567', sharedFormatCurrency(6789.12, selectedCurrency), '17.8%'],
+        ['Amazon Music', '892,456', sharedFormatCurrency(4567.89, selectedCurrency), '12.8%'],
+        ['Other Platforms', '567,234', sharedFormatCurrency(2890.34, selectedCurrency), '7.8%']
+      ];
+      
+      doc.autoTable({
+        head: [platformData[0]],
+        body: platformData.slice(1),
+        startY: 75,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 10 }
+      });
+      
+      // Revenue Breakdown Table
+      doc.setFontSize(16);
+      doc.text('Revenue Breakdown', 20, doc.lastAutoTable.finalY + 20);
+      
+      const revenueData = [
+        ['Category', 'Amount', 'Percentage'],
+        ['Streaming Revenue', sharedFormatCurrency(28450.75, selectedCurrency), '78.5%'],
+        ['Download Sales', sharedFormatCurrency(5234.67, selectedCurrency), '14.4%'],
+        ['Sync Licensing', sharedFormatCurrency(2567.89, selectedCurrency), '7.1%']
+      ];
+      
+      doc.autoTable({
+        head: [revenueData[0]],
+        body: revenueData.slice(1),
+        startY: doc.lastAutoTable.finalY + 30,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 10 }
+      });
+      
+      // Top Artists Table
+      doc.setFontSize(16);
+      doc.text('Top Performing Artists', 20, doc.lastAutoTable.finalY + 20);
+      
+      const artistData = [
+        ['Artist', 'Total Streams', 'Revenue'],
+        ['MSC & Co MSC', '892,456', sharedFormatCurrency(8947.23, selectedCurrency)],
+        ['Global Superstar', '745,123', sharedFormatCurrency(7234.56, selectedCurrency)],
+        ['Seoul Stars', '623,789', sharedFormatCurrency(6123.45, selectedCurrency)]
+      ];
+      
+      doc.autoTable({
+        head: [artistData[0]],
+        body: artistData.slice(1),
+        startY: doc.lastAutoTable.finalY + 30,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 10 }
+      });
+      
+      doc.save(`Distribution_Partner_Analytics_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      alert('Error exporting to PDF. Please try again.');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -84,7 +223,7 @@ export default function PartnerAnalytics() {
     );
   }
 
-  const userRole = getUserRole(user);
+  const userRole = getUserRoleSync(user);
   
   if (userRole !== 'distribution_partner') {
     return (
@@ -205,7 +344,7 @@ export default function PartnerAnalytics() {
       growth: 14.6, 
       color: '#FF3300',
       releases: ['Urban Beat Remix Package', 'Indie Rock Revival'],
-      topRelease: { name: 'Urban Beat Remix Package', streams: 350000, artist: 'YHWH MSC' }
+      topRelease: { name: 'Urban Beat Remix Package', streams: 350000, artist: 'MSC & Co MSC' }
     },
     other: { 
       name: 'Other Platforms', 
@@ -238,7 +377,7 @@ export default function PartnerAnalytics() {
   };
 
   const artistPerformance = [
-    { artist: 'YHWH MSC', streams: 1234567, revenue: 4938.27, growth: 25.4, releases: 3, topTrack: 'Lost in Time' },
+    { artist: 'MSC & Co MSC', streams: 1234567, revenue: 4938.27, growth: 25.4, releases: 3, topTrack: 'Lost in Time' },
     { artist: 'Audio MSC', streams: 987654, revenue: 3950.62, growth: 18.9, releases: 2, topTrack: 'Beach Dreams' },
     { artist: 'Independent Artists', streams: 625072, revenue: 2500.29, growth: 22.1, releases: 1, topTrack: 'Thunder Road' }
   ];
@@ -329,7 +468,7 @@ export default function PartnerAnalytics() {
     // Apply artist filters
     if (selectedArtist !== 'all') {
       const artistMap = {
-        'yhwh_msc': 'YHWH MSC',
+        'yhwh_msc': 'MSC & Co MSC',
         'audio_msc': 'Audio MSC',
         'independent': 'Independent Artists'
       };
@@ -501,7 +640,7 @@ export default function PartnerAnalytics() {
       metric: selectedMetric,
       viewMode: viewMode,
       timeframe: selectedTimeframe,
-      customDates: selectedTimeframe === 'custom' ? { start: customStartDate, end: customEndDate } : null
+      customDates: selectedTimeframe === 'custom' ? { start: startDate, end: endDate } : null
     });
     // Here you would typically call your API with the filter parameters
   };
@@ -519,13 +658,47 @@ export default function PartnerAnalytics() {
                   <p className="text-sm text-gray-500">Analytics for all distributed releases</p>
                 </div>
                 
-                {/* Currency Selector */}
-                <CurrencySelector
-                  selectedCurrency={selectedCurrency}
-                  onCurrencyChange={updateCurrency}
-                  showLabel={true}
-                  compact={true}
-                />
+                <div className="flex items-center space-x-4">
+                  {/* Custom Date Range Picker */}
+                  <div className="w-64">
+                    <CustomDateRangePicker
+                      startDate={startDate}
+                      endDate={endDate}
+                      onDateRangeChange={handleDateRangeChange}
+                      placeholder="Select date range for analytics"
+                    />
+                  </div>
+                  
+                  {/* Export Buttons */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={exportToExcel}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel
+                    </button>
+                    <button
+                      onClick={exportToPDF}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      PDF
+                    </button>
+                  </div>
+                  
+                  {/* Currency Selector */}
+                  <CurrencySelector
+                    selectedCurrency={selectedCurrency}
+                    onCurrencyChange={updateCurrency}
+                    showLabel={true}
+                    compact={true}
+                  />
+                </div>
               </div>
             </div>
           </div>

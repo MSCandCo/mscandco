@@ -255,7 +255,7 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: '',
           isFree: true,
           isIntegral: true,
-          features: [
+    features: [
             'Full distribution analytics',
             'Complete content management',
             'Release approval workflows',
@@ -341,7 +341,7 @@ const getRoleSpecificPlans = (role) => {
           yearlySavings: 59.89,
           stripeProductKey: 'label_admin_starter',
           isSubscription: true,
-          features: [
+    features: [
             'Manage up to 10 artists',
             'Basic label analytics',
             'Email support',
@@ -470,8 +470,8 @@ function Pricing() {
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-              >
-                Monthly
+            >
+              Monthly
               </button>
               <button
                 onClick={() => setChargingInterval('yearly')}
@@ -480,8 +480,8 @@ function Pricing() {
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-              >
-                Yearly
+            >
+              Yearly
                 {chargingInterval === 'yearly' && (
                   <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">
                     Save

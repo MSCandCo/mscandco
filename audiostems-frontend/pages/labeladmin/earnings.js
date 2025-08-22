@@ -3,16 +3,27 @@ import { useState } from 'react';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3, Users, Percent } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
+import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 
 export default function LabelAdminEarnings() {
   const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [activeTab, setActiveTab] = useState('basic');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   
   // Mock user plan - in real app, this would come from label subscription data
   const [labelPlan] = useState('starter'); // 'starter' or 'pro'
   const hasProAccess = labelPlan === 'pro';
+
+  // Handle date range changes
+  const handleDateRangeChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    // Here you would typically refetch earnings data with the new date range
+    console.log('Earnings date range changed:', { start, end });
+  };
 
   if (isLoading) {
     return (
@@ -257,24 +268,19 @@ export default function LabelAdminEarnings() {
                 <p className="mt-2 text-lg text-gray-600">Track label revenue and manage artist payouts</p>
               </div>
               
-              {/* Currency and Period Selector */}
+              {/* Currency and Date Range Selector */}
               <div className="flex items-center space-x-4">
                 <CurrencySelector 
                   selectedCurrency={selectedCurrency}
                   onCurrencyChange={updateCurrency}
                 />
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <select
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="7d">Last 7 days</option>
-                    <option value="30d">Last 30 days</option>
-                    <option value="90d">Last 3 months</option>
-                    <option value="1y">Last year</option>
-                  </select>
+                <div className="w-64">
+                  <CustomDateRangePicker
+                    startDate={startDate}
+                    endDate={endDate}
+                    onDateRangeChange={handleDateRangeChange}
+                    placeholder="Select date range for earnings"
+                  />
                 </div>
               </div>
             </div>

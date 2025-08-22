@@ -11,10 +11,10 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   // Get approved artists for label admin dropdown
   const getApprovedArtists = () => {
     if (userRole === 'label_admin') {
-      // Filter artists with approvalStatus 'approved' and label 'YHWH MSC'
+      // Filter artists with approvalStatus 'approved' and label 'MSC & Co'
       return ARTISTS.filter(artist => 
         artist.approvalStatus === 'approved' && 
-        artist.label === 'YHWH MSC'
+        artist.label === 'MSC & Co'
       );
     }
     return [];
@@ -24,7 +24,7 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
 
   const [formData, setFormData] = useState({
     projectName: 'New Release Project',
-    artist: userRole === 'label_admin' && approvedArtists.length > 0 ? approvedArtists[0].name : 'YHWH MSC',
+    artist: userRole === 'label_admin' && approvedArtists.length > 0 ? approvedArtists[0].name : 'MSC & Co',
     releaseType: 'Single',
     genre: 'Hip Hop',
     status: 'draft',
@@ -33,8 +33,8 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
     musicFiles: [],
     artworkFile: null,
     trackListing: [{ title: 'New Track', duration: '3:45', isrc: 'USRC12345678', bpm: '', songKey: '' }],
-    credits: [{ role: 'Producer', fullName: 'YHWH MSC' }],
-    publishingNotes: 'All tracks written and produced by YHWH MSC',
+    credits: [{ role: 'Producer', fullName: 'MSC & Co' }],
+    publishingNotes: 'All tracks written and produced by MSC & Co',
     marketingPlan: 'Social media campaign + playlist pitching'
   });
   const [errors, setErrors] = useState({});

@@ -625,7 +625,7 @@ export default function Billing() {
                     <>
                       <li className="flex items-center">
                         <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                        Access to YHWH MSC brand
+                        Access to MSC & Co MSC brand
                       </li>
                       <li className="flex items-center">
                         <CheckCircle className="w-4 h-4 text-green-600 mr-2" />

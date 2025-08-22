@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
 import { 
   Users, Search, Filter, Eye, 
@@ -79,6 +80,49 @@ export default function CompanyAdminUsersPage() {
       router.push('/login');
     }
   }, [isLoading, user, user, router]);
+
+  // Load saved revenue split configuration
+  useEffect(() => {
+    if (user) {
+      loadRevenueSplitConfiguration();
+    }
+  }, [user]);
+
+  const loadRevenueSplitConfiguration = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/companyadmin/revenue-splits', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded revenue split configuration:', data);
+        
+        if (data.revenueSplit) {
+          setRevenueSplit(data.revenueSplit);
+        }
+        if (data.individualLabelAdminPercentages) {
+          setIndividualLabelAdminPercentages(data.individualLabelAdminPercentages);
+        }
+        if (data.individualArtistPercentages) {
+          setIndividualArtistPercentages(data.individualArtistPercentages);
+        }
+        
+        // If configuration was previously saved, mark as saved
+        if (data.lastUpdated) {
+          setSplitConfigSaved(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading revenue split configuration:', error);
+    }
+  };
 
   // Apply filters
   const filteredUsers = filteredUsersByRole.filter(u => {
@@ -186,22 +230,55 @@ export default function CompanyAdminUsersPage() {
     }));
   };
 
-  const saveSplitConfiguration = () => {
-    // Here you would save to your backend/database
-    console.log('Saving Company Admin revenue split configuration:', {
-      revenueSplit,
-      individualLabelAdminPercentages,
-      individualArtistPercentages
-    });
-    
-    setSplitConfigSaved(true);
-    setSuccessMessage('Revenue split configuration saved successfully!');
-    setShowSuccessModal(true);
-    
-    // Reset saved status after 3 seconds
-    setTimeout(() => {
-      setSplitConfigSaved(false);
-    }, 3000);
+  const saveSplitConfiguration = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/companyadmin/revenue-splits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          revenueSplit,
+          individualLabelAdminPercentages,
+          individualArtistPercentages
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Revenue split configuration saved:', result);
+        
+        setSplitConfigSaved(true);
+        setSuccessMessage('Revenue split configuration saved successfully to database!');
+        setShowSuccessModal(true);
+        
+        // Reset saved status after 3 seconds
+        setTimeout(() => {
+          setSplitConfigSaved(false);
+        }, 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to save revenue splits:', errorData);
+        setSuccessMessage(`Failed to save: ${errorData.error}`);
+        setShowSuccessModal(true);
+        
+        setTimeout(() => {
+          setShowSuccessModal(false);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Error saving revenue split configuration:', error);
+      setSuccessMessage('Error saving configuration. Please try again.');
+      setShowSuccessModal(true);
+      
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 5000);
+    }
   };
 
   if (loading) {
@@ -241,10 +318,8 @@ export default function CompanyAdminUsersPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="font-bold text-blue-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.totalUsers.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Users</p>
+                <p className="text-3xl font-bold text-blue-600">
                   {userStats.totalUsers}
                 </p>
               </div>
@@ -257,10 +332,8 @@ export default function CompanyAdminUsersPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="font-bold text-green-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.activeUsers.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Active Users</p>
+                <p className="text-3xl font-bold text-green-600">
                   {userStats.activeUsers}
                 </p>
               </div>
@@ -273,10 +346,8 @@ export default function CompanyAdminUsersPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">New This Month</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / userStats.newThisMonth.toString().length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">New This Month</p>
+                <p className="text-3xl font-bold text-purple-600">
                   {userStats.newThisMonth}
                 </p>
               </div>
@@ -289,10 +360,8 @@ export default function CompanyAdminUsersPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(userStats.totalRevenue, selectedCurrency).length))}px`
-                }}>
+                <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
+                <p className="text-3xl font-bold text-purple-600">
                   {formatCurrency(userStats.totalRevenue, selectedCurrency)}
                 </p>
               </div>
@@ -429,19 +498,23 @@ export default function CompanyAdminUsersPage() {
           </div>
 
           {/* Brand Revenue Overview */}
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mb-8">
             <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-gray-900">Total Brand Revenue</h4>
-                <p className="font-bold text-purple-600" style={{
-                  fontSize: `${Math.min(32, Math.max(18, 280 / formatCurrency(userStats.totalRevenue, selectedCurrency).length))}px`
-                }}>
-                  {formatCurrency(userStats.totalRevenue, selectedCurrency)}
-                </p>
-                <p className="text-sm text-gray-600">Across all brand users and artists</p>
-                <p className="text-xs text-gray-500 mt-1">After Code Group ({revenueSplit.distributionPartnerPercentage}%) and Company Admin ({revenueSplit.companyAdminPercentage}%) deductions</p>
+              <div className="flex-1 pr-6">
+                <h4 className="text-xl font-bold text-gray-900 mb-3">Total Brand Revenue</h4>
+                <div className="mb-4">
+                  <p className="text-3xl font-bold text-purple-600 mb-2">
+                    {formatCurrency(userStats.totalRevenue, selectedCurrency)}
+                  </p>
+                  <p className="text-base text-gray-600 mb-2">Across all brand users and artists</p>
+                  <p className="text-sm text-gray-500">
+                    After Code Group ({revenueSplit.distributionPartnerPercentage}%) and Company Admin ({revenueSplit.companyAdminPercentage}%) deductions
+                  </p>
+                </div>
               </div>
-              <Building2 className="w-12 h-12 text-purple-500" />
+              <div className="flex-shrink-0">
+                <Building2 className="w-16 h-16 text-purple-500" />
+              </div>
             </div>
           </div>
 
