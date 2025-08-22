@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
 import { 
   Users, Search, Filter, Plus, Eye, Trash2, 
@@ -16,6 +17,7 @@ import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
+import CreateUserModal from '@/components/admin/CreateUserModal';
 import useModals from '@/hooks/useModals';
 
 export default function AdminUsersPage() {
@@ -169,25 +171,52 @@ export default function AdminUsersPage() {
     });
   };
 
-  const handleSaveUser = (userData) => {
+  const handleSaveUser = async (userData) => {
     console.log('handleSaveUser called with:', userData);
-    console.log('Current userRole:', userRole);
     
-    // Add new user (only super admins can do this)
-    if (userRole !== 'super_admin') {
-      console.log('Permission denied for adding new user');
-      setSuccessMessage('You do not have permission to add new users.');
+    // Validate required fields
+    if (!userData.email || !userData.password || !userData.firstName || !userData.lastName || !userData.role) {
+      setSuccessMessage('Please fill in all required fields (email, password, first name, last name, and role).');
       setShowSuccessModal(true);
       return;
     }
-    console.log('Adding new user');
-    const newUser = { ...userData, id: Date.now() };
-    setUsers(prev => [...prev, newUser]);
-    setSuccessMessage('User added successfully!');
-    setShowAddUserModal(false);
-    setSelectedUser(null);
-    setShowSuccessModal(true);
-    console.log('Save completed');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/superadmin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('User created successfully:', result);
+        
+        setSuccessMessage(`New user ${userData.firstName} ${userData.lastName} (${userData.email}) has been created successfully! They can log in immediately.`);
+        setShowSuccessModal(true);
+        setShowAddUserModal(false);
+        
+        // Reload the page to show the new user
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to create user:', errorData);
+        setSuccessMessage(`Failed to create user: ${errorData.error}`);
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      setSuccessMessage('Error creating user. Please try again.');
+      setShowSuccessModal(true);
+    }
   };
 
   // Get role badge color
@@ -871,14 +900,15 @@ export default function AdminUsersPage() {
       )}
 
       {/* Add User Modal */}
-      {showAddUserModal && (
-        <UserModal
-          title="Add New User"
-          userRole={userRole}
-          onClose={() => setShowAddUserModal(false)}
-          onSave={handleSaveUser}
-        />
-      )}
+      <CreateUserModal
+        isOpen={showAddUserModal}
+        onClose={() => setShowAddUserModal(false)}
+        onUserCreated={(newUser) => {
+          console.log('New user created:', newUser);
+          // Reload page to show new user
+          setTimeout(() => window.location.reload(), 1000);
+        }}
+      />
 
 
 
@@ -920,13 +950,19 @@ export default function AdminUsersPage() {
 // User Modal Component
 function UserModal({ title, user = null, userRole, onClose, onSave }) {
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     email: user?.email || '',
+    password: '', // Required for new users
     role: user?.role || 'artist',
-    brand: user?.brand || '',
-    status: user?.status || 'active',
+    dateOfBirth: user?.dateOfBirth || '',
+    nationality: user?.nationality || 'British',
+    country: user?.country || 'United Kingdom',
+    city: user?.city || '',
     phone: user?.phone || '',
-    ...user
+    artistName: user?.artistName || '',
+    companyName: user?.companyName || '',
+    bio: user?.bio || ''
   });
 
   const handleSubmit = (e) => {
