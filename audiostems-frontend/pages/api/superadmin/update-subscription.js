@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
@@ -12,9 +11,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    // Verify JWT and get user
-    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET || 'your-jwt-secret');
-    const userId = decoded.sub;
+    // Get user from Supabase session
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    const userId = user.id;
 
     // Verify super admin role
     const { data: roleData } = await supabase

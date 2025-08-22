@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
 import { getUserRoleSync } from '@/lib/user-utils';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import RoleBasedNavigation from '@/components/auth/RoleBasedNavigation';
 import { Users, CreditCard, TrendingUp, Settings, Search, Filter, Edit3, Check, X } from 'lucide-react';
 
 export default function SuperAdminSubscriptions() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, isLoading: loading } = useUser();
   const [subscriptions, setSubscriptions] = useState([]);
   const [filteredSubscriptions, setFilteredSubscriptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
