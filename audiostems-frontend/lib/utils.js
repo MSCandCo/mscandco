@@ -11,11 +11,10 @@ export const resourceUrl = (path) => {
   return process.env.NEXT_PUBLIC_STRAPI + path;
 };
 
+// Stripe customer portal removed - using Mock Revolut billing system
 export const openCustomerPortal = async () => {
-  const { data } = await axios.get(
-    `/api/req/stripe-utils/create-portal-session`
-  );
-  window.open(data);
+  // Redirect to billing page instead
+  window.location.href = '/billing';
 };
 
 export function cn(...inputs) {
