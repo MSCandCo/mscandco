@@ -78,20 +78,7 @@ UPDATE user_profiles
 SET 
     chartmetric_verified = TRUE,
     chartmetric_linked_at = NOW(),
-    chartmetric_data = '{
-        "social_footprint": {
-            "instagram": {"followers": 12500, "engagement_rate": 3.2},
-            "tiktok": {"followers": 8900, "likes": 145000},
-            "youtube": {"subscribers": 15600, "views": 890000},
-            "twitter": {"followers": 5400, "engagement": 2.1}
-        },
-        "streaming_stats": {
-            "spotify": {"followers": 18900, "monthly_listeners": 45600},
-            "apple_music": {"followers": 12300},
-            "youtube_music": {"subscribers": 8700}
-        },
-        "last_updated": "' || NOW() || '"
-    }'::jsonb
+    chartmetric_data = '{"social_footprint": {"instagram": {"followers": 12500, "engagement_rate": 3.2}, "tiktok": {"followers": 8900, "likes": 145000}, "youtube": {"subscribers": 15600, "views": 890000}, "twitter": {"followers": 5400, "engagement": 2.1}}, "streaming_stats": {"spotify": {"followers": 18900, "monthly_listeners": 45600}, "apple_music": {"followers": 12300}, "youtube_music": {"subscribers": 8700}}}'::jsonb
 WHERE id IN (
     SELECT ura.user_id 
     FROM user_role_assignments ura 

@@ -302,6 +302,12 @@ export default function RoleBasedNavigation() {
                   Earnings
                 </Link>
                 <Link
+                  href="/superadmin/subscriptions"
+                  className={getNavLinkClasses('/superadmin/subscriptions')}
+                >
+                  Subscriptions
+                </Link>
+                <Link
                   href="/distribution/workflow"
                   className={getNavLinkClasses('/distribution/workflow')}
                 >
