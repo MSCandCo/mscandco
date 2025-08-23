@@ -179,7 +179,7 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
         throw new Error(result.error || 'Failed to update subscription');
       }
     } catch (error) {
-      console.error('Subscription update error:', error);
+      // Error logged for debugging
       setProcessMessage('Failed to update subscription. Please try again.');
       
       setTimeout(() => {
