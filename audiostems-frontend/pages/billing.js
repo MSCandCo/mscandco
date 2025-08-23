@@ -181,7 +181,7 @@ export default function BillingPage() {
               </h3>
               <p className="text-blue-800 mb-4">
                 Our billing system is powered by Revolut Business API for secure, reliable payments. 
-                Currently running in development mode with realistic transaction simulation.
+                Currently running in sandbox mode with real API integration.
               </p>
               <div className="space-y-2 text-sm text-blue-700">
                 <p>• <strong>Subscription Changes:</strong> Upgrades take effect immediately</p>
@@ -198,9 +198,9 @@ export default function BillingPage() {
           <div className="flex items-center space-x-3">
             <AlertCircle className="w-5 h-5 text-amber-600" />
             <div>
-              <p className="text-sm font-medium text-amber-800">Development Mode</p>
+              <p className="text-sm font-medium text-amber-800">Sandbox Mode</p>
               <p className="text-sm text-amber-700">
-                This is a mock payment system for development. No real money will be charged.
+                Using Revolut Business API sandbox environment. Real API integration with test transactions.
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import mockRevolutAPI from '@/lib/revolut-mock';
+import revolutAPI from '@/lib/revolut-real';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -35,11 +35,16 @@ export default async function handler(req, res) {
 
     // If no customer ID exists, create a customer
     if (!customerId) {
-      await mockRevolutAPI.authenticate();
-      
-      const customer = await mockRevolutAPI.createCustomer({
+      const customer = await revolutAPI.createCustomer({
         email: user.email,
-        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0]
+        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0],
+        phone: user.user_metadata?.phone || null,
+        address: {
+          street_line_1: user.user_metadata?.address || '',
+          city: user.user_metadata?.city || '',
+          country: user.user_metadata?.country || 'GB',
+          postcode: user.user_metadata?.postcode || ''
+        }
       });
       
       customerId = customer.id;
@@ -56,12 +61,24 @@ export default async function handler(req, res) {
         });
     }
 
-    // Add funds to wallet via mock Revolut API
-    await mockRevolutAPI.authenticate();
-    const transaction = await mockRevolutAPI.addFundsToWallet(customerId, amount, currency);
+    // Create payment to add funds to wallet via real Revolut API
+    const payment = await revolutAPI.createPayment({
+      amount: amount,
+      currency: currency,
+      customer_id: customerId,
+      description: `Wallet top-up - £${amount}`,
+      metadata: {
+        user_id: user.id,
+        type: 'wallet_topup'
+      }
+    });
 
-    // Get current wallet balance
-    const currentBalance = await mockRevolutAPI.getWalletBalance(customerId);
+    // For sandbox, we'll simulate the balance update
+    // In production, this would be handled by Revolut webhooks
+    const currentBalance = {
+      available_balance: amount, // Simplified for demo
+      currency: currency
+    };
 
     // Update wallet balance in database
     const { error: walletError } = await supabase
@@ -72,12 +89,12 @@ export default async function handler(req, res) {
         amount: amount,
         currency: currency,
         source_type: 'wallet_topup',
-        source_reference_id: transaction.id,
+        source_reference_id: payment.id,
         description: 'Wallet top-up via Revolut',
         status: 'completed',
         balance_before: currentBalance.available_balance - amount,
         balance_after: currentBalance.available_balance,
-        processed_at: transaction.processed_at,
+        processed_at: new Date().toISOString(),
         created_at: new Date().toISOString()
       });
 
@@ -88,7 +105,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       success: true,
-      transaction: transaction,
+      payment: payment,
       new_balance: currentBalance.available_balance,
       message: `Successfully added ${currency === 'GBP' ? '£' : currency}${amount} to your wallet`
     });

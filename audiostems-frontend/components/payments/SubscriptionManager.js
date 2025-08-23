@@ -306,7 +306,7 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
           <div>
             <p className="text-sm font-medium text-gray-900">Secure Payment Processing</p>
             <p className="text-xs text-gray-600">
-              Powered by Revolut Business API (Mock Mode for Development)
+              Powered by Revolut Business API (Sandbox Environment)
             </p>
           </div>
         </div>

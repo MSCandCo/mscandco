@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import mockRevolutAPI from '@/lib/revolut-mock';
+import revolutAPI from '@/lib/revolut-real';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -25,26 +25,29 @@ export default async function handler(req, res) {
     }
 
     // Get subscription plans
-    const plans = mockRevolutAPI.getSubscriptionPlans();
+    const plans = revolutAPI.getSubscriptionPlans();
     const selectedPlan = plans[plan_id];
     
     if (!selectedPlan) {
       return res.status(400).json({ error: 'Invalid plan ID' });
     }
 
-    // Authenticate with mock Revolut API
-    await mockRevolutAPI.authenticate();
-
-    // Create or get customer
+    // Create or get customer with real Revolut API
     let customer;
     try {
-      // Try to get existing customer first (in real app, we'd store customer_id in database)
-      const existingCustomerData = customer_data || {
+      const customerData = customer_data || {
         email: user.email,
-        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0]
+        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0],
+        phone: user.user_metadata?.phone || null,
+        address: {
+          street_line_1: user.user_metadata?.address || '',
+          city: user.user_metadata?.city || '',
+          country: user.user_metadata?.country || 'GB',
+          postcode: user.user_metadata?.postcode || ''
+        }
       };
       
-      customer = await mockRevolutAPI.createCustomer(existingCustomerData);
+      customer = await revolutAPI.createCustomer(customerData);
     } catch (error) {
       console.error('Error creating customer:', error);
       return res.status(500).json({ error: 'Failed to create customer' });
@@ -64,7 +67,7 @@ export default async function handler(req, res) {
       }
     };
 
-    const subscription = await mockRevolutAPI.createSubscription(subscriptionData);
+    const subscription = await revolutAPI.createSubscription(subscriptionData);
 
     // Update user subscription in Supabase
     const { error: updateError } = await supabase
