@@ -1,0 +1,287 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 10px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+body {
+  @apply text-gray-800 font-medium text-sm;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.no-scrollbar::-webkit-scrollbar {
+  /* WebKit */
+  width: 0;
+  height: 0;
+}
+
+.range-slider input {
+  @apply invisible;
+}
+.range-slider .range-slider__thumb {
+  height: 16px !important;
+  width: 16px !important;
+}
+
+/* flowbite is broken hack till they fix it */
+.indiana-scroll-container {
+  @apply !rounded-none;
+}
+
+[part="timeline-wrapper"] {
+  display: none !important;
+}
+.as-multiplayer > div {
+  overflow-x: auto !important;
+}
+
+.as-multiplayer > div > div > div {
+  height: 64px;
+  @apply py-3;
+}
+
+.as-multiplayer > div > div > div:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+/* If you use duration-[1200ms], use duration-[1200ms] with brackets to avoid ambiguity. */
+
+/* Track Listing Form Fixes */
+.track-listing-form {
+  @apply space-y-4;
+}
+
+/* Responsive Sizing Fixes */
+@layer utilities {
+  .text-responsive {
+    @apply text-sm lg:text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+  
+  .container-responsive {
+    @apply px-4 sm:px-6 lg:px-8;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      max-width: 1024px;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container-responsive {
+      max-width: 1200px;
+    }
+  }
+  
+  .header-height {
+    @apply h-auto;
+  }
+  
+  .logo-size {
+    @apply h-14 md:h-16 lg:h-20;
+  }
+  
+  .padding-responsive {
+    @apply p-1 md:p-1.5 lg:p-2;
+  }
+  
+  .text-compact {
+    @apply text-xs leading-tight;
+  }
+  
+  .heading-compact {
+    @apply text-sm leading-tight;
+  }
+  
+  .spacing-compact {
+    @apply space-y-1 md:space-y-1.5;
+  }
+  
+  .ultra-compact {
+    @apply text-sm leading-tight;
+  }
+  
+  .micro-compact {
+    @apply text-sm leading-tight p-1 m-0.5;
+  }
+}
+
+.track-listing-form .track-row {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3;
+}
+
+.track-listing-form .track-row .track-title {
+  @apply sm:col-span-1;
+}
+
+.track-listing-form .track-row .track-duration {
+  @apply sm:col-span-1;
+}
+
+.track-listing-form .track-row .track-bpm {
+  @apply sm:col-span-1;
+}
+
+.track-listing-form .track-row .track-key {
+  @apply sm:col-span-1;
+}
+
+.track-listing-form .track-row input,
+.track-listing-form .track-row select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm;
+}
+
+/* Prevent input field overlapping */
+.track-input-group {
+  @apply flex flex-col sm:flex-row gap-2 items-start sm:items-center;
+}
+
+.track-input-group input {
+  @apply min-w-0 flex-1;
+}
+
+/* Card-based track listing fixes for overlapping inputs */
+.track-card-layout {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4;
+}
+
+.track-card-layout .track-input-card {
+  @apply bg-white border border-gray-200 rounded-lg p-3 min-w-0;
+}
+
+.track-card-layout .track-input-card input {
+  @apply w-full border-0 bg-transparent focus:ring-0 focus:outline-none p-1 text-sm;
+}
+
+/* Fix for track number positioning */
+.track-number {
+  @apply flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-sm font-medium mr-3;
+}
+
+/* Ensure proper width constraints for different field types */
+.track-duration-input {
+  @apply max-w-[80px];
+}
+
+.track-bpm-input {
+  @apply max-w-[100px];
+}
+
+.track-key-input {
+  @apply max-w-[120px];
+}
+
+.track-isrc-input {
+  @apply max-w-[140px];
+}
+
+/* COMPREHENSIVE FIX: Force track title inputs to be smaller */
+input[value*="Urban Beat"],
+input[value*="Street Rhythm"], 
+input[value*="City Lights"],
+input[placeholder*="Track"],
+input[placeholder*="Title"] {
+  @apply max-w-[350px] !important;
+}
+
+/* Target any input field that might be in a track listing context */
+div:has(input[value*="3:30"]) input:first-child,
+div:has(input[value*="4:15"]) input:first-child,
+div:has(input[value*="3:45"]) input:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* Force title inputs in card layouts to be smaller */
+.track-card-layout input:first-child,
+.track-input-card input:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* Prevent flex-grow on title inputs */
+div[class*="track"] input:first-child,
+div[class*="Track"] input:first-child {
+  @apply max-w-[350px] flex-shrink-0 !important;
+}
+
+/* ULTIMATE FIX: Target ANY grid or flex layout with track-like inputs */
+.grid input:first-child,
+.flex input:first-child,
+div:first-child input {
+  @apply max-w-[350px] !important;
+}
+
+/* Force ALL input fields in ANY multi-column layout to respect sizing */
+.grid-cols-5 input:nth-child(1),
+.grid-cols-4 input:nth-child(1),
+.grid-cols-3 input:nth-child(1) {
+  @apply max-w-[350px] !important;
+}
+
+/* Emergency override for ANY form with numeric track numbers */
+div:has(input[value="1"]) input:first-child,
+div:has(input[value="2"]) input:first-child,
+div:has(input[value="3"]) input:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* Target any input that appears to be the first in a row/card */
+.border.rounded input:first-child,
+.bg-white.border input:first-child,
+.shadow input:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* SIMPLE UNIVERSAL FIX: Force ALL inputs to reasonable max-width */
+input[type="text"] {
+  @apply max-w-[200px];
+}
+
+/* More specific for track listing contexts */
+div input[type="text"]:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* Force first input in any container to be smaller */
+div > input:first-child,
+span > input:first-child {
+  @apply max-w-[350px] !important;
+}
+
+/* Target input groups with numbered tracks */
+div:has(.track-number) input:first-of-type {
+  @apply max-w-[350px] !important;
+}
+
+/* Universal track form title width constraint - only in specific contexts */
+form input[type="text"]:first-child,
+.track-listing input[type="text"]:first-child,
+div[class*="listing"] input[type="text"]:first-child {
+  @apply max-w-[350px] !important;
+}

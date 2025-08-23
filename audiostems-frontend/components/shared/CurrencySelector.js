@@ -3,7 +3,6 @@
 // Base currency: GBP - All amounts are stored in GBP and converted using live rates
 
 import { useState, useEffect } from 'react';
-import { FaChevronDown } from 'react-icons/fa';
 import { ChevronDown } from 'lucide-react';
 
 const CURRENCIES = [

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import chartmetric, { getTrackInsights } from '@/lib/chartmetric';
-import aceberAI, { analyzeArtistStrategy } from '@/lib/acceber-ai-mock';
+// AcceberAI mock removed - ready for real AI integration
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -203,24 +203,13 @@ async function handleCreateRelease(req, res) {
       .single();
 
     if (artistProfile.data) {
-      // Get AI recommendations for this release
-      const aiInsights = await analyzeArtistStrategy(user.id, {
-        profile: artistProfile.data,
-        next_release: { title: releaseTitle, genre, track_count: tracks.length },
-        target_audience: { countries: ['UK', 'US'], platforms: ['spotify', 'apple_music'] },
-        historical_data: { releases: [], avg_streams: 0, avg_revenue: 0 },
-        market_context: { current_trends: [], competition_level: 'medium' }
-      });
-
-      if (aiInsights.success) {
-        // Store AI insights for later use
-        await supabase
-          .from('releases')
-          .update({
-            metadata: { ai_insights: aiInsights.strategy }
-          })
-          .eq('id', newRelease.id);
-      }
+      // AI insights placeholder - ready for real AI integration
+      await supabase
+        .from('releases')
+        .update({
+          metadata: { ai_insights: null }
+        })
+        .eq('id', newRelease.id);
     }
 
     return res.status(201).json({

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
-import { Dropdown } from "flowbite-react";
+// Removed flowbite-react Dropdown - using custom dropdown instead
 import {
   FileText,
   BarChart3,
@@ -14,6 +14,8 @@ import {
   User,
   Settings,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -23,14 +25,15 @@ export default function RoleBasedNavigation() {
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const [fundsData, setFundsData] = useState({
-    heldEarnings: 1560,
-    availableForCashout: 890,
+    heldEarnings: 0,
+    availableForCashout: 0,
     minimumCashoutThreshold: 100,
-    labelAdminEarnings: 4250, // Label admin earnings
-    labelAdminAvailable: 3100  // Available for withdrawal
+    labelAdminEarnings: 0,
+    labelAdminAvailable: 0
   });
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Load profile data for Distribution Partners
@@ -39,6 +42,20 @@ export default function RoleBasedNavigation() {
       loadDistributionPartnerProfile();
     }
   }, [user]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const loadDistributionPartnerProfile = async () => {
     try {
@@ -168,14 +185,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -183,7 +200,7 @@ export default function RoleBasedNavigation() {
               </Link>
             </div>
 
-            {/* Center Navigation */}
+            {/* Desktop Navigation */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
@@ -192,24 +209,25 @@ export default function RoleBasedNavigation() {
                 >
                   Content Management
                 </Link>
-                        <Link
-          href="/distributionpartner/analytics"
-          className={getNavLinkClasses('/distributionpartner/analytics')}
-        >
-          Analytics
-        </Link>
-        <Link
-          href="/distributionpartner/reports"
-          className={getNavLinkClasses('/distributionpartner/reports')}
-        >
-          Finance
-        </Link>
+                <Link
+                  href="/distributionpartner/analytics"
+                  className={getNavLinkClasses('/distributionpartner/analytics')}
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/distributionpartner/reports"
+                  className={getNavLinkClasses('/distributionpartner/reports')}
+                >
+                  Finance
+                </Link>
               </div>
             </div>
 
-            {/* Right side - User menu */}
+            {/* Right side - User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
-              <div className="relative" ref={dropdownRef}>
+              {/* Desktop User Menu */}
+              <div className="hidden md:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -241,8 +259,81 @@ export default function RoleBasedNavigation() {
                   </div>
                 )}
               </div>
+
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" />
+                  ) : (
+                    <Menu className="block h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+                <Link
+                  href="/distributionpartner/dashboard"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Content Management
+                </Link>
+                <Link
+                  href="/distributionpartner/analytics"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/distributionpartner/reports"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Finance
+                </Link>
+                <div className="border-t border-gray-200 pt-4 pb-3">
+                  <div className="px-3 py-2">
+                    <div className="text-base font-medium text-gray-800">{getDistributionPartnerDisplayName()}</div>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/distributionpartner/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     );
@@ -253,14 +344,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -268,9 +359,9 @@ export default function RoleBasedNavigation() {
               </Link>
             </div>
 
-            {/* Center Navigation */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-6">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:block">
+              <div className="ml-10 flex items-baseline space-x-4">
                 <Link
                   href="/superadmin/users"
                   className={getNavLinkClasses('/superadmin/users')}
@@ -311,20 +402,21 @@ export default function RoleBasedNavigation() {
                   href="/superadmin/artist-requests"
                   className={getNavLinkClasses('/superadmin/artist-requests')}
                 >
-                  Artist Requests
+                  Requests
                 </Link>
                 <Link
                   href="/super-admin/ghost-login"
                   className={`${getNavLinkClasses('/super-admin/ghost-login')} border border-red-200 hover:border-red-300 ${isActivePage('/super-admin/ghost-login') ? 'text-red-600 border-red-400' : 'text-red-600 hover:text-red-800'}`}
                 >
-                  Ghost Login
+                  Ghost
                 </Link>
               </div>
             </div>
 
-            {/* Right side - User menu */}
+            {/* Right side - User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
-              <div className="relative" ref={dropdownRef}>
+              {/* Desktop User Menu */}
+              <div className="hidden lg:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -356,8 +448,116 @@ export default function RoleBasedNavigation() {
                   </div>
                 )}
               </div>
+
+              {/* Mobile menu button */}
+              <div className="lg:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" />
+                  ) : (
+                    <Menu className="block h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+                <Link
+                  href="/superadmin/users"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Users
+                </Link>
+                <Link
+                  href="/superadmin/content"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Content
+                </Link>
+                <Link
+                  href="/superadmin/analytics"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/superadmin/earnings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Earnings
+                </Link>
+                <Link
+                  href="/superadmin/subscriptions"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Subscriptions
+                </Link>
+                <Link
+                  href="/distribution/workflow"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Distribution
+                </Link>
+                <Link
+                  href="/superadmin/artist-requests"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Artist Requests
+                </Link>
+                <Link
+                  href="/super-admin/ghost-login"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Ghost Login
+                </Link>
+                <div className="border-t border-gray-200 pt-4 pb-3">
+                  <div className="px-3 py-2">
+                    <div className="text-base font-medium text-gray-800">Super Admin</div>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/admin/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     );
@@ -368,14 +568,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -383,9 +583,9 @@ export default function RoleBasedNavigation() {
               </Link>
             </div>
 
-            {/* Center Navigation */}
+            {/* Desktop Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-6">
+              <div className="ml-10 flex items-baseline space-x-4">
                 <Link
                   href="/companyadmin/users"
                   className={getNavLinkClasses('/companyadmin/users')}
@@ -396,7 +596,7 @@ export default function RoleBasedNavigation() {
                   href="/companyadmin/artist-requests"
                   className={getNavLinkClasses('/companyadmin/artist-requests')}
                 >
-                  Artist Requests
+                  Requests
                 </Link>
                 <Link
                   href="/companyadmin/content"
@@ -425,9 +625,10 @@ export default function RoleBasedNavigation() {
               </div>
             </div>
 
-            {/* Right side - User menu */}
+            {/* Right side - User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
-              <div className="relative" ref={dropdownRef}>
+              {/* Desktop User Menu */}
+              <div className="hidden md:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -459,8 +660,102 @@ export default function RoleBasedNavigation() {
                   </div>
                 )}
               </div>
+
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" />
+                  ) : (
+                    <Menu className="block h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+                <Link
+                  href="/companyadmin/users"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Users
+                </Link>
+                <Link
+                  href="/companyadmin/artist-requests"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Artist Requests
+                </Link>
+                <Link
+                  href="/companyadmin/content"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Content
+                </Link>
+                <Link
+                  href="/companyadmin/analytics"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/companyadmin/earnings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Earnings
+                </Link>
+                <Link
+                  href="/companyadmin/distribution"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Workflow
+                </Link>
+                <div className="border-t border-gray-200 pt-4 pb-3">
+                  <div className="px-3 py-2">
+                    <div className="text-base font-medium text-gray-800">{user?.email || getDisplayName()}</div>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/companyadmin/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     );
@@ -471,14 +766,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -486,7 +781,7 @@ export default function RoleBasedNavigation() {
               </Link>
             </div>
 
-            {/* Center Navigation */}
+            {/* Desktop Navigation */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link
@@ -516,23 +811,24 @@ export default function RoleBasedNavigation() {
               </div>
             </div>
 
-            {/* Right side - Balance and User menu */}
+            {/* Right side - Balance, User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
               {/* Label Admin Balance Display */}
-              <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
+              <div className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
                 <Wallet className="w-4 h-4 text-gray-600" />
                 <span className="text-xs font-medium text-gray-900">
                   {sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)}
                 </span>
               </div>
               
-              <div className="relative" ref={dropdownRef}>
+              {/* Desktop User Menu */}
+              <div className="hidden md:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
-                  <span className="text-gray-700 hidden sm:inline">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'MSC & Co'}</span>
-                  <span className="text-gray-700 sm:hidden">Label Admin</span>
+                  <span className="text-gray-700 hidden lg:inline">Hi, Label Admin at {getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'MSC & Co'}</span>
+                  <span className="text-gray-700 lg:hidden">Label Admin</span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
 
@@ -565,8 +861,104 @@ export default function RoleBasedNavigation() {
                   </div>
                 )}
               </div>
+
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" />
+                  ) : (
+                    <Menu className="block h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+                {/* Mobile Balance Display */}
+                <div className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3">
+                  <Wallet className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">
+                    Balance: {sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)}
+                  </span>
+                </div>
+                
+                <Link
+                  href="/labeladmin/artists"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  My Artists
+                </Link>
+                <Link
+                  href="/labeladmin/releases"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  All Releases
+                </Link>
+                <Link
+                  href="/labeladmin/earnings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Earnings
+                </Link>
+                <Link
+                  href="/labeladmin/analytics"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Analytics
+                </Link>
+                <div className="border-t border-gray-200 pt-4 pb-3">
+                  <div className="px-3 py-2">
+                    <div className="text-base font-medium text-gray-800">Label Admin</div>
+                    <div className="text-sm text-gray-500">{getUserBrand(user)?.displayName || getUserBrand(user)?.name || 'MSC & Co'}</div>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/labeladmin/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/billing"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Billing
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     );
@@ -581,120 +973,228 @@ export default function RoleBasedNavigation() {
   ];
 
   return (
-    <header className="px-3 lg:px-[50px] py-2 border-b border-gray-200 bg-white">
-      <div className="w-full max-h-full flex justify-between items-center">
-        {/* Left side - Navigation items */}
-        <div className="flex-1 flex items-center space-x-4">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-xs sm:text-sm font-medium flex items-center space-x-1 transition-colors duration-200 ${
-                isActivePage(item.href) 
-                  ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </div>
-
-        {/* Center - Logo */}
-        <div className="flex-1 flex justify-center">
-          <Link href="/" className="flex items-center">
-            <img 
-              src="/logos/msc-logo.png" 
-              alt="MSC & Co" 
-              className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
-              onError={(e) => {
-                e.target.src = '/logos/msc-logo.svg';
-                e.target.onerror = () => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                };
-              }}
-            />
-            <span className="text-lg font-bold text-gray-900 hidden">
-              {displayBrand?.displayName || 'MSC & Co'}
-            </span>
-          </Link>
-        </div>
-
-        {/* Right side - Utility links and user menu */}
-        <div className="flex-1 flex justify-end items-center space-x-2">
-          {/* Platform Funds Display - For artists and label admins */}
-          {(userRole === 'artist' || userRole === 'label_admin') && (
-            <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
-              <Wallet className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-medium text-gray-900">
-                {userRole === 'artist' 
-                  ? sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)
-                  : sharedFormatCurrency(fundsData.labelAdminEarnings, selectedCurrency)
-                }
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center space-x-3">
-            <Link 
-              href="/about" 
-              className={`text-sm transition-colors duration-200 ${
-                isActivePage('/about') 
-                  ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-              }`}
-            >
-              About
-            </Link>
-            <Link 
-              href="/support" 
-              className={`text-sm transition-colors duration-200 ${
-                isActivePage('/support') 
-                  ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-              }`}
-            >
-              Support
+    <nav className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/">
+              <img
+                src="/logos/msc-logo.png"
+                alt="MSC & Co"
+                className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                onError={(e) => {
+                  e.target.src = '/logos/msc-logo.svg';
+                }}
+              />
             </Link>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {String(userRole || '').replace('_', ' ').toUpperCase()}
-            </span>
-            
-            <Dropdown
-              color="gray"
-              size="sm"
-              label={
-                <p className="text-sm whitespace-nowrap">
-                  <span className="hidden sm:inline">Hi, </span>{getDisplayName()}
-                </p>
-              }
-              dismissOnClick={false}
-            >
-              <Link href="/dashboard">
-                <Dropdown.Item icon={User}>Dashboard</Dropdown.Item>
-              </Link>
-              <Link href="/artist/profile">
-                <Dropdown.Item icon={User}>Profile</Dropdown.Item>
-              </Link>
-              <Link href="/billing">
-                <Dropdown.Item icon={Settings}>Billing</Dropdown.Item>
-              </Link>
-              <Dropdown.Divider />
-              <Dropdown.Item
-                icon={LogOut}
-                onClick={handleLogout}
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage(item.href) 
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
               >
-                Logout
-              </Dropdown.Item>
-            </Dropdown>
+                <item.icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Right side - Balance, Utility links, User menu and Mobile menu button */}
+          <div className="flex items-center space-x-3">
+            {/* Platform Funds Display - For artists */}
+            {userRole === 'artist' && (
+              <div className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
+                <Wallet className="w-4 h-4 text-gray-600" />
+                <span className="text-xs font-medium text-gray-900">
+                  {sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}
+                </span>
+              </div>
+            )}
+
+            {/* Desktop Utility Links */}
+            <div className="hidden lg:flex items-center space-x-3">
+              <Link 
+                href="/about" 
+                className={`text-sm transition-colors duration-200 ${
+                  isActivePage('/about') 
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                About
+              </Link>
+              <Link 
+                href="/support" 
+                className={`text-sm transition-colors duration-200 ${
+                  isActivePage('/support') 
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                Support
+              </Link>
+            </div>
+
+            {/* Desktop User Menu */}
+            <div className="hidden md:flex items-center space-x-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {String(userRole || '').replace('_', ' ').toUpperCase()}
+              </span>
+              
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none"
+                >
+                  <span className="whitespace-nowrap">
+                    <span className="hidden lg:inline">Hi, </span>{getDisplayName()}
+                  </span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/dashboard">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </div>
+                    </Link>
+                    <Link href="/artist/profile">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </div>
+                    </Link>
+                    <Link href="/billing">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Billing
+                      </div>
+                    </Link>
+                    <hr className="my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="block h-6 w-6" />
+                ) : (
+                  <Menu className="block h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+              {/* Mobile Balance Display */}
+              {userRole === 'artist' && (
+                <div className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3">
+                  <Wallet className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">
+                    Balance: {sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}
+                  </span>
+                </div>
+              )}
+              
+              {/* Navigation Items */}
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+              
+              {/* Utility Links */}
+              <Link
+                href="/about"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link
+                href="/support"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Support
+              </Link>
+              
+              <div className="border-t border-gray-200 pt-4 pb-3">
+                <div className="px-3 py-2">
+                  <div className="text-base font-medium text-gray-800">{getDisplayName()}</div>
+                  <div className="text-sm text-gray-500">{String(userRole || '').replace('_', ' ').toUpperCase()}</div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <Link
+                    href="/dashboard"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/artist/profile"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/billing"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Billing
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </header>
+    </nav>
   );
 } 

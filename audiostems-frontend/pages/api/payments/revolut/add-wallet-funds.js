@@ -1,5 +1,11 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import revolutAPI from '@/lib/revolut-real';
+
+// Use service role for database operations
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,7 +18,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    // Get user from Supabase session
+    // Get user from Supabase session using regular client
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return res.status(401).json({ error: 'Invalid token' });
@@ -24,91 +35,109 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Valid amount is required' });
     }
 
-    // Get user's Revolut customer ID from database
-    const { data: subscription } = await supabase
+    // Get or create user subscription record using admin client
+    let { data: subscription, error: subError } = await supabaseAdmin
       .from('subscriptions')
-      .select('revolut_customer_id')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
     let customerId = subscription?.revolut_customer_id;
+    let currentBalance = parseFloat(subscription?.wallet_balance || 0);
 
-    // If no customer ID exists, create a customer
-    if (!customerId) {
-      const customer = await revolutAPI.createCustomer({
-        email: user.email,
-        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0],
-        phone: user.user_metadata?.phone || null,
-        address: {
-          street_line_1: user.user_metadata?.address || '',
-          city: user.user_metadata?.city || '',
-          country: user.user_metadata?.country || 'GB',
-          postcode: user.user_metadata?.postcode || ''
-        }
-      });
-      
-      customerId = customer.id;
-      
-      // Save customer ID for future use
-      await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          revolut_customer_id: customerId,
-          tier: 'artist_starter', // Default tier
-          status: 'inactive',
-          updated_at: new Date().toISOString()
+    // If no subscription record exists, create one
+    if (!subscription) {
+      try {
+        const customer = await revolutAPI.createCustomer({
+          email: user.email,
+          name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0],
+          phone: user.user_metadata?.phone || null,
+          address: {
+            street_line_1: user.user_metadata?.address || '',
+            city: user.user_metadata?.city || '',
+            country: user.user_metadata?.country || 'GB',
+            postcode: user.user_metadata?.postcode || ''
+          }
         });
+        
+        customerId = customer.id;
+        const newBalance = parseFloat(amount);
+        
+        // Create new subscription record
+        const { data: newSub, error: insertError } = await supabaseAdmin
+          .from('subscriptions')
+          .insert({
+            user_id: user.id,
+            revolut_customer_id: customerId,
+            tier: 'artist_starter',
+            status: 'inactive',
+            wallet_balance: newBalance,
+            wallet_currency: currency,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error creating subscription record:', insertError);
+          return res.status(500).json({ error: 'Failed to create subscription record' });
+        }
+
+        currentBalance = newBalance;
+      } catch (customerError) {
+        console.error('Error creating Revolut customer:', customerError);
+        return res.status(500).json({ error: 'Failed to create customer account' });
+      }
+    } else {
+      // Update existing wallet balance
+      const newBalance = currentBalance + parseFloat(amount);
+      
+      const { error: updateError } = await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          wallet_balance: newBalance,
+          wallet_currency: currency,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating wallet balance:', updateError);
+        return res.status(500).json({ error: 'Failed to update wallet balance' });
+      }
+
+      currentBalance = newBalance;
     }
 
-    // Create payment to add funds to wallet via real Revolut API
-    const payment = await revolutAPI.createPayment({
-      amount: amount,
-      currency: currency,
-      customer_id: customerId,
-      description: `Wallet top-up - £${amount}`,
-      metadata: {
-        user_id: user.id,
-        type: 'wallet_topup'
-      }
-    });
-
-    // For sandbox, we'll simulate the balance update
-    // In production, this would be handled by Revolut webhooks
-    const currentBalance = {
-      available_balance: amount, // Simplified for demo
-      currency: currency
-    };
-
-    // Update wallet balance in database
-    const { error: walletError } = await supabase
-      .from('wallet_transactions')
-      .insert({
-        user_id: user.id,
-        transaction_type: 'credit',
+    // Create payment with Revolut (simulated for sandbox)
+    try {
+      const payment = await revolutAPI.createPayment({
         amount: amount,
         currency: currency,
-        source_type: 'wallet_topup',
-        source_reference_id: payment.id,
-        description: 'Wallet top-up via Revolut',
-        status: 'completed',
-        balance_before: currentBalance.available_balance - amount,
-        balance_after: currentBalance.available_balance,
-        processed_at: new Date().toISOString(),
-        created_at: new Date().toISOString()
+        customer_id: customerId,
+        description: `Wallet top-up - ${currency}${amount}`,
+        metadata: {
+          user_id: user.id,
+          type: 'wallet_topup'
+        }
       });
 
-    if (walletError) {
-      console.error('Error recording wallet transaction:', walletError);
-      // Continue anyway - the payment was processed successfully
-    }
+      res.status(200).json({
+        success: true,
+        payment: payment,
+        new_balance: currentBalance,
+        currency: currency,
+        message: `Successfully added ${currency === 'GBP' ? '£' : currency}${amount} to your wallet`
+      });
 
-    res.status(200).json({
-      success: true,
-      payment: payment,
-      new_balance: currentBalance.available_balance,
-      message: `Successfully added ${currency === 'GBP' ? '£' : currency}${amount} to your wallet`
-    });
+    } catch (paymentError) {
+      console.error('Revolut payment error:', paymentError);
+      return res.status(500).json({ 
+        error: 'Payment processing failed',
+        details: paymentError.message 
+      });
+    }
 
   } catch (error) {
     console.error('Add wallet funds error:', error);

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import chartmetric, { getArtistInsights, getTrackInsights } from '@/lib/chartmetric';
-import aceberAI from '@/lib/acceber-ai-mock';
+// AcceberAI mock removed - ready for real AI integration
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -161,41 +161,20 @@ export default async function handler(req, res) {
 
         const aiLevel = hasAdvancedAnalytics ? 'premium' : 'basic';
         
-        // Get AI analysis of current performance
-        if (earnings && earnings.length > 0) {
-          const latestRelease = earnings[0];
-          const performanceAnalysis = await aceberAI.analyzeReleasePerformance(
-            latestRelease.releases.id,
-            {
-              streams: basicMetrics.total_streams,
-              revenue: basicMetrics.total_revenue,
-              platforms: basicMetrics.platforms.reduce((obj, platform) => {
-                obj[platform] = earnings.filter(e => e.platform === platform)
-                  .reduce((sum, e) => sum + (e.streams || 0), 0);
-                return obj;
-              }, {}),
-              days_live: Math.ceil((Date.now() - new Date(latestRelease.created_at)) / (1000 * 60 * 60 * 24))
-            }
-          );
+        // AI analysis placeholder - ready for real AI integration
+        analyticsData.ai_insights = {
+          performance_analysis: {
+            performance_score: 0,
+            revenue_analysis: { roi: 0, profit_margin: 0, break_even_achieved: false },
+            growth_trajectory: "stable",
+            recommendations: []
+          },
+          access_level: aiLevel,
+          last_analyzed: new Date().toISOString()
+        };
 
-          if (performanceAnalysis.success) {
-            analyticsData.ai_insights = {
-              performance_analysis: performanceAnalysis.insights,
-              access_level: aiLevel,
-              last_analyzed: new Date().toISOString()
-            };
-          }
-        }
-
-        // Get strategic recommendations
-        const recommendations = await aceberAI.getReleaseRecommendations(
-          profile.data,
-          { current_trends: [], seasonal_factor: aceberAI.getSeasonalFactor() }
-        );
-
-        if (recommendations.success) {
-          analyticsData.ai_recommendations = recommendations.recommendations;
-        }
+        // Strategic recommendations placeholder
+        analyticsData.ai_recommendations = [];
 
       } catch (aiError) {
         console.error('Acceber AI error:', aiError);

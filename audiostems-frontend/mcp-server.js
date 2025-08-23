@@ -197,7 +197,7 @@ class MSCPlatformServer {
     try {
       // Check if subscription components exist
       const subscriptionFiles = [
-        'components/payments/SubscriptionManager.js',
+    
         'components/payments/WalletManager.js',
         'pages/api/payments/revolut/create-subscription.js',
         'lib/revolut-real.js'
@@ -269,7 +269,7 @@ class MSCPlatformServer {
     try {
       const revolutFiles = {
         'lib/revolut-real.js': 'Real Revolut API integration',
-        'lib/revolut-mock.js': 'Mock Revolut for testing',
+
         'pages/api/payments/revolut/create-subscription.js': 'Subscription API',
         'pages/api/payments/revolut/add-wallet-funds.js': 'Wallet API',
         'pages/api/payments/revolut/webhook.js': 'Webhook handler'

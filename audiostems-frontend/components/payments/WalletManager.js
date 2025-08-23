@@ -18,35 +18,39 @@ const WalletManager = ({ user }) => {
 
   const loadWalletData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // Load wallet balance
+      const { data: subscriptionData, error: subError } = await supabase
+        .from('subscriptions')
+        .select('wallet_balance, wallet_currency')
+        .eq('user_id', user.id)
+        .single();
 
-      // Load wallet transactions
-      const { data: transactionData, error } = await supabase
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Error loading wallet balance:', subError);
+        setWalletBalance(0);
+      } else {
+        const balance = parseFloat(subscriptionData?.wallet_balance || 0);
+        setWalletBalance(balance);
+      }
+
+      // Load recent transactions
+      const { data: transactionData, error: transError } = await supabase
         .from('wallet_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) {
-        console.error('Error loading wallet transactions:', error);
+      if (transError) {
+        console.error('Error loading transactions:', transError);
+        setTransactions([]);
       } else {
         setTransactions(transactionData || []);
-        
-        // Calculate current balance from transactions
-        const balance = transactionData?.reduce((acc, transaction) => {
-          if (transaction.transaction_type === 'credit') {
-            return acc + parseFloat(transaction.amount);
-          } else {
-            return acc - parseFloat(transaction.amount);
-          }
-        }, 0) || 0;
-        
-        setWalletBalance(balance);
       }
     } catch (error) {
       console.error('Error loading wallet data:', error);
+      setWalletBalance(0);
+      setTransactions([]);
     }
   };
 
@@ -55,24 +59,27 @@ const WalletManager = ({ user }) => {
     
     if (!amount || amount <= 0) {
       setProcessMessage('Please enter a valid amount');
-      setTimeout(() => setProcessMessage(''), 3000);
+      return;
+    }
+
+    if (amount < 1) {
+      setProcessMessage('Minimum funding amount is £1.00');
       return;
     }
 
     if (amount > 1000) {
-      setProcessMessage('Maximum top-up amount is £1,000');
-      setTimeout(() => setProcessMessage(''), 3000);
+      setProcessMessage('Maximum funding amount is £1,000.00');
       return;
     }
 
     setIsLoading(true);
-    setProcessMessage('Processing payment...');
+    setProcessMessage('');
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const response = await fetch('/api/payments/revolut/add-wallet-funds', {
+      const response = await fetch('/api/wallet/add-funds', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -103,8 +110,7 @@ const WalletManager = ({ user }) => {
       }
     } catch (error) {
       console.error('Add funds error:', error);
-      setProcessMessage('Failed to add funds. Please try again.');
-      
+      setProcessMessage(`Error: ${error.message}`);
       setTimeout(() => {
         setProcessMessage('');
       }, 5000);
@@ -113,76 +119,74 @@ const WalletManager = ({ user }) => {
     }
   };
 
-  const formatAmount = (amount, currency = 'GBP') => {
-    const symbol = currency === 'GBP' ? '£' : currency;
-    return `${symbol}${parseFloat(amount).toFixed(2)}`;
+  const formatCurrency = (amount, currency = 'GBP') => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: currency
+    }).format(amount);
   };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
-      month: '2-digit',
+      month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const getTransactionIcon = (type, status) => {
-    if (status === 'failed') {
-      return <XCircle className="w-4 h-4 text-red-500" />;
-    }
-    
-    return type === 'credit' 
-      ? <TrendingUp className="w-4 h-4 text-green-500" />
-      : <TrendingDown className="w-4 h-4 text-red-500" />;
+  const getTransactionIcon = (type) => {
+    return type === 'credit' ? (
+      <TrendingUp className="w-4 h-4 text-green-600" />
+    ) : (
+      <TrendingDown className="w-4 h-4 text-red-600" />
+    );
   };
 
-  const getTransactionColor = (type, status) => {
-    if (status === 'failed') {
-      return 'text-red-600';
-    }
-    
-    return type === 'credit' ? 'text-green-600' : 'text-red-600';
-  };
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">Please log in to manage your wallet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Process Message */}
+      {/* Success/Error Messages */}
       {processMessage && (
-        <div className={`p-4 rounded-lg flex items-center space-x-3 ${
-          processMessage.includes('Successfully') || processMessage.includes('successfully')
-            ? 'bg-green-50 text-green-800 border border-green-200'
-            : processMessage.includes('Failed') || processMessage.includes('error')
-            ? 'bg-red-50 text-red-800 border border-red-200'
-            : 'bg-blue-50 text-blue-800 border border-blue-200'
+        <div className={`p-4 rounded-lg ${
+          processMessage.includes('Successfully') || processMessage.includes('added')
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-red-50 border border-red-200 text-red-800'
         }`}>
-          {processMessage.includes('Processing') ? (
-            <Loader className="w-5 h-5 animate-spin" />
-          ) : processMessage.includes('Successfully') || processMessage.includes('successfully') ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : processMessage.includes('Failed') || processMessage.includes('error') ? (
-            <XCircle className="w-5 h-5" />
-          ) : (
-            <Wallet className="w-5 h-5" />
-          )}
-          <span>{processMessage}</span>
+          <div className="flex items-center space-x-2">
+            {processMessage.includes('Successfully') || processMessage.includes('added') ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <XCircle className="w-5 h-5" />
+            )}
+            <span>{processMessage}</span>
+          </div>
         </div>
       )}
 
       {/* Wallet Balance Card */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Wallet className="w-8 h-8" />
-            <div>
-              <p className="text-blue-100">Wallet Balance</p>
-              <p className="text-3xl font-bold">{formatAmount(walletBalance)}</p>
+          <div>
+            <div className="flex items-center space-x-2 mb-2">
+              <Wallet className="w-5 h-5" />
+              <span className="text-blue-100">Wallet Balance</span>
+            </div>
+            <div className="text-3xl font-bold">
+              {formatCurrency(walletBalance)}
             </div>
           </div>
           <button
-            onClick={() => setShowAddFunds(!showAddFunds)}
-            className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            onClick={() => setShowAddFunds(true)}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add Funds</span>
@@ -194,6 +198,10 @@ const WalletManager = ({ user }) => {
       {showAddFunds && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Funds to Wallet</h3>
+          <p className="text-gray-600 mb-4">
+            Add funds to your wallet for subscription payments and platform services. 
+            You can also enable negative balance for approved accounts.
+          </p>
           
           <div className="space-y-4">
             <div>
@@ -209,20 +217,18 @@ const WalletManager = ({ user }) => {
                   step="0.01"
                   value={addAmount}
                   onChange={(e) => setAddAmount(e.target.value)}
-                  className="pl-8 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0.00"
+                  className="pl-8 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="500"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Minimum: £1.00 • Maximum: £1,000.00
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Minimum: £1.00 • Maximum: £1,000.00</p>
             </div>
 
             <div className="flex space-x-3">
               <button
                 onClick={handleAddFunds}
                 disabled={isLoading || !addAmount}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {isLoading ? (
                   <>
@@ -236,13 +242,13 @@ const WalletManager = ({ user }) => {
                   </>
                 )}
               </button>
-              
               <button
                 onClick={() => {
                   setShowAddFunds(false);
                   setAddAmount('');
+                  setProcessMessage('');
                 }}
-                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -252,56 +258,60 @@ const WalletManager = ({ user }) => {
       )}
 
       {/* Recent Transactions */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h3>
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+        </div>
         
-        {transactions.length > 0 ? (
-          <div className="space-y-3">
-            {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div className="divide-y divide-gray-200">
+          {transactions.length > 0 ? (
+            transactions.map((transaction) => (
+              <div key={transaction.id} className="p-6 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  {getTransactionIcon(transaction.transaction_type, transaction.status)}
+                  {getTransactionIcon(transaction.type)}
                   <div>
-                    <p className="font-medium text-gray-900">
-                      {transaction.description || 'Transaction'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatDate(transaction.created_at)} • {transaction.status}
-                    </p>
+                    <p className="font-medium text-gray-900">{transaction.description}</p>
+                    <p className="text-sm text-gray-500">{formatDate(transaction.created_at)}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${getTransactionColor(transaction.transaction_type, transaction.status)}`}>
-                    {transaction.transaction_type === 'credit' ? '+' : '-'}
-                    {formatAmount(transaction.amount, transaction.currency)}
+                  <p className={`font-semibold ${
+                    transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {transaction.type === 'credit' ? '+' : '-'}
+                    {formatCurrency(transaction.amount, transaction.currency)}
                   </p>
-                  {transaction.balance_after && (
-                    <p className="text-xs text-gray-500">
-                      Balance: {formatAmount(transaction.balance_after)}
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-500 capitalize">{transaction.status}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No transactions yet</p>
-            <p className="text-sm text-gray-400">Add funds to get started</p>
-          </div>
-        )}
+            ))
+          ) : (
+            <div className="p-8 text-center">
+              <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
+              <p className="text-gray-500">Add funds to get started</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Payment Info */}
+      {/* Secure Payment Notice */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center space-x-3">
-          <CreditCard className="w-5 h-5 text-gray-600" />
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <CreditCard className="w-4 h-4 text-blue-600" />
+            </div>
+          </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Secure Payments</p>
-            <p className="text-xs text-gray-600">
-              All transactions are processed securely via Revolut Business API
+            <h4 className="font-medium text-gray-900">Secure Payment Processing</h4>
+            <p className="text-sm text-gray-600 mt-1">
+              All transactions are processed securely via Revolut Business API. Currently running in sandbox mode with real API integration.
             </p>
+            <ul className="text-sm text-gray-600 mt-2 space-y-1">
+              <li>• <strong>Subscription Changes:</strong> Upgrades take effect immediately</li>
+              <li>• <strong>Wallet Funds:</strong> Available for subscription payments and platform services</li>
+            </ul>
           </div>
         </div>
       </div>
