@@ -1,26 +1,46 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { CreditCard, Zap, Star, Crown, Loader, CheckCircle, XCircle } from 'lucide-react';
+import { getUserRoleSync } from '@/lib/user-utils';
+import { CreditCard, Zap, Star, Crown, Loader, CheckCircle, XCircle, Globe, ChevronDown } from 'lucide-react';
 
 const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [processMessage, setProcessMessage] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [billingCycle, setBillingCycle] = useState('monthly');
 
-  // Subscription plans
-  const plans = {
+  // Get user role to filter plans
+  const userRole = getUserRoleSync(user);
+
+  // Currency configuration
+  const currencies = {
+    GBP: { symbol: '£', rate: 1.0 },
+    USD: { symbol: '$', rate: 1.27 },
+    EUR: { symbol: '€', rate: 1.17 }
+  };
+
+  // Subscription plans with new pricing structure
+  const allPlans = {
     artist_starter: {
       id: 'artist_starter',
       name: 'Artist Starter',
-      price: '£9.99',
-      interval: 'monthly',
+      role: 'artist',
+      pricing: {
+        monthly: { GBP: 9.99, USD: 12.69, EUR: 11.69 },
+        yearly: { GBP: 99.99, USD: 126.99, EUR: 116.99 }
+      },
       features: [
         '5 releases maximum',
         'Basic analytics dashboard',
         'Standard customer support',
         'Basic distribution network'
       ],
+      commitment: {
+        monthly: '3 month minimum (cannot cancel within first 3 months)',
+        yearly: 'Annual commitment'
+      },
       icon: <Zap className="w-6 h-6" />,
       color: 'blue',
       popular: false
@@ -28,8 +48,11 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
     artist_pro: {
       id: 'artist_pro',
       name: 'Artist Pro',
-      price: '£29.99',
-      interval: 'monthly',
+      role: 'artist',
+      pricing: {
+        monthly: { GBP: 29.99, USD: 38.09, EUR: 35.09 },
+        yearly: { GBP: 299.99, USD: 380.99, EUR: 350.99 }
+      },
       features: [
         'Unlimited releases',
         'Advanced analytics & insights',
@@ -38,6 +61,10 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
         'Custom branding options',
         'Revenue optimization tools'
       ],
+      commitment: {
+        monthly: 'No minimum commitment',
+        yearly: 'Annual commitment'
+      },
       icon: <Crown className="w-6 h-6" />,
       color: 'purple',
       popular: true
@@ -45,14 +72,21 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
     label_admin_starter: {
       id: 'label_admin_starter',
       name: 'Label Admin Starter',
-      price: '£19.99',
-      interval: 'monthly',
+      role: 'label_admin',
+      pricing: {
+        monthly: { GBP: 29.99, USD: 38.09, EUR: 35.09 },
+        yearly: { GBP: 299.99, USD: 380.99, EUR: 350.99 }
+      },
       features: [
         'Manage up to 4 artists',
         '8 releases maximum',
         'Basic analytics dashboard',
         'Standard customer support'
       ],
+      commitment: {
+        monthly: 'No minimum commitment',
+        yearly: 'Annual commitment'
+      },
       icon: <Star className="w-6 h-6" />,
       color: 'green',
       popular: false
@@ -60,8 +94,11 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
     label_admin_pro: {
       id: 'label_admin_pro',
       name: 'Label Admin Pro',
-      price: '£49.99',
-      interval: 'monthly',
+      role: 'label_admin',
+      pricing: {
+        monthly: { GBP: 49.99, USD: 63.49, EUR: 58.49 },
+        yearly: { GBP: 499.99, USD: 634.99, EUR: 584.99 }
+      },
       features: [
         'Unlimited artists',
         'Unlimited releases',
@@ -70,10 +107,30 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
         'Custom branding options',
         'Revenue optimization tools'
       ],
+      commitment: {
+        monthly: 'No minimum commitment',
+        yearly: 'Annual commitment'
+      },
       icon: <Crown className="w-6 h-6" />,
       color: 'indigo',
       popular: true
     }
+  };
+
+  // Filter plans based on user role
+  const plans = Object.fromEntries(
+    Object.entries(allPlans).filter(([key, plan]) => plan.role === userRole)
+  );
+
+  // Helper functions
+  const formatPrice = (plan) => {
+    const currency = currencies[selectedCurrency];
+    const price = plan.pricing[billingCycle][selectedCurrency];
+    return `${currency.symbol}${price.toFixed(2)}`;
+  };
+
+  const getPlanKey = (planId) => {
+    return `${planId}_${billingCycle}`;
   };
 
   const handleUpgrade = async (planId) => {
@@ -84,6 +141,9 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
+      const plan = plans[planId];
+      const planKey = getPlanKey(planId);
+
       const response = await fetch('/api/payments/revolut/create-subscription', {
         method: 'POST',
         headers: {
@@ -91,7 +151,10 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          plan_id: planId,
+          plan_id: planKey,
+          billing_cycle: billingCycle,
+          currency: selectedCurrency,
+          amount: plan.pricing[billingCycle][selectedCurrency],
           customer_data: {
             email: user.email,
             name: `${user.user_metadata?.firstName || ''} ${user.user_metadata?.lastName || ''}`.trim()
@@ -103,7 +166,6 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
 
       if (response.ok && result.success) {
         setProcessMessage('Subscription updated successfully!');
-        setShowUpgradeModal(false);
         
         // Call the callback to refresh subscription data
         if (onSubscriptionChange) {
@@ -192,6 +254,64 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
         </div>
       )}
 
+      {/* Currency and Billing Cycle Selectors */}
+      <div className="flex flex-wrap gap-4 items-center justify-between bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center space-x-4">
+          {/* Currency Selector */}
+          <div className="flex items-center space-x-2">
+            <Globe className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">Currency:</span>
+            <div className="relative">
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
+                className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {Object.entries(currencies).map(([code, currency]) => (
+                  <option key={code} value={code}>
+                    {code} ({currency.symbol})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Billing Cycle Selector */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Billing:</span>
+            <div className="flex bg-white border border-gray-300 rounded-md overflow-hidden">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-3 py-1 text-sm font-medium transition-colors ${
+                  billingCycle === 'monthly'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-3 py-1 text-sm font-medium transition-colors ${
+                  billingCycle === 'yearly'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {billingCycle === 'yearly' && (
+          <div className="text-sm text-green-600 font-medium">
+            Save up to 17% with yearly billing!
+          </div>
+        )}
+      </div>
+
       {/* Current Subscription Status */}
       {currentSubscription && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -201,18 +321,16 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
               {plans[currentSubscription.tier]?.icon}
               <div>
                 <p className="font-medium text-gray-900">
-                  {plans[currentSubscription.tier]?.name || currentSubscription.tier}
+                  {plans[currentSubscription.tier]?.name || 'Current Plan'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Status: <span className="capitalize font-medium">{currentSubscription.status}</span>
+                  Status: <span className="capitalize font-medium">{currentSubscription.status || 'Active'}</span>
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-gray-900">
-                {plans[currentSubscription.tier]?.price || 'Custom'}
-              </p>
-              <p className="text-sm text-gray-600">per month</p>
+              <p className="font-semibold text-gray-900">No active subscription</p>
+              <p className="text-sm text-gray-600">Choose a plan below</p>
             </div>
           </div>
         </div>
@@ -260,8 +378,20 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
                 </div>
                 
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                  <span className="text-gray-600 ml-1">/{plan.interval}</span>
+                  <span className="text-3xl font-bold text-gray-900">{formatPrice(plan)}</span>
+                  <span className="text-gray-600 ml-1">/{billingCycle}</span>
+                  {billingCycle === 'yearly' && (
+                    <div className="text-sm text-green-600 mt-1">
+                      Save {Math.round((1 - (plan.pricing.yearly[selectedCurrency] / 12) / plan.pricing.monthly[selectedCurrency]) * 100)}%
+                    </div>
+                  )}
+                </div>
+                
+                {/* Commitment Info */}
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800 font-medium">
+                    {plan.commitment[billingCycle]}
+                  </p>
                 </div>
                 
                 <ul className="space-y-2 mb-6">
