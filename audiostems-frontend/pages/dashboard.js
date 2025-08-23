@@ -17,12 +17,17 @@ export default function Dashboard() {
 
     // Redirect role-specific users to their dedicated dashboards
     if (user) {
-      const userRole = getUserRoleSync(user);
-      if (userRole === 'super_admin') {
-        router.push('/superadmin/dashboard');
-        return;
+      try {
+        const userRole = getUserRoleSync(user);
+        if (userRole === 'super_admin') {
+          router.push('/superadmin/dashboard');
+          return;
+        }
+        // Company Admin now sees smart dashboard, no redirect needed
+      } catch (error) {
+        // Handle role detection errors gracefully
+        console.error('Error detecting user role:', error);
       }
-      // Company Admin now sees smart dashboard, no redirect needed
     }
   }, [user, isLoading, router]);
 
@@ -41,7 +46,12 @@ export default function Dashboard() {
     return null; // Will redirect to login
   }
 
-  const userRole = getUserRoleSync(user);
+  let userRole = 'user';
+  try {
+    userRole = getUserRoleSync(user);
+  } catch (error) {
+    console.error('Error getting user role for title:', error);
+  }
 
   return (
     <>

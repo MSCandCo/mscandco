@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
       if (!isMounted || isProcessing) return
       isProcessing = true
       
-      console.log('🔄 Processing auth user:', authUser?.email)
+      // Processing auth user
       
       try {
         if (authUser) {
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
           const { getUserRoleSync } = await import('../../lib/user-utils')
           const userRole = getUserRoleSync(authUser)
           
-          console.log('✅ User role determined:', userRole)
+          // User role determined successfully
           
           // Set user with role - no complex database operations
           setUser({
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         if (!isMounted) return
         
-        console.log('🔄 Auth state change:', event)
+        // Auth state change detected
         
         // Only handle SIGNED_IN and SIGNED_OUT events to prevent loops
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
