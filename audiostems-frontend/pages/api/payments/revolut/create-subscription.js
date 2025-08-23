@@ -18,15 +18,18 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const { plan_id, customer_data } = req.body;
+    const { plan_id, billing_cycle = 'monthly', currency = 'GBP', amount, customer_data } = req.body;
 
     if (!plan_id) {
       return res.status(400).json({ error: 'Plan ID is required' });
     }
 
+    // Extract base plan ID (remove billing cycle suffix if present)
+    const basePlanId = plan_id.replace(/_monthly|_yearly/, '');
+    
     // Get subscription plans
     const plans = revolutAPI.getSubscriptionPlans();
-    const selectedPlan = plans[plan_id];
+    const selectedPlan = plans[basePlanId];
     
     if (!selectedPlan) {
       return res.status(400).json({ error: 'Invalid plan ID' });
@@ -69,17 +72,24 @@ export default async function handler(req, res) {
 
     const subscription = await revolutAPI.createSubscription(subscriptionData);
 
+    // Calculate period end based on billing cycle
+    const periodLength = billing_cycle === 'yearly' ? 365 : 30;
+    const periodEnd = new Date(Date.now() + periodLength * 24 * 60 * 60 * 1000);
+
     // Update user subscription in Supabase
     const { error: updateError } = await supabase
       .from('subscriptions')
       .upsert({
         user_id: user.id,
-        tier: plan_id,
+        tier: basePlanId,
+        billing_cycle: billing_cycle,
         status: 'active',
         revolut_subscription_id: subscription.id,
         revolut_customer_id: customer.id,
-        started_at: subscription.created_at,
-        current_period_end: subscription.current_period_end,
+        started_at: subscription.created_at || new Date().toISOString(),
+        current_period_end: subscription.current_period_end || periodEnd.toISOString(),
+        amount: amount,
+        currency: currency,
         updated_at: new Date().toISOString()
       });
 

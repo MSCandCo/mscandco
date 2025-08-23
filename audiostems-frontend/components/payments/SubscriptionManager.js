@@ -133,6 +133,52 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
     return `${planId}_${billingCycle}`;
   };
 
+  // Get current subscription details
+  const getCurrentPlan = () => {
+    if (!currentSubscription) return null;
+    const planId = currentSubscription.tier;
+    const cycle = currentSubscription.billing_cycle || 'monthly';
+    return { planId, cycle };
+  };
+
+  const isCurrentPlan = (planId) => {
+    const current = getCurrentPlan();
+    if (!current) return false;
+    return current.planId === planId && current.cycle === billingCycle;
+  };
+
+  const getButtonText = (planId) => {
+    const current = getCurrentPlan();
+    const isFirstTime = !currentSubscription;
+    
+    if (isFirstTime) {
+      return 'Get Started';
+    }
+    
+    if (isCurrentPlan(planId)) {
+      return 'Current Plan';
+    }
+    
+    if (!current) {
+      return planId.includes('starter') ? 'Upgrade to Starter' : 'Upgrade to Pro';
+    }
+    
+    const currentTier = current.planId.includes('starter') ? 'starter' : 'pro';
+    const targetTier = planId.includes('starter') ? 'starter' : 'pro';
+    
+    // Same tier, different cycle
+    if (currentTier === targetTier) {
+      return billingCycle === 'yearly' ? `Switch to ${targetTier === 'starter' ? 'Starter' : 'Pro'} Yearly` : `Switch to ${targetTier === 'starter' ? 'Starter' : 'Pro'} Monthly`;
+    }
+    
+    // Different tier
+    if (targetTier === 'starter') {
+      return 'Switch to Starter';
+    } else {
+      return billingCycle === 'yearly' ? 'Upgrade to Pro Yearly' : 'Upgrade to Pro';
+    }
+  };
+
   const handleUpgrade = async (planId) => {
     setIsLoading(true);
     setProcessMessage('Processing subscription change...');
@@ -313,7 +359,7 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
       </div>
 
       {/* Current Subscription Status */}
-      {currentSubscription && (
+      {currentSubscription ? (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Subscription</h3>
           <div className="flex items-center justify-between">
@@ -321,18 +367,28 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
               {plans[currentSubscription.tier]?.icon}
               <div>
                 <p className="font-medium text-gray-900">
-                  {plans[currentSubscription.tier]?.name || 'Current Plan'}
+                  {plans[currentSubscription.tier]?.name || currentSubscription.tier}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Status: <span className="capitalize font-medium">{currentSubscription.status || 'Active'}</span>
+                  Status: <span className="capitalize font-medium text-green-600">{currentSubscription.status || 'Active'}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Billing: <span className="font-medium">{currentSubscription.billing_cycle || 'Monthly'}</span>
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-gray-900">No active subscription</p>
-              <p className="text-sm text-gray-600">Choose a plan below</p>
+              <p className="font-semibold text-gray-900">
+                {formatPrice(plans[currentSubscription.tier])}
+              </p>
+              <p className="text-sm text-gray-600">per {currentSubscription.billing_cycle || 'month'}</p>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">Welcome to MSC & Co!</h3>
+          <p className="text-blue-700">Choose your plan below to get started with your music career.</p>
         </div>
       )}
 
@@ -404,10 +460,10 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
                 </ul>
                 
                 <button
-                  onClick={() => isCurrent ? null : handleUpgrade(plan.id)}
-                  disabled={isCurrent || isLoading}
+                  onClick={() => isCurrentPlan(planId) ? null : handleUpgrade(planId)}
+                  disabled={isCurrentPlan(planId) || isLoading}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    isCurrent
+                    isCurrentPlan(planId)
                       ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                       : `${getButtonColor(plan.color)} text-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
                   }`}
@@ -417,10 +473,8 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
                       <Loader className="w-4 h-4 animate-spin" />
                       <span>Processing...</span>
                     </div>
-                  ) : isCurrent ? (
-                    'Current Plan'
                   ) : (
-                    `Upgrade to ${plan.name}`
+                    getButtonText(planId)
                   )}
                 </button>
               </div>
