@@ -256,9 +256,7 @@ const SubscriptionManager = ({ user, currentSubscription, onSubscriptionChange }
     return colors[color] || colors.blue;
   };
 
-  const isCurrentPlan = (planId) => {
-    return currentSubscription?.tier === planId;
-  };
+  // isCurrentPlan function defined above
 
   const canUpgradeTo = (planId) => {
     if (!currentSubscription) return true;
