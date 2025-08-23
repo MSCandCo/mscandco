@@ -1,23 +1,15 @@
 import React from "react";
-import Container from "./container";
 import classNames from "classnames";
 import { Button } from "flowbite-react";
 import Link from "next/link";
-import { usePlayer } from "./player";
 import { COMPANY_INFO, BRANDS } from "@/lib/brand-config";
 
 function Footer() {
-  const {
-    player: { isPlaying },
-  } = usePlayer();
   return (
     <footer
-      className={classNames(
-        "text-xs text-center lg:text-left",
-        isPlaying && "mb-[91px] md:mb-[72px]"
-      )}
+      className="text-xs text-center lg:text-left"
     >
-      <Container>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pt-12 pb-20 flex flex-col sm:flex-row sm:flex-wrap gap-8 sm:gap-0 sm:divide-x sm:divide-gray-200">
           <div className="lg:pr-16 w-full sm:pb-12 lg:pb-0 lg:w-1/4">
             <h4 className="text-2xl font-semibold">
@@ -111,7 +103,7 @@ function Footer() {
             </div>
           </div>
         </div>
-      </Container>
+      </div>
     </footer>
   );
 }

@@ -2,7 +2,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layouts/mainLayout";
-import SEO from "@/components/seo";
+// SEO component removed
 import { Card, Badge } from "flowbite-react";
 import { Users, Download, Music, CreditCard } from "lucide-react";
 import useSWR from "swr";
@@ -110,7 +110,7 @@ function AdminAnalytics() {
 
   return (
     <MainLayout>
-      <SEO pageTitle="Admin Analytics" />
+      {/* SEO component removed */}
       <div className="py-8 md:py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
