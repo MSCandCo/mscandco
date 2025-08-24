@@ -210,14 +210,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -226,8 +226,8 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-6">
+            <div className="hidden lg:block">
+              <div className="ml-6 flex items-baseline space-x-4">
                 <Link
                   href="/distributionpartner/dashboard"
                   className={getNavLinkClasses('/distributionpartner/dashboard')}
@@ -252,7 +252,7 @@ export default function RoleBasedNavigation() {
             {/* Right side - User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
               {/* Desktop User Menu */}
-              <div className="hidden md:block relative" ref={dropdownRef}>
+              <div className="hidden lg:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -286,7 +286,7 @@ export default function RoleBasedNavigation() {
               </div>
 
               {/* Mobile menu button */}
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -303,7 +303,7 @@ export default function RoleBasedNavigation() {
 
           {/* Mobile menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
                 <Link
                   href="/distributionpartner/dashboard"
@@ -369,14 +369,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -386,7 +386,7 @@ export default function RoleBasedNavigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:block">
-              <div className="ml-10 flex items-baseline space-x-4">
+              <div className="ml-6 flex items-baseline space-x-3">
                 <Link
                   href="/superadmin/users"
                   className={getNavLinkClasses('/superadmin/users')}
@@ -580,14 +580,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -596,8 +596,8 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
+            <div className="hidden lg:block">
+              <div className="ml-6 flex items-baseline space-x-3">
                 <Link
                   href="/companyadmin/users"
                   className={getNavLinkClasses('/companyadmin/users')}
@@ -640,7 +640,7 @@ export default function RoleBasedNavigation() {
             {/* Right side - User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
               {/* Desktop User Menu */}
-              <div className="hidden md:block relative" ref={dropdownRef}>
+              <div className="hidden lg:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -674,7 +674,7 @@ export default function RoleBasedNavigation() {
               </div>
 
               {/* Mobile menu button */}
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -691,7 +691,7 @@ export default function RoleBasedNavigation() {
 
           {/* Mobile menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
                 <Link
                   href="/companyadmin/users"
@@ -778,14 +778,14 @@ export default function RoleBasedNavigation() {
     return (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
                   src="/logos/msc-logo.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -794,8 +794,8 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-6">
+            <div className="hidden lg:block">
+              <div className="ml-6 flex items-baseline space-x-4">
                 <Link
                   href="/labeladmin/artists"
                   className={getNavLinkClasses('/labeladmin/artists')}
@@ -834,7 +834,7 @@ export default function RoleBasedNavigation() {
               </div>
               
               {/* Desktop User Menu */}
-              <div className="hidden md:block relative" ref={dropdownRef}>
+              <div className="hidden lg:block relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -875,7 +875,7 @@ export default function RoleBasedNavigation() {
               </div>
 
               {/* Mobile menu button */}
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -892,7 +892,7 @@ export default function RoleBasedNavigation() {
 
           {/* Mobile menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
                 {/* Mobile Balance Display */}
                 <div className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3">
@@ -1003,7 +1003,7 @@ export default function RoleBasedNavigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-4">
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
@@ -1057,7 +1057,7 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-2">
+            <div className="hidden lg:flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 {String(userRole || '').replace('_', ' ').toUpperCase()}
               </span>
@@ -1107,7 +1107,7 @@ export default function RoleBasedNavigation() {
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
