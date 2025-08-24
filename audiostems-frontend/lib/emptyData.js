@@ -1,25 +1,98 @@
 /**
  * Real Data Providers with Supabase Integration
- * Empty states until real data is added through admin interface
+ * Production-ready database connections
  */
 
-// TODO: Replace with real Supabase queries when database is ready
-const SUPABASE_CONNECTION = {
-  users: null, // Will connect to Supabase users table
-  releases: null, // Will connect to Supabase releases table
-  artists: null, // Will connect to Supabase artists table
-  songs: null // Will connect to Supabase songs table
-};
+import { createClient } from '@supabase/supabase-js';
 
-// Real data functions (currently return empty states)
+// Only create Supabase client if environment variables are available
+let supabase = null;
+if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  // Server-side only
+  supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
+// Real data functions with Supabase integration
 export const getUsers = () => {
-  // TODO: Replace with Supabase query: const { data } = await supabase.from('users').select('*');
+  // For client-side, return empty array and use async version
   return [];
 };
 
 export const getUsersAsync = async () => {
-  // TODO: Replace with Supabase query: const { data } = await supabase.from('users').select('*');
-  return [];
+  try {
+    if (!supabase) {
+      console.log('Supabase client not available, returning empty users array');
+      return [];
+    }
+    
+    // Get all auth users
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    if (authError) {
+      console.error('Error fetching auth users:', authError);
+      return [];
+    }
+
+    // Get all user profiles
+    const { data: profiles, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*');
+    
+    if (profileError) {
+      console.error('Error fetching user profiles:', profileError);
+      return [];
+    }
+
+    // Get all subscriptions
+    const { data: subscriptions, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*');
+
+    // Combine auth users with their profiles and subscriptions
+    const users = authUsers.users.map(authUser => {
+      const profile = profiles?.find(p => p.id === authUser.id);
+      const subscription = subscriptions?.find(s => s.user_id === authUser.id);
+      
+      if (!profile) return null; // Skip users without profiles
+      
+      // Determine role based on email patterns (temporary until role table is accessible)
+      let role = 'artist'; // default
+      if (authUser.email.includes('superadmin')) role = 'super_admin';
+      else if (authUser.email.includes('companyadmin')) role = 'company_admin';
+      else if (authUser.email.includes('labeladmin')) role = 'label_admin';
+      else if (authUser.email.includes('codegroup')) role = 'distribution_partner';
+      
+      return {
+        id: authUser.id,
+        email: authUser.email,
+        firstName: profile.first_name,
+        lastName: profile.last_name,
+        fullName: `${profile.first_name} ${profile.last_name}`,
+        artistName: profile.artist_name,
+        role: role,
+        status: authUser.email_confirmed_at ? 'active' : 'pending',
+        joinedDate: authUser.created_at,
+        lastLogin: authUser.last_sign_in_at,
+        totalReleases: profile.releases_count || 0,
+        totalStreams: 0, // Will be calculated from releases
+        totalEarnings: profile.wallet_balance || 0,
+        totalRevenue: profile.wallet_balance || 0,
+        subscription: subscription ? {
+          tier: subscription.tier,
+          status: subscription.status,
+          billingCycle: subscription.billing_cycle
+        } : null,
+        profile: profile
+      };
+    }).filter(Boolean); // Remove null entries
+
+    return users;
+  } catch (error) {
+    console.error('Error in getUsersAsync:', error);
+    return [];
+  }
 };
 
 export const getUserById = (id) => {
@@ -68,19 +141,42 @@ export const getArtistByIdAsync = async (id) => {
   return null;
 };
 
-// Dashboard stats - returns zeros until real data exists
+// Dashboard stats with real data
 export const getDashboardStats = async () => {
-  // TODO: Replace with real Supabase aggregation queries
-  return {
-    superAdmin: { 
-      totalUsers: 0, 
-      activeProjects: 0, 
-      totalRevenue: 0,
-      totalRoles: 5,
-      totalSongs: 0,
-      totalBrands: 2,
-      systemFeatures: 12
-    },
+  try {
+    if (!supabase) {
+      console.log('Supabase client not available, returning empty dashboard stats');
+      return getEmptyDashboardStats();
+    }
+    
+    // Get real user count
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
+    const totalUsers = authUsers?.users?.length || 0;
+    
+    // Get profiles count
+    const { data: profiles, count: profileCount } = await supabase
+      .from('user_profiles')
+      .select('*', { count: 'exact' });
+    
+    // Get subscriptions for revenue calculation
+    const { data: subscriptions } = await supabase
+      .from('subscriptions')
+      .select('amount, status')
+      .eq('status', 'active');
+    
+    const totalRevenue = subscriptions?.reduce((sum, sub) => sum + (sub.amount || 0), 0) || 0;
+    const activeProjects = profiles?.filter(p => p.releases_count > 0).length || 0;
+    
+    return {
+      superAdmin: { 
+        totalUsers: profileCount || totalUsers,
+        activeProjects: activeProjects,
+        totalRevenue: totalRevenue,
+        totalRoles: 5,
+        totalSongs: 0, // Will be updated when releases table is connected
+        totalBrands: 2,
+        systemFeatures: 12
+      },
     companyAdmin: { 
       activeProjects: 0, 
       brandRevenue: 0, 
@@ -113,6 +209,10 @@ export const getDashboardStats = async () => {
       growth: 0
     }
   };
+  } catch (error) {
+    console.error('Error getting dashboard stats:', error);
+    return getEmptyDashboardStats();
+  }
 };
 
 // Empty collections - will be populated from Supabase

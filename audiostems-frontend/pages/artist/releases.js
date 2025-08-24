@@ -71,7 +71,7 @@ export default function ArtistReleases() {
     const loadData = async () => {
       try {
         // Load profile data (pre-fill release info)
-        const profileResponse = await fetch('/api/artist/get-profile');
+        const profileResponse = await fetch('/api/artist/profile');
         if (profileResponse.ok) {
           const profile = await profileResponse.json();
           setProfileData(profile);

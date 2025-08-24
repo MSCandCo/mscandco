@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
+import { supabase } from '@/lib/supabase';
 import { 
   Users, FileText, Music, BarChart3, PieChart, 
   TrendingUp, TrendingDown, DollarSign, Eye,
   Play, Pause, CheckCircle, Clock, AlertTriangle,
   Globe, Calendar, Database, Settings, Shield,
-  UserCheck, Activity, Target, Zap, Building2
+  UserCheck, Activity, Target, Zap, Building2, X, Search
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
-import { getEmptyDashboardStats, getUsers, getReleases, RELEASES } from '../../lib/emptyData';
+import { getEmptyDashboardStats, getReleases, RELEASES } from '../../lib/emptyData';
+import { dashboardAPI } from '../../lib/api-client';
 import { getUserRoleSync } from '../../lib/user-utils';
 import { RELEASE_STATUSES, RELEASE_STATUS_LABELS } from '../../lib/constants';
 
@@ -21,6 +23,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  const [dashboardData, setDashboardData] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [showGhostModal, setShowGhostModal] = useState(false);
+  const [selectedGhostUser, setSelectedGhostUser] = useState(null);
+  const [ghostSearchTerm, setGhostSearchTerm] = useState('');
   
 
 
@@ -31,15 +38,51 @@ export default function AdminDashboard() {
       return;
     }
     
-    if (user && user) {
+    if (user) {
       const role = getUserRoleSync(user);
       if (!['super_admin', 'company_admin'].includes(role)) {
         router.push('/dashboard');
         return;
       }
+      loadDashboardData();
+    }
+  }, [user, isLoading, router]);
+
+  // Handle ghost login hash navigation
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#ghost') {
+      setShowGhostModal(true);
+      // Clear the hash after opening modal
+      window.history.replaceState(null, null, window.location.pathname);
+    }
+  }, []);
+
+  // Clear search when modal is closed
+  useEffect(() => {
+    if (!showGhostModal) {
+      setGhostSearchTerm('');
+    }
+  }, [showGhostModal]);
+
+  // Load real dashboard data using comprehensive API
+  const loadDashboardData = async () => {
+    try {
+      const [stats, usersResult] = await Promise.all([
+        dashboardAPI.getStats(),
+        dashboardAPI.getUsers()
+      ]);
+      
+      setDashboardData(stats || getEmptyDashboardStats());
+      setAllUsers(usersResult?.data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Fallback to empty stats
+      setDashboardData(getEmptyDashboardStats());
+      setAllUsers([]);
       setLoading(false);
     }
-  }, [user, isLoading, user, router]);
+  };
 
   // Loading state
   if (isLoading || !user || !user) {
@@ -53,13 +96,10 @@ export default function AdminDashboard() {
     );
   }
 
-  // Get centralized dashboard stats (only after authentication is confirmed)
-  const adminData = getEmptyDashboardStats().superAdmin;
+  // Get user role and data
   const userRole = getUserRoleSync(user);
-  
-  // Get all data for Super Admin (full visibility)
-  const allUsers = getUsers();
-  const allReleases = getReleases();
+  const adminData = dashboardData?.superAdmin || getEmptyDashboardStats().superAdmin;
+  const allReleases = getReleases(); // TODO: Make this async too
   const totalPlatformRevenue = allUsers.reduce((total, user) => total + (user.totalRevenue || user.totalEarnings || 0), 0);
 
 
@@ -67,7 +107,7 @@ export default function AdminDashboard() {
 
 
   // Loading state
-  if (isLoading || loading) {
+  if (isLoading || loading || !dashboardData) {
     return (
       <MainLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -281,7 +321,7 @@ export default function AdminDashboard() {
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                 <span className="font-medium text-gray-900">Artists</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">{getUsers().filter(u => u.role === 'artist').length}</span>
+              <span className="text-2xl font-bold text-gray-900">{allUsers.filter(u => u.role === 'artist').length}</span>
             </div>
             
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -292,7 +332,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-2xl font-bold text-gray-900">
-                {userRole === 'super_admin' ? getUsers().filter(u => u.role === 'label_admin').length : '15'}
+                {userRole === 'super_admin' ? allUsers.filter(u => u.role === 'label_admin').length : '15'}
               </span>
             </div>
             
@@ -304,7 +344,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-2xl font-bold text-gray-900">
-                {userRole === 'super_admin' ? getUsers().filter(u => ['company_admin', 'super_admin'].includes(u.role)).length : '8'}
+                {userRole === 'super_admin' ? allUsers.filter(u => ['company_admin', 'super_admin'].includes(u.role)).length : '8'}
               </span>
             </div>
           </div>
@@ -475,7 +515,10 @@ export default function AdminDashboard() {
             >
               Revenue Management
             </button>
-            <button className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium">
+            <button 
+              onClick={() => setShowGhostModal(true)}
+              className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
+            >
               Ghost Login
             </button>
             <button className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium">
@@ -489,6 +532,111 @@ export default function AdminDashboard() {
       )}
     </div>
   );
+
+  // Filter users for ghost login based on search term
+  const filteredGhostUsers = allUsers.filter(user => {
+    if (!ghostSearchTerm) return true;
+    
+    const searchLower = ghostSearchTerm.toLowerCase();
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim().toLowerCase();
+    const email = (user.email || '').toLowerCase();
+    const role = (user.role || '').replace('_', ' ').toLowerCase();
+    
+    return fullName.includes(searchLower) || 
+           email.includes(searchLower) || 
+           role.includes(searchLower);
+  });
+
+  // Ghost login functionality
+  const handleGhostLogin = async (targetUser) => {
+    try {
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+
+      // Call ghost login API
+      const response = await fetch('/api/admin/ghost-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          targetUserId: targetUser.id
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Ghost login failed');
+      }
+
+      const result = await response.json();
+      
+      // Create a proper user object for ghost mode that matches Supabase auth structure
+      const ghostUserObject = {
+        id: result.targetUser.id,
+        email: result.targetUser.email,
+        user_metadata: {
+          role: result.targetUser.role
+        },
+        // Add other properties that might be expected
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        // Add the profile data
+        profile: result.targetUser.profile,
+        // Add computed properties
+        role: result.targetUser.role,
+        name: result.targetUser.name
+      };
+
+      // Store ghost session data
+      sessionStorage.setItem('ghost_session', JSON.stringify(result.ghostSession));
+      sessionStorage.setItem('ghost_mode', 'true');
+      sessionStorage.setItem('original_admin_user', JSON.stringify(user));
+      sessionStorage.setItem('ghost_target_user', JSON.stringify(ghostUserObject));
+      
+      // Trigger custom event to notify the auth provider
+      window.dispatchEvent(new Event('ghostModeChanged'));
+      
+      // Determine redirect path based on target user role
+      const targetRole = result.targetUser.role;
+      let redirectPath = '/dashboard';
+      
+      switch (targetRole) {
+        case 'artist':
+          redirectPath = '/dashboard';
+          break;
+        case 'label_admin':
+          redirectPath = '/labeladmin/dashboard';
+          break;
+        case 'company_admin':
+          redirectPath = '/companyadmin/dashboard';
+          break;
+        case 'distribution_partner':
+          redirectPath = '/distributionpartner/dashboard';
+          break;
+        case 'super_admin':
+          redirectPath = '/superadmin/dashboard';
+          break;
+        default:
+          redirectPath = '/dashboard';
+      }
+      
+      // Show success message and redirect
+      alert(`Ghost mode activated! Logging in as ${result.targetUser.name} (${result.targetUser.email})`);
+      router.push(redirectPath);
+      
+    } catch (error) {
+      console.error('Ghost login failed:', error);
+      alert(`Ghost login failed: ${error.message}`);
+    }
+  };
 
   return (
     <MainLayout>
@@ -529,6 +677,133 @@ export default function AdminDashboard() {
           {activeTab === 'overview' && renderOverview()}
         </div>
       </div>
+
+      {/* Ghost Login Modal */}
+      {showGhostModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Ghost Login - Select User</h3>
+              <button
+                onClick={() => setShowGhostModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                ⚠️ <strong>Ghost Mode Warning:</strong> You will be logged in as the selected user. 
+                This is for administrative purposes only. Use responsibly.
+              </p>
+            </div>
+
+            {/* Search Box */}
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search users by name, email, or role..."
+                  value={ghostSearchTerm}
+                  onChange={(e) => setGhostSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filteredGhostUsers.length > 0) {
+                      // Auto-select first result on Enter
+                      const firstUser = filteredGhostUsers[0];
+                      setSelectedGhostUser(firstUser);
+                      setShowGhostModal(false);
+                      handleGhostLogin(firstUser);
+                    }
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+              </div>
+              {ghostSearchTerm && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Showing {filteredGhostUsers.length} of {allUsers.length} users
+                </p>
+              )}
+            </div>
+
+            <div className="max-h-96 overflow-y-auto">
+              <div className="space-y-2">
+                {filteredGhostUsers.length > 0 ? (
+                  filteredGhostUsers.map((targetUser) => (
+                  <div
+                    key={targetUser.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-medium text-sm">
+                              {targetUser.firstName?.[0]}{targetUser.lastName?.[0]}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {targetUser.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500">{targetUser.email}</p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            targetUser.role === 'super_admin' ? 'bg-red-100 text-red-800' :
+                            targetUser.role === 'company_admin' ? 'bg-purple-100 text-purple-800' :
+                            targetUser.role === 'label_admin' ? 'bg-blue-100 text-blue-800' :
+                            targetUser.role === 'distribution_partner' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {targetUser.role.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedGhostUser(targetUser);
+                        setShowGhostModal(false);
+                        handleGhostLogin(targetUser);
+                      }}
+                      className="ml-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                    >
+                      Ghost Login
+                    </button>
+                  </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-sm">
+                      {ghostSearchTerm ? 'No users found matching your search.' : 'No users available.'}
+                    </p>
+                    {ghostSearchTerm && (
+                      <button
+                        onClick={() => setGhostSearchTerm('')}
+                        className="text-blue-600 hover:text-blue-700 text-sm mt-2"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowGhostModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }

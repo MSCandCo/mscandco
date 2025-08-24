@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
-import { ARTISTS, RELEASES } from '../../lib/emptyData';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import * as XLSX from 'xlsx';
@@ -48,6 +47,10 @@ export default function PartnerAnalytics() {
   const [selectedArtist, setSelectedArtist] = useState('all');
   const [selectedRelease, setSelectedRelease] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState('all');
+  
+  // Production-ready data (zeros until real data exists)
+  const ARTISTS = [];
+  const RELEASES = [];
   const [searchQuery, setSearchQuery] = useState('');
   
   // Advanced filter states

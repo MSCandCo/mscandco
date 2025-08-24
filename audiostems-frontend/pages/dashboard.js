@@ -18,10 +18,15 @@ export default function Dashboard() {
     // Redirect role-specific users to their dedicated dashboards
     if (user) {
       try {
-        const userRole = getUserRoleSync(user);
-        if (userRole === 'super_admin') {
-          router.push('/superadmin/dashboard');
-          return;
+        // Check if we're in ghost mode - if so, don't redirect based on real user role
+        const isGhostMode = typeof window !== 'undefined' && sessionStorage.getItem('ghost_mode') === 'true';
+        
+        if (!isGhostMode) {
+          const userRole = getUserRoleSync(user);
+          if (userRole === 'super_admin') {
+            router.push('/superadmin/dashboard');
+            return;
+          }
         }
         // Company Admin now sees smart dashboard, no redirect needed
       } catch (error) {

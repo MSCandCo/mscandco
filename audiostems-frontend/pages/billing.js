@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { 
   CreditCard, 
   Check, 
@@ -222,21 +223,22 @@ const BillingPage = () => {
   };
 
   const handleAddFunds = async (amount = 50) => {
+    // Ensure amount is a number, not an event object
+    const fundAmount = typeof amount === 'number' ? amount : 50;
+    
     console.log('=== ADD FUNDS CLICKED ===');
-    console.log('Amount to add:', amount);
+    console.log('Amount to add:', fundAmount);
     
     try {
-      // Replace this with your actual Revolut API endpoint
       const response = await fetch('/api/revolut/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: amount,
+          amount: fundAmount,
           currency: 'GBP',
           description: 'Wallet Top-up',
-          // Add user details from your auth context
         })
       });
       
@@ -251,9 +253,8 @@ const BillingPage = () => {
       window.location.href = paymentUrl;
       
     } catch (error) {
-      console.error('Real Revolut integration not set up yet:', error);
-      // Fallback for testing
-      alert(`Would redirect to Revolut to add £${amount}\n\nTo fix: Create /api/revolut/create-payment endpoint`);
+      console.error('Payment creation failed:', error);
+      alert(`Payment failed: ${error.message}`);
     }
   };
 
@@ -315,27 +316,7 @@ const BillingPage = () => {
         {activeTab === 'subscription' && (
           <div className="space-y-8">
             
-            {/* Wallet Balance Banner */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <div className="bg-blue-100 p-2 sm:p-3 rounded-lg">
-                    <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs sm:text-sm font-medium text-blue-700 mb-1">Wallet Balance</p>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-900">£{walletBalance.toFixed(2)}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={handleAddFunds}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto"
-                >
-                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Add Funds</span>
-                </button>
-              </div>
-            </div>
+
 
             {/* Currency and Billing Controls */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -518,7 +499,7 @@ const BillingPage = () => {
                 </div>
                 <div className="text-center sm:text-right">
                   <button 
-                    onClick={handleAddFunds}
+                    onClick={() => handleAddFunds(50)}
                     className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all backdrop-blur-sm w-full sm:w-auto"
                   >
                     Add Funds

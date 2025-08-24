@@ -23,6 +23,51 @@ export const useUser = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [ghostUser, setGhostUser] = useState(null)
+
+  // Check for ghost mode on component mount and storage changes
+  useEffect(() => {
+    const checkGhostMode = () => {
+      if (typeof window !== 'undefined') {
+        const ghostMode = sessionStorage.getItem('ghost_mode')
+        const ghostTargetUser = sessionStorage.getItem('ghost_target_user')
+        
+        if (ghostMode === 'true' && ghostTargetUser) {
+          try {
+            const targetUser = JSON.parse(ghostTargetUser)
+            setGhostUser(targetUser)
+          } catch (error) {
+            console.error('Error parsing ghost user data:', error)
+            setGhostUser(null)
+          }
+        } else {
+          setGhostUser(null)
+        }
+      }
+    }
+
+    checkGhostMode()
+
+    // Listen for storage changes (ghost mode activation/deactivation)
+    const handleStorageChange = (e) => {
+      if (e.key === 'ghost_mode' || e.key === 'ghost_target_user') {
+        checkGhostMode()
+      }
+    }
+
+    // Also listen for custom events (for same-tab ghost mode changes)
+    const handleGhostModeChange = () => {
+      checkGhostMode()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('ghostModeChanged', handleGhostModeChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('ghostModeChanged', handleGhostModeChange)
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -110,9 +155,11 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const value = {
-    user,
+    user: ghostUser || user, // Return ghost user if in ghost mode, otherwise return real user
     isLoading,
-    signOut: () => supabase.auth.signOut()
+    signOut: () => supabase.auth.signOut(),
+    isGhostMode: !!ghostUser,
+    realUser: user // Keep reference to real user for admin functions
   }
 
   return (

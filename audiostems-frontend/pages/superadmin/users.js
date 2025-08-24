@@ -3,7 +3,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
 import { 
-  Users, Search, Filter, Plus, Eye, Trash2, 
+  Users, Search, Filter, Plus, Eye, Trash2, Edit3,
   UserCheck, UserX, Shield, Calendar, Mail, Phone, 
   Building2, TrendingUp, DollarSign, Settings, Globe,
   Target, AlertTriangle
@@ -12,12 +12,14 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { getApprovedArtistsByLabel, getUsers } from '@/lib/emptyData';
+import { dashboardAPI } from '@/lib/api-client';
 import { getUserRole } from '@/lib/user-utils';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import NotificationModal from '@/components/shared/NotificationModal';
 import CreateUserModal from '@/components/admin/CreateUserModal';
+import EditUserModal from '@/components/admin/EditUserModal';
 import useModals from '@/hooks/useModals';
 
 export default function AdminUsersPage() {
@@ -29,11 +31,13 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [users, setUsers] = useState([]);
 
   // Revenue Split Configuration State (Super Admin has full oversight + control)
   const [revenueSplit, setRevenueSplit] = useState({
@@ -66,11 +70,29 @@ export default function AdminUsersPage() {
   // Get user role
   const userRole = getUserRole(user);
   
+  // Load users from database
+  useEffect(() => {
+    const loadUsers = async () => {
+      if (!loading && user && userRole) {
+        try {
+          const usersResult = await dashboardAPI.getUsers();
+          const realUsers = usersResult?.data || [];
+          setUsers(realUsers);
+        } catch (error) {
+          console.error('Error loading users:', error);
+          setUsers([]);
+        }
+      }
+    };
+    
+    loadUsers();
+  }, [loading, user, userRole]);
+
   // Debug: Log user role to help diagnose visibility issue
-  console.log('Super Admin Users Page - User Role:', userRole, 'User:', user);
+  console.log('Super Admin Users Page - User Role:', userRole, 'User:', user, 'Loaded Users:', users.length);
 
   const getAllUsers = () => {
-    const allUsers = getUsers().map(user => {
+    const allUsers = users.map(user => {
       if (user.role === 'label_admin') {
         // For label admins, calculate aggregated data from their artists
         const approvedArtists = getApprovedArtistsByLabel(user.labelId);
@@ -106,8 +128,6 @@ export default function AdminUsersPage() {
     
     return [];
   };
-
-  const [users, setUsers] = useState([]);
 
   // Check admin access and load users
   useEffect(() => {
@@ -152,6 +172,27 @@ export default function AdminUsersPage() {
   const handleViewUser = (user) => {
     setSelectedUser(user);
     setShowViewModal(true);
+  };
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setShowEditUserModal(true);
+  };
+
+  const handleUserUpdated = async (updatedUser) => {
+    // Refresh the users list to show updated data
+    try {
+      const usersResult = await dashboardAPI.getUsers();
+      const realUsers = usersResult?.data || [];
+      setUsers(realUsers);
+      
+      setSuccessMessage(`User ${updatedUser.name} has been updated successfully!`);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Error refreshing users:', error);
+      setSuccessMessage('User updated, but failed to refresh the list. Please reload the page.');
+      setShowSuccessModal(true);
+    }
   };
 
   const handleDeleteUser = (userId) => {
@@ -544,18 +585,29 @@ export default function AdminUsersPage() {
                           <button
                             onClick={() => handleViewUser(user)}
                             className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                            title="View Details"
                           >
                             <Eye className="w-3 h-3" />
                           </button>
 
                           {userRole === 'super_admin' && (
-                            <button
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleEditUser(user)}
+                                className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -908,6 +960,14 @@ export default function AdminUsersPage() {
           // Reload page to show new user
           setTimeout(() => window.location.reload(), 1000);
         }}
+      />
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        isOpen={showEditUserModal}
+        onClose={() => setShowEditUserModal(false)}
+        user={selectedUser}
+        onUserUpdated={handleUserUpdated}
       />
 
 

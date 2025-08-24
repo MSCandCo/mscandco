@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import { Users, Clock, CheckCircle, XCircle, Eye, Calendar, Building } from 'lucide-react';
 
@@ -22,7 +23,8 @@ export default function CompanyAdminArtistRequests() {
   const loadRequests = async () => {
     try {
       setIsLoading(true);
-      const token = (await user?.getSession())?.access_token;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       
       const url = statusFilter === 'all' 
         ? '/api/admin/artist-requests'
@@ -57,7 +59,8 @@ export default function CompanyAdminArtistRequests() {
 
     setIsProcessing(true);
     try {
-      const token = (await user?.getSession())?.access_token;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       
       const response = await fetch('/api/admin/artist-requests', {
         method: 'POST',

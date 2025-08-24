@@ -218,148 +218,67 @@ export default function SuperAdminEarnings() {
     }
   });
 
-  // Super Admin can see ALL platform earnings across ALL brands
+  // Production-ready platform earnings (zeros until real data exists)
   const [platformEarningsData] = useState({
-    totalPlatformEarnings: 8547293.50,    // Total across all brands
-    distributionPartnerShare: 1282094.03,  // 15% to Code Group
-    companyAdminShare: 854729.35,          // 10% to Company Admins
-    superAdminReserve: 170945.87,          // 2% Super Admin reserve
-    platformMaintenanceFund: 85472.94,     // 1% Platform maintenance
-    availableForWithdrawal: 1251456.78,
-    pendingEarnings: 433272.57,
-    totalWithdrawn: 2567849.23,
+    totalPlatformEarnings: 0.00,           // Total across all brands
+    distributionPartnerShare: 0.00,        // 15% to Code Group
+    companyAdminShare: 0.00,               // 10% to Company Admins
+    superAdminReserve: 0.00,               // 2% Super Admin reserve
+    platformMaintenanceFund: 0.00,         // 1% Platform maintenance
+    availableForWithdrawal: 0.00,
+    pendingEarnings: 0.00,
+    totalWithdrawn: 0.00,
     
-    // Brand-level breakdown
+    // Brand-level breakdown (production-ready zeros)
     brandEarnings: {
       'yhwh-msc': {
-        totalEarnings: 2847293.50,
-        companyAdminShare: 284729.35,
-        labelAdminShare: 142364.68,
-        artistShare: 1989705.48,
+        totalEarnings: 0.00,
+        companyAdminShare: 0.00,
+        labelAdminShare: 0.00,
+        artistShare: 0.00,
         status: 'active'
       },
       'major-label': {
-        totalEarnings: 3456789.23,
-        companyAdminShare: 345678.92,
-        labelAdminShare: 864197.31,
-        artistShare: 1935335.46,
+        totalEarnings: 0.00,
+        companyAdminShare: 0.00,
+        labelAdminShare: 0.00,
+        artistShare: 0.00,
         status: 'active'
       },
       'k-entertainment': {
-        totalEarnings: 1789456.78,
-        companyAdminShare: 178945.68,
-        labelAdminShare: 536837.03,
-        artistShare: 982674.07,
+        totalEarnings: 0.00,
+        companyAdminShare: 0.00,
+        labelAdminShare: 0.00,
+        artistShare: 0.00,
         status: 'active'
       },
       'indie-collective': {
-        totalEarnings: 453753.99,
-        companyAdminShare: 45375.40,
-        labelAdminShare: 90750.80,
-        artistShare: 272628.19,
+        totalEarnings: 0.00,
+        companyAdminShare: 0.00,
+        labelAdminShare: 0.00,
+        artistShare: 0.00,
         status: 'pending'
       }
     },
     
-    // Asset-level earnings breakdown (Super Admin sees ALL assets)
+    // Asset-level earnings breakdown (production-ready - empty until real assets exist)
     assetEarnings: [
-      {
-        id: 'asset-001',
-        title: 'Urban Dynamics',
-        artist: 'Alex Rivers',
-        labelAdmin: 'MSC & Co MSC',
-        brand: 'MSC & Co MSC',
-        type: 'single',
-        totalEarnings: 156789.45,
-        distributionPartnerCut: 23518.42,
-        companyAdminEarnings: 13326.80,
-        superAdminReserve: 3135.79,
-        platforms: {
-          spotify: 89234.12,
-          appleMusic: 34567.89,
-          youtube: 23456.78,
-          amazonMusic: 9530.66
-        },
-        status: 'paid',
-        reportedDate: '2024-01-15',
-        lastPayout: '2024-01-20'
-      },
-      {
-        id: 'asset-002',
-        title: 'Midnight Echoes',
-        artist: 'Luna Stars',
-        labelAdmin: 'Major Label Music',
-        brand: 'Major Label',
-        type: 'album',
-        totalEarnings: 298734.67,
-        distributionPartnerCut: 44810.20,
-        companyAdminEarnings: 25386.12,
-        superAdminReserve: 5974.69,
-        platforms: {
-          spotify: 167823.45,
-          appleMusic: 78456.23,
-          youtube: 34567.89,
-          amazonMusic: 17887.10
-        },
-        status: 'pending',
-        reportedDate: '2024-01-18',
-        lastPayout: null
-      },
-      {
-        id: 'asset-003',
-        title: 'Electronic Vibes',
-        artist: 'Tech Beats',
-        labelAdmin: 'K-Entertainment',
-        brand: 'K-Entertainment',
-        type: 'EP',
-        totalEarnings: 89456.23,
-        distributionPartnerCut: 13418.43,
-        companyAdminEarnings: 7604.78,
-        superAdminReserve: 1789.12,
-        platforms: {
-          spotify: 45678.90,
-          appleMusic: 23456.78,
-          youtube: 15432.10,
-          amazonMusic: 4888.45
-        },
-        status: 'paid',
-        reportedDate: '2024-01-10',
-        lastPayout: '2024-01-15'
-      },
-      {
-        id: 'asset-004',
-        title: 'Acoustic Dreams',
-        artist: 'Sarah Chen',
-        labelAdmin: 'Indie Collective',
-        brand: 'Indie Collective',
-        type: 'single',
-        totalEarnings: 45678.90,
-        distributionPartnerCut: 6851.84,
-        companyAdminEarnings: 3885.27,
-        superAdminReserve: 913.58,
-        platforms: {
-          spotify: 28901.23,
-          appleMusic: 12345.67,
-          youtube: 3456.78,
-          amazonMusic: 975.22
-        },
-        status: 'pending',
-        reportedDate: '2024-01-20',
-        lastPayout: null
-      }
+      // Empty array - will be populated with real asset data
     ],
 
-    // Global monthly earnings trend
+    // Global monthly earnings trend (production-ready zeros)
     monthlyTrend: [
-      { month: 'Jul 2023', earnings: 589456.78, brands: 4 },
-      { month: 'Aug 2023', earnings: 634567.89, brands: 4 },
-      { month: 'Sep 2023', earnings: 698765.43, brands: 4 },
-      { month: 'Oct 2023', earnings: 723456.78, brands: 4 },
-      { month: 'Nov 2023', earnings: 756789.23, brands: 4 },
-      { month: 'Dec 2023', earnings: 845672.34, brands: 4 },
-      { month: 'Jan 2024', earnings: 854729.35, brands: 4 }
+      { month: 'Jul 2023', earnings: 0.00, brands: 0 },
+      { month: 'Aug 2023', earnings: 0.00, brands: 0 },
+      { month: 'Sep 2023', earnings: 0.00, brands: 0 },
+      { month: 'Oct 2023', earnings: 0.00, brands: 0 },
+      { month: 'Nov 2023', earnings: 0.00, brands: 0 },
+      { month: 'Dec 2023', earnings: 0.00, brands: 0 },
+      { month: 'Jan 2024', earnings: 0.00, brands: 0 }
     ]
   });
+
+
 
   // Get unique brands for filtering
   const brands = Object.keys(platformEarningsData.brandEarnings);

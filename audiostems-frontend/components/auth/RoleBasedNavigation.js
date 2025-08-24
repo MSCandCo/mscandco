@@ -405,8 +405,8 @@ export default function RoleBasedNavigation() {
                   Requests
                 </Link>
                 <Link
-                  href="/super-admin/ghost-login"
-                  className={`${getNavLinkClasses('/super-admin/ghost-login')} border border-red-200 hover:border-red-300 ${isActivePage('/super-admin/ghost-login') ? 'text-red-600 border-red-400' : 'text-red-600 hover:text-red-800'}`}
+                  href="/superadmin/dashboard#ghost"
+                  className={`${getNavLinkClasses('/superadmin/dashboard')} border border-red-200 hover:border-red-300 text-red-600 hover:text-red-800`}
                 >
                   Ghost
                 </Link>
@@ -519,7 +519,7 @@ export default function RoleBasedNavigation() {
                   Artist Requests
                 </Link>
                 <Link
-                  href="/super-admin/ghost-login"
+                  href="/superadmin/dashboard#ghost"
                   className="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
