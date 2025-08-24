@@ -173,9 +173,34 @@ export default function RoleBasedNavigation() {
     return 'User from Code Group';
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsDropdownOpen(false);
-    router.push('/logout');
+    
+    try {
+      // Clear ghost mode if active
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('ghost_mode');
+        sessionStorage.removeItem('ghost_session');
+        sessionStorage.removeItem('original_admin_user');
+        sessionStorage.removeItem('ghost_target_user');
+      }
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear local storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback to logout page
+      router.push('/logout');
+    }
   };
 
 
@@ -404,12 +429,6 @@ export default function RoleBasedNavigation() {
                 >
                   Requests
                 </Link>
-                <Link
-                  href="/superadmin/dashboard#ghost"
-                  className={`${getNavLinkClasses('/superadmin/dashboard')} border border-red-200 hover:border-red-300 text-red-600 hover:text-red-800`}
-                >
-                  Ghost
-                </Link>
               </div>
             </div>
 
@@ -517,13 +536,6 @@ export default function RoleBasedNavigation() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Artist Requests
-                </Link>
-                <Link
-                  href="/superadmin/dashboard#ghost"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Ghost Login
                 </Link>
                 <div className="border-t border-gray-200 pt-4 pb-3">
                   <div className="px-3 py-2">

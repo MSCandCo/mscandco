@@ -138,7 +138,7 @@ export default function AdminDashboard() {
           </div>
           <div className="text-right">
             <div className="text-sm text-blue-100">Platform Health</div>
-            <div className="text-2xl font-bold">98.5%</div>
+            <div className="text-2xl font-bold">0%</div>
           </div>
         </div>
       </div>
@@ -239,14 +239,14 @@ export default function AdminDashboard() {
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(userRole === 'super_admin' ? 1251456.78 : 251456.78, selectedCurrency)}
+              {formatCurrency(0, selectedCurrency)}
             </div>
             <div className="text-sm text-green-700 mt-1">Available to Withdraw</div>
             <div className="text-xs text-green-500 mt-1">Ready now</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">
-              {userRole === 'super_admin' ? '342' : '89'}
+              {userRole === 'super_admin' ? '0' : '0'}
             </div>
             <div className="text-sm text-purple-700 mt-1">Earning Assets</div>
             <div className="text-xs text-purple-500 mt-1">Generating revenue</div>
@@ -264,10 +264,10 @@ export default function AdminDashboard() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: 'MSC & Co MSC', artists: 15, revenue: 2847293.50, status: 'active' },
-              { name: 'Major Label Music', artists: 23, revenue: 3456789.23, status: 'active' },
-              { name: 'K-Entertainment', artists: 12, revenue: 1789456.78, status: 'active' },
-              { name: 'Indie Collective', artists: 8, revenue: 453753.99, status: 'pending' }
+              { name: 'MSC & Co MSC', artists: 0, revenue: 0, status: 'active' },
+              { name: 'Major Label Music', artists: 0, revenue: 0, status: 'active' },
+              { name: 'K-Entertainment', artists: 0, revenue: 0, status: 'active' },
+              { name: 'Indie Collective', artists: 0, revenue: 0, status: 'pending' }
             ].map((brand, index) => (
               <div key={index} className="p-4 bg-gradient-to-br from-red-50 to-purple-50 rounded-lg border border-red-100">
                 <div className="flex items-center mb-3">
@@ -408,25 +408,25 @@ export default function AdminDashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-                            <div className="text-3xl font-bold text-purple-600 mb-2 truncate">{formatCurrency(125000, selectedCurrency)}</div>
+                            <div className="text-3xl font-bold text-purple-600 mb-2 truncate">{formatCurrency(0, selectedCurrency)}</div>
             <div className="text-sm text-gray-600">Monthly Revenue</div>
             <div className="text-xs text-green-600 mt-1">+18.5% vs last month</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">2.4M</div>
+            <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
             <div className="text-sm text-gray-600">Total Streams</div>
             <div className="text-xs text-green-600 mt-1">+12.3% vs last month</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">98.5%</div>
+            <div className="text-3xl font-bold text-green-600 mb-2">0%</div>
             <div className="text-sm text-gray-600">Platform Uptime</div>
             <div className="text-xs text-green-600 mt-1">All systems operational</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-600 mb-2">45</div>
+            <div className="text-3xl font-bold text-yellow-600 mb-2">0</div>
             <div className="text-sm text-gray-600">New Users Today</div>
             <div className="text-xs text-green-600 mt-1">+8.2% vs yesterday</div>
           </div>
