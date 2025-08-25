@@ -153,7 +153,7 @@ export default function Home() {
             <div
               className="h-[370px] md:h-[670px] bg-cover bg-no-repeat bg-right md:bg-center"
               style={{
-                backgroundImage: "url(/desktop-hero.jpg)",
+                backgroundImage: "url(/desktop-hero2.jpg)",
               }}
             ></div>
             <div className="md:absolute md:inset-y-0 md:left-[10%] flex items-center">
