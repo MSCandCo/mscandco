@@ -2,6 +2,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { Dropdown } from 'flowbite-react';
 import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
 import { HiDownload } from 'react-icons/hi';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
@@ -14,6 +15,7 @@ function Header({ largeLogo = false }) {
   const userBrand = getBrandByUser(user);
   const [profileData, setProfileData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Fetch profile data to get first and last name
@@ -87,49 +89,23 @@ function Header({ largeLogo = false }) {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center">
-            <div className="flex items-center">
+        <div className="flex justify-between items-center h-14">
+          {/* Logo - Left */}
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex items-center">
               <img
-                className={`${largeLogo ? 'h-32' : 'h-16'} w-auto`}
+                className={`${largeLogo ? 'h-32' : 'h-8 md:h-10'} w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200`}
                 src="/logos/msc-logo.png"
                 alt="MSC & Co Logo"
                 onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
+                  e.target.src = '/logos/msc-logo.svg';
                 }}
               />
-            </div>
-          </Link>
-          <div className="flex-1 flex justify-end items-center">
-            <ul className="flex items-center">
-              {!user && (
-                <li className="px-5 py-2">
-                  <Link 
-                    href="/pricing" 
-                    className={getNavLinkClasses('/pricing')}
-                  >
-                    Prices
-                  </Link>
-                </li>
-              )}
-              <li className="px-5 py-2">
-                <Link 
-                  href="/about" 
-                  className={getNavLinkClasses('/about')}
-                >
-                  About
-                </Link>
-              </li>
-              <li className="px-5 py-2">
-                <Link 
-                  href="/support" 
-                  className={getNavLinkClasses('/support')}
-                >
-                  Support
-                </Link>
-              </li>
-            </ul>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation - Full Menu */}
+          <div className="hidden md:flex items-center justify-center flex-1">
             {user ? (
               <div 
                 className="relative"
@@ -144,8 +120,6 @@ function Header({ largeLogo = false }) {
                 >
                   <span className="sr-only">Open user menu</span>
                   Hi, {(() => {
-                    console.log('Header display - profileData:', profileData);
-                    console.log('Header display - user:', user);
                     if (profileData?.firstName && profileData?.lastName) {
                       return `${profileData.firstName} ${profileData.lastName}`;
                     }
@@ -188,7 +162,7 @@ function Header({ largeLogo = false }) {
                     </button>
                     <hr className="my-1 border-gray-200" />
                     <button
-                                            onClick={() => router.push('/logout')}
+                      onClick={() => router.push('/logout')}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
                       <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
@@ -198,10 +172,131 @@ function Header({ largeLogo = false }) {
                 )}
               </div>
             ) : (
-              <div className="ml-2 flex gap-4">
-                <button className="font-semibold px-4 py-2">
-                  <Link href="/login">Login</Link>
+              <div className="flex items-center space-x-6">
+                <Link 
+                  href="/pricing" 
+                  className={getNavLinkClasses('/pricing')}
+                >
+                  Prices
+                </Link>
+                <Link 
+                  href="/about" 
+                  className={getNavLinkClasses('/about')}
+                >
+                  About
+                </Link>
+                <Link 
+                  href="/support" 
+                  className={getNavLinkClasses('/support')}
+                >
+                  Support
+                </Link>
+                <div className="flex items-center space-x-4 ml-8">
+                  <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/register">
+                    <button
+                      className="
+                        bg-transparent 
+                        text-[#1f2937] 
+                        border 
+                        border-[#1f2937] 
+                        rounded-xl 
+                        px-6 
+                        py-2 
+                        font-bold 
+                        shadow 
+                        transition-all 
+                        duration-300 
+                        hover:bg-[#1f2937] 
+                        hover:text-white 
+                        hover:shadow-lg 
+                        focus:outline-none
+                        focus:ring-2
+                        focus:ring-[#1f2937]
+                      "
+                    >
+                      Register
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Center - Just Login/Register */}
+          <div className="md:hidden flex items-center justify-center flex-1">
+            {user ? (
+              <div 
+                className="relative"
+                ref={dropdownRef}
+                onMouseLeave={() => setIsDropdownOpen(false)}
+              >
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onMouseEnter={() => setIsDropdownOpen(true)}
+                  className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                  type="button"
+                >
+                  <span className="sr-only">Open user menu</span>
+                  Hi, {(() => {
+                    if (profileData?.firstName && profileData?.lastName) {
+                      return `${profileData.firstName} ${profileData.lastName}`;
+                    }
+                    return user?.email ? String(user.email) : 'User';
+                  })()}
+                  <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                  </svg>
                 </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href={
+                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                      '/dashboard'
+                    }>
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                        Dashboard
+                      </div>
+                    </Link>
+                    <Link href="/settings/me">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                        Profile
+                      </div>
+                    </Link>
+                    <Link href="/download-history">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
+                        Download History
+                      </div>
+                    </Link>
+                    <button
+                      onClick={openCustomerPortal}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
+                      Billing
+                    </button>
+                    <hr className="my-1 border-gray-200" />
+                    <button
+                      onClick={() => router.push('/logout')}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                  Login
+                </Link>
                 <Link href="/register">
                   <button
                     className="
@@ -210,7 +305,7 @@ function Header({ largeLogo = false }) {
                       border 
                       border-[#1f2937] 
                       rounded-xl 
-                      px-6 
+                      px-4 
                       py-2 
                       font-bold 
                       shadow 
@@ -223,19 +318,6 @@ function Header({ largeLogo = false }) {
                       focus:ring-2
                       focus:ring-[#1f2937]
                     "
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: '#1f2937',
-                      borderColor: '#1f2937'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#1f2937';
-                      e.target.style.color = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'transparent';
-                      e.target.style.color = '#1f2937';
-                    }}
                   >
                     Register
                   </button>
@@ -243,7 +325,89 @@ function Header({ largeLogo = false }) {
               </div>
             )}
           </div>
+
+          {/* Hamburger Menu - Mobile Only */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            >
+              {isMobileMenuOpen ? (
+                <X className="block h-6 w-6" />
+              ) : (
+                <Menu className="block h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
+              {!user ? (
+                <>
+                  <Link
+                    href="/pricing"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Prices
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    href="/support"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Support
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : '/dashboard'}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/settings/me"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openCustomerPortal();
+                    }}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  >
+                    Billing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/logout');
+                    }}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

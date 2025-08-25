@@ -67,13 +67,41 @@ export default function AdminDashboard() {
   // Load real dashboard data using comprehensive API
   const loadDashboardData = async () => {
     try {
-      const [stats, usersResult] = await Promise.all([
-        dashboardAPI.getStats(),
-        dashboardAPI.getUsers()
-      ]);
+      setLoading(true);
       
-      setDashboardData(stats || getEmptyDashboardStats());
-      setAllUsers(usersResult?.data || []);
+      // Get session token for API calls
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      // Call the new comprehensive admin APIs
+      const [dashboardResponse, usersResponse] = await Promise.all([
+        fetch('/api/admin/dashboard-stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/admin/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (!dashboardResponse.ok || !usersResponse.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const dashboardResult = await dashboardResponse.json();
+      const usersResult = await usersResponse.json();
+      
+      if (dashboardResult.success && usersResult.success) {
+        setDashboardData(dashboardResult.data);
+        setAllUsers(usersResult.data || []);
+      } else {
+        throw new Error('API returned error response');
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -98,9 +126,8 @@ export default function AdminDashboard() {
 
   // Get user role and data
   const userRole = getUserRoleSync(user);
-  const adminData = dashboardData?.superAdmin || getEmptyDashboardStats().superAdmin;
+  const adminData = dashboardData || getEmptyDashboardStats().superAdmin;
   const allReleases = getReleases(); // TODO: Make this async too
-  const totalPlatformRevenue = allUsers.reduce((total, user) => total + (user.totalRevenue || user.totalEarnings || 0), 0);
 
 
 
@@ -138,7 +165,7 @@ export default function AdminDashboard() {
           </div>
           <div className="text-right">
             <div className="text-sm text-blue-100">Platform Health</div>
-            <div className="text-2xl font-bold">0%</div>
+            <div className="text-2xl font-bold">{adminData?.platformHealth || 0}%</div>
           </div>
         </div>
       </div>
@@ -152,7 +179,7 @@ export default function AdminDashboard() {
               <p className="font-bold text-gray-900 text-3xl">{adminData?.totalUsers?.toLocaleString() || 0}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-green-600">+12% this month</span>
+                <span className="text-green-600">{adminData?.userGrowth > 0 ? '+' : ''}{adminData?.userGrowth || 0}% this month</span>
               </div>
             </div>
             <div className="p-3 bg-blue-100 rounded-xl">
@@ -168,7 +195,7 @@ export default function AdminDashboard() {
               <p className="font-bold text-gray-900 text-3xl">{adminData?.totalReleases || 0}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-green-600">+8% this month</span>
+                <span className="text-green-600">{adminData?.releaseGrowth > 0 ? '+' : ''}{adminData?.releaseGrowth || 0}% this month</span>
               </div>
             </div>
             <div className="p-3 bg-green-100 rounded-xl">
@@ -184,7 +211,7 @@ export default function AdminDashboard() {
               <p className="font-bold text-gray-900 text-3xl">{formatCurrency(adminData?.totalRevenue || 0, selectedCurrency)}</p>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-green-600">+15% this month</span>
+                <span className="text-green-600">{adminData?.revenueGrowth > 0 ? '+' : ''}{adminData?.revenueGrowth || 0}% this month</span>
               </div>
             </div>
             <div className="p-3 bg-purple-100 rounded-xl">
@@ -197,10 +224,10 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-600 mb-2">Active Projects</p>
-              <p className="font-bold text-gray-900 text-3xl">{adminData?.activeProjects || 23}</p>
+              <p className="font-bold text-gray-900 text-3xl">{adminData?.activeProjects || 0}</p>
               <div className="flex items-center mt-2 text-sm">
                 <Activity className="w-4 h-4 text-yellow-500 mr-1" />
-                <span className="text-yellow-600">{adminData?.pendingApprovals || 5} pending</span>
+                <span className="text-yellow-600">{adminData?.pendingApprovals || 0} pending</span>
               </div>
             </div>
             <div className="p-3 bg-yellow-100 rounded-xl">
@@ -228,7 +255,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-red-50 rounded-lg">
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(userRole === 'super_admin' ? 8547293.50 : 284729.35, selectedCurrency)}
+              {formatCurrency(adminData?.totalPlatformRevenue || adminData?.totalRevenue || 0, selectedCurrency)}
             </div>
             <div className="text-sm text-red-700 mt-1">
               {userRole === 'super_admin' ? 'Total Platform Revenue' : 'Company Earnings'}
@@ -239,14 +266,14 @@ export default function AdminDashboard() {
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(0, selectedCurrency)}
+              {formatCurrency(adminData?.availableToWithdraw || 0, selectedCurrency)}
             </div>
             <div className="text-sm text-green-700 mt-1">Available to Withdraw</div>
             <div className="text-xs text-green-500 mt-1">Ready now</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">
-              {userRole === 'super_admin' ? '0' : '0'}
+              {adminData?.earningAssets || 0}
             </div>
             <div className="text-sm text-purple-700 mt-1">Earning Assets</div>
             <div className="text-xs text-purple-500 mt-1">Generating revenue</div>
@@ -254,54 +281,57 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Super Admin Brand Overview / Company Admin Label Admins */}
+      {/* Super Admin User Roles Overview */}
       {userRole === 'super_admin' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Platform Brands Overview</h3>
-            <Building2 className="w-6 h-6 text-red-600" />
+            <h3 className="text-lg font-bold text-gray-900">Platform User Roles</h3>
+            <Users className="w-6 h-6 text-red-600" />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: 'MSC & Co MSC', artists: 0, revenue: 0, status: 'active' },
-              { name: 'Major Label Music', artists: 0, revenue: 0, status: 'active' },
-              { name: 'K-Entertainment', artists: 0, revenue: 0, status: 'active' },
-              { name: 'Indie Collective', artists: 0, revenue: 0, status: 'pending' }
-            ].map((brand, index) => (
-              <div key={index} className="p-4 bg-gradient-to-br from-red-50 to-purple-50 rounded-lg border border-red-100">
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {brand.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div className="ml-3">
-                    <div className="font-medium text-gray-900">{brand.name}</div>
-                    <div className={`text-sm ${brand.status === 'active' ? 'text-green-600' : 'text-orange-600'}`}>
-                      {brand.status}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">{brand.artists}</div>
-                    <div className="text-xs text-gray-500">Artists</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-green-600">
-                      {formatCurrency(brand.revenue / 1000, selectedCurrency)}K
-                    </div>
-                    <div className="text-xs text-gray-500">Revenue</div>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600 mb-2">{adminData?.userRoles?.artists || 0}</div>
+                <div className="text-sm font-medium text-gray-900">Artists</div>
+                <div className="text-xs text-gray-500 mt-1">Active users</div>
               </div>
-            ))}
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600 mb-2">{adminData?.userRoles?.labelAdmins || 0}</div>
+                <div className="text-sm font-medium text-gray-900">Label Admins</div>
+                <div className="text-xs text-gray-500 mt-1">Active users</div>
+              </div>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600 mb-2">{adminData?.userRoles?.distributionPartners || 0}</div>
+                <div className="text-sm font-medium text-gray-900">Distribution Partners</div>
+                <div className="text-xs text-gray-500 mt-1">Active users</div>
+              </div>
+            </div>
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600 mb-2">{adminData?.userRoles?.companyAdmins || 0}</div>
+                <div className="text-sm font-medium text-gray-900">Company Admins</div>
+                <div className="text-xs text-gray-500 mt-1">Active users</div>
+              </div>
+            </div>
+            <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600 mb-2">{adminData?.userRoles?.superAdmins || 0}</div>
+                <div className="text-sm font-medium text-gray-900">Super Admins</div>
+                <div className="text-xs text-gray-500 mt-1">Active users</div>
+              </div>
+            </div>
           </div>
 
           <button
-            onClick={() => router.push('/superadmin/analytics')}
+            onClick={() => router.push('/superadmin/users')}
             className="w-full mt-6 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
           >
-            View Platform Analytics
+            Manage All Users
           </button>
         </div>
       )}
@@ -332,7 +362,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-2xl font-bold text-gray-900">
-                {userRole === 'super_admin' ? allUsers.filter(u => u.role === 'label_admin').length : '15'}
+                {userRole === 'super_admin' ? allUsers.filter(u => u.role === 'label_admin').length : allUsers.filter(u => u.role === 'distribution_partner').length}
               </span>
             </div>
             
@@ -344,7 +374,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-2xl font-bold text-gray-900">
-                {userRole === 'super_admin' ? allUsers.filter(u => ['company_admin', 'super_admin'].includes(u.role)).length : '8'}
+                {userRole === 'super_admin' ? allUsers.filter(u => ['company_admin', 'super_admin'].includes(u.role)).length : allUsers.filter(u => ['company_admin', 'super_admin'].includes(u.role)).length}
               </span>
             </div>
           </div>
@@ -370,7 +400,7 @@ export default function AdminDashboard() {
                   <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
                   <span className="font-medium text-gray-900">{RELEASE_STATUS_LABELS[RELEASE_STATUSES.IN_REVIEW]}</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{RELEASES.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length}</span>
+                <span className="text-2xl font-bold text-gray-900">{adminData?.releasesByStatus?.in_review || 0}</span>
               </div>
             
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -378,7 +408,7 @@ export default function AdminDashboard() {
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                 <span className="font-medium text-gray-900">{RELEASE_STATUS_LABELS[RELEASE_STATUSES.COMPLETED]}</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">{RELEASES.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length}</span>
+              <span className="text-2xl font-bold text-gray-900">{adminData?.releasesByStatus?.approved || 0}</span>
             </div>
             
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -386,7 +416,7 @@ export default function AdminDashboard() {
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                 <span className="font-medium text-gray-900">{RELEASE_STATUS_LABELS[RELEASE_STATUSES.LIVE]}</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">{RELEASES.filter(r => r.status === RELEASE_STATUSES.LIVE).length}</span>
+              <span className="text-2xl font-bold text-gray-900">{adminData?.releasesByStatus?.live || 0}</span>
             </div>
           </div>
 
@@ -408,15 +438,15 @@ export default function AdminDashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-                            <div className="text-3xl font-bold text-purple-600 mb-2 truncate">{formatCurrency(0, selectedCurrency)}</div>
+                            <div className="text-3xl font-bold text-purple-600 mb-2 truncate">{formatCurrency(adminData?.monthlyRevenue || 0, selectedCurrency)}</div>
             <div className="text-sm text-gray-600">Monthly Revenue</div>
-            <div className="text-xs text-green-600 mt-1">+18.5% vs last month</div>
+            <div className="text-xs text-green-600 mt-1">+0% vs last month</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+            <div className="text-3xl font-bold text-blue-600 mb-2">{adminData?.totalStreams?.toLocaleString() || 0}</div>
             <div className="text-sm text-gray-600">Total Streams</div>
-            <div className="text-xs text-green-600 mt-1">+12.3% vs last month</div>
+            <div className="text-xs text-green-600 mt-1">+0% vs last month</div>
           </div>
           
           <div className="text-center">
@@ -426,9 +456,9 @@ export default function AdminDashboard() {
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-600 mb-2">0</div>
+            <div className="text-3xl font-bold text-yellow-600 mb-2">{adminData?.newUsersToday || 0}</div>
             <div className="text-sm text-gray-600">New Users Today</div>
-            <div className="text-xs text-green-600 mt-1">+8.2% vs yesterday</div>
+            <div className="text-xs text-green-600 mt-1">+0% vs yesterday</div>
           </div>
         </div>
 

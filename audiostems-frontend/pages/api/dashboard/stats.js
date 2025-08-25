@@ -115,13 +115,20 @@ export default async function handler(req, res) {
 
       const activeSubscriptions = subscriptions.filter(s => s.status === 'active')
       const totalRevenue = subscriptions.reduce((sum, s) => sum + (s.amount || 0), 0)
+      
+      // Calculate growth metrics
+      const userGrowth = calculateGrowth(users.map(u => ({ created_at: u.created_at, amount: 1 })), 'month')
+      const revenueGrowth = calculateGrowth(subscriptions, 'month')
 
       stats = {
         superAdmin: {
           totalUsers: users.length,
           activeProjects: activeSubscriptions.length,
           totalRevenue: totalRevenue,
-          platformHealth: users.length > 0 ? 98.5 : 0,
+          totalReleases: 0, // Will be updated when releases table is connected
+          platformHealth: users.length > 0 ? 100 : 0,
+          userGrowth: Math.round(userGrowth * 10) / 10, // Round to 1 decimal
+          revenueGrowth: Math.round(revenueGrowth * 10) / 10, // Round to 1 decimal
           systemStatus: 'operational',
           lastUpdated: new Date().toISOString()
         },
@@ -129,7 +136,8 @@ export default async function handler(req, res) {
           totalUsers: users.length,
           activeProjects: activeSubscriptions.length,
           totalRevenue: totalRevenue,
-          platformHealth: users.length > 0 ? 98.5 : 0,
+          totalReleases: 0, // Will be updated when releases table is connected
+          platformHealth: users.length > 0 ? 100 : 0,
           systemStatus: 'operational',
           lastUpdated: new Date().toISOString()
         },

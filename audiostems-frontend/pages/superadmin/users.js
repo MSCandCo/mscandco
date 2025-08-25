@@ -765,7 +765,11 @@ export default function AdminUsersPage() {
                         max="50"
                         value={revenueSplit.distributionPartnerPercentage}
                         onChange={(e) => handleSplitChange('distributionPartnerPercentage', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        className="flex-1 h-3 bg-gray-200 rounded-lg cursor-pointer"
+                        style={{
+                          WebkitAppearance: 'none',
+                          background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${revenueSplit.distributionPartnerPercentage * 2}%, #e5e7eb ${revenueSplit.distributionPartnerPercentage * 2}%, #e5e7eb 100%)`,
+                        }}
                       />
                       <div className="flex items-center space-x-2">
                         <input
@@ -793,7 +797,11 @@ export default function AdminUsersPage() {
                         max="50"
                         value={revenueSplit.companyAdminPercentage}
                         onChange={(e) => handleSplitChange('companyAdminPercentage', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        className="flex-1 h-3 bg-gray-200 rounded-lg cursor-pointer"
+                        style={{
+                          WebkitAppearance: 'none',
+                          background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${revenueSplit.companyAdminPercentage * 2}%, #e5e7eb ${revenueSplit.companyAdminPercentage * 2}%, #e5e7eb 100%)`,
+                        }}
                       />
                       <div className="flex items-center space-x-2">
                         <input
@@ -821,7 +829,11 @@ export default function AdminUsersPage() {
                         max="100"
                         value={revenueSplit.labelAdminPercentage}
                         onChange={(e) => handleSplitChange('labelAdminPercentage', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        className="flex-1 h-3 bg-gray-200 rounded-lg cursor-pointer"
+                        style={{
+                          WebkitAppearance: 'none',
+                          background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${revenueSplit.labelAdminPercentage}%, #e5e7eb ${revenueSplit.labelAdminPercentage}%, #e5e7eb 100%)`,
+                        }}
                       />
                       <div className="flex items-center space-x-2">
                         <input
@@ -859,7 +871,11 @@ export default function AdminUsersPage() {
                             max="100"
                             value={individualLabelAdminPercentages[labelAdmin.id] || revenueSplit.labelAdminPercentage}
                             onChange={(e) => handleIndividualLabelAdminChange(labelAdmin.id, parseInt(e.target.value))}
-                            className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                            className="flex-1 h-3 bg-blue-200 rounded-lg cursor-pointer"
+                            style={{
+                              WebkitAppearance: 'none',
+                              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${individualLabelAdminPercentages[labelAdmin.id] || revenueSplit.labelAdminPercentage}%, #bfdbfe ${individualLabelAdminPercentages[labelAdmin.id] || revenueSplit.labelAdminPercentage}%, #bfdbfe 100%)`,
+                            }}
                           />
                           <div className="flex items-center space-x-2">
                             <input
@@ -903,7 +919,11 @@ export default function AdminUsersPage() {
                             max="100"
                             value={individualArtistPercentages[artist.id] || revenueSplit.artistPercentage}
                             onChange={(e) => handleIndividualArtistChange(artist.id, parseInt(e.target.value))}
-                            className="flex-1 h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"
+                            className="flex-1 h-3 bg-green-200 rounded-lg cursor-pointer"
+                            style={{
+                              WebkitAppearance: 'none',
+                              background: `linear-gradient(to right, #10b981 0%, #10b981 ${individualArtistPercentages[artist.id] || revenueSplit.artistPercentage}%, #bbf7d0 ${individualArtistPercentages[artist.id] || revenueSplit.artistPercentage}%, #bbf7d0 100%)`,
+                            }}
                           />
                           <div className="flex items-center space-x-2">
                             <input
