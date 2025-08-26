@@ -172,9 +172,10 @@ async function searchYouTubeVideos(apiKey, searchTerm, publishedAfter) {
   }
 }
 
-// Curated African/Nigerian Gospel content as fallback
+// Curated International Gospel/CCM content as fallback
 function createRecentGospelContent() {
   return [
+    // Keep 6 African/Nigerian artists
     {
       id: 'youtube-fallback-1',
       title: 'Sinach - Way Maker (Live)',
@@ -221,17 +222,6 @@ function createRecentGospelContent() {
     },
     {
       id: 'youtube-fallback-5',
-      title: 'Tope Alabi - Logan Ti Ode',
-      artist: 'Tope Alabi',
-      thumbnail: 'https://i.ytimg.com/vi/8bGl4d_xjPY/hqdefault.jpg',
-      genre: 'Gospel',
-      region: 'Nigerian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=8bGl4d_xjPY',
-      publishedAt: '2024-05-18T11:15:00Z',
-      source: 'curated'
-    },
-    {
-      id: 'youtube-fallback-6',
       title: 'Dunsin Oyekan - Fragrance to Fire',
       artist: 'Dunsin Oyekan',
       thumbnail: 'https://i.ytimg.com/vi/GUm8jxGVaWA/hqdefault.jpg',
@@ -241,48 +231,216 @@ function createRecentGospelContent() {
       publishedAt: '2024-06-22T13:40:00Z',
       source: 'curated'
     },
+    // Add 1 Ghanaian artist
+    {
+      id: 'youtube-fallback-6',
+      title: 'Joe Mettle - Bo Noo Ni',
+      artist: 'Joe Mettle',
+      thumbnail: 'https://i.ytimg.com/vi/YQQ2StSwg54/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Ghanaian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=YQQ2StSwg54',
+      publishedAt: '2024-08-14T12:10:00Z',
+      source: 'curated'
+    },
+    
+    // Add 2 Zambian artists
     {
       id: 'youtube-fallback-7',
-      title: 'Eben - Victory',
-      artist: 'Eben',
-      thumbnail: 'https://i.ytimg.com/vi/Hs3yAyNiyt8/hqdefault.jpg',
+      title: 'Pompi - Luyando',
+      artist: 'Pompi',
+      thumbnail: 'https://i.ytimg.com/vi/qJCRnkHP0Z4/hqdefault.jpg',
       genre: 'Gospel',
-      region: 'Nigerian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=Hs3yAyNiyt8',
+      region: 'Zambian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=qJCRnkHP0Z4',
       publishedAt: '2024-07-08T15:25:00Z',
       source: 'curated'
     },
     {
       id: 'youtube-fallback-8',
-      title: 'Frank Edwards - Mma Mma',
-      artist: 'Frank Edwards',
-      thumbnail: 'https://i.ytimg.com/vi/8jYTcSQYB7w/hqdefault.jpg',
+      title: 'Esther Chungu - Jehovah',
+      artist: 'Esther Chungu',
+      thumbnail: 'https://i.ytimg.com/vi/2KHYeEQswQs/hqdefault.jpg',
       genre: 'Gospel',
-      region: 'Nigerian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=8jYTcSQYB7w',
+      region: 'Zambian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=2KHYeEQswQs',
       publishedAt: '2024-08-14T12:10:00Z',
       source: 'curated'
     },
+    
+    // Add 1 South African artist
     {
       id: 'youtube-fallback-9',
-      title: 'Preye Odede - Bulie',
-      artist: 'Preye Odede',
-      thumbnail: 'https://i.ytimg.com/vi/xCZ4-mx1iMk/hqdefault.jpg',
+      title: 'Benjamin Dube - Elshadai',
+      artist: 'Benjamin Dube',
+      thumbnail: 'https://i.ytimg.com/vi/kOvwMz_BcUM/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'South African',
+      youtubeUrl: 'https://www.youtube.com/watch?v=kOvwMz_BcUM',
+      publishedAt: '2024-09-20T17:30:00Z',
+      source: 'curated'
+    },
+    
+    // Add 1 Zimbabwean artist
+    {
+      id: 'youtube-fallback-10',
+      title: 'Takesure Zamar - Ndinewe',
+      artist: 'Takesure Zamar',
+      thumbnail: 'https://i.ytimg.com/vi/8Ey6urBAnlw/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Zimbabwean',
+      youtubeUrl: 'https://www.youtube.com/watch?v=8Ey6urBAnlw',
+      publishedAt: '2024-10-05T14:50:00Z',
+      source: 'curated'
+    },
+    
+    // Add Called Out Music
+    {
+      id: 'youtube-fallback-11',
+      title: 'CalledOut Music - Ancient of Days x Open The Eyes of my Heart (Live Video)',
+      artist: 'CalledOut Music',
+      thumbnail: 'https://i.ytimg.com/vi/3BVEbM0bDwc/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'British',
+      youtubeUrl: 'https://www.youtube.com/watch?v=3BVEbM0bDwc',
+      publishedAt: '2024-11-10T16:20:00Z',
+      source: 'curated'
+    },
+    
+    // Add Annatoria
+    {
+      id: 'youtube-fallback-12',
+      title: 'Hasn\'t By Now (Music Video) | Woman Evolve Worship X Annatoria',
+      artist: 'Annatoria',
+      thumbnail: 'https://i.ytimg.com/vi/lOOX0NaYb5M/hqdefault.jpg',
       genre: 'Gospel',
       region: 'Nigerian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=xCZ4-mx1iMk',
+      youtubeUrl: 'https://www.youtube.com/watch?v=lOOX0NaYb5M',
+      publishedAt: '2024-11-15T18:45:00Z',
+      source: 'curated'
+    },
+    
+    // Add Limoblaze
+    {
+      id: 'youtube-fallback-13',
+      title: 'Limoblaze - Jireh (My Provider)',
+      artist: 'Limoblaze',
+      thumbnail: 'https://i.ytimg.com/vi/Ex4IcpJHNzA/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Nigerian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=Ex4IcpJHNzA',
+      publishedAt: '2024-11-20T14:30:00Z',
+      source: 'curated'
+    },
+    
+    // Add Charles Dada
+    {
+      id: 'youtube-fallback-14',
+      title: 'Praise & Worship with Charles Dada | Gateway Chapel | LIVE Praise',
+      artist: 'Charles Dada',
+      thumbnail: 'https://i.ytimg.com/vi/DXDGE_lRI0E/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Nigerian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=DXDGE_lRI0E',
+      publishedAt: '2024-11-25T12:15:00Z',
+      source: 'curated'
+    },
+    
+    // Add Annatoria x Warehouse Worship Medley
+    {
+      id: 'youtube-fallback-21',
+      title: 'Annatoria x Warehouse Worship Medley - Nothing Else / It\'s all about you / Jesus at the Center',
+      artist: 'Annatoria x Warehouse Worship',
+      thumbnail: 'https://i.ytimg.com/vi/F3zt1adPmCc/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Nigerian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=F3zt1adPmCc',
+      publishedAt: '2024-12-02T14:20:00Z',
+      source: 'curated'
+    },
+    
+    // Add RCCG Festival Of Life London 2019 - Charles Dada
+    {
+      id: 'youtube-fallback-22',
+      title: 'RCCG Festival Of Life London 2019 - Praise and Worship - Charles Dada',
+      artist: 'Charles Dada',
+      thumbnail: 'https://i.ytimg.com/vi/Jbe7OruLk8I/hqdefault.jpg',
+      genre: 'Gospel',
+      region: 'Nigerian',
+      youtubeUrl: 'https://www.youtube.com/watch?v=Jbe7OruLk8I',
+      publishedAt: '2024-12-03T16:45:00Z',
+      source: 'curated'
+    },
+    
+    // Add American Gospel/CCM artists (keeping 2)
+    {
+      id: 'youtube-fallback-15',
+      title: 'Chris Tomlin - How Great Is Our God',
+      artist: 'Chris Tomlin',
+      thumbnail: 'https://i.ytimg.com/vi/KO2YMxhkEtE/hqdefault.jpg',
+      genre: 'Contemporary Christian',
+      region: 'American',
+      youtubeUrl: 'https://www.youtube.com/watch?v=KO2YMxhkEtE',
+      publishedAt: '2024-07-08T15:25:00Z',
+      source: 'curated'
+    },
+    {
+      id: 'youtube-fallback-16',
+      title: 'Bethel Music - Goodness of God',
+      artist: 'Bethel Music',
+      thumbnail: 'https://i.ytimg.com/vi/cnyVFp8rGwE/hqdefault.jpg',
+      genre: 'Contemporary Christian',
+      region: 'American',
+      youtubeUrl: 'https://www.youtube.com/watch?v=cnyVFp8rGwE',
       publishedAt: '2024-09-20T17:30:00Z',
       source: 'curated'
     },
     {
-      id: 'youtube-fallback-10',
-      title: 'Ada Ehi - Fix My Eyes',
-      artist: 'Ada Ehi',
-      thumbnail: 'https://i.ytimg.com/vi/ZUPyCgqGAQQ/hqdefault.jpg',
+      id: 'youtube-fallback-17',
+      title: 'Maverick City Music - Jireh',
+      artist: 'Maverick City Music',
+      thumbnail: 'https://i.ytimg.com/vi/QvLxZEU02uI/hqdefault.jpg',
+      genre: 'Contemporary Christian',
+      region: 'American',
+      youtubeUrl: 'https://www.youtube.com/watch?v=QvLxZEU02uI',
+      publishedAt: '2024-10-05T14:50:00Z',
+      source: 'curated'
+    },
+    
+    // Add British Gospel/CCM artists (keeping 2)
+    {
+      id: 'youtube-fallback-18',
+      title: 'Hillsong London - What A Beautiful Name',
+      artist: 'Hillsong London',
+      thumbnail: 'https://i.ytimg.com/vi/nQWFzMvCfLE/hqdefault.jpg',
+      genre: 'Contemporary Christian',
+      region: 'British',
+      youtubeUrl: 'https://www.youtube.com/watch?v=nQWFzMvCfLE',
+      publishedAt: '2024-11-10T16:20:00Z',
+      source: 'curated'
+    },
+    {
+      id: 'youtube-fallback-19',
+      title: 'Rend Collective - My Lighthouse',
+      artist: 'Rend Collective',
+      thumbnail: 'https://i.ytimg.com/vi/lOOX0NaYb5M/hqdefault.jpg',
+      genre: 'Contemporary Christian',
+      region: 'British',
+      youtubeUrl: 'https://www.youtube.com/watch?v=lOOX0NaYb5M',
+      publishedAt: '2024-11-15T18:45:00Z',
+      source: 'curated'
+    },
+    
+    // Add Michael Oyo - Bamisee
+    {
+      id: 'youtube-fallback-20',
+      title: 'Michael Oyo - Bamisee',
+      artist: 'Michael Oyo',
+      thumbnail: 'https://i.ytimg.com/vi/DbLxPnkr_e0/hqdefault.jpg',
       genre: 'Gospel',
       region: 'Nigerian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=ZUPyCgqGAQQ',
-      publishedAt: '2024-10-05T14:50:00Z',
+      youtubeUrl: 'https://www.youtube.com/watch?v=DbLxPnkr_e0',
+      publishedAt: '2024-12-01T10:30:00Z',
       source: 'curated'
     }
   ]

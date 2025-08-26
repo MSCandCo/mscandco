@@ -90,6 +90,6 @@ export const COMPANY_INFO = {
   domain: 'mscandco.com',
   email: 'info@mscandco.com',
   support: 'support@mscandco.com',
-  copyright: '© 2024 MSC & Co. All rights reserved.',
+  copyright: '© 2025 MSC & Co. All rights reserved.',
   description: 'Multi-brand music distribution and publishing platform'
 }; 

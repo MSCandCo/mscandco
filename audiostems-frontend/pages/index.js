@@ -279,39 +279,34 @@ const LatestReleasesSection = () => {
 
   // Continuous scroll animation
   useEffect(() => {
-    if (releases.length === 0) return
+    if (!scrollRef.current || releases.length === 0) return
 
-    let animationId
-    
-    const scroll = () => {
-      if (scrollRef.current) {
-        const container = scrollRef.current
-        const scrollWidth = container.scrollWidth
-        const clientWidth = container.clientWidth
-        const maxScroll = scrollWidth - clientWidth
+    const container = scrollRef.current
+    let scrollPosition = 0
+    const scrollSpeed = 0.8 // Pixels per frame (adjust for speed)
+
+    const smoothScroll = () => {
+      if (container) {
+        scrollPosition += scrollSpeed
         
-        // Continuous slower scroll
-        container.scrollLeft += 0.5
-        
-        // Reset when reaching the end for infinite loop
-        if (container.scrollLeft >= maxScroll) {
-          container.scrollLeft = 0
+        // Reset when reaching end
+        if (scrollPosition >= container.scrollWidth - container.clientWidth) {
+          scrollPosition = 0
         }
+        
+        container.scrollLeft = scrollPosition
       }
-      
-      animationId = requestAnimationFrame(scroll)
+      requestAnimationFrame(smoothScroll)
     }
-    
-    // Start scrolling after a short delay
+
+    // Start the animation after a delay to ensure content is loaded
     const timeout = setTimeout(() => {
-      animationId = requestAnimationFrame(scroll)
+      console.log('Starting auto-scroll with', releases.length, 'releases')
+      requestAnimationFrame(smoothScroll)
     }, 1000)
 
     return () => {
       clearTimeout(timeout)
-      if (animationId) {
-        cancelAnimationFrame(animationId)
-      }
     }
   }, [releases])
 
@@ -333,14 +328,19 @@ const LatestReleasesSection = () => {
   return (
     <section className="py-12 bg-gray-800 text-gray-100 overflow-hidden">
       <div className="w-full">
-        <div className="relative overflow-hidden">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white">Top Performing Releases</h2>
+        </div>
+        <div className="relative overflow-hidden w-full">
           <div 
             ref={scrollRef}
-            className="flex space-x-8 overflow-x-auto scrollbar-hide"
+            className="flex space-x-8 overflow-x-hidden scrollbar-hide"
             style={{ 
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none',
-              WebkitScrollbar: { display: 'none' }
+              WebkitScrollbar: { display: 'none' },
+              scrollBehavior: 'smooth',
+              width: '100%'
             }}
           >
             {/* Duplicate releases for seamless infinite scroll */}
@@ -709,13 +709,13 @@ export default function Home() {
         </Container>
       </section>
       <LatestReleasesSection />
-      <section className="py-16">
+      <section className="py-16 bg-gray-100">
         <div className="pt-16 flex flex-col justify-center items-center">
           <h4 className="mb-4 text-4xl font-bold text-center">
-            Your Music. Your Ministry. Our Mission.
+            From Studio to Streams. From Vision to Revenue.
           </h4>
           <p className="mb-10 text-lg text-gray-600">
-            Empowering gospel artists to reach the world with their calling.
+            Empowering artists and labels to reach the world with their music.
           </p>
           <Button 
             className="
@@ -757,7 +757,8 @@ export default function Home() {
           </Button>
         </div>
       </section>
-      <section className="mx-3 md:mx-8 mb-16 py-16 bg-gray-100">
+      {/* Hidden section - NOTE: Uses bg-gray-100 background */}
+      <section className="hidden mx-3 md:mx-8 mb-16 py-16 bg-gray-100">
         <Container>
           <h2 className="pb-16 text-4xl font-bold text-center">
             Setting the Tone for the World's Best
@@ -849,77 +850,7 @@ export default function Home() {
           </div>
         </Container>
       </section>
-      
-      {/* Latest Releases Section */}
-      <section className="py-16 bg-gray-50">
-        <Container>
-          <h2 className="pb-8 text-4xl font-bold text-center">
-            Latest Releases
-          </h2>
-          <p className="pb-12 text-lg text-gray-600 text-center max-w-2xl mx-auto">
-            Discover the newest gospel and Christian music from our talented artists
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {/* Sample gospel/christian releases - these would be dynamically loaded */}
-            {[
-              { title: "Waymaker", artist: "Sinach", thumbnail: "https://img.youtube.com/vi/29IxnsqOkmE/maxresdefault.jpg" },
-              { title: "Goodness of God", artist: "Bethel Music", thumbnail: "https://img.youtube.com/vi/cnyVFp8rGwE/maxresdefault.jpg" },
-              { title: "Reckless Love", artist: "Cory Asbury", thumbnail: "https://img.youtube.com/vi/Sc6SSHuZvQE/maxresdefault.jpg" },
-              { title: "What A Beautiful Name", artist: "Hillsong Worship", thumbnail: "https://img.youtube.com/vi/r5L6QlAH3L4/maxresdefault.jpg" },
-              { title: "Great Are You Lord", artist: "All Sons & Daughters", thumbnail: "https://img.youtube.com/vi/7wbZhRayMWA/maxresdefault.jpg" },
-              { title: "How Great Is Our God", artist: "Chris Tomlin", thumbnail: "https://img.youtube.com/vi/KO7Q1KZhTpE/maxresdefault.jpg" },
-              { title: "Oceans", artist: "Hillsong United", thumbnail: "https://img.youtube.com/vi/dy9nwe9_xzw/maxresdefault.jpg" },
-              { title: "10,000 Reasons", artist: "Matt Redman", thumbnail: "https://img.youtube.com/vi/DXDGE_lRI0E/maxresdefault.jpg" },
-              { title: "Amazing Grace", artist: "Chris Tomlin", thumbnail: "https://img.youtube.com/vi/Jbe7OruLk8I/maxresdefault.jpg" },
-              { title: "Build My Life", artist: "Pat Barrett", thumbnail: "https://img.youtube.com/vi/QvLxZEU02uI/maxresdefault.jpg" },
-              { title: "King of Kings", artist: "Hillsong Worship", thumbnail: "https://img.youtube.com/vi/DbLxPnkr_e0/maxresdefault.jpg" },
-              { title: "Yes I Will", artist: "Vertical Worship", thumbnail: "https://img.youtube.com/vi/F3zt1adPmCc/maxresdefault.jpg" }
-            ].map((release, i) => (
-              <div key={i} className="group cursor-pointer">
-                <div className="relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <img
-                    src={release.thumbnail}
-                    alt={release.title}
-                    className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
-                    <h4 className="text-white text-sm font-semibold truncate">{release.title}</h4>
-                    <p className="text-gray-300 text-xs truncate">{release.artist}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Button 
-              className="
-                bg-transparent 
-                text-[#1f2937] 
-                border 
-                border-[#1f2937] 
-                rounded-xl 
-                px-8 
-                py-3 
-                font-bold 
-                shadow 
-                transition-all 
-                duration-300 
-                hover:bg-[#1f2937] 
-                hover:text-white 
-                hover:shadow-lg 
-                hover:-translate-y-1
-                focus:outline-none
-                focus:ring-2
-                focus:ring-[#1f2937]
-              "
-              onClick={() => router.push("/register")}
-            >
-              Explore All Releases
-          </Button>
-          </div>
-        </Container>
-      </section>
+
     </MainLayout>
   );
 }
