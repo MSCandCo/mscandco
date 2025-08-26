@@ -69,6 +69,14 @@ export default function RoleBasedDashboard() {
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
+  // Check email verification first
+  useEffect(() => {
+    if (user && !user.email_confirmed_at) {
+      router.push('/verify-email');
+      return;
+    }
+  }, [user, router]);
+
   // Load role-specific dashboard data
   useEffect(() => {
     if (user && userRole) {

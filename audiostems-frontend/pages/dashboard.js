@@ -15,6 +15,12 @@ export default function Dashboard() {
       return;
     }
 
+    // Check email verification first
+    if (user && !user.email_confirmed_at) {
+      router.push('/verify-email');
+      return;
+    }
+
     // Redirect role-specific users to their dedicated dashboards
     if (user) {
       try {
