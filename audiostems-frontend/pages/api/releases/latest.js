@@ -454,6 +454,34 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Detect mobile devices for optimized response
+  const userAgent = req.headers['user-agent'] || ''
+  const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+  
+  console.log(`📱 ${isMobile ? 'Mobile' : 'Desktop'} request detected`)
+
+  // Set timeout for mobile requests (8 seconds)
+  if (isMobile) {
+    const timeoutId = setTimeout(() => {
+      if (!res.headersSent) {
+        console.log('⏰ Mobile timeout reached, returning fallback')
+        return res.status(200).json({
+          success: true,
+          data: createRecentGospelContent(),
+          sources: {
+            youtube: 0,
+            fallback: 22,
+            timeout: true,
+            mobile: true
+          }
+        })
+      }
+    }, 8000)
+    
+    // Clear timeout if response is sent
+    res.on('finish', () => clearTimeout(timeoutId))
+  }
+
   try {
     // Get working API key
     const YOUTUBE_API_KEY = await getWorkingApiKey()
@@ -463,8 +491,12 @@ export default async function handler(req, res) {
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
     const publishedAfter = twoYearsAgo.toISOString()
 
-    // Reduced search terms for faster loading (6 instead of 12)
-    const searchTerms = [
+    // Reduced search terms for mobile to speed up response
+    const searchTerms = isMobile ? [
+      'Nigerian gospel music 2024',
+      'Contemporary christian 2024',
+      'Hillsong worship 2024'
+    ] : [
       // Nigerian Gospel (primary focus)
       'Nigerian gospel music 2024 official video',
       'Afrobeats gospel Nigeria music video',
@@ -477,6 +509,8 @@ export default async function handler(req, res) {
       'Contemporary christian music 2024 official',
       'Hillsong worship 2024 official video'
     ]
+    
+    console.log(`🔍 Using ${searchTerms.length} search terms for ${isMobile ? 'mobile' : 'desktop'}`)
 
     let allVideos = []
 
@@ -485,8 +519,8 @@ export default async function handler(req, res) {
       const videos = await searchYouTubeVideos(YOUTUBE_API_KEY, searchTerm, publishedAfter)
       allVideos.push(...videos)
       
-      // Reduced delay for faster loading
-      await new Promise(resolve => setTimeout(resolve, 150))
+      // Shorter delay for mobile, longer for desktop
+      await new Promise(resolve => setTimeout(resolve, isMobile ? 100 : 150))
     }
 
     // Remove duplicates by URL and artist (each artist appears only once)
@@ -516,7 +550,7 @@ export default async function handler(req, res) {
 
     const finalVideos = uniqueVideos
     
-    console.log(`🎉 Final result: ${finalVideos.length} videos from API key ${currentKeyIndex + 1}`)
+    console.log(`🎉 Final result: ${finalVideos.length} videos from API key ${currentKeyIndex + 1} (${isMobile ? 'mobile' : 'desktop'})`)
 
     res.status(200).json({
       success: true,
@@ -525,7 +559,9 @@ export default async function handler(req, res) {
         youtube: finalVideos.length,
         apiKeyUsed: currentKeyIndex + 1,
         regions: [...new Set(finalVideos.map(v => v.region))],
-        enhanced: true
+        enhanced: true,
+        mobile: isMobile,
+        searchTermsUsed: searchTerms.length
       }
     })
 
@@ -542,6 +578,8 @@ export default async function handler(req, res) {
         youtube: 0,
         curated: fallbackVideos.length,
         fallback: true,
+        mobile: isMobile,
+        error: error.message,
         message: 'All YouTube API keys exhausted - using curated content'
       }
     })

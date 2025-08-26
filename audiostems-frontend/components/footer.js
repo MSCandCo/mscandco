@@ -70,6 +70,7 @@ function Footer() {
             </div>
           </div>
           <div className="lg:px-8 w-full sm:w-1/3 lg:w-1/4">
+            <h4 className="font-bold">BRANDS</h4>
             <div className="mt-4 flex flex-col gap-3">
               <div className="text-sm">
                 <div className="font-semibold">{BRANDS.MSC_CO.displayName}</div>

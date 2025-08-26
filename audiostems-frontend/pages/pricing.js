@@ -578,10 +578,10 @@ function Pricing() {
                       return; // Do nothing for integral roles
                     }
                     if (!user) {
-                      window.location.href = '/register-simple';
+                      router.push('/register');
                     } else {
                       // Redirect to billing page for subscription management
-                      window.location.href = '/billing';
+                      router.push('/billing');
                     }
                   }}
                   disabled={plan.isIntegral}
