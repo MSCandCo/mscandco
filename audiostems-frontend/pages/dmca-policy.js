@@ -1,5 +1,5 @@
-import MainLayout from '@/components/layouts/MainLayout'
-import Container from '@/components/Container'
+import MainLayout from '@/components/layouts/mainLayout'
+import Container from '@/components/container'
 import { COMPANY_INFO } from '@/lib/brand-config'
 
 export default function DMCAPolicy() {

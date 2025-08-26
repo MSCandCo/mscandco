@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import MainLayout from '@/components/layouts/MainLayout'
-import Container from '@/components/Container'
+import MainLayout from '@/components/layouts/mainLayout'
+import Container from '@/components/container'
 import { Button } from 'flowbite-react'
 
 export default function FindMySong() {
