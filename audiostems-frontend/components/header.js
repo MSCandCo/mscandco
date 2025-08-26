@@ -89,90 +89,92 @@ function Header({ largeLogo = false }) {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
+        <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo - Left */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <img
-                className={`${largeLogo ? 'h-32' : 'h-8 md:h-10'} w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200`}
-                src="/logos/msc-logo.png"
-                alt="MSC & Co Logo"
-                onError={(e) => {
-                  e.target.src = '/logos/msc-logo.svg';
-                }}
-              />
+                          <img
+              className={`${largeLogo ? 'h-32' : 'h-12 md:h-16'} w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200`}
+              src="/logos/msc-logo.png"
+              alt="MSC & Co Logo"
+              onError={(e) => {
+                e.target.src = '/logos/msc-logo.svg';
+              }}
+            />
             </Link>
           </div>
 
-          {/* Desktop Navigation - Full Menu */}
-          <div className="hidden md:flex items-center justify-center flex-1">
+          {/* Desktop Navigation - Logo Left, Everything Right */}
+          <div className="hidden md:flex items-center flex-1">
             {user ? (
-              <div 
-                className="relative"
-                ref={dropdownRef}
-                onMouseLeave={() => setIsDropdownOpen(false)}
-              >
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  onMouseEnter={() => setIsDropdownOpen(true)}
-                  className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
-                  type="button"
+              <div className="flex items-center ml-auto">
+                <div 
+                  className="relative"
+                  ref={dropdownRef}
+                  onMouseLeave={() => setIsDropdownOpen(false)}
                 >
-                  <span className="sr-only">Open user menu</span>
-                  Hi, {(() => {
-                    if (profileData?.firstName && profileData?.lastName) {
-                      return `${profileData.firstName} ${profileData.lastName}`;
-                    }
-                    return user?.email ? String(user.email) : 'User';
-                  })()}
-                  <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                  </svg>
-                </button>
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onMouseEnter={() => setIsDropdownOpen(true)}
+                    className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                    type="button"
+                  >
+                    <span className="sr-only">Open user menu</span>
+                    Hi, {(() => {
+                      if (profileData?.firstName && profileData?.lastName) {
+                        return `${profileData.firstName} ${profileData.lastName}`;
+                      }
+                      return user?.email ? String(user.email) : 'User';
+                    })()}
+                    <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                    </svg>
+                  </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <Link href={
-                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
-                      '/dashboard'
-                    }>
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                        Dashboard
-                      </div>
-                    </Link>
-                    <Link href="/settings/me">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                        Profile
-                      </div>
-                    </Link>
-                    <Link href="/download-history">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
-                        Download History
-                      </div>
-                    </Link>
-                    <button
-                      onClick={openCustomerPortal}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    >
-                      <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
-                      Billing
-                    </button>
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={() => router.push('/logout')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    >
-                      <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
-                      Logout
-                    </button>
-                  </div>
-                )}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                      <Link href={
+                        getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                        '/dashboard'
+                      }>
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                          Dashboard
+                        </div>
+                      </Link>
+                      <Link href="/settings/me">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                          Profile
+                        </div>
+                      </Link>
+                      <Link href="/download-history">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
+                          Download History
+                        </div>
+                      </Link>
+                      <button
+                        onClick={openCustomerPortal}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      >
+                        <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
+                        Billing
+                      </button>
+                      <hr className="my-1 border-gray-200" />
+                      <button
+                        onClick={() => router.push('/logout')}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      >
+                        <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-8 ml-auto">
                 <Link 
                   href="/pricing" 
                   className={getNavLinkClasses('/pricing')}
@@ -191,36 +193,34 @@ function Header({ largeLogo = false }) {
                 >
                   Support
                 </Link>
-                <div className="flex items-center space-x-4 ml-8">
-                  <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                    Login
-                  </Link>
-                  <Link href="/register">
-                    <button
-                      className="
-                        bg-transparent 
-                        text-[#1f2937] 
-                        border 
-                        border-[#1f2937] 
-                        rounded-xl 
-                        px-6 
-                        py-2 
-                        font-bold 
-                        shadow 
-                        transition-all 
-                        duration-300 
-                        hover:bg-[#1f2937] 
-                        hover:text-white 
-                        hover:shadow-lg 
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-[#1f2937]
-                      "
-                    >
-                      Register
-                    </button>
-                  </Link>
-                </div>
+                <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                  Login
+                </Link>
+                <Link href="/register">
+                  <button
+                    className="
+                      bg-transparent 
+                      text-[#1f2937] 
+                      border 
+                      border-[#1f2937] 
+                      rounded-xl 
+                      px-6 
+                      py-2 
+                      font-bold 
+                      shadow 
+                      transition-all 
+                      duration-300 
+                      hover:bg-[#1f2937] 
+                      hover:text-white 
+                      hover:shadow-lg 
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#1f2937]
+                    "
+                  >
+                    Register
+                  </button>
+                </Link>
               </div>
             )}
           </div>
