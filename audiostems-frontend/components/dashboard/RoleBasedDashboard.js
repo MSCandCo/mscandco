@@ -94,9 +94,12 @@ export default function RoleBasedDashboard() {
       const token = session?.access_token;
       
       if (!token) {
-        setError('Authentication required');
+        console.error('No authentication token available');
+        setError('Authentication required - please log in again');
         return;
       }
+
+      console.log('Loading dashboard data for role:', userRole);
 
       let apiEndpoint;
       switch (userRole) {
@@ -113,29 +116,45 @@ export default function RoleBasedDashboard() {
           apiEndpoint = '/api/companyadmin/dashboard-stats';
           break;
         default:
-          setError('Unsupported user role');
+          console.error('Unsupported user role:', userRole);
+          setError(`Unsupported user role: ${userRole}. Please contact support.`);
           return;
       }
+
+      console.log('Fetching data from:', apiEndpoint);
 
       const response = await fetch(apiEndpoint, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      console.log('API Response status:', response.status);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('API Response:', result);
         if (result.success) {
           setDashboardData(result.data);
         } else {
-          setError('Failed to load dashboard data');
+          console.error('API returned success=false:', result);
+          setError(result.message || 'Failed to load dashboard data');
         }
       } else {
-        setError('Failed to fetch dashboard data');
+        const errorText = await response.text();
+        console.error('API Error Response:', response.status, errorText);
+        
+        if (response.status === 403) {
+          setError(`Access denied. Your account role (${userRole}) doesn't have permission to access this dashboard. Please contact support if this is incorrect.`);
+        } else if (response.status === 401) {
+          setError('Authentication expired. Please log out and log back in.');
+        } else {
+          setError(`Failed to fetch dashboard data (${response.status}). Please try refreshing the page.`);
+        }
       }
       
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      setError('Error loading dashboard data');
+      setError(`Error loading dashboard data: ${error.message}. Please try refreshing the page.`);
       setLoading(false);
     }
   };
@@ -345,15 +364,45 @@ export default function RoleBasedDashboard() {
     return (
       <MainLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
+          <div className="text-center max-w-md mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Error loading dashboard</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <button 
-              onClick={loadDashboardData}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Try Again
-            </button>
+            
+            {/* Check if in ghost mode */}
+            {typeof window !== 'undefined' && sessionStorage.getItem('ghost_mode') === 'true' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-yellow-800 text-sm mb-2">
+                  <strong>Ghost Mode Active:</strong> You're viewing as a different user role.
+                </p>
+                <button
+                  onClick={() => {
+                    sessionStorage.removeItem('ghost_mode');
+                    sessionStorage.removeItem('ghost_target_user');
+                    window.dispatchEvent(new Event('ghostModeChanged'));
+                    window.location.reload();
+                  }}
+                  className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
+                >
+                  Exit Ghost Mode
+                </button>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <button 
+                onClick={loadDashboardData}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full"
+              >
+                Try Again
+              </button>
+              
+              <button 
+                onClick={() => router.push('/login')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full"
+              >
+                Back to Login
+              </button>
+            </div>
           </div>
         </div>
       </MainLayout>
