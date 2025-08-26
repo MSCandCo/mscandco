@@ -27,9 +27,42 @@ export default async function handler(req, res) {
     }
 
     const userId = userInfo?.sub
-    const userRole = userInfo?.user_metadata?.role
+    const userEmail = userInfo?.email?.toLowerCase() || ''
+    
+    // Use the same role detection logic as frontend
+    let userRole = userInfo?.user_metadata?.role || userInfo?.app_metadata?.role
+    
+    // Email-based role detection for known users (same as frontend)
+    if (!userRole) {
+      if (userEmail === 'labeladmin@mscandco.com') {
+        userRole = 'label_admin'
+      } else if (userEmail === 'codegroup@mscandco.com') {
+        userRole = 'distribution_partner'
+      } else if (userEmail.includes('codegroup') || userEmail.includes('code-group')) {
+        userRole = 'distribution_partner'
+      } else if (userEmail === 'companyadmin@mscandco.com') {
+        userRole = 'company_admin'
+      } else if (userEmail === 'superadmin@mscandco.com') {
+        userRole = 'super_admin'
+      } else {
+        userRole = 'artist' // default
+      }
+    }
+    
+    console.log('🔍 Label Admin API - User role detection:', {
+      userId,
+      userEmail,
+      detectedRole: userRole,
+      user_metadata_role: userInfo?.user_metadata?.role,
+      app_metadata_role: userInfo?.app_metadata?.role
+    })
+    
     if (userRole !== 'label_admin') {
-      return res.status(403).json({ error: 'Label Admin access required' })
+      console.log('❌ Access denied - expected label_admin, got:', userRole)
+      return res.status(403).json({ 
+        error: 'Label Admin access required',
+        details: `Your role is '${userRole}', but 'label_admin' is required`
+      })
     }
 
     // Query all label admin-related data in parallel
