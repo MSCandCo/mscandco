@@ -1,5 +1,7 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3 } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
@@ -12,10 +14,61 @@ export default function ArtistEarnings() {
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   
-  // Mock user plan - in real app, this would come from user subscription data
-  const [userPlan] = useState('starter'); // 'starter' or 'pro'
-  const hasProAccess = userPlan === 'pro';
+  const hasProAccess = subscriptionStatus?.isPro || false;
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) {
+          setSubscriptionLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/user/subscription-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          setSubscriptionStatus(result.data);
+          console.log('📋 Earnings subscription status loaded:', result.data);
+        } else {
+          // Set default no subscription status
+          setSubscriptionStatus({
+            status: 'none',
+            planName: 'No Subscription',
+            hasSubscription: false,
+            isPro: false,
+            isStarter: false
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription status:', error);
+        // Set default no subscription status
+        setSubscriptionStatus({
+          status: 'none',
+          planName: 'No Subscription',
+          hasSubscription: false,
+          isPro: false,
+          isStarter: false
+        });
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [user]);
 
   // Handle date range changes
   const handleDateRangeChange = (start, end) => {
@@ -435,9 +488,11 @@ export default function ArtistEarnings() {
                   </div>
                 </div>
 
-                <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
-                  Upgrade to Pro Plan
-                </button>
+                <Link href="/billing">
+                  <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
+                    Upgrade to Pro Plan
+                  </button>
+                </Link>
               </div>
             </div>
           )}

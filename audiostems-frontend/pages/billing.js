@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { supabase } from '@/lib/supabase';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { 
   CreditCard, 
   Check, 
@@ -15,8 +17,12 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
 
 const BillingPage = () => {
+  const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
+  
   // State management
   const [activeTab, setActiveTab] = useState('subscription');
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
@@ -26,11 +32,67 @@ const BillingPage = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState(0);
+  // Use shared wallet balance hook
+  const { walletBalance, isLoading: loadingBalance, refreshBalance } = useWalletBalance();
   
-  // Mock data - replace with real data from your backend
-  const walletBalance = 0.00;
+  // Handle payment status from URL query parameters
+  useEffect(() => {
+    const { payment } = router.query;
+    if (payment) {
+      setPaymentStatus(payment);
+      
+      // Clear the query parameter after handling
+      const newUrl = router.asPath.split('?')[0];
+      router.replace(newUrl, undefined, { shallow: true });
+      
+      // Auto-clear success message after 5 seconds
+      if (payment === 'success') {
+        setTimeout(() => setPaymentStatus(null), 5000);
+      }
+    }
+  }, [router.query, router]);
+
+  // Fetch current subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (!user) return;
+      
+      try {
+        setSubscriptionLoading(true);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch('/api/user/subscription-status', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data.hasSubscription) {
+            setCurrentSubscription(result.data);
+            console.log('💳 Current subscription loaded:', result.data);
+          } else {
+            setCurrentSubscription(null);
+            console.log('📋 No active subscription found');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription status:', error);
+        setCurrentSubscription(null);
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [user]);
+
+  // Wallet balance is now managed by the shared hook
+  
   const userRole = 'artist'; // Get from your auth context
-  const currentSubscription = null; // Get from your backend
+  const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   // Static configuration
   const CURRENCIES = [
@@ -130,6 +192,67 @@ const BillingPage = () => {
     return PLAN_PRICES[planId]?.[billing] || 0;
   };
 
+  // Helper function to determine button state for each plan
+  const getButtonState = (planId) => {
+    if (subscriptionLoading) {
+      return {
+        text: 'Loading...',
+        className: 'bg-gray-100 text-gray-500 cursor-not-allowed',
+        disabled: true,
+        icon: null
+      };
+    }
+
+    // Convert between hyphen and underscore formats for comparison
+    const normalizeId = (id) => id?.replace(/-/g, '_');
+    const currentPlanNormalized = normalizeId(currentSubscription?.planId || currentSubscription?.tier);
+    const thisPlanNormalized = normalizeId(planId);
+    
+    const isCurrentPlan = currentPlanNormalized === thisPlanNormalized;
+    const hasActiveSubscription = currentSubscription?.hasSubscription;
+
+    if (isCurrentPlan && hasActiveSubscription) {
+      return {
+        text: 'Current Plan',
+        className: 'bg-green-100 text-green-700 cursor-not-allowed border border-green-200',
+        disabled: true,
+        icon: null
+      };
+    }
+
+    if (hasActiveSubscription && !isCurrentPlan) {
+      // Check if it's an upgrade or downgrade
+      // Convert subscription tier to hyphen format for price lookup
+      const currentPlanId = (currentSubscription?.planId || currentSubscription?.tier)?.replace(/_/g, '-');
+      const currentPlanPrice = getPlanPrice(currentPlanId);
+      const thisPlanPrice = getPlanPrice(planId);
+      
+      if (thisPlanPrice > currentPlanPrice) {
+        return {
+          text: 'Upgrade Plan',
+          className: 'bg-blue-600 hover:bg-blue-700 text-white',
+          disabled: false,
+          icon: null
+        };
+      } else {
+        return {
+          text: 'Change Plan',
+          className: 'bg-blue-600 hover:bg-blue-700 text-white',
+          disabled: false,
+          icon: null
+        };
+      }
+    }
+
+    // No active subscription
+    return {
+      text: 'Get Started',
+      className: 'bg-blue-600 hover:bg-blue-700 text-white',
+      disabled: false,
+      icon: null
+    };
+  };
+
   // Event handlers
   const handleSubscribe = async (planId) => {
     setIsLoading(true);
@@ -147,11 +270,56 @@ const BillingPage = () => {
       console.log('Has Enough Funds:', walletBalance >= gbpPrice);
 
       if (walletBalance >= gbpPrice) {
-        // Simulate wallet payment
+        // Process real wallet payment
         console.log('Processing wallet payment...');
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+        
+        // Get user session for API call
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error('Please log in to continue');
+        }
+
+        const response = await fetch('/api/wallet/pay-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            planId: planId,
+            billing: selectedBilling
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Subscription payment failed');
+        }
+
+        console.log('✅ Subscription successful via wallet:', result);
         setPaymentStatus('success');
-        console.log('✅ Subscription successful via wallet');
+        
+        // Refresh wallet balance using shared hook
+        await refreshBalance();
+        
+        // Refresh subscription status immediately
+        const { data: { session: refreshSession } } = await supabase.auth.getSession();
+        if (refreshSession) {
+          const response = await fetch('/api/user/subscription-status', {
+            headers: { 'Authorization': `Bearer ${refreshSession.access_token}` }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data.hasSubscription) {
+              setCurrentSubscription(result.data);
+              console.log('💳 Subscription status refreshed after payment:', result.data);
+            }
+          }
+        }
+        
       } else {
         // Need to top up
         const shortfall = gbpPrice - walletBalance;
@@ -176,17 +344,26 @@ const BillingPage = () => {
       console.log('Top up amount:', topUpAmount);
       console.log('Plan:', selectedPlan);
       
-      // Call your actual Revolut API for top-up
+      // Get user session for API call
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Please log in to continue');
+      }
+
+      // Call your actual Revolut API for top-up with subscription
       const response = await fetch('/api/revolut/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           amount: topUpAmount,
           currency: 'GBP',
           description: `Top-up for ${PLANS.find(p => p.id === selectedPlan)?.name} subscription`,
-          // Add user details from your auth context
+          planId: selectedPlan,
+          billing: selectedBilling
         })
       });
       
@@ -230,10 +407,18 @@ const BillingPage = () => {
     console.log('Amount to add:', fundAmount);
     
     try {
+      // Get user session for API call
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Please log in to continue');
+      }
+
       const response = await fetch('/api/revolut/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           amount: fundAmount,
@@ -270,16 +455,82 @@ const BillingPage = () => {
               <h1 className="text-2xl font-bold text-gray-900">Billing & Payments</h1>
               <p className="text-gray-600 mt-1">Manage your artist subscription and wallet</p>
             </div>
-            <button 
-              onClick={() => window.location.reload()}
+                        <button
+              onClick={refreshBalance}
               className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+              disabled={loadingBalance}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Data
+              <RefreshCw className={`h-4 w-4 mr-2 ${loadingBalance ? 'animate-spin' : ''}`} />
+              {loadingBalance ? 'Refreshing...' : 'Refresh Balance'}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Payment Status Notifications */}
+      {paymentStatus && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          {paymentStatus === 'success' && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <Check className="w-5 h-5 text-green-600 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-green-800">Payment Successful!</h3>
+                  <p className="text-sm text-green-700 mt-1">
+                    Your payment has been processed successfully. Your subscription will be activated shortly.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPaymentStatus(null)}
+                  className="ml-auto text-green-600 hover:text-green-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {paymentStatus === 'failed' && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">Payment Failed</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    There was an issue processing your payment. Please try again or contact support.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPaymentStatus(null)}
+                  className="ml-auto text-red-600 hover:text-red-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {paymentStatus === 'cancelled' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-yellow-800">Payment Cancelled</h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Your payment was cancelled. You can try again when you're ready.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPaymentStatus(null)}
+                  className="ml-auto text-yellow-600 hover:text-yellow-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200">
@@ -454,29 +705,29 @@ const BillingPage = () => {
                         ))}
                       </ul>
 
-                      <button
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={isLoading}
-                        className={`w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold transition-all flex items-center justify-center text-sm sm:text-base ${
-                          plan.popular
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-gray-900 hover:bg-gray-800 text-white'
-                        } ${isLoading && selectedPlan === plan.id ? 'opacity-75' : ''}`}
-                      >
-                        {isLoading && selectedPlan === plan.id ? (
-                          <>
-                            <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                            <span>Processing...</span>
-                          </>
-                        ) : hasEnoughFunds ? (
-                          <span>Subscribe Now</span>
-                        ) : (
-                          <span className="hidden sm:inline">Top Up & Subscribe</span>
-                        )}
-                        {!hasEnoughFunds && (
-                          <span className="sm:hidden">Subscribe</span>
-                        )}
-                      </button>
+                      {(() => {
+                        const buttonState = getButtonState(plan.id);
+                        const isProcessing = isLoading && selectedPlan === plan.id;
+                        
+                        return (
+                          <button
+                            onClick={() => !buttonState.disabled && handleSubscribe(plan.id)}
+                            disabled={buttonState.disabled || isLoading}
+                            className={`w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold transition-all flex items-center justify-center text-sm sm:text-base ${
+                              isProcessing ? 'opacity-75' : ''
+                            } ${buttonState.className}`}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                                <span>Processing...</span>
+                              </>
+                            ) : (
+                              <span>{buttonState.text}</span>
+                            )}
+                          </button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
@@ -498,6 +749,14 @@ const BillingPage = () => {
                   <p className="text-purple-100 text-sm sm:text-base">Add funds to your wallet for subscription payments and other platform services.</p>
                 </div>
                 <div className="text-center sm:text-right">
+                  <button 
+                    onClick={refreshBalance}
+                    className="mb-2 px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm flex items-center mx-auto sm:mx-0"
+                    disabled={loadingBalance}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-1 ${loadingBalance ? 'animate-spin' : ''}`} />
+                    {loadingBalance ? 'Refreshing...' : 'Refresh'}
+                  </button>
                   <button 
                     onClick={() => handleAddFunds(50)}
                     className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all backdrop-blur-sm w-full sm:w-auto"

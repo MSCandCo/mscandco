@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { createClient } from '@supabase/supabase-js';
 import { getUserRoleSync } from '@/lib/user-utils';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
@@ -48,6 +55,10 @@ export default function PartnerAnalytics() {
   const [selectedRelease, setSelectedRelease] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState('all');
   
+  // Real data states
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  
   // Production-ready data (zeros until real data exists)
   const ARTISTS = [];
   const RELEASES = [];
@@ -69,6 +80,72 @@ export default function PartnerAnalytics() {
   // Currency sync hook
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
+  // Load analytics data from API
+  const loadAnalyticsData = async () => {
+    try {
+      setLoadingAnalytics(true);
+      
+      // Get user session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No session found for loading analytics');
+        return;
+      }
+
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const response = await fetch(`/api/distributionpartner/analytics?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('📊 Loaded analytics data:', result.data);
+        setAnalyticsData(result.data);
+      } else {
+        console.error('Failed to load analytics:', response.status);
+        setAnalyticsData({
+          totalStreams: 0,
+          totalEarnings: 0,
+          totalRevenue: 0,
+          totalReleases: 0,
+          streamsByPlatform: {},
+          streamsByGenre: {},
+          topReleases: [],
+          topArtists: [],
+          monthlyPerformance: []
+        });
+      }
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      setAnalyticsData({
+        totalStreams: 0,
+        totalEarnings: 0,
+        totalRevenue: 0,
+        totalReleases: 0,
+        streamsByPlatform: {},
+        streamsByGenre: {},
+        topReleases: [],
+        topArtists: [],
+        monthlyPerformance: []
+      });
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  // Load analytics when component mounts or filters change
+  useEffect(() => {
+    if (user) {
+      loadAnalyticsData();
+    }
+  }, [user, startDate, endDate]);
+
   // Handle date range changes
   const handleDateRangeChange = (start, end) => {
     setStartDate(start);
@@ -87,23 +164,25 @@ export default function PartnerAnalytics() {
         [''],
         ['Platform Performance'],
         ['Platform', 'Total Streams', 'Revenue', 'Market Share'],
-        ['Spotify', '2,456,789', sharedFormatCurrency(12450.75, selectedCurrency), '35.2%'],
-        ['Apple Music', '1,847,293', sharedFormatCurrency(9234.56, selectedCurrency), '26.4%'],
-        ['YouTube Music', '1,234,567', sharedFormatCurrency(6789.12, selectedCurrency), '17.8%'],
-        ['Amazon Music', '892,456', sharedFormatCurrency(4567.89, selectedCurrency), '12.8%'],
-        ['Other Platforms', '567,234', sharedFormatCurrency(2890.34, selectedCurrency), '7.8%'],
+        ...Object.entries(analyticsData?.streamsByPlatform || {}).map(([platform, streams]) => [
+          platform,
+          streams.toLocaleString(),
+          sharedFormatCurrency((analyticsData?.totalRevenue || 0) * (streams / Math.max(analyticsData?.totalStreams || 1, 1)), selectedCurrency),
+          analyticsData?.totalStreams > 0 ? `${((streams / analyticsData.totalStreams) * 100).toFixed(1)}%` : '0%'
+        ]),
         [''],
         ['Revenue Breakdown'],
         ['Category', 'Amount', 'Percentage'],
-        ['Streaming Revenue', sharedFormatCurrency(28450.75, selectedCurrency), '78.5%'],
-        ['Download Sales', sharedFormatCurrency(5234.67, selectedCurrency), '14.4%'],
-        ['Sync Licensing', sharedFormatCurrency(2567.89, selectedCurrency), '7.1%'],
+        ['Total Revenue', sharedFormatCurrency(analyticsData?.totalRevenue || 0, selectedCurrency), '100%'],
+        ['Total Earnings', sharedFormatCurrency(analyticsData?.totalEarnings || 0, selectedCurrency), analyticsData?.totalRevenue > 0 ? `${((analyticsData.totalEarnings / analyticsData.totalRevenue) * 100).toFixed(1)}%` : '0%'],
         [''],
         ['Top Performing Artists'],
         ['Artist', 'Total Streams', 'Revenue'],
-        ['MSC & Co MSC', '892,456', sharedFormatCurrency(8947.23, selectedCurrency)],
-        ['Global Superstar', '745,123', sharedFormatCurrency(7234.56, selectedCurrency)],
-        ['Seoul Stars', '623,789', sharedFormatCurrency(6123.45, selectedCurrency)]
+        ...(analyticsData?.topArtists || []).slice(0, 10).map(artist => [
+          artist.artistName || 'Unknown Artist',
+          artist.totalStreams?.toLocaleString() || '0',
+          sharedFormatCurrency(artist.totalEarnings || 0, selectedCurrency)
+        ])
       ];
 
       const worksheet = XLSX.utils.aoa_to_sheet(analyticsData);
@@ -141,11 +220,12 @@ export default function PartnerAnalytics() {
       
       const platformData = [
         ['Platform', 'Total Streams', 'Revenue', 'Market Share'],
-        ['Spotify', '2,456,789', sharedFormatCurrency(12450.75, selectedCurrency), '35.2%'],
-        ['Apple Music', '1,847,293', sharedFormatCurrency(9234.56, selectedCurrency), '26.4%'],
-        ['YouTube Music', '1,234,567', sharedFormatCurrency(6789.12, selectedCurrency), '17.8%'],
-        ['Amazon Music', '892,456', sharedFormatCurrency(4567.89, selectedCurrency), '12.8%'],
-        ['Other Platforms', '567,234', sharedFormatCurrency(2890.34, selectedCurrency), '7.8%']
+        ...Object.entries(analyticsData?.streamsByPlatform || {}).map(([platform, streams]) => [
+          platform,
+          streams.toLocaleString(),
+          sharedFormatCurrency((analyticsData?.totalRevenue || 0) * (streams / Math.max(analyticsData?.totalStreams || 1, 1)), selectedCurrency),
+          analyticsData?.totalStreams > 0 ? `${((streams / analyticsData.totalStreams) * 100).toFixed(1)}%` : '0%'
+        ])
       ];
       
       doc.autoTable({
@@ -163,9 +243,8 @@ export default function PartnerAnalytics() {
       
       const revenueData = [
         ['Category', 'Amount', 'Percentage'],
-        ['Streaming Revenue', sharedFormatCurrency(28450.75, selectedCurrency), '78.5%'],
-        ['Download Sales', sharedFormatCurrency(5234.67, selectedCurrency), '14.4%'],
-        ['Sync Licensing', sharedFormatCurrency(2567.89, selectedCurrency), '7.1%']
+        ['Total Revenue', sharedFormatCurrency(analyticsData?.totalRevenue || 0, selectedCurrency), '100%'],
+        ['Total Earnings', sharedFormatCurrency(analyticsData?.totalEarnings || 0, selectedCurrency), analyticsData?.totalRevenue > 0 ? `${((analyticsData.totalEarnings / analyticsData.totalRevenue) * 100).toFixed(1)}%` : '0%']
       ];
       
       doc.autoTable({
@@ -183,9 +262,11 @@ export default function PartnerAnalytics() {
       
       const artistData = [
         ['Artist', 'Total Streams', 'Revenue'],
-        ['MSC & Co MSC', '892,456', sharedFormatCurrency(8947.23, selectedCurrency)],
-        ['Global Superstar', '745,123', sharedFormatCurrency(7234.56, selectedCurrency)],
-        ['Seoul Stars', '623,789', sharedFormatCurrency(6123.45, selectedCurrency)]
+        ...(analyticsData?.topArtists || []).slice(0, 10).map(artist => [
+          artist.artistName || 'Unknown Artist',
+          artist.totalStreams?.toLocaleString() || '0',
+          sharedFormatCurrency(artist.totalEarnings || 0, selectedCurrency)
+        ])
       ];
       
       doc.autoTable({

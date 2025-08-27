@@ -169,6 +169,8 @@ export default async function handler(req, res) {
     const streams = streamsResult.data || []
     const labelRelationship = labelRelationshipResult.data?.[0] || null
 
+
+
     // Calculate release metrics
     const totalReleases = releases.length
     const releasesByStatus = {

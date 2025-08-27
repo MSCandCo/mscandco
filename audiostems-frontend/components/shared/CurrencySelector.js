@@ -201,7 +201,7 @@ export const formatCurrency = (gbpAmount, displayCurrency = 'GBP', options = {})
   const { 
     showSymbol = true, 
     showCode = false, 
-    decimals = 0,
+    decimals = 2,
     compact = false 
   } = options;
   

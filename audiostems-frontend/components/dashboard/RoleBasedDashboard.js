@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
 import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Settings, Eye } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 
@@ -21,8 +22,11 @@ const LoadingState = ({ message = "Loading..." }) => (
 );
 
 // Enhanced stats card component
-const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => (
-  <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+const StatsCard = ({ title, value, change, icon: Icon, trend = 'up', onClick }) => (
+  <div 
+    className={`bg-white overflow-hidden shadow-sm border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow ${onClick ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+    onClick={onClick}
+  >
     <div className="flex items-center justify-between">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
@@ -65,6 +69,10 @@ export default function RoleBasedDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  
+  // Use shared wallet balance hook
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance();
 
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
@@ -77,12 +85,46 @@ export default function RoleBasedDashboard() {
     }
   }, [user, router]);
 
+
+
   // Load role-specific dashboard data
   useEffect(() => {
     if (user && userRole) {
       loadDashboardData();
+      fetchSubscriptionStatus();
     }
   }, [user, userRole]);
+
+  // Fetch subscription status
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) return;
+
+      const response = await fetch('/api/user/subscription-status', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setSubscriptionStatus(result.data);
+        console.log('📋 Subscription status loaded:', result.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch subscription status:', error);
+      // Set default no subscription status
+      setSubscriptionStatus({
+        status: 'none',
+        planName: 'No Subscription',
+        hasSubscription: false,
+        isPro: false,
+        isStarter: false
+      });
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -192,10 +234,17 @@ export default function RoleBasedDashboard() {
               trend: dashboardData.earningsGrowth >= 0 ? 'up' : 'down'
             },
             { 
-              title: 'Wallet Balance', 
-              value: formatCurrency(dashboardData.walletBalance || 0, selectedCurrency), 
-              change: `${dashboardData.pendingEarnings || 0} pending`, 
-              icon: Users 
+              title: 'Wallet Balance (Click to Refresh)', 
+              value: formatCurrency(walletBalance, selectedCurrency), 
+              change: `${dashboardData?.pendingEarnings || 0} pending`, 
+              icon: Users,
+              onClick: async () => {
+                // Force refresh wallet balance and subscription status
+                console.log('🔄 Refreshing wallet balance from dashboard...');
+                await refreshBalance();
+                await fetchSubscriptionStatus(); // Also refresh subscription status
+                console.log('✅ Wallet balance and subscription status refreshed');
+              }
             }
           ],
           cards: [
@@ -449,13 +498,27 @@ export default function RoleBasedDashboard() {
                 <p className="text-blue-100 text-lg">{dashboardContent.subtitle}</p>
                 <p className="text-blue-100 text-sm mt-1">{dashboardContent.description}</p>
               </div>
-              {userRole === 'artist' && dashboardData?.subscriptionStatus && (
+              {subscriptionStatus && (
                 <div className="text-right">
                   <div className="text-sm text-blue-100">Subscription</div>
                   <div className="text-xl font-bold">
-                    {dashboardData.subscriptionStatus.tier === 'artist_starter' ? 'Starter' : 
-                     dashboardData.subscriptionStatus.tier === 'artist_pro' ? 'Pro' : 'Free'}
+                    {subscriptionStatus.planName === 'No Subscription' ? (
+                      <span className="text-red-200">No Subscription</span>
+                    ) : subscriptionStatus.isStarter ? (
+                      <span className="text-blue-200">Starter</span>
+                    ) : subscriptionStatus.isPro ? (
+                      <span className="text-purple-200">Pro</span>
+                    ) : (
+                      <span className="text-gray-200">{subscriptionStatus.planName}</span>
+                    )}
                   </div>
+                  {!subscriptionStatus.hasSubscription && (
+                    <Link href="/billing">
+                      <button className="mt-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm px-3 py-1 rounded-lg transition-colors">
+                        Upgrade
+                      </button>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -471,6 +534,7 @@ export default function RoleBasedDashboard() {
                 change={stat.change}
                 icon={stat.icon}
                 trend={stat.trend}
+                onClick={stat.onClick}
               />
             ))}
           </div>

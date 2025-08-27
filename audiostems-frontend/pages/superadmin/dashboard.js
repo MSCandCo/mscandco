@@ -7,7 +7,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, Eye,
   Play, Pause, CheckCircle, Clock, AlertTriangle,
   Globe, Calendar, Database, Settings, Shield,
-  UserCheck, Activity, Target, Zap, Building2, X, Search
+  UserCheck, Activity, Target, Zap, Building2, X, Search, Wallet
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';

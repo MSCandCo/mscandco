@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
 
 export default function RoleBasedNavigation() {
   const { user, isLoading } = useUser();
@@ -35,6 +36,9 @@ export default function RoleBasedNavigation() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Use shared wallet balance hook
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance();
 
   // Load profile data for Distribution Partners
   useEffect(() => {
@@ -1024,10 +1028,14 @@ export default function RoleBasedNavigation() {
           <div className="flex items-center space-x-3">
             {/* Platform Funds Display - For artists */}
             {userRole === 'artist' && (
-              <div className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
+              <div 
+                className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={refreshBalance}
+                title="Click to refresh wallet balance"
+              >
                 <Wallet className="w-4 h-4 text-gray-600" />
                 <span className="text-xs font-medium text-gray-900">
-                  {sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}
+                  {walletLoading ? '...' : sharedFormatCurrency(walletBalance, selectedCurrency)}
                 </span>
               </div>
             )}
@@ -1128,10 +1136,14 @@ export default function RoleBasedNavigation() {
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
               {/* Mobile Balance Display */}
               {userRole === 'artist' && (
-                <div className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3">
+                <div 
+                  className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={refreshBalance}
+                  title="Click to refresh wallet balance"
+                >
                   <Wallet className="w-4 h-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-900">
-                    Balance: {sharedFormatCurrency(fundsData.heldEarnings, selectedCurrency)}
+                    Balance: {walletLoading ? '...' : sharedFormatCurrency(walletBalance, selectedCurrency)}
                   </span>
                 </div>
               )}

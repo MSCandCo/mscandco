@@ -1,72 +1,88 @@
-import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Verify user authentication
-    const token = req.headers.authorization?.replace('Bearer ', '')
+    const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
+      return res.status(401).json({ error: 'Authorization token required' });
     }
 
-    // Decode JWT token (skip verification for now)
-    let userInfo
+    let userInfo;
     try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
+      userInfo = jwt.decode(token);
+    } catch (jwtError) {
+      return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const userId = userInfo?.sub
+    const userId = userInfo?.sub;
+    const userEmail = userInfo?.email?.toLowerCase() || '';
 
     if (!userId) {
-      return res.status(401).json({ error: 'Invalid user ID' })
+      return res.status(401).json({ error: 'Invalid user token' });
     }
 
-    // Get user's wallet balance from user_profiles (since we're using wallet_balance column there)
-    const { data: profile, error } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('wallet_balance')
-      .eq('id', userId)
-      .single()
+      .eq('user_id', userId)
+      .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      throw error
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('Error fetching user profile:', profileError);
+      return res.status(500).json({ 
+        error: 'Failed to fetch wallet balance',
+        details: profileError.message 
+      });
     }
 
-    // If no profile exists, return 0 balance
-    if (!profile) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          balance: 0.00,
-          currency: 'GBP'
-        }
-      })
+    const walletBalance = profile?.wallet_balance || 0;
+
+    const { data: transactions, error: transactionsError } = await supabase
+      .from('wallet_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (transactionsError) {
+      console.error('Error fetching wallet transactions:', transactionsError);
     }
 
-    res.status(200).json({
+    console.log('Wallet balance fetched:', {
+      userEmail,
+      balance: walletBalance,
+      transactionCount: transactions?.length || 0
+    });
+
+    res.json({
       success: true,
-      data: {
-        balance: profile.wallet_balance || 0.00,
-        currency: 'GBP'
-      }
-    })
+      walletBalance: parseFloat(walletBalance),
+      currency: 'GBP',
+      transactions: (transactions || []).map(tx => ({
+        id: tx.id,
+        type: tx.type,
+        amount: parseFloat(tx.amount),
+        description: tx.description,
+        orderReference: tx.order_reference,
+        createdAt: tx.created_at
+      }))
+    });
 
   } catch (error) {
-    console.error('Wallet balance error:', error)
+    console.error('Wallet balance fetch failed:', error);
     res.status(500).json({ 
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    })
+      error: 'Failed to fetch wallet balance', 
+      details: error.message 
+    });
   }
 }

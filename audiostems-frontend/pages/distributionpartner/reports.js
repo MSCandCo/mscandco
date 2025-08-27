@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { createClient } from '@supabase/supabase-js';
 import { getUserRoleSync } from '@/lib/user-utils';
 import Layout from '@/components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -39,6 +40,12 @@ ChartJS.register(
   Filler
 );
 
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
 export default function PartnerReports() {
   const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
@@ -53,27 +60,115 @@ export default function PartnerReports() {
   
   // Revenue reporting states
   const [showReportModal, setShowReportModal] = useState(false);
-  const [revenueReports, setRevenueReports] = useState([]); // TODO: Load from Supabase revenue_reports table
+  const [revenueReports, setRevenueReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(true);
   const [newReport, setNewReport] = useState({
     platform: '',
     amount: '',
     date: '',
-    selectedAssets: [],
+    selectedAsset: null,
     notes: ''
   });
-  const [artistSearch, setArtistSearch] = useState('');
-  const [releaseSearch, setReleaseSearch] = useState('');
-  const [selectedArtistForReport, setSelectedArtistForReport] = useState(null);
-  const [selectedReleaseForReport, setSelectedReleaseForReport] = useState(null);
-  const [availableAssets, setAvailableAssets] = useState([]);
+  const [assetSearch, setAssetSearch] = useState('');
+  const [selectedAssetForReport, setSelectedAssetForReport] = useState(null);
+  const [loadingAssets, setLoadingAssets] = useState(false);
   
-  // TODO: Connect to Supabase for real data
-  const [artists, setArtists] = useState([]); // TODO: Load from Supabase artists table
-  const [releases, setReleases] = useState([]); // TODO: Load from Supabase releases table  
-  const [assets, setAssets] = useState([]); // TODO: Load from Supabase assets table
+  // Real data from Supabase
+  const [artists, setArtists] = useState([]);
+  const [releases, setReleases] = useState([]);  
+  const [assets, setAssets] = useState([]);
   
   // Currency state
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+
+  // Load revenue reports from API
+  const loadRevenueReports = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('No session found for loading reports');
+        setLoadingReports(false);
+        return;
+      }
+
+      const response = await fetch('/api/revenue/list', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('📊 Loaded revenue reports:', result.reports?.length || 0);
+        
+        // Transform API data to match UI expectations
+        const transformedReports = (result.reports || []).map(report => ({
+          id: report.id,
+          platform: report.description?.split(' ')[0] || 'Unknown Platform',
+          amount: report.amount,
+          currency: report.currency,
+          date: report.period || report.created_at?.split('T')[0],
+          status: report.status,
+          submittedDate: report.created_at?.split('T')[0],
+          assets: [], // Could be enhanced to show actual assets
+          artistName: report.artist_email,
+          notes: report.description
+        }));
+        
+        setRevenueReports(transformedReports);
+      } else {
+        console.error('Failed to load revenue reports:', response.status);
+      }
+    } catch (error) {
+      console.error('Error loading revenue reports:', error);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  // Load assets from API
+  const loadAssets = async (searchTerm = '') => {
+    try {
+      setLoadingAssets(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('No session found for loading assets');
+        return;
+      }
+
+      const url = searchTerm 
+        ? `/api/assets/list?search=${encodeURIComponent(searchTerm)}`
+        : '/api/assets/list';
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('🎵 Loaded assets:', result.assets?.length || 0);
+        setAssets(result.assets || []);
+      } else {
+        console.error('Failed to load assets:', response.status);
+      }
+    } catch (error) {
+      console.error('Error loading assets:', error);
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
+
+  // Load reports when component mounts
+  useEffect(() => {
+    if (user) {
+      loadRevenueReports();
+      loadAssets();
+    }
+  }, [user]);
 
   // Handle date range changes
   const handleDateRangeChange = (start, end) => {
@@ -95,46 +190,81 @@ export default function PartnerReports() {
     setShowReportModal(true);
   };
 
-  const handleSubmitReport = () => {
+  const handleSubmitReport = async () => {
     if (!newReport.platform || !newReport.amount || !newReport.date) {
       showError('Please fill in all required fields', 'Missing Information');
       return;
     }
 
-    if (newReport.selectedAssets.length === 0) {
-      showError('Please select at least one asset', 'Missing Assets');
+    if (!selectedAssetForReport) {
+      showError('Please select an asset', 'Missing Asset');
       return;
     }
 
-    const report = {
-      id: Date.now(),
-      platform: newReport.platform,
-      amount: parseFloat(newReport.amount),
-      currency: selectedCurrency,
-      date: newReport.date,
-      status: 'pending',
-      submittedDate: new Date().toISOString().split('T')[0],
-      assets: newReport.selectedAssets.map(asset => asset.name),
-      artistId: selectedArtistForReport?.id,
-      artistName: selectedArtistForReport?.stageName || selectedArtistForReport?.name,
-      releaseId: selectedReleaseForReport?.id,
-      releaseName: selectedReleaseForReport?.title,
-      notes: newReport.notes
-    };
+    try {
+      // Get user session for API call
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        showError('Please log in to continue', 'Authentication Required');
+        return;
+      }
 
-    // TODO: Submit to Supabase revenue_reports table
-    setRevenueReports(prev => [report, ...prev]);
-    
-    // Reset form
-    setNewReport({ platform: '', amount: '', date: '', selectedAssets: [], notes: '' });
-    setArtistSearch('');
-    setReleaseSearch('');
-    setSelectedArtistForReport(null);
-    setSelectedReleaseForReport(null);
-    setAvailableAssets([]);
-    setShowReportModal(false);
-    
-    showWarning('Revenue report submitted successfully! Awaiting approval from admin.', 'Report Submitted');
+      // Submit to real revenue reporting API
+      const response = await fetch('/api/revenue/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          artistEmail: selectedAssetForReport.artist.email,
+          amount: parseFloat(newReport.amount),
+          currency: selectedCurrency,
+          description: `${newReport.platform} revenue for ${selectedAssetForReport.name}`,
+          releaseTitle: selectedAssetForReport.name,
+          period: newReport.date
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit revenue report');
+      }
+
+      console.log('✅ Revenue report submitted:', result);
+
+      // Add to local state for immediate UI update
+      const report = {
+        id: result.report.id,
+        platform: newReport.platform,
+        amount: parseFloat(newReport.amount),
+        currency: selectedCurrency,
+        date: newReport.date,
+        status: 'pending_approval',
+        submittedDate: new Date().toISOString().split('T')[0],
+        assets: [selectedAssetForReport.name],
+        artistId: selectedAssetForReport.artist.id,
+        artistName: selectedAssetForReport.artist.displayName,
+        assetName: selectedAssetForReport.name,
+        notes: newReport.notes
+      };
+
+      setRevenueReports(prev => [report, ...prev]);
+      
+      // Reset form
+      setNewReport({ platform: '', amount: '', date: '', selectedAsset: null, notes: '' });
+      setAssetSearch('');
+      setSelectedAssetForReport(null);
+      setShowReportModal(false);
+      
+      showWarning('Revenue report submitted successfully! Awaiting approval from admin.', 'Report Submitted');
+
+    } catch (error) {
+      console.error('Revenue report submission failed:', error);
+      showError(error.message || 'Failed to submit revenue report. Please try again.', 'Submission Failed');
+    }
   };
 
   // Calculate totals from real data
@@ -149,43 +279,45 @@ export default function PartnerReports() {
   const totalReported = revenueReports
     .reduce((sum, report) => sum + report.amount, 0);
 
-  // Filter functions for artist/release search
-  const filteredArtists = artists.filter(artist => 
-    artist.name.toLowerCase().includes(artistSearch.toLowerCase()) ||
-    (artist.stageName && artist.stageName.toLowerCase().includes(artistSearch.toLowerCase()))
-  );
-
-  const filteredReleases = releases.filter(release => 
-    (!selectedArtistForReport || release.artistId === selectedArtistForReport.id) &&
-    release.title.toLowerCase().includes(releaseSearch.toLowerCase())
+  // Filter assets for dropdown
+  const filteredAssets = assets.filter(asset => 
+    asset.name.toLowerCase().includes(assetSearch.toLowerCase()) ||
+    asset.artist.displayName.toLowerCase().includes(assetSearch.toLowerCase()) ||
+    asset.artist.email.toLowerCase().includes(assetSearch.toLowerCase()) ||
+    asset.type.toLowerCase().includes(assetSearch.toLowerCase())
   );
 
   // Handler functions for form interactions
-  const handleArtistSelect = (artist) => {
-    setSelectedArtistForReport(artist);
-    setArtistSearch(artist.stageName || artist.name);
-    setReleaseSearch('');
-    setSelectedReleaseForReport(null);
-    setAvailableAssets([]);
-    setNewReport(prev => ({ ...prev, selectedAssets: [] }));
+  const handleAssetSelect = (asset) => {
+    setSelectedAssetForReport(asset);
+    setAssetSearch(`${asset.name} - ${asset.artist.displayName}`);
+    setNewReport(prev => ({ ...prev, selectedAsset: asset }));
   };
 
-  const handleReleaseSelect = (release) => {
-    setSelectedReleaseForReport(release);
-    setReleaseSearch(release.title);
-    // TODO: Load assets for this release from Supabase
-    const releaseAssets = assets.filter(asset => asset.releaseId === release.id);
-    setAvailableAssets(releaseAssets);
-    setNewReport(prev => ({ ...prev, selectedAssets: [] }));
+  // Handle asset search with debouncing for API calls
+  const handleAssetSearchChange = (value) => {
+    setAssetSearch(value);
+    if (!selectedAssetForReport) {
+      // Clear selection if user is typing
+      setNewReport(prev => ({ ...prev, selectedAsset: null }));
+      
+      // Debounce API calls for search
+      clearTimeout(window.assetSearchTimeout);
+      window.assetSearchTimeout = setTimeout(() => {
+        if (value.length >= 2) {
+          loadAssets(value);
+        } else if (value.length === 0) {
+          loadAssets();
+        }
+      }, 300);
+    }
   };
 
-  const handleAssetToggle = (asset) => {
-    setNewReport(prev => ({
-      ...prev,
-      selectedAssets: prev.selectedAssets.find(a => a.id === asset.id)
-        ? prev.selectedAssets.filter(a => a.id !== asset.id)
-        : [...prev.selectedAssets, asset]
-    }));
+  // Clear asset selection
+  const clearAssetSelection = () => {
+    setSelectedAssetForReport(null);
+    setAssetSearch('');
+    setNewReport(prev => ({ ...prev, selectedAsset: null }));
   };
 
   if (isLoading) {
@@ -225,329 +357,152 @@ export default function PartnerReports() {
 
 
 
-  // Enhanced earnings summary
+  // Calculate real earnings from revenue reports
   const earningsData = {
-    totalEarnings: 24587.92,
-    monthlyEarnings: 3245.67,
-    pendingPayouts: 1240.50,
-    paidOut: 23347.42,
-    averagePerStream: 0.00394,
-    topEarningMonth: { month: 'March 2024', amount: 4234.56 },
-    revenueStreams: {
-      streaming: 14752.75,
-      downloads: 5634.21,
-      mechanical: 2100.48,
-      performance: 1567.32,
-      licensing: 533.16
-    }
+    totalEarnings: totalReported,
+    monthlyEarnings: revenueReports
+      .filter(report => {
+        const reportDate = new Date(report.date || report.created_at);
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        return reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, report) => sum + report.amount, 0),
+    pendingPayouts: pendingTotal,
+    paidOut: approvedThisMonth,
+    averagePerStream: totalReported > 0 ? totalReported / Math.max(revenueReports.length * 1000, 1) : 0,
+    topEarningMonth: { month: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), amount: approvedThisMonth }
   };
 
-  // Platform earnings breakdown with Other Platforms
-  const platformEarnings = {
-    spotify: { 
-      name: 'Spotify', 
-      earnings: 9847.23, 
-      streams: 2456789, 
-      growth: 18.5, 
-      color: '#1DB954',
-      royaltyRate: 0.004,
-      marketShare: 35.8
-    },
-    apple: { 
-      name: 'Apple Music', 
-      earnings: 7234.56, 
-      streams: 1634521, 
-      growth: 22.3, 
-      color: '#FA243C',
-      royaltyRate: 0.0045,
-      marketShare: 26.3
-    },
-    youtube: { 
-      name: 'YouTube Music', 
-      earnings: 3456.78, 
-      streams: 1123456, 
-      growth: 15.7, 
-      color: '#FF0000',
-      royaltyRate: 0.003,
-      marketShare: 12.6
-    },
-    amazon: { 
-      name: 'Amazon Music', 
-      earnings: 2345.67, 
-      streams: 567890, 
-      growth: 12.8, 
-      color: '#FF9900',
-      royaltyRate: 0.004,
-      marketShare: 8.5
-    },
-    deezer: { 
-      name: 'Deezer', 
-      earnings: 1234.56, 
-      streams: 345678, 
-      growth: 9.2, 
-      color: '#FEAA2D',
-      royaltyRate: 0.0035,
-      marketShare: 4.5
-    },
-    tidal: { 
-      name: 'TIDAL', 
-      earnings: 469.12, 
-      streams: 89012, 
-      growth: 7.4, 
-      color: '#000000',
-      royaltyRate: 0.0052,
-      marketShare: 1.7
-    },
-    other: { 
-      name: 'Other Platforms', 
-      earnings: 2987.58, 
-      streams: 876543, 
-      growth: 13.6, 
-      color: '#6B7280',
-      royaltyRate: 0.0034,
-      marketShare: 10.6,
-      description: 'Pandora, iHeartRadio, Napster, Audiomack, Bandcamp, and 15+ other services',
-      platforms: ['Pandora', 'iHeartRadio', 'Napster', 'Audiomack', 'Bandcamp', 'JioSaavn', 'Anghami', 'Boomplay', 'NetEase', 'QQ Music', 'KKBox', 'Joox', 'Yandex Music', 'VK Music', 'Gaana', 'Wynk', 'Saavn', 'Hungama', 'TikTok Music', 'Instagram Music', 'Facebook Music']
+  // Calculate platform earnings from real revenue reports
+  const platformEarningsMap = {};
+  revenueReports.forEach(report => {
+    const platform = report.platform || 'Other';
+    if (!platformEarningsMap[platform]) {
+      platformEarningsMap[platform] = {
+        name: platform,
+        earnings: 0,
+        count: 0,
+        color: getPlatformColor(platform)
+      };
     }
-  };
+    platformEarningsMap[platform].earnings += report.amount;
+    platformEarningsMap[platform].count += 1;
+  });
 
-  // Time series earnings data
+  // Helper function to get platform colors
+  function getPlatformColor(platform) {
+    const colors = {
+      'Spotify': '#1DB954',
+      'Apple Music': '#FA243C', 
+      'YouTube Music': '#FF0000',
+      'Amazon Music': '#FF9900',
+      'Deezer': '#FEAA2D',
+      'TIDAL': '#000000',
+      'TikTok': '#000000',
+      'Other': '#6B7280'
+    };
+    return colors[platform] || '#6B7280';
+  }
+
+  // Calculate monthly earnings from real data
+  const last6Months = Array.from({length: 6}, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - i));
+    return {
+      label: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      month: date.getMonth(),
+      year: date.getFullYear()
+    };
+  });
+
   const monthlyEarningsData = {
-    labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024'],
-    totalEarnings: [3456.78, 3789.45, 4234.56, 3967.23, 4123.87, 4345.92],
-    streamingEarnings: [2134.56, 2367.89, 2634.21, 2445.67, 2567.34, 2689.12],
-    downloadEarnings: [789.45, 856.23, 934.56, 867.89, 923.45, 976.32],
-    mechanicalEarnings: [345.67, 378.23, 423.45, 389.67, 412.34, 435.89],
-    performanceEarnings: [187.10, 187.10, 242.34, 264.00, 220.74, 244.59]
+    labels: last6Months.map(m => m.label),
+    totalEarnings: last6Months.map(m => {
+      return revenueReports
+        .filter(report => {
+          const reportDate = new Date(report.date || report.created_at);
+          return reportDate.getMonth() === m.month && reportDate.getFullYear() === m.year;
+        })
+        .reduce((sum, report) => sum + report.amount, 0);
+    })
   };
 
-  // Artist earnings breakdown with Other Platforms
-  const artistEarningsData = [
-    {
-      artist: 'MSC & Co MSC',
-      totalEarnings: 12345.67,
-      monthlyEarnings: 2045.32,
-      topTrack: 'Lost in Time',
-      trackEarnings: 3456.78,
-      platforms: {
-        spotify: 5234.56,
-        apple: 3456.78,
-        youtube: 2134.56,
-        amazon: 987.65,
-        deezer: 423.89,
-        tidal: 198.77,
-        soundcloud: 267.34,
-        other: 642.12
-      },
-      growth: 24.5,
-      otherPlatformBreakdown: {
-        pandora: 156.78,
-        iheart: 123.45,
-        napster: 89.67,
-        audiomack: 67.89,
-        bandcamp: 45.23,
-        others: 159.10
-      }
-    },
-    {
-      artist: 'Audio MSC',
-      totalEarnings: 8765.43,
-      monthlyEarnings: 1456.89,
-      topTrack: 'Beach Dreams',
-      trackEarnings: 2345.67,
-      platforms: {
-        spotify: 3789.45,
-        apple: 2456.78,
-        youtube: 1523.67,
-        amazon: 678.90,
-        deezer: 287.45,
-        tidal: 134.56,
-        soundcloud: 178.92,
-        other: 415.70
-      },
-      growth: 19.2,
-      otherPlatformBreakdown: {
-        pandora: 98.45,
-        iheart: 87.23,
-        napster: 65.34,
-        audiomack: 54.21,
-        bandcamp: 32.18,
-        others: 78.29
-      }
-    },
-    {
-      artist: 'Independent Artists',
-      totalEarnings: 3476.82,
-      monthlyEarnings: 743.76,
-      topTrack: 'Thunder Road',
-      trackEarnings: 987.65,
-      platforms: {
-        spotify: 1523.67,
-        apple: 976.32,
-        youtube: 634.21,
-        amazon: 234.56,
-        deezer: 123.45,
-        tidal: 67.89,
-        soundcloud: 89.12,
-        other: 127.60
-      },
-      growth: 16.8,
-      otherPlatformBreakdown: {
-        pandora: 34.56,
-        iheart: 29.78,
-        napster: 21.34,
-        audiomack: 18.67,
-        bandcamp: 11.25,
-        others: 12.00
-      }
+  // Calculate artist earnings from real revenue reports
+  const artistEarningsMap = {};
+  revenueReports.forEach(report => {
+    const artistName = report.artistName || 'Unknown Artist';
+    if (!artistEarningsMap[artistName]) {
+      artistEarningsMap[artistName] = {
+        artist: artistName,
+        totalEarnings: 0,
+        monthlyEarnings: 0,
+        reportCount: 0
+      };
     }
-  ];
-
-  const detailedEarningsData = [
-    {
-      month: 'January 2024',
-      artist: 'MSC & Co MSC',
-      release: 'Midnight Sessions',
-      track: 'Lost in Time',
-      platform: 'Spotify',
-      streams: 45789,
-      downloads: 234,
-      streamingRevenue: 183.16,
-      downloadRevenue: 234.00,
-      mechanicalRevenue: 45.50,
-      performanceRevenue: 67.80,
-      totalEarnings: 530.46
-    },
-    {
-      month: 'January 2024',
-      artist: 'Audio MSC',
-      release: 'Summer Vibes',
-      track: 'Beach Dreams',
-      platform: 'Apple Music',
-      streams: 32456,
-      downloads: 189,
-      streamingRevenue: 129.82,
-      downloadRevenue: 189.00,
-      mechanicalRevenue: 32.25,
-      performanceRevenue: 48.40,
-      totalEarnings: 399.47
-    },
-    {
-      month: 'February 2024',
-      artist: 'MSC & Co MSC',
-      release: 'Urban Beats Collection',
-      track: 'City Lights',
-      platform: 'YouTube Music',
-      streams: 67234,
-      downloads: 156,
-      streamingRevenue: 201.70,
-      downloadRevenue: 156.00,
-      mechanicalRevenue: 56.12,
-      performanceRevenue: 78.90,
-      totalEarnings: 492.72
-    },
-    {
-      month: 'March 2024',
-      artist: 'MSC & Co MSC',
-      release: 'Lost in Time - Single',
-      track: 'Lost in Time',
-      platform: 'Other Platforms',
-      streams: 18234,
-      downloads: 145,
-      streamingRevenue: 156.78,
-      downloadRevenue: 145.00,
-      mechanicalRevenue: 28.90,
-      performanceRevenue: 34.50,
-      totalEarnings: 365.18,
-      platformBreakdown: 'Pandora (35%), iHeartRadio (25%), Napster (15%), Audiomack (10%), Others (15%)'
-    },
-    {
-      month: 'April 2024',
-      artist: 'Audio MSC',
-      release: 'Summer Vibes EP',
-      track: 'Beach Dreams',
-      platform: 'Other Platforms',
-      streams: 12456,
-      downloads: 89,
-      streamingRevenue: 98.45,
-      downloadRevenue: 89.00,
-      mechanicalRevenue: 19.60,
-      performanceRevenue: 23.40,
-      totalEarnings: 230.45,
-      platformBreakdown: 'Pandora (40%), iHeartRadio (20%), Bandcamp (15%), Audiomack (12%), Others (13%)'
-    },
-    {
-      month: 'May 2024',
-      artist: 'Independent Artists',
-      release: 'Indie Collection',
-      track: 'Thunder Road',
-      platform: 'Other Platforms',
-      streams: 8934,
-      downloads: 56,
-      streamingRevenue: 67.89,
-      downloadRevenue: 56.00,
-      mechanicalRevenue: 14.20,
-      performanceRevenue: 16.80,
-      totalEarnings: 154.89,
-      platformBreakdown: 'Bandcamp (45%), Audiomack (20%), Napster (15%), iHeartRadio (10%), Others (10%)'
+    artistEarningsMap[artistName].totalEarnings += report.amount;
+    
+    // Calculate monthly earnings
+    const reportDate = new Date(report.date || report.created_at);
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    if (reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear) {
+      artistEarningsMap[artistName].monthlyEarnings += report.amount;
     }
-  ];
+    
+    artistEarningsMap[artistName].reportCount += 1;
+  });
 
-  const mockArtists = [
+  const artistEarningsData = Object.values(artistEarningsMap);
+
+  // Use real revenue reports as detailed earnings data
+  const detailedEarningsData = revenueReports.map(report => ({
+    month: new Date(report.date || report.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    artist: report.artistName || 'Unknown Artist',
+    release: report.assetName || 'Unknown Release',
+    track: report.assetName || 'Unknown Track',
+    platform: report.platform || 'Other',
+    streams: 0, // Would need to be tracked separately
+    downloads: 0, // Would need to be tracked separately
+    streamingRevenue: report.amount,
+    downloadRevenue: 0,
+    mechanicalRevenue: 0,
+    performanceRevenue: 0,
+    totalEarnings: report.amount
+  }));
+
+  // Real filter options based on actual data
+  const filterArtists = [
     { id: 'all', name: 'All Artists' },
-    { id: 'yhwh_msc', name: 'MSC & Co MSC' },
-    { id: 'global_superstar', name: 'Global Superstar' },
-    { id: 'seoul_stars', name: 'Seoul Stars' },
-    { id: 'rock_legends', name: 'Rock Legends' },
-    { id: 'dj_phoenix', name: 'DJ Phoenix' },
-    { id: 'emma_rodriguez', name: 'Emma Rodriguez' },
-    { id: 'marcus_williams', name: 'Marcus Williams Quartet' },
-    { id: 'basement_band', name: 'The Basement Band' },
-    { id: 'carlos_mendez', name: 'Carlos Mendez' },
-    { id: 'film_composer', name: 'Film Composer Orchestra' },
-    { id: 'nashville_dreams', name: 'Nashville Dreams' }
+    ...artistEarningsData.map(artist => ({
+      id: artist.artist.toLowerCase().replace(/\s+/g, '_'),
+      name: artist.artist
+    }))
   ];
 
-  const mockReleases = [
+  const filterReleases = [
     { id: 'all', name: 'All Releases' },
-    { id: 'urban_beats_collection', name: 'Urban Beats Collection' },
-    { id: 'remix_package', name: 'Urban Beat (Remix Package)' },
-    { id: 'movie_soundtrack', name: 'Movie Epic Soundtrack' },
-    { id: 'classic_hits', name: 'Classic Hits Single' },
-    { id: 'collaborative_single', name: 'Collaborative Single' },
-    { id: 'chart_topper_hits', name: 'Chart Topper Hits' },
-    { id: 'kpop_sensation', name: 'K-Pop Sensation' },
-    { id: 'madison_square_live', name: 'Madison Square Garden Live' },
-    { id: 'electronic_horizons', name: 'Electronic Horizons' },
-    { id: 'indie_rock_revival', name: 'Indie Rock Revival' },
-    { id: 'reggaeton_fuego', name: 'Reggaeton Fuego' },
-    { id: 'new_dreams_single', name: 'New Dreams Single' },
-    { id: 'jazz_fusion_mixtape', name: 'Jazz Fusion Mixtape' },
-    { id: 'country_roads', name: 'Country Roads Album' }
+    ...Array.from(new Set(revenueReports.map(r => r.assetName).filter(Boolean)))
+      .map(name => ({
+        id: name.toLowerCase().replace(/\s+/g, '_'),
+        name: name
+      }))
   ];
 
-  const mockAssets = [
+  const filterAssets = [
     { id: 'all', name: 'All Assets/Tracks' },
     { id: 'singles', name: 'Singles' },
     { id: 'albums', name: 'Albums' },
-    { id: 'eps', name: 'EPs' },
-    { id: 'mixtapes', name: 'Mixtapes' },
-    { id: 'compilations', name: 'Compilations' },
-    { id: 'remixes', name: 'Remixes' },
-    { id: 'live_albums', name: 'Live Albums' },
-    { id: 'soundtracks', name: 'Soundtracks' }
+    { id: 'eps', name: 'EPs' }
   ];
 
-  const mockPlatforms = [
+  const filterPlatforms = [
     { id: 'all', name: 'All Platforms' },
-    { id: 'spotify', name: 'Spotify' },
-    { id: 'apple', name: 'Apple Music' },
-    { id: 'youtube', name: 'YouTube Music' },
-    { id: 'amazon', name: 'Amazon Music' },
-    { id: 'deezer', name: 'Deezer' },
-    { id: 'tidal', name: 'TIDAL' },
-    { id: 'soundcloud', name: 'SoundCloud' },
-    { id: 'other', name: 'Other Platforms' }
+    ...Array.from(new Set(revenueReports.map(r => r.platform).filter(Boolean)))
+      .map(platform => ({
+        id: platform.toLowerCase().replace(/\s+/g, '_'),
+        name: platform
+      }))
   ];
 
   // Filter and search functions
@@ -783,73 +738,17 @@ export default function PartnerReports() {
     }
   };
 
-  // Chart configurations for earnings visualization
-  const earningsTimeSeriesData = {
-    labels: monthlyEarningsData.labels,
-    datasets: [
-      {
-        label: 'Total Earnings',
-        data: monthlyEarningsData.totalEarnings,
-        borderColor: '#4F46E5',
-        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#4F46E5',
-        pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-      },
-      {
-        label: 'Streaming Revenue',
-        data: monthlyEarningsData.streamingEarnings,
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#10B981',
-        pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-      },
-      {
-        label: 'Download Revenue',
-        data: monthlyEarningsData.downloadEarnings,
-        borderColor: '#F59E0B',
-        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-        fill: false,
-        tension: 0.4,
-        pointBackgroundColor: '#F59E0B',
-        pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-      }
-    ]
-  };
-
+  // Chart configurations using real data
   const platformEarningsData = {
-    labels: Object.values(platformEarnings).map(p => p.name),
+    labels: Object.values(platformEarningsMap).map(p => p.name),
     datasets: [{
-      label: 'Platform Earnings ($)',
-      data: Object.values(platformEarnings).map(p => p.earnings),
-      backgroundColor: Object.values(platformEarnings).map(p => p.color),
-      borderColor: Object.values(platformEarnings).map(p => p.color),
+      label: 'Platform Earnings',
+      data: Object.values(platformEarningsMap).map(p => p.earnings),
+      backgroundColor: Object.values(platformEarningsMap).map(p => p.color),
+      borderColor: Object.values(platformEarningsMap).map(p => p.color),
       borderWidth: 2,
       borderRadius: 8,
       borderSkipped: false,
-    }]
-  };
-
-  const revenueStreamData = {
-    labels: Object.keys(earningsData.revenueStreams).map(key => 
-      key.charAt(0).toUpperCase() + key.slice(1)
-    ),
-    datasets: [{
-      data: Object.values(earningsData.revenueStreams),
-      backgroundColor: [
-        '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'
-      ],
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
     }]
   };
 
@@ -1150,10 +1049,9 @@ export default function PartnerReports() {
                         onChange={(e) => setSelectedArtistFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">All Artists</option>
-                  {artists.map((artist) => (
+                  {filterArtists.map((artist) => (
                     <option key={artist.id} value={artist.id}>
-                      {artist.stageName || artist.name}
+                      {artist.name}
                     </option>
                   ))}
                 </select>
@@ -1170,7 +1068,7 @@ export default function PartnerReports() {
                   onChange={(e) => setSelectedRelease(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {mockReleases.map((release) => (
+                  {filterReleases.map((release) => (
                     <option key={release.id} value={release.id}>
                       {release.name}
                     </option>
@@ -1189,7 +1087,7 @@ export default function PartnerReports() {
                   onChange={(e) => setSelectedAsset(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {mockAssets.map((asset) => (
+                  {filterAssets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
                       {asset.name}
                     </option>
@@ -1310,56 +1208,14 @@ export default function PartnerReports() {
             </div>
           </div>
 
-          {/* Interactive Charts Dashboard */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-            {/* Earnings Timeline */}
-            <div className="xl:col-span-2 bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Earnings Timeline</h3>
-                <div className="text-sm text-gray-500">
-                  Last 6 months
-                </div>
-              </div>
-              <div className="h-80">
-                <Line data={earningsTimeSeriesData} options={chartOptions} />
-              </div>
-            </div>
 
-            {/* Revenue Streams Breakdown */}
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Revenue Streams</h3>
-                <div className="text-sm text-gray-500">
-                  Breakdown
-                </div>
-              </div>
-              <div className="h-80">
-                <Doughnut data={revenueStreamData} options={{
-                  ...chartOptions,
-                  plugins: {
-                    ...chartOptions.plugins,
-                    tooltip: {
-                      ...chartOptions.plugins.tooltip,
-                      callbacks: {
-                        label: function(context) {
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                          const percentage = ((context.parsed / total) * 100).toFixed(1);
-                          return `${context.label}: ${sharedFormatCurrency(context.parsed, selectedCurrency)} (${percentage}%)`;
-                        }
-                      }
-                    }
-                  }
-                }} />
-              </div>
-            </div>
-          </div>
 
           {/* Platform Earnings Analysis */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Platform Earnings Analysis</h3>
               <div className="text-sm text-gray-500">
-                {Object.keys(platformEarnings).length} platforms
+                {Object.keys(platformEarningsMap).length} platforms
               </div>
             </div>
             <div className="h-96 mb-6">
@@ -1368,8 +1224,8 @@ export default function PartnerReports() {
             
             {/* Platform Details Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {Object.entries(platformEarnings).map(([key, platform]) => (
-                <div key={key} className={`bg-gray-50 rounded-lg p-4 border border-gray-200 ${key === 'other' ? 'md:col-span-2 lg:col-span-1 xl:col-span-2' : ''}`}>
+              {Object.entries(platformEarningsMap).map(([key, platform]) => (
+                <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div 
@@ -1377,54 +1233,33 @@ export default function PartnerReports() {
                         style={{ backgroundColor: platform.color }}
                       ></div>
                       <span className="font-medium text-gray-900">{platform.name}</span>
-                      {key === 'other' && (
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
-                          {platform.platforms?.length}+ services
-                        </span>
-                      )}
                     </div>
-                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                      {formatGrowthPercentage(platform.growth)}
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                      {platform.count} reports
                     </span>
                   </div>
                   
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Earnings:</span>
+                      <span className="text-gray-600">Total Earnings:</span>
                       <span className="font-medium">{sharedFormatCurrency(platform.earnings, selectedCurrency)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Streams:</span>
-                      <span className="font-medium">{platform.streams.toLocaleString()}</span>
+                      <span className="text-gray-600">Reports:</span>
+                      <span className="font-medium">{platform.count}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Royalty Rate:</span>
-                      <span className="font-medium">{sharedFormatCurrency(platform.royaltyRate, selectedCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Market Share:</span>
-                      <span className="font-medium">{platform.marketShare}%</span>
+                      <span className="text-gray-600">Avg per Report:</span>
+                      <span className="font-medium">{sharedFormatCurrency(platform.earnings / platform.count, selectedCurrency)}</span>
                     </div>
                   </div>
-
-                  {/* Other Platforms Breakdown */}
-                  {key === 'other' && platform.platforms && (
-                    <div className="mt-4 pt-3 border-t border-gray-300">
-                      <h5 className="text-xs font-medium text-gray-700 mb-2">Includes:</h5>
-                      <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
-                        {platform.platforms.slice(0, 10).map((p, index) => (
-                          <div key={index} className="truncate">• {p}</div>
-                        ))}
-                        {platform.platforms.length > 10 && (
-                          <div className="text-gray-500 italic col-span-2 text-center pt-1">
-                            +{platform.platforms.length - 10} more platforms
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
+              {Object.keys(platformEarningsMap).length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  No platform data available. Submit revenue reports to see platform breakdown.
+                </div>
+              )}
             </div>
           </div>
 
@@ -1439,10 +1274,10 @@ export default function PartnerReports() {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earnings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top Track</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Growth</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top Platform</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">This Month</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track Data</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reports</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -1465,30 +1300,31 @@ export default function PartnerReports() {
                         {sharedFormatCurrency(artist.monthlyEarnings, selectedCurrency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{artist.topTrack}</div>
-                        <div className="text-xs text-gray-500">{sharedFormatCurrency(artist.trackEarnings, selectedCurrency)}</div>
+                        <div className="text-sm text-gray-900">-</div>
+                        <div className="text-xs text-gray-500">Track data not available</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          artist.growth > 20 
-                            ? 'bg-green-100 text-green-800' 
-                            : artist.growth > 15 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {formatGrowthPercentage(artist.growth)}
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {artist.reportCount} reports
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].charAt(0).toUpperCase() + Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][0].slice(1)}
+                          {sharedFormatCurrency(artist.totalEarnings / artist.reportCount, selectedCurrency)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {sharedFormatCurrency(Object.entries(artist.platforms).sort(([,a], [,b]) => b - a)[0][1], selectedCurrency)}
+                          Avg per report
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {artistEarningsData.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                        No artist earnings data available. Submit revenue reports to see artist breakdown.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1554,105 +1390,69 @@ export default function PartnerReports() {
                     </div>
                   </div>
 
-                  {/* Artist Search */}
+                  {/* Asset Search */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Search Artist *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Search Asset *</label>
                     <div className="relative">
                       <input
                         type="text"
-                        value={artistSearch}
-                        onChange={(e) => setArtistSearch(e.target.value)}
-                        placeholder="Type artist name or stage name..."
+                        value={assetSearch}
+                        onChange={(e) => handleAssetSearchChange(e.target.value)}
+                        placeholder="Type asset name, artist name, or email..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
-                      {artistSearch && filteredArtists.length > 0 && !selectedArtistForReport && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                          {filteredArtists.map((artist) => (
+                      {loadingAssets && (
+                        <div className="absolute right-3 top-3">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        </div>
+                      )}
+                      {assetSearch && filteredAssets.length > 0 && !selectedAssetForReport && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {filteredAssets.map((asset) => (
                             <button
-                              key={artist.id}
-                              onClick={() => handleArtistSelect(artist)}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                              key={asset.id}
+                              onClick={() => handleAssetSelect(asset)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 border-b border-gray-100 last:border-b-0"
                             >
-                              <div className="font-medium">{artist.stageName || artist.name}</div>
-                              {artist.stageName && <div className="text-sm text-gray-500">{artist.name}</div>}
+                              <div className="font-medium text-gray-900">{asset.name}</div>
+                              <div className="text-sm text-gray-600">
+                                Artist: {asset.artist.displayName} • {asset.type} • {asset.genre}
+                              </div>
+                              <div className="text-xs text-gray-500">{asset.artist.email}</div>
                             </button>
                           ))}
                         </div>
                       )}
-                      {artistSearch && filteredArtists.length === 0 && artists.length === 0 && (
+                      {assetSearch && filteredAssets.length === 0 && !loadingAssets && (
                         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-gray-500 text-sm">
-                          No artists found. Artists need to be added to the platform first.
+                          {assetSearch.length < 2 ? 'Type at least 2 characters to search' : 'No assets found matching your search.'}
+                        </div>
+                      )}
+                      {selectedAssetForReport && (
+                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-green-900">{selectedAssetForReport.name}</div>
+                              <div className="text-sm text-green-700">
+                                Artist: {selectedAssetForReport.artist.displayName}
+                              </div>
+                              <div className="text-xs text-green-600">{selectedAssetForReport.artist.email}</div>
+                            </div>
+                            <button
+                              onClick={clearAssetSelection}
+                              className="text-green-600 hover:text-green-800"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Release Search */}
-                  {selectedArtistForReport && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Search Release *</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={releaseSearch}
-                          onChange={(e) => setReleaseSearch(e.target.value)}
-                          placeholder="Type release title..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        {releaseSearch && filteredReleases.length > 0 && !selectedReleaseForReport && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                            {filteredReleases.map((release) => (
-                              <button
-                                key={release.id}
-                                onClick={() => handleReleaseSelect(release)}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
-                              >
-                                <div className="font-medium">{release.title}</div>
-                                <div className="text-sm text-gray-500">{release.type}</div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {releaseSearch && filteredReleases.length === 0 && releases.length === 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-gray-500 text-sm">
-                            No releases found for this artist.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Assets Selection */}
-                  {selectedReleaseForReport && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Select Assets *</label>
-                      {availableAssets.length === 0 ? (
-                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 text-sm">
-                          No assets found for this release. Assets need to be uploaded first.
-                        </div>
-                      ) : (
-                        <div className="border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto">
-                          {availableAssets.map((asset) => (
-                            <label key={asset.id} className="flex items-center py-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={newReport.selectedAssets.find(a => a.id === asset.id) !== undefined}
-                                onChange={() => handleAssetToggle(asset)}
-                                className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="text-sm">{asset.name}</span>
-                              <span className="ml-2 text-xs text-gray-500">({asset.type})</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                      {newReport.selectedAssets.length > 0 && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          Selected: {newReport.selectedAssets.map(a => a.name).join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>

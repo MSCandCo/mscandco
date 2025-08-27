@@ -44,10 +44,31 @@ export default async function handler(req, res) {
         const profile = profiles.find(p => p.id === authUser.id)
         const subscription = subscriptions.find(s => s.user_id === authUser.id)
         
+        // Determine role with proper fallback logic
+        let userRole = authUser.user_metadata?.role || profile?.role
+        
+        // Email-based role detection for known users (same as other APIs)
+        if (!userRole) {
+          const userEmail = authUser.email
+          if (userEmail === 'superadmin@mscandco.com') {
+            userRole = 'super_admin'
+          } else if (userEmail === 'companyadmin@mscandco.com') {
+            userRole = 'company_admin'
+          } else if (userEmail === 'labeladmin@mscandco.com') {
+            userRole = 'label_admin'
+          } else if (userEmail === 'codegroup@mscandco.com') {
+            userRole = 'distribution_partner'
+          } else if (userEmail.includes('codegroup') || userEmail.includes('code-group')) {
+            userRole = 'distribution_partner'
+          } else {
+            userRole = 'artist'
+          }
+        }
+
         return {
           id: authUser.id,
           email: authUser.email,
-          role: authUser.user_metadata?.role || 'artist',
+          role: userRole,
           status: authUser.email_confirmed_at ? 'active' : 'pending',
           createdAt: authUser.created_at,
           lastSignIn: authUser.last_sign_in_at,
