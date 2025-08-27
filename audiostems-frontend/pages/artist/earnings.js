@@ -260,7 +260,18 @@ export default function ArtistEarnings() {
               { platform: 'Apple Music', revenue: 0, percentage: 0, color: 'bg-gray-800' },
               { platform: 'YouTube Music', revenue: 0, percentage: 0, color: 'bg-red-500' },
               { platform: 'Amazon Music', revenue: 0, percentage: 0, color: 'bg-blue-500' },
-              { platform: 'Deezer', revenue: 0, percentage: 0, color: 'bg-purple-500' }
+              { platform: 'Deezer', revenue: 0, percentage: 0, color: 'bg-purple-500' },
+              { platform: 'Tidal', revenue: 0, percentage: 0, color: 'bg-black' },
+              { platform: 'SoundCloud', revenue: 0, percentage: 0, color: 'bg-orange-500' },
+              { platform: 'Pandora', revenue: 0, percentage: 0, color: 'bg-blue-600' },
+              { platform: 'iHeartRadio', revenue: 0, percentage: 0, color: 'bg-red-600' },
+              { platform: 'Shazam', revenue: 0, percentage: 0, color: 'bg-blue-400' },
+              { platform: 'TikTok', revenue: 0, percentage: 0, color: 'bg-pink-500' },
+              { platform: 'Instagram', revenue: 0, percentage: 0, color: 'bg-gradient-to-r from-purple-500 to-pink-500' },
+              { platform: 'Facebook', revenue: 0, percentage: 0, color: 'bg-blue-700' },
+              { platform: 'Napster', revenue: 0, percentage: 0, color: 'bg-green-600' },
+              { platform: 'Audiomack', revenue: 0, percentage: 0, color: 'bg-yellow-500' },
+              { platform: 'Other', revenue: 0, percentage: 0, color: 'bg-gray-400' }
             ].map((platform, index) => (
               <div key={index} className="flex items-center justify-between py-3">
                 <div className="flex items-center">
@@ -280,11 +291,22 @@ export default function ArtistEarnings() {
           <h3 className="text-xl font-semibold text-gray-900 mb-6">Revenue by Territory</h3>
           <div className="space-y-4">
             {[
-              { country: '🇬🇧 United Kingdom', revenue: 0, percentage: 0 },
               { country: '🇺🇸 United States', revenue: 0, percentage: 0 },
-              { country: '🇨🇦 Canada', revenue: 0, percentage: 0 },
+              { country: '🇬🇧 United Kingdom', revenue: 0, percentage: 0 },
               { country: '🇩🇪 Germany', revenue: 0, percentage: 0 },
-              { country: '🇫🇷 France', revenue: 0, percentage: 0 }
+              { country: '🇫🇷 France', revenue: 0, percentage: 0 },
+              { country: '🇨🇦 Canada', revenue: 0, percentage: 0 },
+              { country: '🇦🇺 Australia', revenue: 0, percentage: 0 },
+              { country: '🇯🇵 Japan', revenue: 0, percentage: 0 },
+              { country: '🇧🇷 Brazil', revenue: 0, percentage: 0 },
+              { country: '🇮🇹 Italy', revenue: 0, percentage: 0 },
+              { country: '🇪🇸 Spain', revenue: 0, percentage: 0 },
+              { country: '🇳🇱 Netherlands', revenue: 0, percentage: 0 },
+              { country: '🇸🇪 Sweden', revenue: 0, percentage: 0 },
+              { country: '🇳🇴 Norway', revenue: 0, percentage: 0 },
+              { country: '🇲🇽 Mexico', revenue: 0, percentage: 0 },
+              { country: '🇮🇳 India', revenue: 0, percentage: 0 },
+              { country: '🌍 Other', revenue: 0, percentage: 0 }
             ].map((territory, index) => (
               <div key={index} className="flex items-center justify-between py-3">
                 <span className="font-medium text-gray-900">{territory.country}</span>
