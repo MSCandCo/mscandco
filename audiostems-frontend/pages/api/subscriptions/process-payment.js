@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     }
 
     const tier = planTierMap[planId] || planId.replace('-', '_')
-    const billingCycle = billing || 'yearly'
+    const billingCycle = billing || 'monthly'
     
     // Calculate subscription period
     const startDate = new Date()

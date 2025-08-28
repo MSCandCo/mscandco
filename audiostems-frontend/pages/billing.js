@@ -26,7 +26,7 @@ const BillingPage = () => {
   // State management
   const [activeTab, setActiveTab] = useState('subscription');
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
-  const [selectedBilling, setSelectedBilling] = useState('yearly');
+  const [selectedBilling, setSelectedBilling] = useState('monthly');
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
