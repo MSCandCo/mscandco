@@ -175,8 +175,6 @@ export default async function handler(req, res) {
           amount: planCost,
           currency: 'GBP',
           current_period_end: periodEnd.toISOString(),
-          next_renewal_date: nextRenewalDate.toISOString(),
-          auto_renew: true,
           updated_at: now.toISOString()
         })
         .eq('id', existingSubscription.id)
@@ -204,8 +202,6 @@ export default async function handler(req, res) {
           currency: 'GBP',
           current_period_start: now.toISOString(),
           current_period_end: periodEnd.toISOString(),
-          next_renewal_date: nextRenewalDate.toISOString(),
-          auto_renew: true,
           created_at: now.toISOString(),
           updated_at: now.toISOString()
         })

@@ -36,10 +36,10 @@ export default async function handler(req, res) {
 
     console.log('Subscription Status API - User:', { userId, userEmail })
 
-    // Get user's most recent active subscription with renewal info
+    // Get user's most recent active subscription (without auto-renewal fields for now)
     const { data: subscriptions, error: subError } = await supabase
       .from('subscriptions')
-      .select('tier, status, created_at, current_period_end, billing_cycle, amount, currency, auto_renew, next_renewal_date')
+      .select('tier, status, created_at, current_period_end, billing_cycle, amount, currency')
       .eq('user_id', userId)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -87,8 +87,8 @@ export default async function handler(req, res) {
       isStarter
     })
 
-    // Calculate renewal date and format it
-    const renewalDate = subscription.next_renewal_date || subscription.current_period_end
+    // Calculate renewal date and format it (use current_period_end for now)
+    const renewalDate = subscription.current_period_end
     const renewalDateFormatted = renewalDate ? new Date(renewalDate).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long', 
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
         currency: subscription.currency,
         createdAt: subscription.created_at,
         expiresAt: subscription.current_period_end,
-        autoRenew: subscription.auto_renew !== false, // Default to true if null
+        autoRenew: true, // Default to true (auto-renewal field not available yet)
         renewalDate: renewalDate,
         renewalDateFormatted: renewalDateFormatted,
         daysUntilRenewal: renewalDate ? Math.ceil((new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
