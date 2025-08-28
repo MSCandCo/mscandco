@@ -121,7 +121,7 @@ export default function WalletManagement() {
         throw new Error(result.error || 'Failed to adjust wallet');
       }
 
-      console.log('✅ Wallet adjusted:', result);
+      console.log('Wallet adjusted:', result);
 
       // Update local state with new balance
       const adjustmentAmount = operation === 'add' ? parseFloat(topupAmount) : -parseFloat(topupAmount);

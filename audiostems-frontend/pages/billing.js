@@ -71,7 +71,7 @@ const BillingPage = () => {
           const result = await response.json();
           if (result.success && result.data.hasSubscription) {
             setCurrentSubscription(result.data);
-            console.log('💳 Current subscription loaded:', result.data);
+            console.log('Current subscription loaded:', result.data);
           } else {
             setCurrentSubscription(null);
             console.log('📋 No active subscription found');
@@ -298,7 +298,7 @@ const BillingPage = () => {
           throw new Error(result.error || 'Subscription payment failed');
         }
 
-        console.log('✅ Subscription successful via wallet:', result);
+        console.log('Subscription successful via wallet:', result);
         setPaymentStatus('success');
         
         // Refresh wallet balance using shared hook
@@ -315,7 +315,7 @@ const BillingPage = () => {
             const result = await response.json();
             if (result.success && result.data.hasSubscription) {
               setCurrentSubscription(result.data);
-              console.log('💳 Subscription status refreshed after payment:', result.data);
+              console.log('Subscription status refreshed after payment:', result.data);
             }
           }
         }
@@ -325,10 +325,10 @@ const BillingPage = () => {
         const shortfall = gbpPrice - walletBalance;
         setTopUpAmount(Math.ceil(shortfall));
         setShowTopUpModal(true);
-        console.log('💳 Need to top up:', shortfall);
+        console.log('Need to top up:', shortfall);
       }
     } catch (error) {
-      console.error('❌ Subscription error:', error);
+      console.error('Subscription error:', error);
       setPaymentStatus('error');
     } finally {
       setIsLoading(false);
@@ -393,7 +393,7 @@ const BillingPage = () => {
       
       setPaymentStatus('success');
       setShowTopUpModal(false);
-      console.log('✅ Simulation: Top-up + Subscription successful');
+      console.log('Simulation: Top-up + Subscription successful');
     } finally {
       setIsLoading(false);
     }

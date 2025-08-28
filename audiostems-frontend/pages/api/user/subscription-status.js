@@ -34,12 +34,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid user token' })
     }
 
-    console.log('🔍 Subscription Status API - User:', { userId, userEmail })
+    console.log('Subscription Status API - User:', { userId, userEmail })
 
-    // Get user's most recent active subscription
+    // Get user's most recent active subscription with renewal info
     const { data: subscriptions, error: subError } = await supabase
       .from('subscriptions')
-      .select('tier, status, created_at, current_period_end, billing_cycle, amount, currency')
+      .select('tier, status, created_at, current_period_end, billing_cycle, amount, currency, auto_renew, next_renewal_date')
       .eq('user_id', userId)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -80,12 +80,20 @@ export default async function handler(req, res) {
     const isPro = subscription.tier.includes('pro')
     const isStarter = subscription.tier.includes('starter')
 
-    console.log('💳 Active subscription found:', {
+    console.log('Active subscription found:', {
       tier: subscription.tier,
       status: subscription.status,
       isPro,
       isStarter
     })
+
+    // Calculate renewal date and format it
+    const renewalDate = subscription.next_renewal_date || subscription.current_period_end
+    const renewalDateFormatted = renewalDate ? new Date(renewalDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long', 
+      year: 'numeric'
+    }) : null
 
     res.json({
       success: true,
@@ -101,7 +109,11 @@ export default async function handler(req, res) {
         amount: subscription.amount,
         currency: subscription.currency,
         createdAt: subscription.created_at,
-        expiresAt: subscription.current_period_end
+        expiresAt: subscription.current_period_end,
+        autoRenew: subscription.auto_renew !== false, // Default to true if null
+        renewalDate: renewalDate,
+        renewalDateFormatted: renewalDateFormatted,
+        daysUntilRenewal: renewalDate ? Math.ceil((new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
       }
     })
 

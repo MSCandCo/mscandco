@@ -10,6 +10,7 @@ import useModals from '@/hooks/useModals';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { BarChart3, Music, Target, CheckCircle } from 'lucide-react';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -100,7 +101,7 @@ export default function PartnerReports() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('📊 Loaded revenue reports:', result.reports?.length || 0);
+        console.log('Loaded revenue reports:', result.reports?.length || 0);
         
         // Transform API data to match UI expectations
         const transformedReports = (result.reports || []).map(report => ({
@@ -150,7 +151,7 @@ export default function PartnerReports() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('🎵 Loaded assets:', result.assets?.length || 0);
+        console.log('Loaded assets:', result.assets?.length || 0);
         setAssets(result.assets || []);
       } else {
         console.error('Failed to load assets:', response.status);
@@ -233,7 +234,7 @@ export default function PartnerReports() {
         throw new Error(result.error || 'Failed to submit revenue report');
       }
 
-      console.log('✅ Revenue report submitted:', result);
+      console.log('Revenue report submitted:', result);
 
       // Add to local state for immediate UI update
       const report = {
@@ -1154,7 +1155,7 @@ export default function PartnerReports() {
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">📊</span>
+                  <BarChart3 className="w-5 h-5 text-white" />
                 </div>
               </div>
             </div>
@@ -1166,11 +1167,11 @@ export default function PartnerReports() {
                   <p className="text-sm font-medium text-purple-600 mb-1">Avg Per Stream</p>
                   <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.averagePerStream, selectedCurrency)}</p>
                   <p className="text-xs text-purple-600 font-medium mt-1">
-                    🎵 Revenue rate
+                    <Music className="w-4 h-4 inline mr-1" /> Revenue rate
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">🎯</span>
+                  <Target className="w-5 h-5 text-white" />
                 </div>
               </div>
             </div>
@@ -1198,11 +1199,11 @@ export default function PartnerReports() {
                   <p className="text-sm font-medium text-teal-600 mb-1">Paid Out</p>
                   <p className="text-2xl font-bold text-gray-900">{sharedFormatCurrency(earningsData.paidOut, selectedCurrency)}</p>
                   <p className="text-xs text-teal-600 font-medium mt-1">
-                    ✅ {earningsData.totalEarnings > 0 ? Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100) : 0}% completed
+                    <CheckCircle className="w-4 h-4 inline mr-1" /> {earningsData.totalEarnings > 0 ? Math.round((earningsData.paidOut / earningsData.totalEarnings) * 100) : 0}% completed
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-teal-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">✨</span>
+                  <CheckCircle className="w-5 h-5 text-white" />
                 </div>
               </div>
             </div>

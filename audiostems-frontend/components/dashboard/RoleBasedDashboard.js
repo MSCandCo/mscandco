@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Settings, Eye } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { DashboardRenewalNotification } from '@/components/notifications/RenewalNotification';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 
@@ -244,10 +245,10 @@ export default function RoleBasedDashboard() {
               icon: Users,
               onClick: async () => {
                 // Force refresh wallet balance and subscription status
-                console.log('🔄 Refreshing wallet balance from dashboard...');
+                console.log('Refreshing wallet balance from dashboard...');
                 await refreshBalance();
                 await fetchSubscriptionStatus(); // Also refresh subscription status
-                console.log('✅ Wallet balance and subscription status refreshed');
+                console.log('Wallet balance and subscription status refreshed');
               }
             }
           ],
@@ -489,14 +490,22 @@ export default function RoleBasedDashboard() {
       />
       
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Currency Selector */}
           <div className="flex justify-end mb-6">
-            <CurrencySelector 
-              selectedCurrency={selectedCurrency} 
-              onCurrencyChange={updateCurrency} 
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
             />
           </div>
+
+          {/* Renewal Notification for Artists and Label Admins */}
+          {(userRole === 'artist' || userRole === 'label_admin') && subscriptionStatus && (
+            <DashboardRenewalNotification
+              subscriptionStatus={subscriptionStatus}
+              walletBalance={walletBalance}
+            />
+          )}
 
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-8">

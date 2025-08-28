@@ -354,7 +354,7 @@ const LatestReleasesSection = () => {
           return
         }
 
-        console.log('🔄 Fetching fresh YouTube data')
+        console.log('Fetching fresh YouTube data')
         
         // Set timeout for mobile devices (10 seconds)
         const controller = new AbortController()
@@ -389,7 +389,7 @@ const LatestReleasesSection = () => {
         if (err.name === 'AbortError') {
           console.warn('🚫 API request timed out, using hardcoded videos')
         } else {
-          console.warn('❌ API failed, using hardcoded videos:', err.message)
+          console.warn('API failed, using hardcoded videos:', err.message)
         }
         setError(err.message)
         setReleases(getHardcodedVideos())

@@ -39,7 +39,7 @@ export default function LabelAdminReleases() {
   const userRole = getUserRoleSync();
   const userBrand = getUserBrand(user);
 
-  // 🎯 LOAD SUBSCRIPTION STATUS FOR REAL PLAN DETECTION
+  // Load subscription status for real plan detection
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       if (!user) return;
@@ -64,7 +64,7 @@ export default function LabelAdminReleases() {
           // Update user plan based on real subscription
           const plan = result.data.isPro ? 'pro' : 'starter';
           setUserPlan(plan);
-          console.log('🎯 LABEL ADMIN SUBSCRIPTION STATUS:', { 
+          console.log('Label Admin Subscription Status:', { 
             plan, 
             isPro: result.data.isPro,
             planName: result.data.planName,
@@ -80,7 +80,7 @@ export default function LabelAdminReleases() {
             isStarter: false
           });
           setUserPlan('starter');
-          console.log('🎯 LABEL ADMIN NO SUBSCRIPTION - DEFAULTING TO STARTER');
+          console.log('Label Admin No Subscription - Defaulting to Starter');
         }
       } catch (error) {
         console.error('Failed to fetch label admin subscription status:', error);
@@ -102,7 +102,7 @@ export default function LabelAdminReleases() {
   //   return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   // }
 
-  // 🎯 Calculate release counts for starter plan limits (Label Admin)
+  // Calculate release counts for starter plan limits (Label Admin)
   const releaseCount = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const releasesThisYear = RELEASES.filter(release => {

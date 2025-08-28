@@ -39,7 +39,7 @@ export function useWalletBalance() {
 
       const balance = profile?.wallet_balance || 0;
       setWalletBalance(balance);
-      console.log('🔄 Wallet balance fetched:', balance);
+      console.log('Wallet balance fetched:', balance);
 
     } catch (err) {
       console.error('Error fetching wallet balance:', err);
@@ -57,7 +57,7 @@ export function useWalletBalance() {
 
   // Refresh function for manual updates
   const refreshBalance = useCallback(async () => {
-    console.log('🔄 Manually refreshing wallet balance...');
+    console.log('Manually refreshing wallet balance...');
     await fetchWalletBalance();
   }, [fetchWalletBalance]);
 

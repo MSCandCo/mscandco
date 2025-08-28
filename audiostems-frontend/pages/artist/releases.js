@@ -1,4 +1,4 @@
-// 🎯 ARTIST RELEASES - CLEAN & OPTIMIZED
+// ARTIST RELEASES - CLEAN & OPTIMIZED
 
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
@@ -26,7 +26,7 @@ import { getReleasesByArtist, getArtistById } from '../../lib/emptyData';
 import { EmptyReleases, LoadingState } from '../../components/shared/EmptyStates';
 
 /*
- * 🔄 DISTRIBUTION PARTNER WORKFLOW:
+ * DISTRIBUTION PARTNER WORKFLOW:
  * 1. Artist creates release → Auto-saves to DRAFT
  * 2. Artist completes all fields → Can SUBMIT
  * 3. Distribution Partner reviews → Moves to UNDER REVIEW
@@ -69,7 +69,7 @@ export default function ArtistReleases() {
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
-  // 🎯 Load data from centralized source
+  // Load data from centralized source
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -83,11 +83,11 @@ export default function ArtistReleases() {
         // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
         const artistReleases = getReleasesByArtist('msc_co');
 
-        // 🎯 SIMPLE PLAN CHECK - One source of truth
+        // Simple plan check - One source of truth
         if (user?.sub) {
           const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
           setUserPlan(hasUpgraded ? 'pro' : 'starter');
-          console.log('🎯 SIMPLE PLAN CHECK:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
+          console.log('Simple Plan Check:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
         }
 
         setReleases(artistReleases);
@@ -107,7 +107,7 @@ export default function ArtistReleases() {
     }
   }, [user, isLoading, user?.sub]);
 
-  // 🎯 LOAD SUBSCRIPTION STATUS FOR REAL PLAN DETECTION
+  // Load subscription status for real plan detection
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       if (!user) return;
@@ -132,7 +132,7 @@ export default function ArtistReleases() {
           // Update user plan based on real subscription
           const plan = result.data.isPro ? 'pro' : 'starter';
           setUserPlan(plan);
-          console.log('🎯 REAL SUBSCRIPTION STATUS:', { 
+          console.log('Real Subscription Status:', { 
             plan, 
             isPro: result.data.isPro,
             planName: result.data.planName,
@@ -148,7 +148,7 @@ export default function ArtistReleases() {
             isStarter: false
           });
           setUserPlan('starter');
-          console.log('🎯 NO SUBSCRIPTION - DEFAULTING TO STARTER');
+          console.log('No Subscription - Defaulting to Starter');
         }
       } catch (error) {
         console.error('Failed to fetch subscription status:', error);
@@ -161,7 +161,7 @@ export default function ArtistReleases() {
     fetchSubscriptionStatus();
   }, [user]);
 
-  // 🎯 Calculate release counts for starter plan limits
+  // Calculate release counts for starter plan limits
   const releaseCount = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const releasesThisYear = releases.filter(release => {
@@ -180,7 +180,7 @@ export default function ArtistReleases() {
     };
   }, [releases, userPlan]);
 
-  // 🔍 ADVANCED FILTERING SYSTEM
+  // Advanced filtering system
   const filteredReleases = useMemo(() => {
 
     let filtered = releases;
@@ -214,7 +214,7 @@ export default function ArtistReleases() {
     return filtered;
   }, [releases, statusFilter, searchTerm, genreFilter, typeFilter]);
 
-  // 📊 STATISTICS CALCULATION
+  // Statistics calculation
   const stats = useMemo(() => {
     return {
       total: releases.length,
@@ -229,7 +229,7 @@ export default function ArtistReleases() {
     };
   }, [releases]);
 
-  // 🎨 RENDER FUNCTIONS
+  // Render functions
   const renderReleaseCard = (release) => (
     <div key={release.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
       {/* Header Section */}
