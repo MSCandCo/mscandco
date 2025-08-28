@@ -6,6 +6,7 @@ import Layout from '../../components/layouts/mainLayout';
 import { Calendar, TrendingUp, Users, Play, DollarSign, Crown, Lock } from 'lucide-react';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
+import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 
 export default function ArtistAnalytics() {
@@ -451,8 +452,13 @@ export default function ArtistAnalytics() {
   );
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate 
+      requiredFor="analytics and insights"
+      showFeaturePreview={true}
+      userRole="artist"
+    >
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           
           {/* Header with Tabs */}
@@ -566,5 +572,6 @@ export default function ArtistAnalytics() {
         </div>
       </div>
     </Layout>
+    </SubscriptionGate>
   );
 }

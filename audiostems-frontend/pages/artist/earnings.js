@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
+import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3 } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
@@ -400,8 +401,13 @@ export default function ArtistEarnings() {
   );
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate 
+      requiredFor="earnings and revenue tracking"
+      showFeaturePreview={true}
+      userRole="artist"
+    >
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           
           {/* Header with Tabs */}
@@ -538,5 +544,6 @@ export default function ArtistEarnings() {
         </div>
       </div>
     </Layout>
+    </SubscriptionGate>
   );
 }

@@ -24,6 +24,7 @@ import {
 } from '../../lib/constants';
 import { getReleasesByArtist, getArtistById } from '../../lib/emptyData';
 import { EmptyReleases, LoadingState } from '../../components/shared/EmptyStates';
+import SubscriptionGate from '../../components/auth/SubscriptionGate';
 
 /*
  * DISTRIBUTION PARTNER WORKFLOW:
@@ -339,8 +340,13 @@ export default function ArtistReleases() {
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate 
+      requiredFor="release management"
+      showFeaturePreview={true}
+      userRole="artist"
+    >
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -631,5 +637,6 @@ export default function ArtistReleases() {
         )}
       </div>
     </Layout>
+    </SubscriptionGate>
   );
 }

@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { BarChart3, Music, Target, CheckCircle } from 'lucide-react';
+import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -810,8 +811,13 @@ export default function PartnerReports() {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate 
+      requiredFor="revenue reporting and analytics"
+      showFeaturePreview={true}
+      userRole="distribution_partner"
+    >
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1496,5 +1502,6 @@ export default function PartnerReports() {
           buttonText={notificationModal.buttonText}
         />
       </Layout>
-    );
-  }
+    </SubscriptionGate>
+  );
+}

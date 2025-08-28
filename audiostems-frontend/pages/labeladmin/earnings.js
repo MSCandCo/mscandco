@@ -1,6 +1,7 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState } from 'react';
 import Layout from '../../components/layouts/mainLayout';
+import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import { Calendar, DollarSign, TrendingUp, Download, Crown, Lock, CreditCard, PieChart, BarChart3, Users, Percent } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
@@ -299,8 +300,13 @@ export default function LabelAdminEarnings() {
   );
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate 
+      requiredFor="label earnings and revenue tracking"
+      showFeaturePreview={true}
+      userRole="label_admin"
+    >
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           
           {/* Header with Tabs */}
@@ -435,5 +441,6 @@ export default function LabelAdminEarnings() {
         </div>
       </div>
     </Layout>
+    </SubscriptionGate>
   );
 }
