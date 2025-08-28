@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     // Note: This table might not exist yet, so we'll handle the error gracefully
     const { data: transactions, error, count } = await supabase
       .from('wallet_transactions')
-      .select('id, type, amount, description, status, created_at', { count: 'exact' })
+      .select('id, transaction_type, amount, description, processed, created_at, metadata, notes', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range((page - 1) * limit, page * limit - 1)
@@ -59,9 +59,20 @@ export default async function handler(req, res) {
       throw error
     }
 
+    // Format transactions for frontend
+    const formattedTransactions = (transactions || []).map(transaction => ({
+      id: transaction.id,
+      type: transaction.transaction_type,
+      amount: transaction.amount,
+      description: transaction.description || transaction.notes || 'Transaction',
+      date: transaction.created_at,
+      status: transaction.processed ? 'completed' : 'pending',
+      metadata: transaction.metadata
+    }));
+
     res.status(200).json({
       success: true,
-      data: transactions || [],
+      data: formattedTransactions,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

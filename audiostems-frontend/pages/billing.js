@@ -35,6 +35,10 @@ const BillingPage = () => {
   // Use shared wallet balance hook
   const { walletBalance, isLoading: loadingBalance, refreshBalance } = useWalletBalance();
   
+  // Transaction state
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  
   // Handle payment status from URL query parameters
   useEffect(() => {
     const { payment } = router.query;
@@ -52,7 +56,7 @@ const BillingPage = () => {
     }
   }, [router.query, router]);
 
-  // Fetch current subscription status
+  // Fetch current subscription status and transactions
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       if (!user) return;
@@ -86,6 +90,7 @@ const BillingPage = () => {
     };
 
     fetchSubscriptionStatus();
+    loadTransactions();
   }, [user]);
 
   // Wallet balance is now managed by the shared hook
@@ -158,12 +163,36 @@ const BillingPage = () => {
     }
   ];
 
-  // Mock transactions
-  const recentTransactions = [
-    { id: 1, type: 'subscription', amount: -29.99, description: 'Artist Pro Monthly', date: '2025-08-15', status: 'completed' },
-    { id: 2, type: 'topup', amount: 50.00, description: 'Wallet Top-up via Revolut', date: '2025-08-10', status: 'completed' },
-    { id: 3, type: 'refund', amount: 29.99, description: 'Subscription Refund', date: '2025-08-05', status: 'completed' }
-  ];
+  // Load wallet transactions
+  const loadTransactions = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingTransactions(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) return;
+
+      const response = await fetch('/api/wallet/transactions?limit=5', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setRecentTransactions(result.data || []);
+      } else {
+        console.error('Failed to load transactions:', result.error);
+        setRecentTransactions([]);
+      }
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      setRecentTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
 
   // Helper functions
   const convertPrice = (gbpPrice) => {
@@ -319,6 +348,9 @@ const BillingPage = () => {
             }
           }
         }
+        
+        // Refresh transactions to show the new payment
+        await loadTransactions();
         
       } else {
         // Need to top up
@@ -773,7 +805,12 @@ const BillingPage = () => {
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900">Recent Transactions</h2>
               </div>
               <div className="p-4 sm:p-6">
-                {recentTransactions.length > 0 ? (
+                {loadingTransactions ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-gray-600">Loading transactions...</p>
+                  </div>
+                ) : recentTransactions.length > 0 ? (
                   <div className="space-y-3 sm:space-y-4">
                     {recentTransactions.map((transaction) => (
                       <div key={transaction.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
