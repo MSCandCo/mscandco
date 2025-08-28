@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import { FaEye, FaEdit, FaPlay, FaCheckCircle, FaFileText, FaFilter, FaSearch } from 'react-icons/fa';
@@ -30,10 +31,67 @@ export default function LabelAdminReleases() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [artistFilter, setArtistFilter] = useState('all');
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+  const [userPlan, setUserPlan] = useState('starter'); // 'starter' or 'pro'
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
 
   const userRole = getUserRoleSync();
   const userBrand = getUserBrand(user);
+
+  // 🎯 LOAD SUBSCRIPTION STATUS FOR REAL PLAN DETECTION
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) {
+          setSubscriptionLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/user/subscription-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          setSubscriptionStatus(result.data);
+          // Update user plan based on real subscription
+          const plan = result.data.isPro ? 'pro' : 'starter';
+          setUserPlan(plan);
+          console.log('🎯 LABEL ADMIN SUBSCRIPTION STATUS:', { 
+            plan, 
+            isPro: result.data.isPro,
+            planName: result.data.planName,
+            tier: result.data.planId 
+          });
+        } else {
+          // Set default starter plan
+          setSubscriptionStatus({
+            status: 'none',
+            planName: 'No Subscription',
+            hasSubscription: false,
+            isPro: false,
+            isStarter: false
+          });
+          setUserPlan('starter');
+          console.log('🎯 LABEL ADMIN NO SUBSCRIPTION - DEFAULTING TO STARTER');
+        }
+      } catch (error) {
+        console.error('Failed to fetch label admin subscription status:', error);
+        setUserPlan('starter'); // Default to starter on error
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [user]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -43,6 +101,26 @@ export default function LabelAdminReleases() {
   // if (!user || userRole !== 'label_admin') {
   //   return <div className="flex items-center justify-center min-h-screen">Access Denied</div>;
   // }
+
+  // 🎯 Calculate release counts for starter plan limits (Label Admin)
+  const releaseCount = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const releasesThisYear = RELEASES.filter(release => {
+      const releaseDate = new Date(release.releaseDate);
+      return releaseDate.getFullYear() === currentYear;
+    }).length;
+    
+    // Label plans: Starter = 20 releases, Pro = unlimited
+    const maxReleases = userPlan === 'starter' ? 20 : Infinity;
+    const remaining = Math.max(0, maxReleases - releasesThisYear);
+    
+    return {
+      thisYear: releasesThisYear,
+      remaining: remaining,
+      maxReleases: maxReleases,
+      isLimited: userPlan === 'starter'
+    };
+  }, [userPlan]);
 
   // Get approved artists for this label
   const approvedArtists = ARTISTS.filter(artist => 
@@ -274,10 +352,54 @@ export default function LabelAdminReleases() {
                 <p className="mt-2 text-sm text-gray-600">
                   Manage and track all releases from your label artists
                 </p>
+                
+                {/* Show plan status for all label admins */}
+                {!subscriptionLoading && (
+                  <div className="mt-3">
+                    {releaseCount.isLimited ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            releaseCount.remaining > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            <span>Releases Remaining: {releaseCount.remaining} / {releaseCount.maxReleases}</span>
+                          </div>
+                          <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {subscriptionStatus?.planName || 'Label Starter'}
+                          </div>
+                        </div>
+                        {releaseCount.remaining === 0 && (
+                          <a 
+                            href="/billing" 
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            Upgrade to Pro for unlimited releases →
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                          <span>Unlimited Releases</span>
+                        </div>
+                        <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          {subscriptionStatus?.planName || 'Label Pro'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={releaseCount.isLimited && releaseCount.remaining === 0}
+                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                  releaseCount.isLimited && releaseCount.remaining === 0
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Release

@@ -273,9 +273,13 @@ export default function RoleBasedDashboard() {
               trend: dashboardData.artistGrowth >= 0 ? 'up' : 'down'
             },
             { 
-              title: 'Active Releases', 
-              value: dashboardData.totalReleases?.toString() || '0', 
-              change: `${dashboardData.releaseGrowth > 0 ? '+' : ''}${dashboardData.releaseGrowth || 0}% this month`, 
+              title: subscriptionStatus?.isPro ? 'Active Releases' : 'Releases Used', 
+              value: subscriptionStatus?.isPro 
+                ? dashboardData.totalReleases?.toString() || '0'
+                : `${dashboardData.totalReleases || 0} / 20`, 
+              change: subscriptionStatus?.isPro 
+                ? `${dashboardData.releaseGrowth > 0 ? '+' : ''}${dashboardData.releaseGrowth || 0}% this month`
+                : `${Math.max(0, 20 - (dashboardData.totalReleases || 0))} remaining`, 
               icon: Music,
               trend: dashboardData.releaseGrowth >= 0 ? 'up' : 'down'
             },
