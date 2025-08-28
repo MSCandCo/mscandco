@@ -17,7 +17,7 @@ import {
   FaShare,
   FaDownload
 } from 'react-icons/fa';
-import { SiShazam, SiPandora, SiDeezer, SiGenius } from 'react-icons/si';
+import { SiShazam, SiPandora } from 'react-icons/si';
 
 export default function SocialFootprintIntegration() {
   const [activeView, setActiveView] = useState('overview');
@@ -378,7 +378,7 @@ export default function SocialFootprintIntegration() {
         {/* Deezer */}
         <div>
           <div className="flex items-center mb-4">
-            <SiDeezer className="w-6 h-6 text-purple-600 mr-2" />
+            <FaMusic className="w-6 h-6 text-purple-600 mr-2" />
             <h3 className="font-semibold text-gray-900">Deezer</h3>
           </div>
           <div className="space-y-3">
@@ -395,7 +395,7 @@ export default function SocialFootprintIntegration() {
         {/* Genius */}
         <div>
           <div className="flex items-center mb-4">
-            <SiGenius className="w-6 h-6 text-yellow-500 mr-2" />
+            <FaMusic className="w-6 h-6 text-yellow-500 mr-2" />
             <h3 className="font-semibold text-gray-900">Genius</h3>
           </div>
           <div className="space-y-3">

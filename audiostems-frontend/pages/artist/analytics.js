@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import { Calendar, TrendingUp, Users, Play, DollarSign, Crown, Lock } from 'lucide-react';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
+import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 
 export default function ArtistAnalytics() {
@@ -15,6 +16,9 @@ export default function ArtistAnalytics() {
   const [endDate, setEndDate] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [chartmetricData, setChartmetricData] = useState(null);
+  const [chartmetricLoading, setChartmetricLoading] = useState(false);
+  const [linkedArtist, setLinkedArtist] = useState(null);
   
   const hasProAccess = subscriptionStatus?.isPro || false;
 
@@ -68,6 +72,53 @@ export default function ArtistAnalytics() {
 
     fetchSubscriptionStatus();
   }, [user]);
+
+  // Load Chartmetric analytics data
+  const loadChartmetricData = async () => {
+    if (!user || !hasProAccess) return;
+    
+    setChartmetricLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) return;
+
+      const response = await fetch(`/api/chartmetric/artist-analytics?dateRange=${selectedPeriod}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setChartmetricData(result.data);
+        setLinkedArtist(result.data.userContext?.linkedArtist);
+        console.log('📊 Chartmetric analytics loaded:', result.data);
+      } else if (result.requiresLinking) {
+        setLinkedArtist(null);
+        console.log('🔗 Chartmetric artist linking required');
+      }
+    } catch (error) {
+      console.error('Failed to load Chartmetric data:', error);
+    } finally {
+      setChartmetricLoading(false);
+    }
+  };
+
+  // Handle artist linking
+  const handleArtistLinked = (artist) => {
+    setLinkedArtist(artist);
+    if (artist && hasProAccess) {
+      loadChartmetricData();
+    }
+  };
+
+  // Load Chartmetric data when user has Pro access and artist is linked
+  useEffect(() => {
+    if (hasProAccess && !subscriptionLoading) {
+      loadChartmetricData();
+    }
+  }, [user, hasProAccess, subscriptionLoading, selectedPeriod]);
 
   // Handle date range changes
   const handleDateRangeChange = (start, end) => {
@@ -259,58 +310,143 @@ export default function ArtistAnalytics() {
   );
 
   const renderAdvancedAnalytics = () => (
-    <div className="space-y-12">
-      {/* Advanced Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Play className="w-6 h-6 text-blue-600" />
+    <div className="space-y-8">
+      {/* Chartmetric Artist Linking */}
+      <ChartmetricArtistLinking onLinked={handleArtistLinked} />
+      
+      {/* Show analytics if artist is linked */}
+      {linkedArtist && chartmetricData ? (
+        <div className="space-y-12">
+          {/* Advanced Key Metrics with Real Data */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Play className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {chartmetricData.platforms?.spotify?.streams?.toLocaleString() || '0'}
+                </p>
+                <p className="text-sm text-gray-600">Total Streams</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-sm text-gray-600">Total Streams</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="w-6 h-6 text-green-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">£0.00</p>
+                <p className="text-sm text-gray-600">Total Revenue</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">£0.00</p>
-            <p className="text-sm text-gray-600">Total Revenue</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Users className="w-6 h-6 text-purple-600" />
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {chartmetricData.audience?.totalFanbase?.toLocaleString() || '0'}
+                </p>
+                <p className="text-sm text-gray-600">Social Footprint</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-sm text-gray-600">Social Footprint</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-6 h-6 text-orange-600" />
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">0%</p>
+                <p className="text-sm text-gray-600">Growth Rate</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">0%</p>
-            <p className="text-sm text-gray-600">Growth Rate</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Crown className="w-6 h-6 text-indigo-600" />
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Crown className="w-6 h-6 text-indigo-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {chartmetricData.careerSnapshot?.stage || 'Developing'}
+                </p>
+                <p className="text-sm text-gray-600">Career Stage</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">Mainstream</p>
-            <p className="text-sm text-gray-600">Career Stage</p>
           </div>
-        </div>
-      </div>
 
-      {/* Advanced Analytics Content */}
-      <SocialFootprintIntegration />
+          {/* Advanced Analytics Content with Real Data */}
+          <SocialFootprintIntegration 
+            data={chartmetricData} 
+            loading={chartmetricLoading}
+          />
+        </div>
+      ) : linkedArtist && chartmetricLoading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your analytics data from Chartmetric...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+        </div>
+      ) : !linkedArtist ? (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <div className="text-gray-400 mb-4">
+            <Users className="w-16 h-16 mx-auto" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Link Your Artist Profile</h3>
+          <p className="text-gray-600">
+            Connect your Chartmetric artist profile above to unlock real-time analytics and insights.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-12">
+          {/* Fallback to mock data if linking failed */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Play className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-gray-600">Total Streams</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="w-6 h-6 text-green-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">£0.00</p>
+                <p className="text-sm text-gray-600">Total Revenue</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-gray-600">Social Footprint</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">0%</p>
+                <p className="text-sm text-gray-600">Growth Rate</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Crown className="w-6 h-6 text-indigo-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">Developing</p>
+                <p className="text-sm text-gray-600">Career Stage</p>
+              </div>
+            </div>
+          </div>
+          <SocialFootprintIntegration />
+        </div>
+      )}
     </div>
   );
 
