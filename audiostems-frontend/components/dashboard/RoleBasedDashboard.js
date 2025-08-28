@@ -213,9 +213,13 @@ export default function RoleBasedDashboard() {
           description: 'Manage your releases, track earnings, and grow your audience',
           stats: [
             { 
-              title: 'Total Releases', 
-              value: dashboardData.totalReleases?.toLocaleString() || '0', 
-              change: `${dashboardData.releaseGrowth > 0 ? '+' : ''}${dashboardData.releaseGrowth || 0}% this month`, 
+              title: subscriptionStatus?.isPro ? 'Total Releases' : 'Releases Used', 
+              value: subscriptionStatus?.isPro 
+                ? dashboardData.totalReleases?.toLocaleString() || '0'
+                : `${dashboardData.totalReleases || 0} / 5`, 
+              change: subscriptionStatus?.isPro 
+                ? `${dashboardData.releaseGrowth > 0 ? '+' : ''}${dashboardData.releaseGrowth || 0}% this month`
+                : `${Math.max(0, 5 - (dashboardData.totalReleases || 0))} remaining`, 
               icon: Music,
               trend: dashboardData.releaseGrowth >= 0 ? 'up' : 'down'
             },

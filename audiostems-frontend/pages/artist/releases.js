@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
@@ -43,6 +44,8 @@ export default function ArtistReleases() {
   const [profileData, setProfileData] = useState(null);
   const [activeTab, setActiveTab] = useState('all-projects');
   const [userPlan, setUserPlan] = useState('starter'); // 'starter' or 'pro'
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [genreFilter, setGenreFilter] = useState('all');
@@ -103,6 +106,60 @@ export default function ArtistReleases() {
       loadData();
     }
   }, [user, isLoading, user?.sub]);
+
+  // 🎯 LOAD SUBSCRIPTION STATUS FOR REAL PLAN DETECTION
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) {
+          setSubscriptionLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/user/subscription-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          setSubscriptionStatus(result.data);
+          // Update user plan based on real subscription
+          const plan = result.data.isPro ? 'pro' : 'starter';
+          setUserPlan(plan);
+          console.log('🎯 REAL SUBSCRIPTION STATUS:', { 
+            plan, 
+            isPro: result.data.isPro,
+            planName: result.data.planName,
+            tier: result.data.planId 
+          });
+        } else {
+          // Set default starter plan
+          setSubscriptionStatus({
+            status: 'none',
+            planName: 'No Subscription',
+            hasSubscription: false,
+            isPro: false,
+            isStarter: false
+          });
+          setUserPlan('starter');
+          console.log('🎯 NO SUBSCRIPTION - DEFAULTING TO STARTER');
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription status:', error);
+        setUserPlan('starter'); // Default to starter on error
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [user]);
 
   // 🎯 Calculate release counts for starter plan limits
   const releaseCount = useMemo(() => {
@@ -291,19 +348,42 @@ export default function ArtistReleases() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">My Releases</h1>
                 <p className="mt-2 text-gray-600">Manage your music releases and track their progress</p>
-                {releaseCount.isLimited && (
-                  <div className="mt-3 flex items-center space-x-2">
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      releaseCount.remaining > 0 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      <span>Releases Remaining: {releaseCount.remaining} / {releaseCount.maxReleases}</span>
-                    </div>
-                    {releaseCount.remaining === 0 && (
-                      <span className="text-sm text-red-600">
-                        Upgrade to Pro for unlimited releases
-                      </span>
+                
+                {/* Show plan status for all users */}
+                {!subscriptionLoading && (
+                  <div className="mt-3">
+                    {releaseCount.isLimited ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            releaseCount.remaining > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            <span>Releases Remaining: {releaseCount.remaining} / {releaseCount.maxReleases}</span>
+                          </div>
+                          <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {subscriptionStatus?.planName || 'Artist Starter'}
+                          </div>
+                        </div>
+                        {releaseCount.remaining === 0 && (
+                          <a 
+                            href="/billing" 
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            Upgrade to Pro for unlimited releases →
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                          <span>Unlimited Releases</span>
+                        </div>
+                        <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          {subscriptionStatus?.planName || 'Artist Pro'}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

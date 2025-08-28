@@ -152,15 +152,21 @@ export default async function handler(req, res) {
       // Link user to a Chartmetric artist
       const { artistId, artistName, verified = false } = req.body;
 
+      console.log('🔗 Linking artist:', { artistId, artistName, verified, userId });
+
       if (!artistId || !artistName) {
+        console.error('❌ Missing required fields:', { artistId, artistName });
         return res.status(400).json({ error: 'Artist ID and name are required' });
       }
 
       // Verify the artist exists in Chartmetric
       try {
+        console.log('🔍 Verifying artist in Chartmetric:', artistId);
         const artistDetails = await getArtistDetails(artistId, chartmetricToken);
+        console.log('✅ Artist verified:', artistDetails?.obj?.name || 'Unknown');
         
         // Update user profile with Chartmetric artist link
+        console.log('💾 Updating user profile in Supabase for user:', userId);
         const { error } = await supabase
           .from('user_profiles')
           .update({
@@ -173,8 +179,15 @@ export default async function handler(req, res) {
           .eq('id', userId);
 
         if (error) {
-          return res.status(500).json({ error: 'Failed to link artist profile' });
+          console.error('❌ Supabase update error:', error);
+          return res.status(500).json({ 
+            error: 'Failed to link artist profile',
+            details: error.message,
+            code: error.code
+          });
         }
+
+        console.log('✅ Artist linked successfully');
 
         return res.json({
           success: true,
@@ -188,6 +201,7 @@ export default async function handler(req, res) {
         });
 
       } catch (error) {
+        console.error('❌ Artist verification/linking error:', error);
         return res.status(400).json({ 
           error: 'Invalid artist ID or artist not found in Chartmetric',
           details: error.message
