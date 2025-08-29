@@ -47,8 +47,17 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
     );
   }
 
-  // Beautiful mock data with realistic numbers (will be replaced with real Chartmetric API data)
-  const mockData = {
+  // Use real Chartmetric data if available, with beautiful fallback data
+  const displayData = data?.artist ? {
+    overview: {
+      totalStreams: data.artist.sp_monthly_listeners || 0,
+      monthlyListeners: data.artist.sp_monthly_listeners || 0,
+      followers: data.artist.sp_followers || 0,
+      totalRevenue: 0, // Will be calculated from streaming data
+      growthRate: 0 // Will be calculated from historical data
+    },
+    artist: data.artist
+  } : {
     overview: {
       totalStreams: 2953839,
       monthlyListeners: 1260000,
@@ -157,18 +166,9 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
-            title: 'Total Streams',
-            value: mockData.overview.totalStreams.toLocaleString(),
-            change: '+17.1%',
-            icon: Play,
-            gradient: 'from-blue-500 to-blue-600',
-            bgColor: 'bg-blue-50',
-            iconColor: 'text-blue-600'
-          },
-          {
             title: 'Monthly Listeners',
-            value: (mockData.overview.monthlyListeners / 1000000).toFixed(1) + 'M',
-            change: '+12.3%',
+            value: displayData.overview.monthlyListeners ? (displayData.overview.monthlyListeners / 1000000).toFixed(1) + 'M' : 'N/A',
+            change: '+12.3%', // Will be calculated from historical data
             icon: Headphones,
             gradient: 'from-green-500 to-green-600',
             bgColor: 'bg-green-50',
@@ -176,18 +176,27 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           },
           {
             title: 'Total Followers',
-            value: (mockData.overview.followers / 1000000).toFixed(1) + 'M',
-            change: '+8.7%',
+            value: displayData.overview.followers ? (displayData.overview.followers / 1000000).toFixed(1) + 'M' : 'N/A',
+            change: '+8.7%', // Will be calculated from historical data
             icon: Users,
             gradient: 'from-purple-500 to-purple-600',
             bgColor: 'bg-purple-50',
             iconColor: 'text-purple-600'
           },
           {
-            title: 'Revenue',
-            value: '£' + mockData.overview.totalRevenue.toLocaleString(),
-            change: '+22.4%',
-            icon: DollarSign,
+            title: 'Artist Score',
+            value: displayData.artist?.cm_artist_score ? displayData.artist.cm_artist_score.toFixed(1) : 'N/A',
+            change: 'Chartmetric Score',
+            icon: Award,
+            gradient: 'from-blue-500 to-blue-600',
+            bgColor: 'bg-blue-50',
+            iconColor: 'text-blue-600'
+          },
+          {
+            title: 'Verification',
+            value: displayData.artist?.verified ? 'Verified' : 'Unverified',
+            change: displayData.artist?.verified ? 'Official Artist' : 'Pending',
+            icon: displayData.artist?.verified ? Award : Music,
             gradient: 'from-amber-500 to-amber-600',
             bgColor: 'bg-amber-50',
             iconColor: 'text-amber-600'

@@ -191,6 +191,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🎵 Chartmetric analytics API called');
+    
     // Get user from JWT token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -235,20 +237,40 @@ export default async function handler(req, res) {
 
     const { dateRange = '30d' } = req.query;
     
-    // Get Chartmetric token and fetch analytics
+    console.log('🔍 Fetching analytics for artist:', profile.chartmetric_artist_name, 'ID:', profile.chartmetric_artist_id);
+    
+    // Get Chartmetric token
     const chartmetricToken = await getChartmetricToken();
-    const rawAnalytics = await getArtistAnalytics(profile.chartmetric_artist_id, chartmetricToken, dateRange);
+    console.log('✅ Chartmetric token obtained');
     
-    // Transform data to our format
-    const analytics = transformAnalyticsData(rawAnalytics);
+    // Start with just basic artist data to avoid timeouts
+    const artistResponse = await fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}`, {
+      headers: {
+        'Authorization': `Bearer ${chartmetricToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!artistResponse.ok) {
+      console.error('❌ Failed to fetch artist data:', artistResponse.status);
+      return res.status(400).json({ 
+        error: 'Failed to fetch artist data from Chartmetric',
+        status: artistResponse.status
+      });
+    }
+
+    const artistData = await artistResponse.json();
+    console.log('✅ Artist data fetched successfully');
     
-    // Add user context
-    analytics.userContext = {
-      linkedArtist: {
-        id: profile.chartmetric_artist_id,
-        name: profile.chartmetric_artist_name,
-        verified: profile.chartmetric_verified
-      },
+    // Return simplified analytics with real artist data
+    const analytics = {
+      artist: artistData.obj,
+      userContext: {
+        linkedArtist: {
+          id: profile.chartmetric_artist_id,
+          name: profile.chartmetric_artist_name,
+          verified: profile.chartmetric_verified
+        },
       dateRange,
       userId
     };
