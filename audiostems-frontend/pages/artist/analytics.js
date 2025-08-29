@@ -229,18 +229,18 @@ export default function ArtistAnalytics() {
 
   const renderAdvancedAnalytics = () => (
     <div className="space-y-8">
+      {/* Chartmetric Artist Linking - Always show for linking/unlinking */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+        <ChartmetricArtistLinking onLinked={handleArtistLinked} />
+      </div>
+      
       {/* Show beautiful analytics if artist is linked */}
-      {linkedArtist ? (
+      {linkedArtist && (
         <BeautifulChartmetricDisplay 
           data={chartmetricData} 
           loading={chartmetricLoading}
           linkedArtist={linkedArtist}
         />
-      ) : (
-        /* Chartmetric Artist Linking */
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-          <ChartmetricArtistLinking onLinked={handleArtistLinked} />
-        </div>
       )}
     </div>
   );
