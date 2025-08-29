@@ -19,36 +19,52 @@ export default function ChartmetricArtistLinking({ onLinked }) {
   }, [user]);
 
   const loadLinkedArtist = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('📋 No user available for loading linked artist');
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      console.log('🔍 Starting to load linked artist for user:', user.id);
+      
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
       if (!token) {
+        console.log('❌ No authentication token available');
         setIsLoading(false);
         return;
       }
 
-      console.log('🔍 Loading linked artist for user...');
+      console.log('🔑 Token available, making API call...');
       
       const response = await fetch('/api/chartmetric/link-artist?current=true', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      console.log('Load linked artist response:', response.status);
+      console.log('📡 Load linked artist response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API response not ok:', response.status, errorText);
+        setError(`API error: ${response.status}`);
+        return;
+      }
+      
       const result = await response.json();
-      console.log('Load linked artist result:', result);
+      console.log('📊 Load linked artist result:', result);
 
-      if (result.linked) {
-        console.log('✅ Found linked artist:', result.artist.name);
+      if (result.linked && result.artist) {
+        console.log('✅ Found linked artist on page load:', result.artist.name);
         setLinkedArtist(result.artist);
+        setError(null);
       } else {
-        console.log('📋 No linked artist found on load');
+        console.log('📋 No linked artist found on page load');
         setLinkedArtist(null);
       }
     } catch (error) {
-      console.error('Error loading linked artist:', error);
+      console.error('❌ Error loading linked artist:', error);
       setError('Failed to load linked artist information');
     } finally {
       setIsLoading(false);
