@@ -57,8 +57,112 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       totalRevenue: 0, // Will be calculated from streaming data
       growthRate: 0 // Will be calculated from historical data
     },
-    artist: data.artist
+    artist: data.artist,
+    careerSnapshot: {
+      careerStage: { level: 'Mainstream', sublevel: 'Mid-Level', status: 'Developing' },
+      recentMomentum: { level: 'Steady', sublevel: 'Gradual Growth', status: 'Growth' },
+      networkStrength: { level: 'Established', sublevel: 'Strong', status: 'Active' },
+      socialEngagement: { level: 'High', sublevel: 'Very Active', status: 'Active' }
+    },
+    platforms: [
+      { 
+        name: 'Spotify', 
+        icon: '🟢',
+        color: '#1DB954',
+        followers: data.artist.sp_followers ? (data.artist.sp_followers / 1000000).toFixed(2) + 'M' : '1.44M',
+        monthlyListeners: data.artist.sp_monthly_listeners ? (data.artist.sp_monthly_listeners / 1000000).toFixed(2) + 'M' : '1.25M', 
+        streams: data.artist.sp_monthly_listeners ? data.artist.sp_monthly_listeners.toLocaleString() : '1,450,000',
+        popularity: '60/100',
+        growth: '+12.5%'
+      },
+      { 
+        name: 'Apple Music', 
+        icon: '🔴',
+        color: '#FA243C',
+        followers: '890K',
+        monthlyListeners: '780K', 
+        streams: '890,000',
+        popularity: '55/100',
+        growth: '+8.3%'
+      }
+    ],
+    demographics: {
+      countries: [
+        { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
+        { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
+        { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },
+        { name: 'United Kingdom', percentage: 6.8, flag: '🇬🇧', streams: '201,000' },
+        { name: 'South Africa', percentage: 5.2, flag: '🇿🇦', streams: '154,000' }
+      ],
+      genders: [
+        { name: 'Male', percentage: 51.8 },
+        { name: 'Female', percentage: 48.2 }
+      ],
+      ages: [
+        { range: '25-34', percentage: 58.1 },
+        { range: '18-24', percentage: 23.4 },
+        { range: '35-44', percentage: 12.8 },
+        { range: '45-54', percentage: 4.2 },
+        { range: '55+', percentage: 1.5 }
+      ]
+    }
   } : {
+    overview: {
+      totalStreams: 2953839,
+      monthlyListeners: 1260000,
+      followers: 1450000,
+      totalRevenue: 11392.50,
+      growthRate: 17.1
+    },
+    careerSnapshot: {
+      careerStage: { level: 'Mainstream', sublevel: 'Mid-Level', status: 'Developing' },
+      recentMomentum: { level: 'Steady', sublevel: 'Gradual Growth', status: 'Growth' },
+      networkStrength: { level: 'Established', sublevel: 'Strong', status: 'Active' },
+      socialEngagement: { level: 'High', sublevel: 'Very Active', status: 'Active' }
+    },
+    platforms: [
+      { 
+        name: 'Spotify', 
+        icon: '🟢',
+        color: '#1DB954',
+        followers: '1.44M',
+        monthlyListeners: '1.25M', 
+        streams: '1,450,000',
+        popularity: '60/100',
+        growth: '+12.5%'
+      },
+      { 
+        name: 'TikTok', 
+        icon: '⚫',
+        color: '#000000',
+        followers: '1.80M',
+        likes: '35.70M', 
+        views: '109.7M',
+        videos: '2,904',
+        growth: '+28.3%'
+      }
+    ],
+    demographics: {
+      countries: [
+        { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
+        { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
+        { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },
+        { name: 'United Kingdom', percentage: 6.8, flag: '🇬🇧', streams: '201,000' },
+        { name: 'South Africa', percentage: 5.2, flag: '🇿🇦', streams: '154,000' }
+      ],
+      genders: [
+        { name: 'Male', percentage: 51.8 },
+        { name: 'Female', percentage: 48.2 }
+      ],
+      ages: [
+        { range: '25-34', percentage: 58.1 },
+        { range: '18-24', percentage: 23.4 },
+        { range: '35-44', percentage: 12.8 },
+        { range: '45-54', percentage: 4.2 },
+        { range: '55+', percentage: 1.5 }
+      ]
+    }
+  };
     overview: {
       totalStreams: 2953839,
       monthlyListeners: 1260000,
@@ -225,36 +329,36 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         {[
           {
             title: 'Career Stage',
-            level: mockData.careerSnapshot.careerStage.level,
-            sublevel: mockData.careerSnapshot.careerStage.sublevel,
-            status: mockData.careerSnapshot.careerStage.status,
+            level: displayData.careerSnapshot.careerStage.level,
+            sublevel: displayData.careerSnapshot.careerStage.sublevel,
+            status: displayData.careerSnapshot.careerStage.status,
             icon: Target,
             color: 'indigo',
             progress: 75
           },
           {
             title: 'Recent Momentum',
-            level: mockData.careerSnapshot.recentMomentum.level,
-            sublevel: mockData.careerSnapshot.recentMomentum.sublevel,
-            status: mockData.careerSnapshot.recentMomentum.status,
+            level: displayData.careerSnapshot.recentMomentum.level,
+            sublevel: displayData.careerSnapshot.recentMomentum.sublevel,
+            status: displayData.careerSnapshot.recentMomentum.status,
             icon: Activity,
             color: 'green',
             progress: 85
           },
           {
             title: 'Network Strength',
-            level: mockData.careerSnapshot.networkStrength.level,
-            sublevel: mockData.careerSnapshot.networkStrength.sublevel,
-            status: mockData.careerSnapshot.networkStrength.status,
+            level: displayData.careerSnapshot.networkStrength.level,
+            sublevel: displayData.careerSnapshot.networkStrength.sublevel,
+            status: displayData.careerSnapshot.networkStrength.status,
             icon: Globe,
             color: 'blue',
             progress: 90
           },
           {
             title: 'Social Engagement',
-            level: mockData.careerSnapshot.socialEngagement.level,
-            sublevel: mockData.careerSnapshot.socialEngagement.sublevel,
-            status: mockData.careerSnapshot.socialEngagement.status,
+            level: displayData.careerSnapshot.socialEngagement.level,
+            sublevel: displayData.careerSnapshot.socialEngagement.sublevel,
+            status: displayData.careerSnapshot.socialEngagement.status,
             icon: Heart,
             color: 'pink',
             progress: 95
@@ -307,7 +411,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {mockData.platforms.map((platform, index) => (
+          {displayData.platforms.map((platform, index) => (
             <div key={index} className="border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
@@ -360,7 +464,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           <div>
             <h4 className="text-lg font-semibold text-slate-900 mb-4">Top Markets</h4>
             <div className="space-y-4">
-              {mockData.demographics.countries.map((country, index) => (
+              {displayData.demographics.countries.map((country, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
                   <div className="flex items-center space-x-4">
                     <div className="text-3xl">{country.flag}</div>
@@ -394,7 +498,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                 Gender Distribution
               </h5>
               <div className="space-y-3">
-                {mockData.demographics.genders.map((gender, index) => (
+                {displayData.demographics.genders.map((gender, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-slate-700">{gender.name}</span>
                     <div className="flex items-center space-x-3">
@@ -418,7 +522,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                 Age Groups
               </h5>
               <div className="space-y-3">
-                {mockData.demographics.ages.map((age, index) => (
+                {displayData.demographics.ages.map((age, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-slate-700">{age.range}</span>
                     <div className="flex items-center space-x-3">
