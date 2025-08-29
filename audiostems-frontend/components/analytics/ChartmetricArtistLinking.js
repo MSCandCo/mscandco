@@ -228,7 +228,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-2">Artist Information</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                {linkedArtist.details.genres && (
+                {linkedArtist.details?.genres && Array.isArray(linkedArtist.details.genres) && (
                   <div>
                     <span className="text-gray-600">Genres:</span>
                     <span className="ml-2 text-gray-900">{linkedArtist.details.genres.join(', ')}</span>
@@ -306,7 +306,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
                           </span>
                         )}
                       </p>
-                      {artist.genres && artist.genres.length > 0 && (
+                      {artist.genres && Array.isArray(artist.genres) && artist.genres.length > 0 && (
                         <p className="text-xs text-gray-500">{artist.genres.join(', ')}</p>
                       )}
                     </div>
