@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { BillingRenewalNotification } from '@/components/notifications/RenewalNotification';
 
 const BillingPage = () => {
   const router = useRouter();
@@ -594,6 +595,12 @@ const BillingPage = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Auto-Renewal Notification */}
+        <BillingRenewalNotification
+          subscriptionStatus={currentSubscription}
+          walletBalance={walletBalance}
+        />
         
         {/* Subscription Tab */}
         {activeTab === 'subscription' && (

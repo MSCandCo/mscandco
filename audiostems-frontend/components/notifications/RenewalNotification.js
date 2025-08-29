@@ -6,13 +6,10 @@ export default function RenewalNotification({
   subscriptionStatus, 
   walletBalance = 0, 
   showOnDashboard = false,
-  showOnBilling = false,
-  onDismiss = null 
+  showOnBilling = false
 }) {
-  const [isDismissed, setIsDismissed] = useState(false);
-
-  // Don't show if no subscription or dismissed
-  if (!subscriptionStatus?.hasSubscription || isDismissed) {
+  // Don't show if no subscription
+  if (!subscriptionStatus?.hasSubscription) {
     return null;
   }
 
@@ -117,12 +114,7 @@ export default function RenewalNotification({
   const { title, message } = getNotificationMessage();
   const IconComponent = icon;
 
-  const handleDismiss = () => {
-    setIsDismissed(true);
-    if (onDismiss) {
-      onDismiss();
-    }
-  };
+  // Auto-renewal notifications are persistent and cannot be dismissed
 
   return (
     <div className={`${bgColor} ${borderColor} border rounded-lg p-4 mb-4`}>
@@ -169,16 +161,7 @@ export default function RenewalNotification({
           </div>
         </div>
         
-        {/* Dismiss button */}
-        {onDismiss && (
-          <button
-            onClick={handleDismiss}
-            className={`flex-shrink-0 ${iconColor} hover:${textColor} transition-colors`}
-            aria-label="Dismiss notification"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        {/* No dismiss button - auto-renewal notifications cannot be closed */}
       </div>
     </div>
   );
@@ -191,10 +174,6 @@ export function DashboardRenewalNotification({ subscriptionStatus, walletBalance
       subscriptionStatus={subscriptionStatus}
       walletBalance={walletBalance}
       showOnDashboard={true}
-      onDismiss={() => {
-        // Store dismissal in localStorage for session
-        localStorage.setItem('renewalNotificationDismissed', Date.now().toString());
-      }}
     />
   );
 }
