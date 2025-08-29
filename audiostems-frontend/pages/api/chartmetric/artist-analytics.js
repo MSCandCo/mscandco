@@ -270,7 +270,8 @@ export default async function handler(req, res) {
           id: profile.chartmetric_artist_id,
           name: profile.chartmetric_artist_name,
           verified: profile.chartmetric_verified
-        },
+        }
+      },
       dateRange,
       userId
     };
