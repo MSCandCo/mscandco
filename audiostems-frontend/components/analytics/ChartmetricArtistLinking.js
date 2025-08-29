@@ -119,10 +119,17 @@ export default function ChartmetricArtistLinking({ onLinked }) {
         setLinkedArtist(result.artist);
         setSearchResults([]);
         setSearchQuery('');
+        setError(null);
         if (onLinked) onLinked(result.artist);
       } else {
         console.error('❌ Artist linking failed:', result);
-        setError(result.message || result.error || `Failed to link artist (${response.status})`);
+        
+        // Show specific message for already linked artists
+        if (result.error === 'Artist profile already linked') {
+          setError(`${result.message} Current artist: ${result.existingArtist?.name || 'Unknown'}`);
+        } else {
+          setError(result.message || result.error || `Failed to link artist (${response.status})`);
+        }
       }
     } catch (error) {
       console.error('Error linking artist:', error);

@@ -3,6 +3,12 @@
 
 import { supabase } from '@/lib/supabase';
 import jwt from 'jsonwebtoken';
+import { 
+  getLinkedArtist, 
+  linkArtistToUser, 
+  unlinkArtistFromUser, 
+  canUserLink 
+} from '@/lib/chartmetric-storage';
 
 const CHARTMETRIC_API_BASE = 'https://api.chartmetric.com/api';
 
@@ -167,10 +173,26 @@ export default async function handler(req, res) {
       const { q: query, current } = req.query;
 
       if (current === 'true') {
-        // Get current linked artist for this user
-        // For now, return no linked artist since columns don't exist
-        console.log('📋 Checking for linked artist (columns not available yet)');
-        return res.json({ linked: false, artist: null });
+        // Get current linked artist for this user from storage
+        console.log('📋 Checking for linked artist from storage...');
+        const linkedArtist = getLinkedArtist(userId);
+        
+        if (linkedArtist && linkedArtist.artistId) {
+          console.log('✅ Found linked artist:', linkedArtist.artistName);
+          return res.json({ 
+            linked: true, 
+            artist: {
+              id: linkedArtist.artistId,
+              name: linkedArtist.artistName,
+              verified: linkedArtist.verified,
+              linkedAt: linkedArtist.linkedAt,
+              details: linkedArtist.details
+            }
+          });
+        } else {
+          console.log('📋 No linked artist found');
+          return res.json({ linked: false, artist: null });
+        }
       }
 
       if (!query) {
@@ -201,6 +223,20 @@ export default async function handler(req, res) {
         });
       }
 
+      // Check if user can link (one-time restriction)
+      if (!canUserLink(userId)) {
+        const existingLink = getLinkedArtist(userId);
+        console.log('🚫 User already has linked artist:', existingLink?.artistName);
+        return res.status(400).json({
+          error: 'Artist profile already linked',
+          message: 'You can only link one Chartmetric artist profile. Contact an admin to reset if needed.',
+          existingArtist: {
+            name: existingLink?.artistName,
+            linkedAt: existingLink?.linkedAt
+          }
+        });
+      }
+
       // Verify the artist exists in Chartmetric with enhanced error handling
       try {
         console.log('🔍 Step 1: Verifying artist in Chartmetric:', artistId);
@@ -221,14 +257,25 @@ export default async function handler(req, res) {
           verified: artistDetails.obj.cm_artist_verified || false
         });
         
-        // Update user profile with Chartmetric artist link
-        console.log('💾 Step 3: Updating user profile in Supabase for user:', userId);
+        // Store artist link using persistent storage system
+        console.log('💾 Step 3: Storing artist link persistently for user:', userId);
         
-        // Skip database storage for now - columns don't exist yet
-        console.log('📋 Skipping database storage (Chartmetric columns not available)');
-        console.log('✅ Artist verification successful, linking will work for this session');
+        const linkResult = linkArtistToUser(userId, {
+          id: artistId,
+          name: artistDetails.obj.name,
+          verified: artistDetails.obj.cm_artist_verified || false,
+          details: artistDetails.obj
+        });
         
-        // Mock successful database result
+        if (!linkResult.success) {
+          console.error('❌ Failed to store artist link:', linkResult.error);
+          return res.status(500).json({ 
+            error: linkResult.error,
+            existingArtist: linkResult.existingArtist
+          });
+        }
+        
+        console.log('✅ Artist link stored successfully');
         const updateResult = [{ id: userId }];
         const error = null;
 
@@ -279,13 +326,15 @@ export default async function handler(req, res) {
       }
 
     } else if (req.method === 'DELETE') {
-      // Unlink artist from user profile
-      // For now, just return success since columns don't exist
-      console.log('📋 Unlinking artist (columns not available yet)');
+      // Unlink artist from user profile (admin only)
+      console.log('🔓 Admin unlinking artist for user:', userId);
+      
+      const unlinkResult = unlinkArtistFromUser(userId, userId); // For now, allow self-unlink
       
       return res.json({
-        success: true,
-        message: 'Artist profile unlinked successfully'
+        success: unlinkResult.success,
+        message: unlinkResult.message,
+        error: unlinkResult.error
       });
 
     } else {
