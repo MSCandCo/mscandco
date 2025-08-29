@@ -6,6 +6,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
+import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { 
   Calendar, 
@@ -117,9 +118,18 @@ export default function ArtistAnalytics() {
   };
 
   const handleArtistLinked = (artist) => {
+    console.log('🎯 Artist linked callback:', artist);
     setLinkedArtist(artist);
     loadChartmetricData();
   };
+
+  // Load analytics data when linked artist is found
+  useEffect(() => {
+    if (linkedArtist && hasProAccess) {
+      console.log('🔄 Auto-loading analytics for linked artist:', linkedArtist.name);
+      loadChartmetricData();
+    }
+  }, [linkedArtist, hasProAccess]);
 
   if (isLoading) {
     return (
@@ -219,29 +229,17 @@ export default function ArtistAnalytics() {
 
   const renderAdvancedAnalytics = () => (
     <div className="space-y-8">
-      {/* Chartmetric Artist Linking */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-        <ChartmetricArtistLinking onLinked={handleArtistLinked} />
-      </div>
-      
-      {/* Show analytics if artist is linked */}
-      {linkedArtist && chartmetricData ? (
-        <div className="space-y-8">
-          <SocialFootprintIntegration 
-            data={chartmetricData} 
-            loading={chartmetricLoading}
-          />
-        </div>
-      ) : linkedArtist && chartmetricLoading ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading your analytics data from Chartmetric...</p>
-        </div>
+      {/* Show beautiful analytics if artist is linked */}
+      {linkedArtist ? (
+        <BeautifulChartmetricDisplay 
+          data={chartmetricData} 
+          loading={chartmetricLoading}
+          linkedArtist={linkedArtist}
+        />
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 text-center">
-          <Music className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-slate-900 mb-2">Connect Your Artist Profile</h3>
-          <p className="text-slate-600">Link your Chartmetric artist profile above to unlock real-time analytics and insights.</p>
+        /* Chartmetric Artist Linking */
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+          <ChartmetricArtistLinking onLinked={handleArtistLinked} />
         </div>
       )}
     </div>

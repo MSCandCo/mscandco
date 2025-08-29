@@ -59,6 +59,12 @@ export default function ChartmetricArtistLinking({ onLinked }) {
         console.log('✅ Found linked artist on page load:', result.artist.name);
         setLinkedArtist(result.artist);
         setError(null);
+        
+        // Notify parent component that artist is linked
+        if (onLinked) {
+          console.log('📡 Notifying parent component of linked artist');
+          onLinked(result.artist);
+        }
       } else {
         console.log('📋 No linked artist found on page load');
         setLinkedArtist(null);
