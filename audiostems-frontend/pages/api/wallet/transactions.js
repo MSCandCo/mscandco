@@ -60,15 +60,31 @@ export default async function handler(req, res) {
     }
 
     // Format transactions for frontend
-    const formattedTransactions = (transactions || []).map(transaction => ({
-      id: transaction.id,
-      type: transaction.transaction_type,
-      amount: transaction.amount,
-      description: transaction.description || transaction.notes || 'Transaction',
-      date: transaction.created_at,
-      status: transaction.processed ? 'completed' : 'pending',
-      metadata: transaction.metadata
-    }));
+    const formattedTransactions = (transactions || []).map(transaction => {
+      const createdAt = new Date(transaction.created_at);
+      
+      // Format date as YYYY-MM-DD
+      const dateOnly = createdAt.toISOString().split('T')[0];
+      
+      // Format time as HH:MM with timezone
+      const timeOnly = createdAt.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+      
+      return {
+        id: transaction.id,
+        type: transaction.transaction_type,
+        amount: transaction.amount,
+        description: transaction.description || transaction.notes || 'Transaction',
+        date: dateOnly,
+        time: timeOnly,
+        fullDate: transaction.created_at, // Keep original for sorting if needed
+        status: transaction.processed ? 'completed' : 'pending',
+        metadata: transaction.metadata
+      };
+    });
 
     res.status(200).json({
       success: true,

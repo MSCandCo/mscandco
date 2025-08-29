@@ -825,7 +825,9 @@ const BillingPage = () => {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{transaction.description}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{transaction.date}</p>
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              {transaction.date} {transaction.time && `• ${transaction.time}`}
+                            </p>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
