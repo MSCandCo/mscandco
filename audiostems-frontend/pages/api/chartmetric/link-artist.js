@@ -6,32 +6,46 @@ import jwt from 'jsonwebtoken';
 
 const CHARTMETRIC_API_BASE = 'https://api.chartmetric.com/api';
 
-// Get Chartmetric access token
+// Get Chartmetric access token with enhanced error handling
 async function getChartmetricToken() {
   if (!process.env.CHARTMETRIC_REFRESH_TOKEN) {
-    throw new Error('Chartmetric API not configured');
+    throw new Error('Chartmetric API not configured - CHARTMETRIC_REFRESH_TOKEN required');
   }
 
-  const response = await fetch(`${CHARTMETRIC_API_BASE}/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      refreshtoken: process.env.CHARTMETRIC_REFRESH_TOKEN
-    })
-  });
+  console.log('🔑 Requesting new Chartmetric access token...');
+  
+  try {
+    const response = await fetch(`${CHARTMETRIC_API_BASE}/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refreshtoken: process.env.CHARTMETRIC_REFRESH_TOKEN
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to get Chartmetric token');
+    console.log('Token response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Token request failed:', response.status, errorText);
+      throw new Error(`Token request failed: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Token obtained successfully, length:', data.token?.length);
+    return data.token;
+  } catch (error) {
+    console.error('Chartmetric token error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.token;
 }
 
-// Search for artists in Chartmetric
+// Search for artists in Chartmetric with enhanced error handling
 async function searchChartmetricArtists(query, token) {
+  console.log(`🔍 Searching Chartmetric for: "${query}"`);
+  
   const response = await fetch(`${CHARTMETRIC_API_BASE}/search?q=${encodeURIComponent(query)}&type=artists&limit=10`, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -39,15 +53,30 @@ async function searchChartmetricArtists(query, token) {
     }
   });
 
+  console.log(`Search response status: ${response.status}`);
+
   if (!response.ok) {
-    throw new Error('Failed to search Chartmetric artists');
+    const errorText = await response.text();
+    console.error(`Search failed: ${response.status} - ${errorText}`);
+    
+    if (response.status === 401) {
+      throw new Error('Authentication failed - token expired or invalid');
+    } else if (response.status === 429) {
+      throw new Error('Rate limit exceeded - wait before retrying');
+    } else {
+      throw new Error(`Search failed: ${response.status} - ${response.statusText}`);
+    }
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log(`Found ${data?.obj?.artists?.length || 0} artists for query: "${query}"`);
+  return data;
 }
 
-// Get detailed artist information
+// Get detailed artist information with enhanced error handling
 async function getArtistDetails(artistId, token) {
+  console.log(`🎵 Fetching artist details for ID: ${artistId}`);
+  
   const response = await fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -55,11 +84,45 @@ async function getArtistDetails(artistId, token) {
     }
   });
 
+  console.log(`Artist details response status: ${response.status}`);
+
   if (!response.ok) {
-    throw new Error(`Failed to get artist details for ID ${artistId}`);
+    const errorText = await response.text();
+    console.error(`Artist details failed: ${response.status} - ${errorText}`);
+    
+    if (response.status === 401) {
+      throw new Error('Authentication failed - token expired or invalid');
+    } else if (response.status === 429) {
+      throw new Error('Rate limit exceeded - wait before retrying');
+    } else if (response.status === 404) {
+      throw new Error('Artist not found in Chartmetric database');
+    } else {
+      throw new Error(`Failed to get artist details: ${response.status} - ${response.statusText}`);
+    }
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('Artist details fetched successfully:', data?.obj?.name || 'Unknown');
+  return data;
+}
+
+// Handle specific Chartmetric errors
+function handleChartmetricError(error, response = null) {
+  console.error('Chartmetric API Error:', error);
+  
+  if (response?.status === 401) {
+    return 'Authentication failed - token expired or invalid';
+  }
+  if (response?.status === 429) {
+    return 'Rate limit exceeded - wait before retrying';
+  }
+  if (response?.status === 404) {
+    return 'Artist not found in Chartmetric database';
+  }
+  if (response?.status === 403) {
+    return 'Access denied - check API permissions';
+  }
+  return `API error: ${error.message}`;
 }
 
 export default async function handler(req, res) {
@@ -86,7 +149,18 @@ export default async function handler(req, res) {
       });
     }
 
-    const chartmetricToken = await getChartmetricToken();
+    // Get fresh Chartmetric token for each request
+    let chartmetricToken;
+    try {
+      chartmetricToken = await getChartmetricToken();
+    } catch (tokenError) {
+      console.error('Failed to obtain Chartmetric token:', tokenError);
+      return res.status(503).json({ 
+        error: 'Chartmetric API unavailable',
+        message: 'Unable to authenticate with Chartmetric API',
+        details: tokenError.message
+      });
+    }
 
     if (req.method === 'GET') {
       // Search for artists or get current linked artist
@@ -152,42 +226,76 @@ export default async function handler(req, res) {
       // Link user to a Chartmetric artist
       const { artistId, artistName, verified = false } = req.body;
 
-      console.log('🔗 Linking artist:', { artistId, artistName, verified, userId });
+      console.log('🔗 Attempting to link artist:', { artistId, artistName, verified, userId });
 
       if (!artistId || !artistName) {
-        console.error('Missing required fields:', { artistId, artistName });
-        return res.status(400).json({ error: 'Artist ID and name are required' });
+        console.error('❌ Missing required fields:', { artistId, artistName });
+        return res.status(400).json({ 
+          error: 'Artist ID and name are required',
+          received: { artistId, artistName }
+        });
       }
 
-      // Verify the artist exists in Chartmetric
+      // Verify the artist exists in Chartmetric with enhanced error handling
       try {
-        console.log('Verifying artist in Chartmetric:', artistId);
+        console.log('🔍 Step 1: Verifying artist in Chartmetric:', artistId);
         const artistDetails = await getArtistDetails(artistId, chartmetricToken);
-        console.log('Artist verified:', artistDetails?.obj?.name || 'Unknown');
+        
+        if (!artistDetails?.obj) {
+          console.error('❌ Invalid artist data from Chartmetric');
+          return res.status(400).json({ 
+            error: 'Invalid artist data received from Chartmetric',
+            artistId 
+          });
+        }
+        
+        console.log('✅ Step 2: Artist verified successfully:', {
+          id: artistId,
+          name: artistDetails.obj.name,
+          chartmetricName: artistDetails.obj.name,
+          verified: artistDetails.obj.cm_artist_verified || false
+        });
         
         // Update user profile with Chartmetric artist link
-        console.log('💾 Updating user profile in Supabase for user:', userId);
-        const { error } = await supabase
+        console.log('💾 Step 3: Updating user profile in Supabase for user:', userId);
+        
+        const updateData = {
+          chartmetric_artist_id: artistId,
+          chartmetric_artist_name: artistDetails.obj.name, // Use verified name from Chartmetric
+          chartmetric_verified: artistDetails.obj.cm_artist_verified || false,
+          chartmetric_linked_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        console.log('📝 Update data prepared:', updateData);
+        
+        const { data: updateResult, error } = await supabase
           .from('user_profiles')
-          .update({
-            chartmetric_artist_id: artistId,
-            chartmetric_artist_name: artistName,
-            chartmetric_verified: verified,
-            chartmetric_linked_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
+          .update(updateData)
+          .eq('id', userId)
+          .select();
 
         if (error) {
-          console.error('Supabase update error:', error);
+          console.error('❌ Supabase update error:', {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+            userId
+          });
           return res.status(500).json({ 
             error: 'Failed to link artist profile',
             details: error.message,
-            code: error.code
+            code: error.code,
+            userId
           });
         }
 
-        console.log('Artist linked successfully');
+        console.log('✅ Step 4: Artist linked successfully:', {
+          userId,
+          artistId,
+          artistName: artistDetails.obj.name,
+          updateResult: updateResult?.length
+        });
 
         return res.json({
           success: true,
@@ -201,10 +309,15 @@ export default async function handler(req, res) {
         });
 
       } catch (error) {
-        console.error('Artist verification/linking error:', error);
+        console.error('❌ Artist verification/linking error:', error);
+        const errorMessage = handleChartmetricError(error);
+        
         return res.status(400).json({ 
-          error: 'Invalid artist ID or artist not found in Chartmetric',
-          details: error.message
+          error: 'Failed to link artist profile',
+          message: errorMessage,
+          details: error.message,
+          artistId,
+          artistName
         });
       }
 
