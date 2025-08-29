@@ -30,14 +30,22 @@ export default function ChartmetricArtistLinking({ onLinked }) {
         return;
       }
 
+      console.log('🔍 Loading linked artist for user...');
+      
       const response = await fetch('/api/chartmetric/link-artist?current=true', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      console.log('Load linked artist response:', response.status);
       const result = await response.json();
+      console.log('Load linked artist result:', result);
 
       if (result.linked) {
+        console.log('✅ Found linked artist:', result.artist.name);
         setLinkedArtist(result.artist);
+      } else {
+        console.log('📋 No linked artist found on load');
+        setLinkedArtist(null);
       }
     } catch (error) {
       console.error('Error loading linked artist:', error);
