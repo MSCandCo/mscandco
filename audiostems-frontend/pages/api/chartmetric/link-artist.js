@@ -173,12 +173,37 @@ export default async function handler(req, res) {
       const { q: query, current } = req.query;
 
       if (current === 'true') {
-        // Get current linked artist for this user from storage
-        console.log('📋 Checking for linked artist from storage...');
+        console.log('📋 Checking for linked artist...');
+        
+        // Try database first, fallback to file storage
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('chartmetric_artist_id, chartmetric_artist_name, chartmetric_verified, chartmetric_linked_at')
+            .eq('id', userId)
+            .single();
+
+          if (!error && profile?.chartmetric_artist_id) {
+            console.log('✅ Found linked artist in database:', profile.chartmetric_artist_name);
+            return res.json({ 
+              linked: true, 
+              artist: {
+                id: profile.chartmetric_artist_id,
+                name: profile.chartmetric_artist_name,
+                verified: profile.chartmetric_verified,
+                linkedAt: profile.chartmetric_linked_at
+              }
+            });
+          }
+        } catch (dbError) {
+          console.log('📋 Database columns not available, checking file storage...');
+        }
+        
+        // Fallback to file storage
         const linkedArtist = getLinkedArtist(userId);
         
         if (linkedArtist && linkedArtist.artistId) {
-          console.log('✅ Found linked artist:', linkedArtist.artistName);
+          console.log('✅ Found linked artist in file storage:', linkedArtist.artistName);
           return res.json({ 
             linked: true, 
             artist: {
@@ -190,7 +215,7 @@ export default async function handler(req, res) {
             }
           });
         } else {
-          console.log('📋 No linked artist found');
+          console.log('📋 No linked artist found in any storage');
           return res.json({ linked: false, artist: null });
         }
       }
@@ -257,27 +282,56 @@ export default async function handler(req, res) {
           verified: artistDetails.obj.cm_artist_verified || false
         });
         
-        // Store artist link using persistent storage system
-        console.log('💾 Step 3: Storing artist link persistently for user:', userId);
+        // Store artist link in database (preferred) or file storage (fallback)
+        console.log('💾 Step 3: Storing artist link for user:', userId);
         
-        const linkResult = linkArtistToUser(userId, {
-          id: artistId,
-          name: artistDetails.obj.name,
-          verified: artistDetails.obj.cm_artist_verified || false,
-          details: artistDetails.obj
-        });
+        let updateResult, error;
         
-        if (!linkResult.success) {
-          console.error('❌ Failed to store artist link:', linkResult.error);
-          return res.status(500).json({ 
-            error: linkResult.error,
-            existingArtist: linkResult.existingArtist
+        // Try database storage first
+        try {
+          console.log('🗄️ Attempting database storage...');
+          const { data, error: dbError } = await supabase
+            .from('user_profiles')
+            .update({
+              chartmetric_artist_id: artistId,
+              chartmetric_artist_name: artistDetails.obj.name,
+              chartmetric_verified: artistDetails.obj.cm_artist_verified || false,
+              chartmetric_linked_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+            .select();
+
+          if (!dbError) {
+            console.log('✅ Artist link stored in database successfully');
+            updateResult = data;
+            error = null;
+          } else {
+            throw dbError;
+          }
+        } catch (dbError) {
+          console.log('📋 Database columns not available, using file storage...');
+          
+          // Fallback to file storage
+          const linkResult = linkArtistToUser(userId, {
+            id: artistId,
+            name: artistDetails.obj.name,
+            verified: artistDetails.obj.cm_artist_verified || false,
+            details: artistDetails.obj
           });
+          
+          if (!linkResult.success) {
+            console.error('❌ Failed to store artist link:', linkResult.error);
+            return res.status(500).json({ 
+              error: linkResult.error,
+              existingArtist: linkResult.existingArtist
+            });
+          }
+          
+          console.log('✅ Artist link stored in file storage successfully');
+          updateResult = [{ id: userId }];
+          error = null;
         }
-        
-        console.log('✅ Artist link stored successfully');
-        const updateResult = [{ id: userId }];
-        const error = null;
 
         if (error) {
           console.error('❌ Supabase update error:', {
