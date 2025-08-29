@@ -3,12 +3,6 @@
 
 import { supabase } from '@/lib/supabase';
 import jwt from 'jsonwebtoken';
-import { 
-  getLinkedArtist, 
-  linkArtistToUser, 
-  unlinkArtistFromUser, 
-  canUserLink 
-} from '@/lib/chartmetric-storage';
 
 const CHARTMETRIC_API_BASE = 'https://api.chartmetric.com/api';
 
@@ -173,49 +167,32 @@ export default async function handler(req, res) {
       const { q: query, current } = req.query;
 
       if (current === 'true') {
-        console.log('📋 Checking for linked artist...');
+        console.log('📋 Checking for linked artist in database...');
         
-        // Try database first, fallback to file storage
-        try {
-          const { data: profile, error } = await supabase
-            .from('user_profiles')
-            .select('chartmetric_artist_id, chartmetric_artist_name, chartmetric_verified, chartmetric_linked_at')
-            .eq('id', userId)
-            .single();
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('chartmetric_artist_id, chartmetric_artist_name, chartmetric_verified, chartmetric_linked_at')
+          .eq('id', userId)
+          .single();
 
-          if (!error && profile?.chartmetric_artist_id) {
-            console.log('✅ Found linked artist in database:', profile.chartmetric_artist_name);
-            return res.json({ 
-              linked: true, 
-              artist: {
-                id: profile.chartmetric_artist_id,
-                name: profile.chartmetric_artist_name,
-                verified: profile.chartmetric_verified,
-                linkedAt: profile.chartmetric_linked_at
-              }
-            });
-          }
-        } catch (dbError) {
-          console.log('📋 Database columns not available, checking file storage...');
+        if (error) {
+          console.error('Database query error:', error);
+          return res.status(500).json({ error: 'Failed to check linked artist' });
         }
-        
-        // Fallback to file storage
-        const linkedArtist = getLinkedArtist(userId);
-        
-        if (linkedArtist && linkedArtist.artistId) {
-          console.log('✅ Found linked artist in file storage:', linkedArtist.artistName);
+
+        if (profile?.chartmetric_artist_id) {
+          console.log('✅ Found linked artist:', profile.chartmetric_artist_name);
           return res.json({ 
             linked: true, 
             artist: {
-              id: linkedArtist.artistId,
-              name: linkedArtist.artistName,
-              verified: linkedArtist.verified,
-              linkedAt: linkedArtist.linkedAt,
-              details: linkedArtist.details
+              id: profile.chartmetric_artist_id,
+              name: profile.chartmetric_artist_name,
+              verified: profile.chartmetric_verified,
+              linkedAt: profile.chartmetric_linked_at
             }
           });
         } else {
-          console.log('📋 No linked artist found in any storage');
+          console.log('📋 No linked artist found');
           return res.json({ linked: false, artist: null });
         }
       }
@@ -248,16 +225,26 @@ export default async function handler(req, res) {
         });
       }
 
-      // Check if user can link (one-time restriction)
-      if (!canUserLink(userId)) {
-        const existingLink = getLinkedArtist(userId);
-        console.log('🚫 User already has linked artist:', existingLink?.artistName);
+      // Check if user already has a linked artist (one-time restriction)
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('chartmetric_artist_id, chartmetric_artist_name, chartmetric_linked_at')
+        .eq('id', userId)
+        .single();
+
+      if (checkError) {
+        console.error('Error checking existing link:', checkError);
+        return res.status(500).json({ error: 'Failed to check existing artist link' });
+      }
+
+      if (existingProfile?.chartmetric_artist_id) {
+        console.log('🚫 User already has linked artist:', existingProfile.chartmetric_artist_name);
         return res.status(400).json({
           error: 'Artist profile already linked',
           message: 'You can only link one Chartmetric artist profile. Contact an admin to reset if needed.',
           existingArtist: {
-            name: existingLink?.artistName,
-            linkedAt: existingLink?.linkedAt
+            name: existingProfile.chartmetric_artist_name,
+            linkedAt: existingProfile.chartmetric_linked_at
           }
         });
       }
@@ -282,56 +269,20 @@ export default async function handler(req, res) {
           verified: artistDetails.obj.cm_artist_verified || false
         });
         
-        // Store artist link in database (preferred) or file storage (fallback)
-        console.log('💾 Step 3: Storing artist link for user:', userId);
+        // Store artist link in database
+        console.log('💾 Step 3: Storing artist link in database for user:', userId);
         
-        let updateResult, error;
-        
-        // Try database storage first
-        try {
-          console.log('🗄️ Attempting database storage...');
-          const { data, error: dbError } = await supabase
-            .from('user_profiles')
-            .update({
-              chartmetric_artist_id: artistId,
-              chartmetric_artist_name: artistDetails.obj.name,
-              chartmetric_verified: artistDetails.obj.cm_artist_verified || false,
-              chartmetric_linked_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId)
-            .select();
-
-          if (!dbError) {
-            console.log('✅ Artist link stored in database successfully');
-            updateResult = data;
-            error = null;
-          } else {
-            throw dbError;
-          }
-        } catch (dbError) {
-          console.log('📋 Database columns not available, using file storage...');
-          
-          // Fallback to file storage
-          const linkResult = linkArtistToUser(userId, {
-            id: artistId,
-            name: artistDetails.obj.name,
-            verified: artistDetails.obj.cm_artist_verified || false,
-            details: artistDetails.obj
-          });
-          
-          if (!linkResult.success) {
-            console.error('❌ Failed to store artist link:', linkResult.error);
-            return res.status(500).json({ 
-              error: linkResult.error,
-              existingArtist: linkResult.existingArtist
-            });
-          }
-          
-          console.log('✅ Artist link stored in file storage successfully');
-          updateResult = [{ id: userId }];
-          error = null;
-        }
+        const { data: updateResult, error } = await supabase
+          .from('user_profiles')
+          .update({
+            chartmetric_artist_id: artistId,
+            chartmetric_artist_name: artistDetails.obj.name,
+            chartmetric_verified: artistDetails.obj.cm_artist_verified || false,
+            chartmetric_linked_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+          .select();
 
         if (error) {
           console.error('❌ Supabase update error:', {
@@ -381,14 +332,27 @@ export default async function handler(req, res) {
 
     } else if (req.method === 'DELETE') {
       // Unlink artist from user profile (admin only)
-      console.log('🔓 Admin unlinking artist for user:', userId);
+      console.log('🔓 Unlinking artist for user:', userId);
       
-      const unlinkResult = unlinkArtistFromUser(userId, userId); // For now, allow self-unlink
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          chartmetric_artist_id: null,
+          chartmetric_artist_name: null,
+          chartmetric_verified: false,
+          chartmetric_linked_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error unlinking artist:', error);
+        return res.status(500).json({ error: 'Failed to unlink artist profile' });
+      }
       
       return res.json({
-        success: unlinkResult.success,
-        message: unlinkResult.message,
-        error: unlinkResult.error
+        success: true,
+        message: 'Artist profile unlinked successfully'
       });
 
     } else {
