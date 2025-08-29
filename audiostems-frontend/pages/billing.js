@@ -114,10 +114,10 @@ const BillingPage = () => {
   ];
 
   const PLAN_PRICES = {
-    'artist-starter': { monthly: 9.99, yearly: 99.99 },
-    'artist-pro': { monthly: 29.99, yearly: 299.99 },
-    'label-starter': { monthly: 29.99, yearly: 299.99 },
-    'label-pro': { monthly: 49.99, yearly: 499.99 }
+    'artist-starter': { monthly: 9.99, yearly: 119.88 }, // 12 months minimum
+    'artist-pro': { monthly: 19.99, yearly: 239.88 }, // 12 months minimum  
+    'label-starter': { monthly: 29.99, yearly: 359.88 }, // 12 months minimum
+    'label-pro': { monthly: 49.99, yearly: 599.88 } // 12 months minimum
   };
 
   const EXCHANGE_RATES = {
@@ -131,36 +131,40 @@ const BillingPage = () => {
       name: 'Artist Starter',
       icon: Zap,
       color: 'bg-blue-500',
-      features: ['5 releases per month', 'Basic analytics', 'Standard distribution', 'Email support'],
+      features: ['Up to 5 releases per year', 'Basic analytics dashboard', 'Distribution to all major platforms', 'Email support only', 'Basic earnings overview', 'Standard release management', 'Basic artist profile'],
       target: 'artist',
-      popular: false
+      popular: false,
+      minimumCommitment: '12 months'
     },
     {
       id: 'artist-pro',
       name: 'Artist Pro',
       icon: Crown,
       color: 'bg-purple-500',
-      features: ['Unlimited releases', 'Advanced analytics', 'Priority distribution', 'Priority support', 'Custom branding'],
+      features: ['Unlimited releases per year', 'Advanced analytics & insights', 'Priority email & phone support', 'Distribution to all major platforms', 'Detailed earnings & royalty tracking', 'Advanced release management', 'Social media integration', 'Marketing campaign tools', 'Priority customer service', 'Advanced artist profile customization', 'Release scheduling & promotion'],
       target: 'artist',
-      popular: true
+      popular: true,
+      minimumCommitment: '12 months'
     },
     {
       id: 'label-starter',
-      name: 'Label Starter',
+      name: 'Label Admin Starter',
       icon: Building2,
       color: 'bg-green-500',
-      features: ['4 artists', '8 releases per month', 'Label dashboard', 'Artist management', 'Revenue sharing'],
+      features: ['Manage up to 3 artists (2 releases per artist per year)', 'Basic label analytics dashboard', 'Artist content oversight', 'Basic reporting tools', 'Standard release management', 'Basic artist performance tracking', 'Email support only', 'Simple content approval workflows', 'Basic revenue tracking'],
       target: 'label',
-      popular: false
+      popular: false,
+      minimumCommitment: '12 months'
     },
     {
       id: 'label-pro',
-      name: 'Label Pro',
+      name: 'Label Admin Pro',
       icon: Crown,
       color: 'bg-orange-500',
-      features: ['Unlimited artists', 'Unlimited releases', 'Advanced tools', 'Custom contracts', 'Priority support'],
+      features: ['Unlimited artists management', 'Advanced label analytics & insights', 'Comprehensive artist content oversight', 'Advanced reporting & export tools', 'Full release management suite', 'Detailed artist performance tracking', 'Custom label branding options', 'Priority email & phone support', 'Advanced content approval workflows', 'Comprehensive revenue & royalty tracking', 'Multi-label roster management', 'Release calendar & scheduling', 'Artist development tools', 'Advanced content distribution controls'],
       target: 'label',
-      popular: true
+      popular: true,
+      minimumCommitment: '12 months'
     }
   ];
 
@@ -711,6 +715,11 @@ const BillingPage = () => {
                           {formatPrice(localPrice)}
                         </div>
                         <div className="text-sm sm:text-base text-gray-600 mb-2">per {selectedBilling}</div>
+                        
+                        {/* 12-month minimum commitment notice */}
+                        <div className="text-xs text-orange-600 font-medium mb-2">
+                          12-month minimum commitment
+                        </div>
                         
                         {selectedCurrency !== 'GBP' && (
                           <div className="text-xs sm:text-sm text-gray-500">Base: £{gbpPrice.toFixed(2)}</div>

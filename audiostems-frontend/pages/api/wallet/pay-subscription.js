@@ -40,10 +40,10 @@ export default async function handler(req, res) {
     }
 
     const planPricing = {
-      'artist-starter': { monthly: 9.99, yearly: 99.99 },
-      'artist-pro': { monthly: 19.99, yearly: 199.99 },
-      'label-starter': { monthly: 49.99, yearly: 499.99 },
-      'label-pro': { monthly: 99.99, yearly: 999.99 }
+      'artist-starter': { monthly: 9.99, yearly: 119.88 }, // 12 months minimum
+      'artist-pro': { monthly: 19.99, yearly: 239.88 }, // 12 months minimum
+      'label-starter': { monthly: 29.99, yearly: 359.88 }, // 12 months minimum
+      'label-pro': { monthly: 49.99, yearly: 599.88 } // 12 months minimum
     };
 
     if (!planPricing[planId]) {

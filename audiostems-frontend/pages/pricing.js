@@ -121,12 +121,13 @@ const getRoleSpecificPlans = (role) => {
         {
           name: 'Artist Starter',
           monthlyPrice: 9.99,
-          yearlyPrice: 99.99,
-          yearlySavings: 19.89,
+          yearlyPrice: 119.88,
+          yearlySavings: 0, // 12 month minimum
           stripeProductKey: 'artist_starter',
           isSubscription: true,
+          minimumCommitment: '12 months',
           restrictions: {
-            maxReleases: 10,
+            maxReleases: 5,
             analyticsLevel: 'basic',
             supportLevel: 'email',
             brandingCustomization: false,
@@ -135,10 +136,10 @@ const getRoleSpecificPlans = (role) => {
             prioritySupport: false
           },
           features: [
-            'Up to 10 releases per year',
+            'Up to 5 releases per year',
             'Basic analytics dashboard',
             'Email support only',
-            'Distribution to 5+ major platforms',
+            'Distribution to all major platforms',
             'Basic earnings overview',
             'Standard release management',
             'Basic artist profile'
@@ -147,10 +148,11 @@ const getRoleSpecificPlans = (role) => {
         {
           name: 'Artist Pro',
           monthlyPrice: 19.99,
-          yearlyPrice: 199.99,
-          yearlySavings: 39.89,
+          yearlyPrice: 239.88,
+          yearlySavings: 0, // 12 month minimum
           stripeProductKey: 'artist_pro',
           isSubscription: true,
+          minimumCommitment: '12 months',
           restrictions: {
             maxReleases: -1, // unlimited
             analyticsLevel: 'advanced',
@@ -164,8 +166,7 @@ const getRoleSpecificPlans = (role) => {
             'Unlimited releases per year',
             'Advanced analytics & insights',
             'Priority email & phone support',
-            'Custom branding options',
-            'Distribution to 15+ platforms',
+            'Distribution to all major platforms',
             'Detailed earnings & royalty tracking',
             'Advanced release management',
             'Social media integration',
@@ -182,12 +183,13 @@ const getRoleSpecificPlans = (role) => {
         {
           name: 'Label Admin Starter',
           monthlyPrice: 29.99,
-          yearlyPrice: 299.99,
-          yearlySavings: 59.89,
+          yearlyPrice: 359.88,
+          yearlySavings: 0, // 12 month minimum
           stripeProductKey: 'label_admin_starter',
           isSubscription: true,
+          minimumCommitment: '12 months',
           restrictions: {
-            maxArtists: 10,
+            maxArtists: 3,
             analyticsLevel: 'basic',
             supportLevel: 'email',
             brandingCustomization: false,
@@ -197,7 +199,7 @@ const getRoleSpecificPlans = (role) => {
             apiAccess: false
           },
           features: [
-            'Manage up to 10 artists',
+            'Manage up to 3 artists (2 releases per artist per year)',
             'Basic label analytics dashboard',
             'Artist content oversight',
             'Basic reporting tools',
@@ -211,10 +213,11 @@ const getRoleSpecificPlans = (role) => {
         {
           name: 'Label Admin Pro',
           monthlyPrice: 49.99,
-          yearlyPrice: 499.99,
-          yearlySavings: 99.89,
+          yearlyPrice: 599.88,
+          yearlySavings: 0, // 12 month minimum
           stripeProductKey: 'label_admin_pro',
           isSubscription: true,
+          minimumCommitment: '12 months',
           restrictions: {
             maxArtists: -1, // unlimited
             analyticsLevel: 'advanced',
@@ -239,8 +242,6 @@ const getRoleSpecificPlans = (role) => {
             'Multi-label roster management',
             'Release calendar & scheduling',
             'Artist development tools',
-            'API access for integrations',
-            'White-label options',
             'Advanced content distribution controls'
           ]
         }
