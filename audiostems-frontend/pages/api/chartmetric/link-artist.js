@@ -316,14 +316,14 @@ export default async function handler(req, res) {
           updateResult: updateResult?.length
         });
 
-        return res.json({
+        return res.status(200).json({
           success: true,
           message: 'Artist profile linked successfully',
           artist: {
             id: artistId,
-            name: artistName,
-            verified,
-            details: artistDetails
+            name: artistDetails.obj.name, // Use verified name from Chartmetric
+            verified: artistDetails.obj.cm_artist_verified || false,
+            details: artistDetails.obj
           }
         });
 

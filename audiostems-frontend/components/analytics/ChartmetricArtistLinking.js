@@ -106,14 +106,23 @@ export default function ChartmetricArtistLinking({ onLinked }) {
       });
 
       const result = await response.json();
+      
+      console.log('Link artist API response:', {
+        status: response.status,
+        success: result.success,
+        error: result.error,
+        message: result.message
+      });
 
-      if (result.success) {
+      if (response.ok && result.success) {
+        console.log('✅ Artist linking successful:', result.artist);
         setLinkedArtist(result.artist);
         setSearchResults([]);
         setSearchQuery('');
         if (onLinked) onLinked(result.artist);
       } else {
-        setError(result.error || 'Failed to link artist');
+        console.error('❌ Artist linking failed:', result);
+        setError(result.message || result.error || `Failed to link artist (${response.status})`);
       }
     } catch (error) {
       console.error('Error linking artist:', error);
