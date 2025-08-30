@@ -25,6 +25,7 @@ import {
 export default function ArtistAnalytics() {
   const { user, isLoading } = useUser();
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [selectedRange, setSelectedRange] = useState('30D');
   const [activeTab, setActiveTab] = useState('basic');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
