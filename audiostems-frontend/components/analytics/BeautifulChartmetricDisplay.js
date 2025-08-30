@@ -32,19 +32,21 @@ const CareerStage = ({ title, currentStage, stages }) => {
           {stages.map((stage, index) => (
             <div 
               key={index}
-              className={`text-xs font-medium transition-all text-center relative whitespace-nowrap ${
+              className={`text-xs font-medium transition-all text-center whitespace-nowrap ${
                 index === currentIndex 
-                  ? 'text-blue-600 font-bold' 
+                  ? 'text-blue-600 font-bold flex items-center justify-center gap-1' 
                   : 'text-slate-400'
               }`}
             >
-              {index === currentIndex && (
+              {index === currentIndex ? (
                 <>
-                  <span className="absolute left-0 top-0 transform -translate-x-2 text-sm" style={{ color: 'inherit', margin: '-3px 90px' }}>→</span>
-                  <span className="absolute right-0 top-0 transform translate-x-2 text-sm" style={{ color: 'inherit', margin: '-3px 90px' }}>←</span>
+                  <span className="text-sm" style={{ color: 'inherit', margin: '0' }}>→</span>
+                  <span>{stage}</span>
+                  <span className="text-sm" style={{ color: 'inherit', margin: '0' }}>←</span>
                 </>
+              ) : (
+                stage
               )}
-              {stage}
             </div>
           ))}
         </div>
