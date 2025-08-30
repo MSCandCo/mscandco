@@ -20,24 +20,24 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
-// Career Stage Component with list format and arrows
+// Career Stage Component with vertical list and arrows
 const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
   
   return (
     <div className="bg-white rounded-xl p-6 border border-slate-200">
       <h4 className="text-sm font-semibold text-slate-900 mb-4">{title}</h4>
-      <div className="flex items-center justify-between">
-        <ChevronLeft className={`w-5 h-5 ${currentIndex > 0 ? 'text-blue-500' : 'text-slate-300'}`} />
-        <div className="flex-1 mx-4">
-          <div className="flex items-center justify-center space-x-2">
+      <div className="flex items-center">
+        <ChevronLeft className={`w-5 h-5 ${currentIndex > 0 ? 'text-blue-500' : 'text-slate-300'} mr-3`} />
+        <div className="flex-1">
+          <div className="space-y-2">
             {stages.map((stage, index) => (
               <div 
                 key={index}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   index === currentIndex 
                     ? 'bg-blue-500 text-white shadow-lg' 
-                    : 'bg-slate-100 text-slate-600'
+                    : 'bg-slate-100 text-slate-400'
                 }`}
               >
                 {stage}
@@ -45,7 +45,7 @@ const CareerStage = ({ title, currentStage, stages }) => {
             ))}
           </div>
         </div>
-        <ChevronRight className={`w-5 h-5 ${currentIndex < stages.length - 1 ? 'text-blue-500' : 'text-slate-300'}`} />
+        <ChevronRight className={`w-5 h-5 ${currentIndex < stages.length - 1 ? 'text-blue-500' : 'text-slate-300'} ml-3`} />
       </div>
     </div>
   );
@@ -84,10 +84,13 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       verified: data?.artist?.verified || false
     },
     ranking: {
-      global: 15420,
       country: 89,
-      genre: 12,
-      momentum: '+245'
+      global: 15420,
+      primaryGenre: 12,
+      secondaryGenre: 28,
+      tertiaryGenre: 45,
+      momentum: '+245',
+      continent: 156
     },
     topAssets: [
       {
@@ -97,7 +100,9 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         releaseDate: "2023-08-15",
         thumbnail: "/api/placeholder/60/60",
         streams: "12.5M",
-        growth: "+15.2%"
+        growth: "+15.2%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
       },
       {
         id: 2,
@@ -106,7 +111,9 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         releaseDate: "2023-06-20",
         thumbnail: "/api/placeholder/60/60",
         streams: "8.7M",
-        growth: "+12.8%"
+        growth: "+12.8%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
       },
       {
         id: 3,
@@ -115,7 +122,9 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         releaseDate: "2023-04-10",
         thumbnail: "/api/placeholder/60/60",
         streams: "6.2M",
-        growth: "+8.5%"
+        growth: "+8.5%",
+        platform: "YouTube",
+        platformColor: "#FF0000"
       }
     ],
     latestReleases: [
@@ -257,42 +266,19 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Performance Analytics Time Range Selector - Functional buttons only */}
+      {/* Performance Analytics Header */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Performance Analytics</h2>
-        <div className="flex items-center gap-4">
-          <div className="flex bg-white rounded-xl p-1 shadow-sm border">
-            {['24H', '7D', '30D', '90D', '1Y'].map(range => (
-              <button 
-                key={range}
-                onClick={() => setSelectedRange(range)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedRange === range ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-          <div className="text-sm text-gray-500">
-            Last updated: {new Date().toLocaleString()}
-          </div>
+        <div className="text-sm text-gray-500">
+          Last updated: {new Date().toLocaleString()}
         </div>
       </div>
 
-      {/* Artist Ranking - Replace first 4 squares */}
+      {/* Artist Ranking - Updated with requested rankings */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Artist Ranking</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex space-x-4 overflow-x-auto pb-4">
           {[
-            {
-              title: 'Global Ranking',
-              value: `#${displayData.ranking.global.toLocaleString()}`,
-              change: displayData.ranking.momentum,
-              icon: Globe,
-              bgColor: 'bg-blue-50',
-              iconColor: 'text-blue-600'
-            },
             {
               title: 'Country Ranking',
               value: `#${displayData.ranking.country}`,
@@ -302,12 +288,36 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
               iconColor: 'text-green-600'
             },
             {
-              title: 'Genre Ranking',
-              value: `#${displayData.ranking.genre}`,
+              title: 'Global Ranking',
+              value: `#${displayData.ranking.global.toLocaleString()}`,
+              change: displayData.ranking.momentum,
+              icon: Globe,
+              bgColor: 'bg-blue-50',
+              iconColor: 'text-blue-600'
+            },
+            {
+              title: 'Primary Genre Ranking',
+              value: `#${displayData.ranking.primaryGenre}`,
               change: 'Gospel',
               icon: Music,
               bgColor: 'bg-purple-50',
               iconColor: 'text-purple-600'
+            },
+            {
+              title: 'Secondary Genre Ranking',
+              value: `#${displayData.ranking.secondaryGenre}`,
+              change: 'Contemporary Christian',
+              icon: Music,
+              bgColor: 'bg-indigo-50',
+              iconColor: 'text-indigo-600'
+            },
+            {
+              title: 'Tertiary Genre Ranking',
+              value: `#${displayData.ranking.tertiaryGenre}`,
+              change: 'African Gospel',
+              icon: Music,
+              bgColor: 'bg-pink-50',
+              iconColor: 'text-pink-600'
             },
             {
               title: 'Momentum Score',
@@ -316,9 +326,17 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
               icon: TrendingUp,
               bgColor: 'bg-amber-50',
               iconColor: 'text-amber-600'
+            },
+            {
+              title: 'Continent Ranking',
+              value: `#${displayData.ranking.continent}`,
+              change: 'Africa',
+              icon: Globe,
+              bgColor: 'bg-orange-50',
+              iconColor: 'text-orange-600'
             }
           ].map((metric, index) => (
-            <div key={index} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all transform hover:-translate-y-1">
+            <div key={index} className="flex-shrink-0 w-64 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-14 h-14 rounded-xl ${metric.bgColor} flex items-center justify-center`}>
                   <metric.icon className={`w-7 h-7 ${metric.iconColor}`} />
@@ -336,10 +354,10 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Career Snapshot - New list format with arrows */}
+      {/* Career Snapshot - 4 vertical lists with arrows */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <CareerStage 
             title="Career Stage" 
             currentStage="Mid-Level" 
@@ -363,13 +381,10 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Top Markets & Demographics with Audience Summary */}
+      {/* Audience Summary - Separate section */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Top Markets & Demographics</h3>
-        
-        {/* Audience Summary at the top */}
-        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-slate-200">
-          <h4 className="font-semibold text-slate-900 mb-4">Audience Summary</h4>
+        <h3 className="text-xl font-bold text-slate-900 mb-6">Audience Summary</h3>
+        <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-slate-200">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{displayData.demographics.socialFootprint}</div>
@@ -393,7 +408,12 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Top Markets & Demographics */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+        <h3 className="text-xl font-bold text-slate-900 mb-6">Top Markets & Demographics</h3>
+        
         {/* Geographic Distribution - Horizontal scroll */}
         <div className="mb-8">
           <h4 className="font-semibold text-slate-900 mb-4">Geographic Distribution</h4>
@@ -422,101 +442,212 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Top Statistics Row */}
+      {/* Top Statistics Row - With platform information */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Top Statistics</h3>
         <div className="flex space-x-6 overflow-x-auto pb-4">
           {[
-            { label: 'Total Streams', value: '45.2M', icon: Headphones, color: 'blue' },
-            { label: 'Monthly Growth', value: '+12.5%', icon: TrendingUp, color: 'green' },
-            { label: 'Playlist Adds', value: '2.4K', icon: Music, color: 'purple' },
-            { label: 'Countries Reached', value: '89', icon: Globe, color: 'orange' },
-            { label: 'Fan Engagement', value: '8.7%', icon: Heart, color: 'red' },
-            { label: 'Chart Positions', value: '23', icon: Award, color: 'yellow' }
+            { label: 'Monthly Listeners', value: '1.26M', platform: 'Spotify', icon: Headphones, color: 'green', platformColor: '#1DB954' },
+            { label: 'Followers', value: '1.45M', platform: 'Spotify', icon: Users, color: 'green', platformColor: '#1DB954' },
+            { label: 'Followers', value: '2.54M', platform: 'Instagram', icon: Users, color: 'pink', platformColor: '#E4405F' },
+            { label: 'Followers', value: '1.8M', platform: 'TikTok', icon: Users, color: 'gray', platformColor: '#000000' },
+            { label: 'Subscribers', value: '1.72M', platform: 'YouTube', icon: Users, color: 'red', platformColor: '#FF0000' },
+            { label: 'Monthly Listeners', value: '21.01K', platform: 'Pandora', icon: Headphones, color: 'blue', platformColor: '#005483' },
+            { label: 'Total Fans', value: '16.11K', platform: 'Deezer', icon: Heart, color: 'purple', platformColor: '#A238FF' }
           ].map((stat, index) => (
-            <div key={index} className="flex-shrink-0 w-48 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-              <div className="flex items-center space-x-3 mb-2">
+            <div key={index} className="flex-shrink-0 w-56 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 rounded-lg bg-${stat.color}-100 flex items-center justify-center`}>
                   <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
-                  <div className="text-sm text-slate-600">{stat.label}</div>
+                <div 
+                  className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ backgroundColor: stat.platformColor }}
+                >
+                  {stat.platform}
                 </div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                <div className="text-sm text-slate-600">{stat.label}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Summary Statistics Row */}
+      {/* Summary Statistics - 9 Sections */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Summary Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-slate-900">Spotify</h4>
+              <div className="w-6 h-6 rounded bg-green-500"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Followers:</span>
+                <span className="font-semibold">1.45M (2,882nd)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Monthly Listeners:</span>
+                <span className="font-semibold">1.26M (10,944th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Popularity:</span>
+                <span className="font-semibold text-green-600">60/100 (9,138th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Playlist Reach:</span>
+                <span className="font-semibold">6.76M</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Fan Conversion Rate:</span>
+                <span className="font-semibold">115.61%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Reach / Followers Ratio:</span>
+                <span className="font-semibold">4.65x</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 bg-gradient-to-br from-black to-gray-800 rounded-xl text-white">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold">TikTok</h4>
+              <div className="w-6 h-6 rounded bg-black"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-300">Followers:</span>
+                <span className="font-semibold">1.80M (2,984th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-300">Likes:</span>
+                <span className="font-semibold">34.00M (2,830th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-300">Top Videos' Views:</span>
+                <span className="font-semibold">109.71M (23,747th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-300">Post Count:</span>
+                <span className="font-semibold">2.30M (1,838th)</span>
+              </div>
+            </div>
+          </div>
           <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Streaming Performance</h4>
-              <Headphones className="w-6 h-6 text-blue-600" />
+              <h4 className="font-semibold text-slate-900">Pandora</h4>
+              <div className="w-6 h-6 rounded bg-blue-600"></div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-slate-600">Monthly Listeners:</span>
-                <span className="font-semibold">{displayData.overview.monthlyListeners ? (displayData.overview.monthlyListeners / 1000000).toFixed(2) + 'M' : '1.26M'}</span>
+                <span className="font-semibold">21.01K (12,200th)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Total Followers:</span>
-                <span className="font-semibold">{displayData.overview.followers ? (displayData.overview.followers / 1000000).toFixed(2) + 'M' : '1.44M'}</span>
+                <span className="text-sm text-slate-600">Streams:</span>
+                <span className="font-semibold">4.27M (21,845th)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Growth Rate:</span>
-                <span className="font-semibold text-green-600">+12.5%</span>
+                <span className="text-sm text-slate-600">Artist Stations:</span>
+                <span className="font-semibold">6.73K (33,597th)</span>
               </div>
             </div>
           </div>
-          <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+          <div className="p-6 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Social Engagement</h4>
-              <Heart className="w-6 h-6 text-green-600" />
+              <h4 className="font-semibold text-slate-900">Shazam</h4>
+              <div className="w-6 h-6 rounded bg-cyan-500"></div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Total Followers:</span>
-                <span className="font-semibold">7.5M</span>
+                <span className="text-sm text-slate-600">Total Count:</span>
+                <span className="font-semibold">3.54M</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Engagement Rate:</span>
-                <span className="font-semibold">4.2%</span>
+                <span className="text-sm text-slate-600">SiriusXm Spins:</span>
+                <span className="font-semibold">15 (41,061st)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Platform Reach:</span>
-                <span className="font-semibold text-green-600">6 Platforms</span>
+                <span className="text-sm text-slate-600">Radio Spins:</span>
+                <span className="font-semibold">5.24K (22,735th)</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-slate-900">Instagram</h4>
+              <div className="w-6 h-6 rounded bg-pink-500"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Followers:</span>
+                <span className="font-semibold">2.54M (3,576th)</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-slate-900">YouTube</h4>
+              <div className="w-6 h-6 rounded bg-red-500"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Channel Subscribers:</span>
+                <span className="font-semibold">1.72M (3,409th)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Channel Views:</span>
+                <span className="font-semibold">454.16M (5,341st)</span>
               </div>
             </div>
           </div>
           <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Market Position</h4>
-              <Target className="w-6 h-6 text-purple-600" />
+              <h4 className="font-semibold text-slate-900">Deezer</h4>
+              <div className="w-6 h-6 rounded bg-purple-500"></div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Global Rank:</span>
-                <span className="font-semibold">#{displayData.ranking.global.toLocaleString()}</span>
+                <span className="text-sm text-slate-600">Fans:</span>
+                <span className="font-semibold">16.11K (15,372nd)</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-slate-900">Genius</h4>
+              <div className="w-6 h-6 rounded bg-yellow-500"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">Views:</span>
+                <span className="font-semibold">21.33K</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-slate-900">AirPlay</h4>
+              <div className="w-6 h-6 rounded bg-gray-500"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-600">SiriusXm Spins:</span>
+                <span className="font-semibold">15 (41,061st)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Country Rank:</span>
-                <span className="font-semibold">#{displayData.ranking.country}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Momentum:</span>
-                <span className="font-semibold text-purple-600">{displayData.ranking.momentum}</span>
+                <span className="text-sm text-slate-600">Radio Spins:</span>
+                <span className="font-semibold">5.24K (22,735th)</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top Assets */}
+      {/* Top Assets - With platform source */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Top Assets</h3>
         <div className="flex space-x-6 overflow-x-auto pb-4">
@@ -532,11 +663,19 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                   </button>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-slate-900">{asset.title}</h4>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-slate-900">{asset.title}</h4>
+                    <div 
+                      className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                      style={{ backgroundColor: asset.platformColor }}
+                    >
+                      {asset.platform}
+                    </div>
+                  </div>
                   <p className="text-sm text-slate-600">{asset.artist}</p>
                   <p className="text-xs text-slate-500">{new Date(asset.releaseDate).toLocaleDateString()}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm font-bold text-slate-900">{asset.streams}</span>
+                    <span className="text-sm font-bold text-slate-900">{asset.streams} {asset.platform} streams</span>
                     <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
                       {asset.growth}
                     </span>
@@ -567,7 +706,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Platform Performance - All platforms with horizontal scroll */}
+      {/* Platform Performance - Enhanced with detailed metrics */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center">
           <BarChart3 className="w-7 h-7 text-blue-600 mr-3" />
@@ -575,8 +714,100 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </h3>
         
         <div className="flex space-x-6 overflow-x-auto pb-4">
-          {displayData.platforms.map((platform, index) => (
-            <div key={index} className="flex-shrink-0 w-72 bg-slate-50 rounded-xl p-6 border border-slate-200 hover:shadow-xl transition-all transform hover:-translate-y-1">
+          {[
+            {
+              name: 'Spotify',
+              color: '#1DB954',
+              growth: '+12.5%',
+              rank: '(2,882nd)',
+              metrics: [
+                { label: 'Followers', value: displayData.overview.followers ? (displayData.overview.followers / 1000000).toFixed(2) + 'M' : '1.45M', rank: '(2,882nd)' },
+                { label: 'Monthly Listeners', value: displayData.overview.monthlyListeners ? (displayData.overview.monthlyListeners / 1000000).toFixed(2) + 'M' : '1.26M', rank: '(10,944th)' },
+                { label: 'Popularity Score', value: '60/100', rank: '(9,138th)' },
+                { label: 'Playlist Reach', value: '6.76M', rank: '' },
+                { label: 'Fan Conversion', value: '115.61%', rank: '' },
+                { label: 'Reach/Followers', value: '4.65x', rank: '' }
+              ]
+            },
+            {
+              name: 'Instagram',
+              color: '#E4405F',
+              growth: '+3.8%',
+              rank: '(3,576th)',
+              metrics: [
+                { label: 'Followers', value: '2.54M', rank: '(3,576th)' },
+                { label: 'Posts', value: '1,234', rank: '' },
+                { label: 'Avg Likes', value: '115K', rank: '' },
+                { label: 'Engagement Rate', value: '4.2%', rank: '' }
+              ]
+            },
+            {
+              name: 'YouTube',
+              color: '#FF0000',
+              growth: '-2.1%',
+              rank: '(3,409th)',
+              metrics: [
+                { label: 'Subscribers', value: '1.72M', rank: '(3,409th)' },
+                { label: 'Channel Views', value: '454.16M', rank: '(5,341st)' },
+                { label: 'Videos', value: '89', rank: '' },
+                { label: 'Avg Views', value: '5.1M', rank: '' }
+              ]
+            },
+            {
+              name: 'TikTok',
+              color: '#000000',
+              growth: '+15.4%',
+              rank: '(2,984th)',
+              metrics: [
+                { label: 'Followers', value: '1.80M', rank: '(2,984th)' },
+                { label: 'Total Likes', value: '34.00M', rank: '(2,830th)' },
+                { label: 'Videos', value: '203', rank: '' },
+                { label: 'Top Video Views', value: '109.71M', rank: '(23,747th)' },
+                { label: 'Post Count', value: '2.30M', rank: '(1,838th)' }
+              ]
+            },
+            {
+              name: 'Pandora',
+              color: '#005483',
+              growth: '+6.7%',
+              rank: '(12,200th)',
+              metrics: [
+                { label: 'Monthly Listeners', value: '21.01K', rank: '(12,200th)' },
+                { label: 'Streams', value: '4.27M', rank: '(21,845th)' },
+                { label: 'Artist Stations', value: '6.73K', rank: '(33,597th)' }
+              ]
+            },
+            {
+              name: 'Deezer',
+              color: '#A238FF',
+              growth: '+4.2%',
+              rank: '(15,372nd)',
+              metrics: [
+                { label: 'Fans', value: '16.11K', rank: '(15,372nd)' }
+              ]
+            },
+            {
+              name: 'Shazam',
+              color: '#1476FA',
+              growth: '+8.1%',
+              rank: '',
+              metrics: [
+                { label: 'Total Count', value: '3.54M', rank: '' }
+              ]
+            },
+            {
+              name: 'SoundCloud',
+              color: '#FF5500',
+              growth: '+2.3%',
+              rank: '',
+              metrics: [
+                { label: 'Followers', value: '420K', rank: '' },
+                { label: 'Tracks', value: '156', rank: '' },
+                { label: 'Total Plays', value: '45M', rank: '' }
+              ]
+            }
+          ].map((platform, index) => (
+            <div key={index} className="flex-shrink-0 w-80 bg-slate-50 rounded-xl p-6 border border-slate-200 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div 
@@ -587,7 +818,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900">{platform.name}</h4>
-                    <p className="text-xs text-slate-600">Primary Market</p>
+                    <p className="text-xs text-slate-600">{platform.rank}</p>
                   </div>
                 </div>
                 <div className={`text-sm font-bold px-2 py-1 rounded-full ${
@@ -597,11 +828,14 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                 </div>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {platform.metrics.map((metric, idx) => (
                   <div key={idx} className="flex justify-between items-center">
                     <span className="text-sm text-slate-600">{metric.label}:</span>
-                    <span className="text-sm font-semibold text-slate-900">{metric.value}</span>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-slate-900">{metric.value}</span>
+                      {metric.rank && <div className="text-xs text-slate-500">{metric.rank}</div>}
+                    </div>
                   </div>
                 ))}
               </div>
