@@ -40,8 +40,8 @@ const CareerStage = ({ title, currentStage, stages }) => {
             >
               {index === currentIndex && (
                 <>
-                  <span className="text-blue-500 absolute left-0 top-0 transform -translate-x-3 text-sm">→</span>
-                  <span className="text-blue-500 absolute right-0 top-0 transform translate-x-3 text-sm">←</span>
+                  <span className="text-blue-500 absolute left-0 top-0 transform -translate-x-1 text-sm">→</span>
+                  <span className="text-blue-500 absolute right-0 top-0 transform translate-x-1 text-sm">←</span>
                 </>
               )}
               {stage}
