@@ -16,42 +16,70 @@ import {
   Calendar
 } from 'lucide-react';
 
-// Career Metric Component for circular progress indicators
-const CareerMetric = ({ title, value, progress, maxStages }) => {
-  const percentage = (progress / maxStages) * 100;
-  const circumference = 2 * Math.PI * 45; // radius = 45
-  const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+// Career Metric Component like Chartmetric's beautiful 5-stage design
+const CareerMetric = ({ title, currentStage, stages }) => {
+  const currentIndex = stages.indexOf(currentStage);
   
   return (
     <div className="text-center">
       <div className="relative w-32 h-32 mx-auto mb-4">
-        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+          {/* Background circle */}
           <circle
-            cx="50"
-            cy="50"
-            r="45"
+            cx="60"
+            cy="60"
+            r="50"
             stroke="#e5e7eb"
-            strokeWidth="6"
+            strokeWidth="8"
             fill="none"
           />
+          {/* Progress circle */}
           <circle
-            cx="50"
-            cy="50"
-            r="45"
+            cx="60"
+            cy="60"
+            r="50"
             stroke="#3b82f6"
-            strokeWidth="6"
+            strokeWidth="8"
             fill="none"
-            strokeDasharray={strokeDasharray}
+            strokeDasharray={`${(currentIndex + 1) * (2 * Math.PI * 50 / 5)} ${2 * Math.PI * 50}`}
             strokeLinecap="round"
             className="transition-all duration-1000"
           />
+          {/* Stage markers */}
+          {stages.map((stage, index) => {
+            const angle = (index * 72) - 90; // 360/5 = 72 degrees per stage
+            const x = 60 + 50 * Math.cos(angle * Math.PI / 180);
+            const y = 60 + 50 * Math.sin(angle * Math.PI / 180);
+            
+            return (
+              <circle
+                key={index}
+                cx={x}
+                cy={y}
+                r="4"
+                fill={index <= currentIndex ? "#3b82f6" : "#e5e7eb"}
+                className="transition-all duration-500"
+              />
+            );
+          })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-sm font-semibold text-gray-900">{value}</div>
-          <div className="text-xs text-gray-600">{progress}/{maxStages}</div>
+          <div className="text-sm font-bold text-slate-900">{currentStage}</div>
+          <div className="text-xs text-slate-600">{currentIndex + 1}/{stages.length}</div>
         </div>
       </div>
-      <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+      <h4 className="text-sm font-medium text-slate-900">{title}</h4>
+      {/* Show all stages with current highlighted */}
+      <div className="mt-2 text-xs text-slate-500">
+        {stages.map((stage, index) => (
+          <span 
+            key={index}
+            className={`${index === currentIndex ? 'text-blue-600 font-semibold' : 'text-slate-400'}`}
+          >
+            {stage}{index < stages.length - 1 ? ' • ' : ''}
+          </span>
+        ))}
+      </div>
     </div>
   );
 };
@@ -241,14 +269,30 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         ))}
       </div>
 
-      {/* 2. Career Snapshot */}
+      {/* 2. Career Snapshot - Chartmetric Style */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <CareerMetric title="Career Stage" value="Mid-Level" progress={2} maxStages={5} />
-          <CareerMetric title="Recent Momentum" value="Gradual Growth" progress={4} maxStages={5} />
-          <CareerMetric title="Network Strength" value="Active" progress={4} maxStages={5} />
-          <CareerMetric title="Social Engagement" value="Active" progress={4} maxStages={5} />
+          <CareerMetric 
+            title="Career Stage" 
+            currentStage="Mid-Level" 
+            stages={['Developing', 'Mid-Level', 'Mainstream', 'Superstar', 'Legendary']} 
+          />
+          <CareerMetric 
+            title="Recent Momentum" 
+            currentStage="Gradual Growth" 
+            stages={['Decline', 'Gradual Decline', 'Steady', 'Gradual Growth', 'Explosive Growth']} 
+          />
+          <CareerMetric 
+            title="Network Strength" 
+            currentStage="Active" 
+            stages={['Inactive', 'Limited', 'Moderate', 'Active', 'Established']} 
+          />
+          <CareerMetric 
+            title="Social Engagement" 
+            currentStage="Active" 
+            stages={['Inactive', 'Limited', 'Moderate', 'Active', 'Influential']} 
+          />
         </div>
       </div>
 
@@ -313,88 +357,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* 4. Enhanced Platform Performance */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Platform Performance</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              name: 'Spotify',
-              followers: displayData.overview.followers,
-              monthlyListeners: displayData.overview.monthlyListeners,
-              streams: displayData.overview.monthlyListeners * 12, // Estimate
-              change: 5.2,
-              color: 'green',
-              bgColor: 'bg-green-50',
-              icon: '🟢'
-            },
-            {
-              name: 'Instagram',
-              followers: 2540000,
-              posts: 1234,
-              engagement: '115K avg likes',
-              change: 3.8,
-              color: 'pink',
-              bgColor: 'bg-pink-50',
-              icon: '📷'
-            },
-            {
-              name: 'YouTube',
-              subscribers: 1720000,
-              views: 440600000,
-              uploads: 89,
-              change: -2.1,
-              color: 'red',
-              bgColor: 'bg-red-50',
-              icon: '▶️'
-            },
-            {
-              name: 'TikTok',
-              followers: 1800000,
-              likes: 33700000,
-              videos: 203,
-              change: 15.4,
-              color: 'black',
-              bgColor: 'bg-gray-50',
-              icon: '⚫'
-            }
-          ].map((platform, index) => (
-            <div key={index} className={`${platform.bgColor} rounded-xl p-6 border border-slate-200 hover:shadow-lg transition-all`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{platform.icon}</div>
-                  <h4 className="font-bold text-slate-900">{platform.name}</h4>
-                </div>
-                <div className={`text-sm font-bold px-2 py-1 rounded-full ${
-                  platform.change > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {platform.change > 0 ? '+' : ''}{platform.change}%
-                </div>
-              </div>
-              <div className="space-y-2">
-                {platform.followers && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Followers:</span>
-                    <span className="text-sm font-semibold">{(platform.followers / 1000000).toFixed(1)}M</span>
-                  </div>
-                )}
-                {platform.monthlyListeners && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Monthly Listeners:</span>
-                    <span className="text-sm font-semibold">{(platform.monthlyListeners / 1000000).toFixed(1)}M</span>
-                  </div>
-                )}
-                {platform.engagement && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Engagement:</span>
-                    <span className="text-sm font-semibold">{platform.engagement}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* 5. Recent Milestones */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
@@ -448,47 +411,101 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Platform Performance */}
+      {/* Enhanced Platform Performance - Comprehensive Chartmetric Style */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-2xl font-bold text-slate-900 flex items-center">
             <BarChart3 className="w-7 h-7 text-blue-600 mr-3" />
             Platform Performance
           </h3>
+          <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            View All Platforms →
+          </button>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {displayData.platforms.map((platform, index) => (
-            <div key={index} className="border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              name: 'Spotify',
+              change: 5.2,
+              color: '#1DB954',
+              icon: '🟢',
+              bgColor: 'bg-green-50',
+              metrics: [
+                { label: 'Followers', value: displayData.overview.followers ? (displayData.overview.followers / 1000000).toFixed(1) + 'M' : '1.4M' },
+                { label: 'Monthly Listeners', value: displayData.overview.monthlyListeners ? (displayData.overview.monthlyListeners / 1000000).toFixed(1) + 'M' : '1.3M' },
+                { label: 'Popularity', value: '60/100' },
+                { label: 'Playlist Reach', value: '7.09M' }
+              ]
+            },
+            {
+              name: 'Instagram',
+              change: 3.8,
+              color: '#E4405F',
+              icon: '📷',
+              bgColor: 'bg-pink-50',
+              metrics: [
+                { label: 'Followers', value: '2.5M' },
+                { label: 'Posts', value: '1,234' },
+                { label: 'Avg Likes', value: '115K' },
+                { label: 'Engagement', value: '4.2%' }
+              ]
+            },
+            {
+              name: 'YouTube',
+              change: -2.1,
+              color: '#FF0000',
+              icon: '▶️',
+              bgColor: 'bg-red-50',
+              metrics: [
+                { label: 'Subscribers', value: '1.7M' },
+                { label: 'Total Views', value: '440M' },
+                { label: 'Videos', value: '89' },
+                { label: 'Avg Views', value: '4.9M' }
+              ]
+            },
+            {
+              name: 'TikTok',
+              change: 15.4,
+              color: '#000000',
+              icon: '⚫',
+              bgColor: 'bg-gray-50',
+              metrics: [
+                { label: 'Followers', value: '1.8M' },
+                { label: 'Total Likes', value: '33.7M' },
+                { label: 'Videos', value: '203' },
+                { label: 'Avg Views', value: '540K' }
+              ]
+            }
+          ].map((platform, index) => (
+            <div key={index} className={`${platform.bgColor} rounded-xl p-6 border border-slate-200 hover:shadow-xl transition-all transform hover:-translate-y-1`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
                   <div 
-                    className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold shadow-lg"
                     style={{ backgroundColor: platform.color }}
                   >
                     {platform.icon}
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold text-slate-900">{platform.name}</h4>
-                    <p className="text-slate-600">Primary Platform</p>
+                    <h4 className="font-bold text-slate-900">{platform.name}</h4>
+                    <p className="text-xs text-slate-600">Primary Market</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                    {platform.growth}
-                  </div>
+                <div className={`text-sm font-bold px-2 py-1 rounded-full ${
+                  platform.change > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {platform.change > 0 ? '+' : ''}{platform.change}%
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-slate-50 rounded-xl">
-                  <div className="text-lg font-bold text-slate-900">{platform.followers}</div>
-                  <div className="text-xs text-slate-600">Followers</div>
-                </div>
-                <div className="text-center p-4 bg-slate-50 rounded-xl">
-                  <div className="text-lg font-bold text-slate-900">{platform.monthlyListeners}</div>
-                  <div className="text-xs text-slate-600">Monthly Listeners</div>
-                </div>
+              <div className="space-y-3">
+                {platform.metrics.map((metric, idx) => (
+                  <div key={idx} className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">{metric.label}:</span>
+                    <span className="text-sm font-semibold text-slate-900">{metric.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -512,3 +529,5 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
     </div>
   );
 }
+
+
