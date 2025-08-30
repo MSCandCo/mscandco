@@ -40,8 +40,8 @@ const CareerStage = ({ title, currentStage, stages }) => {
             >
               {index === currentIndex && (
                 <>
-                  <span className="absolute left-0 top-0 transform -translate-x-2 text-sm" style={{ color: 'inherit', margin: '0 4px' }}>→</span>
-                  <span className="absolute right-0 top-0 transform translate-x-2 text-sm" style={{ color: 'inherit', margin: '0 4px' }}>←</span>
+                  <span className="absolute left-0 top-0 transform -translate-x-2 text-sm" style={{ color: 'inherit', margin: '-3px 90px' }}>→</span>
+                  <span className="absolute right-0 top-0 transform translate-x-2 text-sm" style={{ color: 'inherit', margin: '-3px 90px' }}>←</span>
                 </>
               )}
               {stage}
