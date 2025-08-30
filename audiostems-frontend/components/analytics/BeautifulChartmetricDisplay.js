@@ -20,24 +20,24 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
-// Career Stage Component with vertical list and arrows
+// Career Stage Component with inward-pointing arrows and centered text
 const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
   
   return (
-    <div className="bg-white rounded-xl p-6 border border-slate-200">
+    <div className="text-center">
       <h4 className="text-sm font-semibold text-slate-900 mb-4">{title}</h4>
-      <div className="flex items-center">
-        <ChevronLeft className={`w-5 h-5 ${currentIndex > 0 ? 'text-blue-500' : 'text-slate-300'} mr-3`} />
+      <div className="flex items-center justify-center">
+        <ChevronRight className={`w-4 h-4 ${currentIndex > 0 ? 'text-blue-500' : 'text-slate-300'} mr-2`} />
         <div className="flex-1">
-          <div className="space-y-2">
+          <div className="space-y-1">
             {stages.map((stage, index) => (
               <div 
                 key={index}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`text-xs font-medium transition-all text-center ${
                   index === currentIndex 
-                    ? 'bg-blue-500 text-white shadow-lg' 
-                    : 'bg-slate-100 text-slate-400'
+                    ? 'text-blue-600 font-bold' 
+                    : 'text-slate-400'
                 }`}
               >
                 {stage}
@@ -45,7 +45,7 @@ const CareerStage = ({ title, currentStage, stages }) => {
             ))}
           </div>
         </div>
-        <ChevronRight className={`w-5 h-5 ${currentIndex < stages.length - 1 ? 'text-blue-500' : 'text-slate-300'} ml-3`} />
+        <ChevronLeft className={`w-4 h-4 ${currentIndex < stages.length - 1 ? 'text-blue-500' : 'text-slate-300'} ml-2`} />
       </div>
     </div>
   );
@@ -125,6 +125,83 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         growth: "+8.5%",
         platform: "YouTube",
         platformColor: "#FF0000"
+      },
+      {
+        id: 4,
+        title: "Taking Care of Me",
+        artist: "Moses Bliss",
+        releaseDate: "2023-02-14",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "5.8M",
+        growth: "+7.2%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
+      },
+      {
+        id: 5,
+        title: "Perfected Praise",
+        artist: "Moses Bliss",
+        releaseDate: "2024-01-15",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "4.9M",
+        growth: "+18.5%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
+      },
+      {
+        id: 6,
+        title: "Count on God",
+        artist: "Moses Bliss",
+        releaseDate: "2022-12-08",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "4.2M",
+        growth: "+5.8%",
+        platform: "YouTube",
+        platformColor: "#FF0000"
+      },
+      {
+        id: 7,
+        title: "Miracle Worker",
+        artist: "Moses Bliss",
+        releaseDate: "2023-05-30",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "3.8M",
+        growth: "+9.1%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
+      },
+      {
+        id: 8,
+        title: "Higher Levels",
+        artist: "Moses Bliss",
+        releaseDate: "2023-11-20",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "3.5M",
+        growth: "+14.3%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
+      },
+      {
+        id: 9,
+        title: "Grace Upon Grace",
+        artist: "Moses Bliss",
+        releaseDate: "2023-09-05",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "3.1M",
+        growth: "+6.7%",
+        platform: "YouTube",
+        platformColor: "#FF0000"
+      },
+      {
+        id: 10,
+        title: "Mighty God",
+        artist: "Moses Bliss",
+        releaseDate: "2022-10-25",
+        thumbnail: "/api/placeholder/60/60",
+        streams: "2.8M",
+        growth: "+4.2%",
+        platform: "Spotify",
+        platformColor: "#1DB954"
       }
     ],
     latestReleases: [
@@ -148,6 +225,90 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         releaseDate: "2023-09-05",
         artwork: "/api/placeholder/80/80",
         type: "EP"
+      },
+      {
+        id: 4,
+        title: "Too Faithful",
+        releaseDate: "2023-08-15",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 5,
+        title: "Daddy Wey Dey Pamper",
+        releaseDate: "2023-06-20",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 6,
+        title: "Miracle Worker",
+        releaseDate: "2023-05-30",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 7,
+        title: "E No Dey Fall My Hand",
+        releaseDate: "2023-04-10",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 8,
+        title: "Taking Care of Me",
+        releaseDate: "2023-02-14",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 9,
+        title: "Count on God",
+        releaseDate: "2022-12-08",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 10,
+        title: "Mighty God",
+        releaseDate: "2022-10-25",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 11,
+        title: "Breakthrough",
+        releaseDate: "2022-08-12",
+        artwork: "/api/placeholder/80/80",
+        type: "EP"
+      },
+      {
+        id: 12,
+        title: "Amazing God",
+        releaseDate: "2022-05-18",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 13,
+        title: "Covenant Keeper",
+        releaseDate: "2022-02-28",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
+      },
+      {
+        id: 14,
+        title: "Bigger Everyday",
+        releaseDate: "2021-11-15",
+        artwork: "/api/placeholder/80/80",
+        type: "Album"
+      },
+      {
+        id: 15,
+        title: "You I Live For",
+        releaseDate: "2021-08-20",
+        artwork: "/api/placeholder/80/80",
+        type: "Single"
       }
     ],
     platforms: [
@@ -476,180 +637,11 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Summary Statistics - 9 Sections */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Summary Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Spotify</h4>
-              <div className="w-6 h-6 rounded bg-green-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Followers:</span>
-                <span className="font-semibold">1.45M (2,882nd)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Monthly Listeners:</span>
-                <span className="font-semibold">1.26M (10,944th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Popularity:</span>
-                <span className="font-semibold text-green-600">60/100 (9,138th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Playlist Reach:</span>
-                <span className="font-semibold">6.76M</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Fan Conversion Rate:</span>
-                <span className="font-semibold">115.61%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Reach / Followers Ratio:</span>
-                <span className="font-semibold">4.65x</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-black to-gray-800 rounded-xl text-white">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold">TikTok</h4>
-              <div className="w-6 h-6 rounded bg-black"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-300">Followers:</span>
-                <span className="font-semibold">1.80M (2,984th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-300">Likes:</span>
-                <span className="font-semibold">34.00M (2,830th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-300">Top Videos' Views:</span>
-                <span className="font-semibold">109.71M (23,747th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-300">Post Count:</span>
-                <span className="font-semibold">2.30M (1,838th)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Pandora</h4>
-              <div className="w-6 h-6 rounded bg-blue-600"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Monthly Listeners:</span>
-                <span className="font-semibold">21.01K (12,200th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Streams:</span>
-                <span className="font-semibold">4.27M (21,845th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Artist Stations:</span>
-                <span className="font-semibold">6.73K (33,597th)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Shazam</h4>
-              <div className="w-6 h-6 rounded bg-cyan-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Total Count:</span>
-                <span className="font-semibold">3.54M</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">SiriusXm Spins:</span>
-                <span className="font-semibold">15 (41,061st)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Radio Spins:</span>
-                <span className="font-semibold">5.24K (22,735th)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Instagram</h4>
-              <div className="w-6 h-6 rounded bg-pink-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Followers:</span>
-                <span className="font-semibold">2.54M (3,576th)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">YouTube</h4>
-              <div className="w-6 h-6 rounded bg-red-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Channel Subscribers:</span>
-                <span className="font-semibold">1.72M (3,409th)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Channel Views:</span>
-                <span className="font-semibold">454.16M (5,341st)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Deezer</h4>
-              <div className="w-6 h-6 rounded bg-purple-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Fans:</span>
-                <span className="font-semibold">16.11K (15,372nd)</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">Genius</h4>
-              <div className="w-6 h-6 rounded bg-yellow-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Views:</span>
-                <span className="font-semibold">21.33K</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-900">AirPlay</h4>
-              <div className="w-6 h-6 rounded bg-gray-500"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">SiriusXm Spins:</span>
-                <span className="font-semibold">15 (41,061st)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-600">Radio Spins:</span>
-                <span className="font-semibold">5.24K (22,735th)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Top Assets - With platform source */}
+
+      {/* Top 10 Tracks - With platform source */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Top Assets</h3>
+        <h3 className="text-xl font-bold text-slate-900 mb-6">Top 10 Tracks</h3>
         <div className="flex space-x-6 overflow-x-auto pb-4">
           {displayData.topAssets.map((asset, index) => (
             <div key={index} className="flex-shrink-0 w-80 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
@@ -687,9 +679,9 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Latest Releases */}
+      {/* All Releases - Chronological Order */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Latest Releases</h3>
+        <h3 className="text-xl font-bold text-slate-900 mb-6">All Releases</h3>
         <div className="flex space-x-6 overflow-x-auto pb-4">
           {displayData.latestReleases.map((release, index) => (
             <div key={index} className="flex-shrink-0 w-64 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
