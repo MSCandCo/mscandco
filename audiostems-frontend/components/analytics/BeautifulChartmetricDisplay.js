@@ -20,19 +20,19 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
-// Career Stage Component with arrows pointing at the active stage
+// Career Stage Component with improved arrows and responsive design
 const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
   
   return (
-    <div className="text-center">
+    <div className="text-center min-w-[180px]">
       <h4 className="text-sm font-semibold text-slate-900 mb-4">{title}</h4>
       <div className="relative">
         <div className="space-y-1">
           {stages.map((stage, index) => (
             <div 
               key={index}
-              className={`text-xs font-medium transition-all text-center relative ${
+              className={`text-xs font-medium transition-all text-center relative whitespace-nowrap ${
                 index === currentIndex 
                   ? 'text-blue-600 font-bold' 
                   : 'text-slate-400'
@@ -40,8 +40,8 @@ const CareerStage = ({ title, currentStage, stages }) => {
             >
               {index === currentIndex && (
                 <>
-                  <span className="text-blue-500 absolute left-0 top-0 transform -translate-x-1 text-sm">→</span>
-                  <span className="text-blue-500 absolute right-0 top-0 transform translate-x-1 text-sm">←</span>
+                  <span className="absolute left-0 top-0 transform -translate-x-2 text-sm" style={{ color: 'inherit', margin: '0 4px' }}>→</span>
+                  <span className="absolute right-0 top-0 transform translate-x-2 text-sm" style={{ color: 'inherit', margin: '0 4px' }}>←</span>
                 </>
               )}
               {stage}
@@ -520,7 +520,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       {/* Career Snapshot - 4 vertical lists with arrows */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto">
           <CareerStage 
             title="Career Stage" 
             currentStage="Mid-Level" 
