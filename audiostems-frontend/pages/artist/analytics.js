@@ -88,8 +88,9 @@ export default function ArtistAnalytics() {
 
   // Load Chartmetric analytics data
   const loadChartmetricData = async () => {
-    if (!user || !hasProAccess) return;
+    if (!user || !hasProAccess || chartmetricLoading) return;
     
+    console.log('📊 Loading Chartmetric data...');
     setChartmetricLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -124,9 +125,9 @@ export default function ArtistAnalytics() {
     loadChartmetricData();
   };
 
-  // Load analytics data when linked artist is found
+  // Load analytics data when linked artist is found (prevent infinite loop)
   useEffect(() => {
-    if (linkedArtist && hasProAccess) {
+    if (linkedArtist && hasProAccess && !chartmetricLoading && !chartmetricData) {
       console.log('🔄 Auto-loading analytics for linked artist:', linkedArtist.name);
       loadChartmetricData();
     }
