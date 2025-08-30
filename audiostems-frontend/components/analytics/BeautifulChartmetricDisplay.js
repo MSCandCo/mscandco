@@ -25,7 +25,7 @@ const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
   
   return (
-    <div className="text-center min-w-[180px] flex-shrink-0">
+    <div className="text-center min-w-[180px] flex-shrink-0 flex-1 max-w-xs">
       <h4 className="text-sm font-semibold text-slate-900 mb-4">{title}</h4>
       <div className="relative">
         <div className="space-y-1">
@@ -522,7 +522,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       {/* Career Snapshot - 4 vertical lists with arrows */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
-        <div className="flex gap-6 overflow-x-auto pb-4"
+        <div className="flex gap-6 overflow-x-auto pb-4 justify-center md:justify-start"
              style={{ scrollbarWidth: 'thin' }}>
           <CareerStage 
             title="Career Stage" 
