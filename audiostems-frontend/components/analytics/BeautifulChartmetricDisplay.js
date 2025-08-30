@@ -20,32 +20,34 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
-// Career Stage Component with inward-pointing arrows and centered text
+// Career Stage Component with arrows pointing at the active stage
 const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
   
   return (
     <div className="text-center">
       <h4 className="text-sm font-semibold text-slate-900 mb-4">{title}</h4>
-      <div className="flex items-center justify-center">
-        <ChevronRight className={`w-4 h-4 ${currentIndex > 0 ? 'text-blue-500' : 'text-slate-300'} mr-2`} />
-        <div className="flex-1">
-          <div className="space-y-1">
-            {stages.map((stage, index) => (
-              <div 
-                key={index}
-                className={`text-xs font-medium transition-all text-center ${
-                  index === currentIndex 
-                    ? 'text-blue-600 font-bold' 
-                    : 'text-slate-400'
-                }`}
-              >
-                {stage}
-              </div>
-            ))}
-          </div>
+      <div className="relative">
+        <div className="space-y-1">
+          {stages.map((stage, index) => (
+            <div 
+              key={index}
+              className={`text-xs font-medium transition-all text-center relative ${
+                index === currentIndex 
+                  ? 'text-blue-600 font-bold' 
+                  : 'text-slate-400'
+              }`}
+            >
+              {index === currentIndex && (
+                <>
+                  <ChevronRight className="w-4 h-4 text-blue-500 absolute left-0 top-0 transform -translate-x-6" />
+                  <ChevronLeft className="w-4 h-4 text-blue-500 absolute right-0 top-0 transform translate-x-6" />
+                </>
+              )}
+              {stage}
+            </div>
+          ))}
         </div>
-        <ChevronLeft className={`w-4 h-4 ${currentIndex < stages.length - 1 ? 'text-blue-500' : 'text-slate-300'} ml-2`} />
       </div>
     </div>
   );
