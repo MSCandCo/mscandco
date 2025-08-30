@@ -217,7 +217,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center mb-6">
         <Music className="w-6 h-6 text-blue-600 mr-3" />
-        <h2 className="text-xl font-semibold text-gray-900">Chartmetric Artist Profile</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Artist Profile</h2>
       </div>
 
       {error && (
@@ -236,7 +236,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
               <div>
                 <h3 className="font-medium text-green-900">{linkedArtist.name}</h3>
                 <p className="text-sm text-green-700">
-                  Chartmetric ID: {linkedArtist.id}
+                  Artist ID: {linkedArtist.id}
                   {linkedArtist.verified && (
                     <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                       Verified
@@ -256,7 +256,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
           </div>
 
           <div className="text-sm text-gray-600">
-            <p>✅ Your analytics are now powered by real Chartmetric data</p>
+            <p>✅ Your analytics are now powered by real-time data</p>
             <p>✅ Platform statistics, audience insights, and career metrics are live</p>
             <p>✅ Data updates automatically from streaming platforms</p>
           </div>
@@ -285,7 +285,7 @@ export default function ChartmetricArtistLinking({ onLinked }) {
         // Show search interface
         <div className="space-y-4">
           <div className="text-sm text-gray-600 mb-4">
-            <p>Link your Chartmetric artist profile to unlock:</p>
+            <p>Link your artist profile to unlock:</p>
             <ul className="mt-2 space-y-1 list-disc list-inside">
               <li>Real-time streaming platform analytics</li>
               <li>Audience demographics and geographic insights</li>

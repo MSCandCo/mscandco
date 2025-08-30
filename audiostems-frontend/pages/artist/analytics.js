@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
-import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
+import ArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
-import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
+import BeautifulAnalyticsDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { 
   Calendar, 
@@ -31,8 +31,8 @@ export default function ArtistAnalytics() {
   const [endDate, setEndDate] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
-  const [chartmetricData, setChartmetricData] = useState(null);
-  const [chartmetricLoading, setChartmetricLoading] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [linkedArtist, setLinkedArtist] = useState(null);
   
   const hasProAccess = subscriptionStatus?.isPro || false;
@@ -86,12 +86,12 @@ export default function ArtistAnalytics() {
     fetchSubscriptionStatus();
   }, [user]);
 
-  // Load Chartmetric analytics data
-  const loadChartmetricData = async () => {
-    if (!user || !hasProAccess || chartmetricLoading) return;
+  // Load analytics data
+  const loadAnalyticsData = async () => {
+    if (!user || !hasProAccess || analyticsLoading) return;
     
-    console.log('📊 Loading Chartmetric data...');
-    setChartmetricLoading(true);
+    console.log('📊 Loading analytics data...');
+    setAnalyticsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -105,31 +105,31 @@ export default function ArtistAnalytics() {
       const result = await response.json();
       
       if (result.success) {
-        setChartmetricData(result.data);
+        setAnalyticsData(result.data);
         setLinkedArtist(result.data.userContext?.linkedArtist);
-        console.log('Chartmetric analytics loaded:', result.data);
+        console.log('Analytics loaded:', result.data);
       } else if (result.requiresLinking) {
         setLinkedArtist(null);
-        console.log('Chartmetric artist linking required');
+        console.log('Artist linking required');
       }
     } catch (error) {
-      console.error('Error loading Chartmetric data:', error);
+      console.error('Error loading analytics data:', error);
     } finally {
-      setChartmetricLoading(false);
+      setAnalyticsLoading(false);
     }
   };
 
   const handleArtistLinked = (artist) => {
     console.log('🎯 Artist linked callback:', artist);
     setLinkedArtist(artist);
-    loadChartmetricData();
+    loadAnalyticsData();
   };
 
   // Load analytics data when linked artist is found (prevent infinite loop)
   useEffect(() => {
-    if (linkedArtist && hasProAccess && !chartmetricLoading && !chartmetricData) {
+    if (linkedArtist && hasProAccess && !analyticsLoading && !analyticsData) {
       console.log('🔄 Auto-loading analytics for linked artist:', linkedArtist.name);
-      loadChartmetricData();
+      loadAnalyticsData();
     }
   }, [linkedArtist, hasProAccess]);
 
@@ -231,7 +231,7 @@ export default function ArtistAnalytics() {
 
   const renderAdvancedAnalytics = () => (
     <div className="space-y-8">
-      {/* Chartmetric Artist Linking - Always show for linking/unlinking */}
+      {/* Artist Linking - Always show for linking/unlinking */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <ChartmetricArtistLinking onLinked={handleArtistLinked} />
       </div>
@@ -239,8 +239,8 @@ export default function ArtistAnalytics() {
       {/* Show beautiful analytics if artist is linked */}
       {linkedArtist && (
         <BeautifulChartmetricDisplay 
-          data={chartmetricData} 
-          loading={chartmetricLoading}
+          data={analyticsData} 
+          loading={analyticsLoading}
           linkedArtist={linkedArtist}
         />
       )}
