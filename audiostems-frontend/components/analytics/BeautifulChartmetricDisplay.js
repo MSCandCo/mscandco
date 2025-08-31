@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Star,
   Zap,
+  Crown,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -681,6 +682,170 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Latest Release Performance - Cross-Platform Analytics */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+        <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
+          <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
+          Latest Release Performance
+        </h3>
+        
+        {/* Latest Release Header */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Music className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-slate-900">
+                {displayData.latestReleases[0]?.title || 'Latest Single'}
+              </h4>
+              <p className="text-slate-600">
+                Released: {displayData.latestReleases[0]?.releaseDate ? new Date(displayData.latestReleases[0].releaseDate).toLocaleDateString() : 'Recent'}
+              </p>
+              <p className="text-sm text-slate-500">
+                {displayData.latestReleases[0]?.type || 'Single'} • Cross-platform performance
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Platform Performance Metrics */}
+        <div className="flex space-x-4 overflow-x-auto pb-4">
+          {[
+            {
+              platform: 'Spotify',
+              streams: '2.4M',
+              change: '+12.5%',
+              color: 'green',
+              bgColor: 'bg-green-50',
+              textColor: 'text-green-700',
+              iconColor: 'text-green-600'
+            },
+            {
+              platform: 'Apple Music',
+              streams: '1.8M',
+              change: '+8.3%',
+              color: 'blue',
+              bgColor: 'bg-blue-50',
+              textColor: 'text-blue-700',
+              iconColor: 'text-blue-600'
+            },
+            {
+              platform: 'YouTube Music',
+              streams: '3.1M',
+              change: '+15.7%',
+              color: 'red',
+              bgColor: 'bg-red-50',
+              textColor: 'text-red-700',
+              iconColor: 'text-red-600'
+            },
+            {
+              platform: 'Amazon Music',
+              streams: '890K',
+              change: '+6.2%',
+              color: 'orange',
+              bgColor: 'bg-orange-50',
+              textColor: 'text-orange-700',
+              iconColor: 'text-orange-600'
+            },
+            {
+              platform: 'Deezer',
+              streams: '445K',
+              change: '+4.1%',
+              color: 'purple',
+              bgColor: 'bg-purple-50',
+              textColor: 'text-purple-700',
+              iconColor: 'text-purple-600'
+            },
+            {
+              platform: 'Tidal',
+              streams: '267K',
+              change: '+3.8%',
+              color: 'teal',
+              bgColor: 'bg-teal-50',
+              textColor: 'text-teal-700',
+              iconColor: 'text-teal-600'
+            },
+            {
+              platform: 'SoundCloud',
+              streams: '1.2M',
+              change: '+9.4%',
+              color: 'indigo',
+              bgColor: 'bg-indigo-50',
+              textColor: 'text-indigo-700',
+              iconColor: 'text-indigo-600'
+            },
+            {
+              platform: 'Pandora',
+              streams: '623K',
+              change: '+5.6%',
+              color: 'pink',
+              bgColor: 'bg-pink-50',
+              textColor: 'text-pink-700',
+              iconColor: 'text-pink-600'
+            }
+          ].map((platform, index) => (
+            <div key={index} className={`flex-shrink-0 w-56 p-6 ${platform.bgColor} rounded-xl border border-slate-200 hover:shadow-md transition-all`}>
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <div className={`w-12 h-12 ${platform.bgColor} rounded-lg flex items-center justify-center`}>
+                    <Play className={`w-6 h-6 ${platform.iconColor}`} />
+                  </div>
+                </div>
+                <h4 className="font-bold text-slate-900 mb-2">{platform.platform}</h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{platform.streams}</p>
+                    <p className="text-xs text-slate-500">Total Streams</p>
+                  </div>
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${platform.textColor} ${platform.bgColor}`}>
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    {platform.change}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Performance Summary */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 font-medium">Total Streams</p>
+                <p className="text-2xl font-bold text-green-800">10.8M</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">Average Growth</p>
+                <p className="text-2xl font-bold text-blue-800">+8.2%</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">Top Platform</p>
+                <p className="text-lg font-bold text-purple-800">YouTube Music</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Crown className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
