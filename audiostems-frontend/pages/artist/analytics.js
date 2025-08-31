@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
-import ArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
+import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
-import BeautifulAnalyticsDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
+import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { 
   Calendar, 
