@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   TrendingUp, 
   Users, 
@@ -80,6 +80,20 @@ const CareerStage = ({ title, currentStage, stages }) => {
 
 export default function BeautifulChartmetricDisplay({ data, loading, linkedArtist, onRefresh }) {
   const [selectedRange, setSelectedRange] = useState('30D');
+  
+  // Add these state variables
+  const [latestRelease, setLatestRelease] = useState(null);
+  const [milestones, setMilestones] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Add this useEffect
+  useEffect(() => {
+    if (data) {
+      setLatestRelease(data.latestRelease);
+      setMilestones(data.milestones || []);
+      setDataLoading(false);
+    }
+  }, [data]);
 
   if (loading) {
     return (
@@ -492,102 +506,65 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           Latest Release Performance
         </h3>
         
-        {/* Latest Release Header */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Music className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h4 className="text-lg font-bold text-slate-900">
-                {displayData.latestReleases[0]?.title || 'Latest Single'}
-              </h4>
-              <p className="text-slate-600">
-                Released: {displayData.latestReleases[0]?.releaseDate ? new Date(displayData.latestReleases[0].releaseDate).toLocaleDateString() : 'Recent'}
-              </p>
-              <p className="text-sm text-slate-500">
-                {displayData.latestReleases[0]?.type || 'Single'} • Cross-platform performance
-              </p>
+        {/* Replace the hardcoded Latest Release section with: */}
+        {dataLoading ? <div>Loading...</div> : (
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Music className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-slate-900">
+                  {latestRelease?.title || 'Latest Single'}
+                </h4>
+                <p className="text-slate-600">
+                  Released: {latestRelease?.releaseDate ? new Date(latestRelease.releaseDate).toLocaleDateString() : 'Recent'}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {latestRelease?.type || 'Single'} • Cross-platform performance
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Platform Performance Metrics */}
+        {/* Platform Performance Metrics - REAL DATA FROM API */}
         <div className="flex space-x-4 overflow-x-auto pb-4">
-          {[
-            {
-              platform: 'Spotify',
-              streams: '2.4M',
-              change: '+12.5%',
-              color: 'green',
-              bgColor: 'bg-green-50',
-              textColor: 'text-green-700',
-              iconColor: 'text-green-600'
-            },
-            {
-              platform: 'Apple Music',
-              streams: '1.8M',
-              change: '+8.3%',
-              color: 'blue',
-              bgColor: 'bg-blue-50',
-              textColor: 'text-blue-700',
-              iconColor: 'text-blue-600'
-            },
-            {
-              platform: 'YouTube Music',
-              streams: '3.1M',
-              change: '+15.7%',
-              color: 'red',
-              bgColor: 'bg-red-50',
-              textColor: 'text-red-700',
-              iconColor: 'text-red-600'
-            },
-            {
-              platform: 'Amazon Music',
-              streams: '890K',
-              change: '+6.2%',
-              color: 'orange',
-              bgColor: 'bg-orange-50',
-              textColor: 'text-orange-700',
-              iconColor: 'text-orange-600'
-            },
-            {
-              platform: 'Deezer',
-              streams: '445K',
-              change: '+4.1%',
-              color: 'purple',
-              bgColor: 'bg-purple-50',
-              textColor: 'text-purple-700',
-              iconColor: 'text-purple-600'
-            },
-            {
-              platform: 'Tidal',
-              streams: '267K',
-              change: '+3.8%',
-              color: 'teal',
-              bgColor: 'bg-teal-50',
-              textColor: 'text-teal-700',
-              iconColor: 'text-teal-600'
-            },
-            {
-              platform: 'SoundCloud',
-              streams: '1.2M',
-              change: '+9.4%',
-              color: 'indigo',
-              bgColor: 'bg-indigo-50',
-              textColor: 'text-indigo-700',
-              iconColor: 'text-indigo-600'
-            },
-            {
-              platform: 'Pandora',
-              streams: '623K',
-              change: '+5.6%',
-              color: 'pink',
-              bgColor: 'bg-pink-50',
-              textColor: 'text-pink-700',
-              iconColor: 'text-pink-600'
-            }
-          ].map((platform, index) => (
+          <div className="stats">
+            <div className="flex-shrink-0 w-56 p-6 bg-green-50 rounded-xl border border-slate-200">
+              <div className="text-center">
+                <h4 className="font-bold text-slate-900 mb-2">Spotify</h4>
+                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.spotify?.streams || '0'}</p>
+                <p className="text-xs text-slate-500">Total Streams</p>
+              </div>
+            </div>
+            <div className="flex-shrink-0 w-56 p-6 bg-blue-50 rounded-xl border border-slate-200">
+              <div className="text-center">
+                <h4 className="font-bold text-slate-900 mb-2">Apple Music</h4>
+                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.apple?.streams || '0'}</p>
+                <p className="text-xs text-slate-500">Total Streams</p>
+              </div>
+            </div>
+            <div className="flex-shrink-0 w-56 p-6 bg-red-50 rounded-xl border border-slate-200">
+              <div className="text-center">
+                <h4 className="font-bold text-slate-900 mb-2">YouTube Music</h4>
+                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.youtube?.streams || '0'}</p>
+                <p className="text-xs text-slate-500">Total Streams</p>
+              </div>
+            </div>
+            <div className="flex-shrink-0 w-56 p-6 bg-orange-50 rounded-xl border border-slate-200">
+              <div className="text-center">
+                <h4 className="font-bold text-slate-900 mb-2">Amazon Music</h4>
+                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.amazon?.streams || '0'}</p>
+                <p className="text-xs text-slate-500">Total Streams</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* OLD HARDCODED VERSION REMOVED - Replace with real API data */}
+        <div className="hidden">
+          {[].map((platform, index) => (
             <div key={index} className={`flex-shrink-0 w-56 p-6 ${platform.bgColor} rounded-xl border border-slate-200 hover:shadow-md transition-all`}>
               <div className="text-center">
                 <div className="flex items-center justify-center mb-4">
@@ -611,13 +588,19 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           ))}
         </div>
 
-        {/* Performance Summary */}
+        {/* Performance Summary - REAL DATA FROM API */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">Total Streams</p>
-                <p className="text-2xl font-bold text-green-800">10.8M</p>
+                <p className="text-2xl font-bold text-green-800">
+                  {latestRelease?.stats ? 
+                    ((latestRelease.stats.spotify?.streams || 0) + 
+                     (latestRelease.stats.apple?.streams || 0) + 
+                     (latestRelease.stats.youtube?.streams || 0) + 
+                     (latestRelease.stats.amazon?.streams || 0)).toLocaleString() : '0'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <BarChart3 className="w-6 h-6 text-green-600" />
@@ -627,8 +610,10 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium">Average Growth</p>
-                <p className="text-2xl font-bold text-blue-800">+8.2%</p>
+                <p className="text-sm text-blue-600 font-medium">Release Date</p>
+                <p className="text-lg font-bold text-blue-800">
+                  {latestRelease?.releaseDate ? new Date(latestRelease.releaseDate).toLocaleDateString() : 'N/A'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -638,8 +623,8 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600 font-medium">Top Platform</p>
-                <p className="text-lg font-bold text-purple-800">YouTube Music</p>
+                <p className="text-sm text-purple-600 font-medium">Release Type</p>
+                <p className="text-lg font-bold text-purple-800">{latestRelease?.type || 'N/A'}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Crown className="w-6 h-6 text-purple-600" />
@@ -1074,52 +1059,28 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
         </div>
       </div>
 
-      {/* Recent Milestones */}
+      {/* Replace the hardcoded milestones with: */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-900 mb-6">Recent Milestones</h3>
         <div className="space-y-4">
-          {[
-            {
-              title: '1M Monthly Listeners',
-              description: 'Reached 1 million monthly listeners on Spotify',
-              date: '2 days ago',
-              impact: '+12% growth',
-              icon: Headphones,
-              color: 'green'
-            },
-            {
-              title: 'Verified Artist',
-              description: 'Achieved verified status on major streaming platforms',
-              date: '1 week ago',
-              impact: '+25% discovery',
-              icon: Award,
-              color: 'blue'
-            },
-            {
-              title: 'Top 100 Charts',
-              description: 'Latest single entered Top 100 in Nigeria',
-              date: '2 weeks ago',
-              impact: '+40% streams',
-              icon: Target,
-              color: 'purple'
-            }
-          ].map((milestone, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-              <div className={`w-10 h-10 rounded-lg bg-${milestone.color}-100 flex items-center justify-center`}>
-                <milestone.icon className={`w-5 h-5 text-${milestone.color}-600`} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-semibold text-slate-900">{milestone.title}</h4>
-                  <span className={`px-2 py-1 bg-${milestone.color}-100 text-${milestone.color}-700 rounded-full text-xs font-medium`}>
-                    {milestone.impact}
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm">{milestone.description}</p>
-                <p className="text-gray-500 text-xs mt-1">{milestone.date}</p>
+          {milestones.length > 0 ? milestones.map((milestone, index) => (
+            <div key={index} className="milestone">
+              <div className="milestone-icon">🏆</div>
+              <div>
+                <h4>{milestone.type} {milestone.description}</h4>
+                <p>{milestone.value}</p>
+                <span>{milestone.date}</span>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500">No recent milestones available</p>
+              <p className="text-gray-400 text-sm mt-1">Milestones will appear here as they are achieved</p>
+            </div>
+          )}
         </div>
       </div>
 

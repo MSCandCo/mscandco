@@ -6,13 +6,9 @@ import jwt from 'jsonwebtoken';
 
 const CHARTMETRIC_API_BASE = 'https://api.chartmetric.com/api';
 
-// Get Chartmetric access token
+// Add this authentication function
 async function getChartmetricToken() {
-  if (!process.env.CHARTMETRIC_REFRESH_TOKEN) {
-    throw new Error('Chartmetric API not configured');
-  }
-
-  const response = await fetch(`${CHARTMETRIC_API_BASE}/token`, {
+  const response = await fetch('https://api.chartmetric.com/api/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -21,13 +17,64 @@ async function getChartmetricToken() {
       refreshtoken: process.env.CHARTMETRIC_REFRESH_TOKEN
     })
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to get Chartmetric token');
-  }
-
   const data = await response.json();
   return data.token;
+}
+
+// Replace the hardcoded latest release data with this API call
+async function fetchLatestRelease(artistId, token) {
+  const response = await fetch(`https://api.chartmetric.com/api/artist/${artistId}/albums?limit=1&offset=0&sortBy=release_date`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const data = await response.json();
+  
+  // Get the latest album/single
+  const latestRelease = data.obj?.[0];
+  
+  if (!latestRelease) {
+    return null;
+  }
+  
+  // Then fetch performance stats for this release
+  try {
+    const statsResponse = await fetch(`https://api.chartmetric.com/api/album/${latestRelease.id}/stats`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const statsData = await statsResponse.json();
+    
+    return {
+      title: latestRelease.name,
+      releaseDate: latestRelease.release_date,
+      type: latestRelease.album_type,
+      stats: statsData.obj
+    };
+  } catch (error) {
+    // Return release info without stats if stats API fails
+    return {
+      title: latestRelease.name,
+      releaseDate: latestRelease.release_date,
+      type: latestRelease.album_type,
+      stats: null
+    };
+  }
+}
+
+// Replace the hardcoded milestones with this API call
+async function fetchRecentMilestones(artistId, token) {
+  const response = await fetch(`https://api.chartmetric.com/api/artist/${artistId}/milestones?since=2024-01-01&until=2024-12-31`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const data = await response.json();
+  return data.obj; // This returns the actual milestones array
 }
 
 // Get comprehensive artist analytics from Chartmetric
@@ -337,6 +384,18 @@ export default async function handler(req, res) {
 
     console.log('✅ Artist data fetched successfully');
     
+    // Fetch latest release and milestones using the exact API calls
+    const [latestReleaseData, milestonesData] = await Promise.allSettled([
+      fetchLatestRelease(artistId, chartmetricToken),
+      fetchRecentMilestones(artistId, chartmetricToken)
+    ]);
+
+    const latestRelease = latestReleaseData.status === 'fulfilled' ? latestReleaseData.value : null;
+    const milestones = milestonesData.status === 'fulfilled' ? milestonesData.value : [];
+
+    console.log('📀 Latest release:', latestRelease?.title || 'None found');
+    console.log('🏆 Milestones found:', Array.isArray(milestones) ? milestones.length : 0);
+    
     // Extract real data from successful API responses
     const realData = {
       // Basic artist info
@@ -416,6 +475,12 @@ export default async function handler(req, res) {
         genre_rank: rankingsData?.obj?.genre_rank || {},
         available: !!rankingsData
       },
+
+      // Real latest release data from API
+      latestRelease: latestRelease,
+      
+      // Real milestones data from API
+      milestones: Array.isArray(milestones) ? milestones : [],
 
       // Metadata
       userContext: {
