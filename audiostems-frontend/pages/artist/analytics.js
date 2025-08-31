@@ -112,9 +112,24 @@ export default function ArtistAnalytics() {
       } else if (result.requiresLinking) {
         setLinkedArtist(null);
         console.log('Artist linking required');
+      } else {
+        // Handle API errors gracefully
+        if (response.status === 429) {
+          console.log('Rate limit exceeded, will retry later');
+          // Could show a toast notification here
+        } else if (response.status === 401) {
+          console.log('Authentication error');
+        } else {
+          console.log('API error:', result.message);
+        }
+        // Keep existing data if available, don't clear it on error
+        if (!analyticsData) {
+          setLinkedArtist(null);
+        }
       }
     } catch (error) {
       console.error('Error loading analytics data:', error);
+      // Don't clear existing data on network errors
     } finally {
       setAnalyticsLoading(false);
     }

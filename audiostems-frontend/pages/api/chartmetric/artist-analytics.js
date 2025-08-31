@@ -397,10 +397,31 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Chartmetric analytics error:', error);
     
+    // Handle rate limiting specifically
+    if (error.message.includes('429') || error.message.includes('rate limit')) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'Please wait a moment before refreshing your analytics',
+        retryAfter: 60, // seconds
+        fallback: true
+      });
+    }
+    
+    // Handle authentication errors
+    if (error.message.includes('401') || error.message.includes('unauthorized')) {
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: 'API credentials may have expired. Please contact support.',
+        fallback: true
+      });
+    }
+    
+    // General error handling
     return res.status(500).json({
       error: 'Failed to fetch analytics data',
       message: error.message,
-      fallback: true
+      fallback: true,
+      timestamp: new Date().toISOString()
     });
   }
 }
