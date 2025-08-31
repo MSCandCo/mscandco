@@ -102,26 +102,28 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
     );
   }
 
-  // Use real data if available, with beautiful fallback data
+  // Use ONLY real data from Chartmetric API - NO hardcoded fallbacks
   const displayData = {
     overview: {
-      monthlyListeners: data?.platforms?.spotify?.monthly_listeners || data?.artist?.sp_monthly_listeners || 720,
-      followers: data?.platforms?.spotify?.followers || data?.artist?.sp_followers || 436,
-      artistScore: data?.artist?.cm_artist_score || 85.5,
+      // Real Spotify data
+      monthlyListeners: data?.artist?.sp_monthly_listeners || 0,
+      followers: data?.artist?.sp_followers || 0,
+      artistScore: data?.artist?.cm_artist_score || 0,
       verified: data?.artist?.verified || false,
-      // Additional platform data
-      youtubeSubscribers: data?.platforms?.youtube?.subscribers || 6430,
-      instagramFollowers: data?.platforms?.instagram?.followers || 15000,
-      tiktokFollowers: data?.platforms?.tiktok?.followers || 2280
+      // Real platform data
+      youtubeSubscribers: data?.platforms?.youtube?.subscribers || 0,
+      instagramFollowers: data?.platforms?.instagram?.followers || 0,
+      tiktokFollowers: data?.platforms?.tiktok?.followers || 0
     },
     ranking: {
-      country: data?.rankings?.country_rank || 89,
-      global: data?.rankings?.global_rank || 15420,
-      primaryGenre: data?.rankings?.genre_rank?.primary || 12,
-      secondaryGenre: data?.rankings?.genre_rank?.secondary || 28,
-      tertiaryGenre: data?.rankings?.genre_rank?.tertiary || 45,
-      momentum: data?.rankings?.momentum_score ? `+${data.rankings.momentum_score}` : '+245',
-      continent: data?.rankings?.continent_rank || 156
+      // Real rankings (show "N/A" if not available instead of fake numbers)
+      country: data?.rankings?.country_rank || 'N/A',
+      global: data?.rankings?.global_rank || 'N/A', 
+      primaryGenre: data?.rankings?.genre_rank?.primary || 'N/A',
+      secondaryGenre: data?.rankings?.genre_rank?.secondary || 'N/A',
+      tertiaryGenre: data?.rankings?.genre_rank?.tertiary || 'N/A',
+      momentum: data?.rankings?.momentum_score ? `+${data.rankings.momentum_score}` : 'N/A',
+      continent: data?.rankings?.continent_rank || 'N/A'
     },
     topAssets: [
       {
@@ -423,6 +425,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       }
     ],
     demographics: {
+      // Real social footprint calculation from API data
       socialFootprint: data?.socialFootprint?.total_fanbase ? 
         (data.socialFootprint.total_fanbase >= 1000000 ? 
           (data.socialFootprint.total_fanbase / 1000000).toFixed(1) + 'M' : 
@@ -430,22 +433,18 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
             (data.socialFootprint.total_fanbase / 1000).toFixed(1) + 'K' : 
             data.socialFootprint.total_fanbase.toString()
           )
-        ) : '7.5M',
-      primaryMarket: data?.geographic?.primary_market?.country || 'Nigeria',
-      secondaryMarket: data?.geographic?.secondary_market?.country || 'United States',
-      primaryGender: data?.fanMetrics?.demographics?.gender?.primary || 'Male (58.1%)',
+        ) : '0',
+      // Real geographic data
+      primaryMarket: data?.geographic?.primary_market?.country || 'Unknown',
+      secondaryMarket: data?.geographic?.secondary_market?.country || 'Unknown',
+      primaryGender: data?.fanMetrics?.demographics?.gender?.primary || 'Unknown',
+      // Real country breakdown or empty array if not available
       countries: data?.geographic?.breakdown?.slice(0, 5)?.map(country => ({
         name: country.country,
         percentage: country.percentage,
         flag: getCountryFlag(country.country),
         streams: country.streams ? country.streams.toLocaleString() : '0'
-      })) || [
-        { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
-        { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
-        { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },
-        { name: 'United Kingdom', percentage: 6.8, flag: '🇬🇧', streams: '201,000' },
-        { name: 'South Africa', percentage: 5.2, flag: '🇿🇦', streams: '154,000' }
-      ]
+      })) || []
     }
   };
 

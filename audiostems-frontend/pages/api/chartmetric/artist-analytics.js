@@ -337,30 +337,86 @@ export default async function handler(req, res) {
 
     console.log('✅ Artist data fetched successfully');
     
-    // Construct comprehensive analytics response with all real data
-    const analytics = {
-      // Core artist information
-      artist: artistData.obj,
-      
-      // Social and audience data
-      socialFootprint: socialFootprintData?.obj || null,
-      fanMetrics: fanMetricsData?.obj || null,
-      geographic: geographicData?.obj || null,
-      
-      // Platform statistics
-      platforms: {
-        spotify: spotifyData?.obj || null,
-        apple: appleData?.obj || null,
-        youtube: youtubeData?.obj || null,
-        instagram: instagramData?.obj || null,
-        tiktok: tiktokData?.obj || null
+    // Extract real data from successful API responses
+    const realData = {
+      // Basic artist info
+      artist: {
+        id: artistData.obj?.id,
+        name: artistData.obj?.name,
+        image_url: artistData.obj?.image_url,
+        verified: artistData.obj?.verified || false,
+        genres: artistData.obj?.genres || [],
+        // Real Spotify data from artist endpoint
+        sp_followers: artistData.obj?.sp_followers || 0,
+        sp_monthly_listeners: artistData.obj?.sp_monthly_listeners || 0,
+        cm_artist_score: artistData.obj?.cm_artist_score || 0
       },
-      
-      // Performance and discovery data
-      playlists: playlistsData?.obj || null,
-      charts: chartsData?.obj || null,
-      rankings: rankingsData?.obj || null,
-      
+
+      // Real social footprint calculation
+      socialFootprint: {
+        total_fanbase: (artistData.obj?.sp_followers || 0) + 
+                      (instagramData?.obj?.followers || 0) + 
+                      (youtubeData?.obj?.subscribers || 0) + 
+                      (tiktokData?.obj?.followers || 0),
+        breakdown: {
+          spotify: artistData.obj?.sp_followers || 0,
+          instagram: instagramData?.obj?.followers || 0,
+          youtube: youtubeData?.obj?.subscribers || 0,
+          tiktok: tiktokData?.obj?.followers || 0
+        }
+      },
+
+      // Real platform statistics (from successful API calls)
+      platforms: {
+        spotify: {
+          followers: artistData.obj?.sp_followers || 0,
+          monthly_listeners: artistData.obj?.sp_monthly_listeners || 0,
+          popularity: spotifyData?.obj?.popularity || 0,
+          available: !!spotifyData || !!artistData
+        },
+        instagram: {
+          followers: instagramData?.obj?.followers || 0,
+          posts: instagramData?.obj?.posts || 0,
+          engagement_rate: instagramData?.obj?.engagement_rate || 0,
+          available: !!instagramData
+        },
+        youtube: {
+          subscribers: youtubeData?.obj?.subscribers || 0,
+          views: youtubeData?.obj?.views || 0,
+          videos: youtubeData?.obj?.videos || 0,
+          available: !!youtubeData
+        },
+        tiktok: {
+          followers: tiktokData?.obj?.followers || 0,
+          likes: tiktokData?.obj?.likes || 0,
+          videos: tiktokData?.obj?.videos || 0,
+          available: !!tiktokData
+        }
+      },
+
+      // Real geographic data (if available)
+      geographic: {
+        primary_market: geographicData?.obj?.primary_market || { country: 'Unknown', percentage: 0 },
+        secondary_market: geographicData?.obj?.secondary_market || { country: 'Unknown', percentage: 0 },
+        breakdown: geographicData?.obj?.breakdown || [],
+        available: !!geographicData
+      },
+
+      // Real playlist data (if available)  
+      playlists: {
+        total_playlists: playlistsData?.obj?.total_playlists || 0,
+        total_reach: playlistsData?.obj?.total_reach || 0,
+        available: !!playlistsData
+      },
+
+      // Real rankings data (if available)
+      rankings: {
+        country_rank: rankingsData?.obj?.country_rank || null,
+        global_rank: rankingsData?.obj?.global_rank || null,
+        genre_rank: rankingsData?.obj?.genre_rank || {},
+        available: !!rankingsData
+      },
+
       // Metadata
       userContext: {
         linkedArtist: {
@@ -374,10 +430,10 @@ export default async function handler(req, res) {
       fetchedAt: new Date().toISOString(),
       dataAvailability: {
         artist: !!artistData,
-        socialFootprint: !!socialFootprintData,
+        socialFootprint: !!(artistData || instagramData || youtubeData || tiktokData),
         fanMetrics: !!fanMetricsData,
         geographic: !!geographicData,
-        spotify: !!spotifyData,
+        spotify: !!spotifyData || !!artistData,
         apple: !!appleData,
         youtube: !!youtubeData,
         instagram: !!instagramData,
@@ -388,10 +444,17 @@ export default async function handler(req, res) {
       }
     };
 
+    console.log('🎯 Real data compiled:', {
+      spotifyFollowers: realData.artist.sp_followers,
+      monthlyListeners: realData.artist.sp_monthly_listeners,
+      instagramFollowers: realData.platforms.instagram.followers,
+      totalSocialFootprint: realData.socialFootprint.total_fanbase
+    });
+
     return res.json({
       success: true,
-      data: analytics,
-      message: 'Analytics data retrieved successfully'
+      data: realData,
+      message: 'Real analytics data retrieved successfully'
     });
 
   } catch (error) {
