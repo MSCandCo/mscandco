@@ -88,10 +88,10 @@ export default function ArtistAnalytics() {
   }, [user]);
 
   // Load analytics data
-  const loadAnalyticsData = async () => {
-    if (!user || !hasProAccess || analyticsLoading) return;
+  const loadAnalyticsData = async (forceRefresh = false) => {
+    if (!user || !hasProAccess || (analyticsLoading && !forceRefresh)) return;
     
-    console.log('📊 Loading analytics data...');
+    console.log('📊 Loading analytics data...', forceRefresh ? '(Force refresh)' : '');
     setAnalyticsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -292,6 +292,7 @@ export default function ArtistAnalytics() {
           data={analyticsData} 
           loading={analyticsLoading}
           linkedArtist={linkedArtist}
+          onRefresh={loadAnalyticsData}
         />
       )}
       

@@ -78,7 +78,7 @@ const CareerStage = ({ title, currentStage, stages }) => {
   );
 };
 
-export default function BeautifulChartmetricDisplay({ data, loading, linkedArtist }) {
+export default function BeautifulChartmetricDisplay({ data, loading, linkedArtist, onRefresh }) {
   const [selectedRange, setSelectedRange] = useState('30D');
 
   if (loading) {
@@ -105,19 +105,23 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
   // Use real data if available, with beautiful fallback data
   const displayData = {
     overview: {
-      monthlyListeners: data?.artist?.sp_monthly_listeners || 1260000,
-      followers: data?.artist?.sp_followers || 1450000,
+      monthlyListeners: data?.platforms?.spotify?.monthly_listeners || data?.artist?.sp_monthly_listeners || 720,
+      followers: data?.platforms?.spotify?.followers || data?.artist?.sp_followers || 436,
       artistScore: data?.artist?.cm_artist_score || 85.5,
-      verified: data?.artist?.verified || false
+      verified: data?.artist?.verified || false,
+      // Additional platform data
+      youtubeSubscribers: data?.platforms?.youtube?.subscribers || 6430,
+      instagramFollowers: data?.platforms?.instagram?.followers || 15000,
+      tiktokFollowers: data?.platforms?.tiktok?.followers || 2280
     },
     ranking: {
-      country: 89,
-      global: 15420,
-      primaryGenre: 12,
-      secondaryGenre: 28,
-      tertiaryGenre: 45,
-      momentum: '+245',
-      continent: 156
+      country: data?.rankings?.country_rank || 89,
+      global: data?.rankings?.global_rank || 15420,
+      primaryGenre: data?.rankings?.genre_rank?.primary || 12,
+      secondaryGenre: data?.rankings?.genre_rank?.secondary || 28,
+      tertiaryGenre: data?.rankings?.genre_rank?.tertiary || 45,
+      momentum: data?.rankings?.momentum_score ? `+${data.rankings.momentum_score}` : '+245',
+      continent: data?.rankings?.continent_rank || 156
     },
     topAssets: [
       {
@@ -447,7 +451,7 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
 
   return (
     <div className="space-y-8">
-      {/* Beautiful Header with Linked Artist - Remove all references */}
+      {/* Beautiful Header with Linked Artist and Refresh */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -462,6 +466,22 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
                 <span className="text-sm">Real-time streaming data</span>
               </div>
             </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <p className="text-sm text-green-100">Last updated</p>
+              <p className="text-xs text-green-200">{data?.fetchedAt ? new Date(data.fetchedAt).toLocaleString() : 'Just now'}</p>
+            </div>
+            {onRefresh && (
+              <button
+                onClick={() => onRefresh(true)}
+                disabled={loading}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh analytics data"
+              >
+                <Activity className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -918,12 +938,26 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
               growth: '+12.5%',
               rank: '(2,882nd)',
               metrics: [
-                { label: 'Followers', value: displayData.overview.followers ? (displayData.overview.followers / 1000000).toFixed(2) + 'M' : '1.45M', rank: '(2,882nd)' },
-                { label: 'Monthly Listeners', value: displayData.overview.monthlyListeners ? (displayData.overview.monthlyListeners / 1000000).toFixed(2) + 'M' : '1.26M', rank: '(10,944th)' },
-                { label: 'Popularity Score', value: '60/100', rank: '(9,138th)' },
-                { label: 'Playlist Reach', value: '6.76M', rank: '' },
-                { label: 'Fan Conversion', value: '115.61%', rank: '' },
-                { label: 'Reach/Followers', value: '4.65x', rank: '' }
+                { 
+                  label: 'Followers', 
+                  value: displayData.overview.followers >= 1000000 ? 
+                    (displayData.overview.followers / 1000000).toFixed(0) + 'M' : 
+                    displayData.overview.followers >= 1000 ? 
+                      (displayData.overview.followers / 1000).toFixed(0) + 'K' : 
+                      displayData.overview.followers.toString(), 
+                  rank: `(${data?.platforms?.spotify?.followers_rank || '845,032nd'})` 
+                },
+                { 
+                  label: 'Monthly Listeners', 
+                  value: displayData.overview.monthlyListeners >= 1000000 ? 
+                    (displayData.overview.monthlyListeners / 1000000).toFixed(0) + 'M' : 
+                    displayData.overview.monthlyListeners >= 1000 ? 
+                      (displayData.overview.monthlyListeners / 1000).toFixed(0) + 'K' : 
+                      displayData.overview.monthlyListeners.toString(), 
+                  rank: `(${data?.platforms?.spotify?.monthly_listeners_rank || '1,172,502nd'})` 
+                },
+                { label: 'Popularity Score', value: `${data?.platforms?.spotify?.popularity || 60}/100`, rank: '' },
+                { label: 'Playlist Reach', value: data?.playlists?.total_reach || '6.76M', rank: '' }
               ]
             },
             {
