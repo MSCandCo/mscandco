@@ -21,6 +21,28 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 
+// Helper function to get country flags
+const getCountryFlag = (countryName) => {
+  const flagMap = {
+    'Nigeria': '🇳🇬',
+    'United States': '🇺🇸',
+    'United Kingdom': '🇬🇧',
+    'Ghana': '🇬🇭',
+    'South Africa': '🇿🇦',
+    'Brazil': '🇧🇷',
+    'Canada': '🇨🇦',
+    'Germany': '🇩🇪',
+    'France': '🇫🇷',
+    'Australia': '🇦🇺',
+    'Kenya': '🇰🇪',
+    'Uganda': '🇺🇬',
+    'Tanzania': '🇹🇿',
+    'Rwanda': '🇷🇼',
+    'Cameroon': '🇨🇲'
+  };
+  return flagMap[countryName] || '🌍';
+};
+
 // Career Stage Component with improved arrows and responsive design
 const CareerStage = ({ title, currentStage, stages }) => {
   const currentIndex = stages.indexOf(currentStage);
@@ -397,11 +419,23 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       }
     ],
     demographics: {
-      socialFootprint: '7.5M',
-      primaryMarket: 'Nigeria',
-      secondaryMarket: 'United States', 
-      primaryGender: 'Male (58.1%)',
-      countries: [
+      socialFootprint: data?.socialFootprint?.total_fanbase ? 
+        (data.socialFootprint.total_fanbase >= 1000000 ? 
+          (data.socialFootprint.total_fanbase / 1000000).toFixed(1) + 'M' : 
+          (data.socialFootprint.total_fanbase >= 1000 ? 
+            (data.socialFootprint.total_fanbase / 1000).toFixed(1) + 'K' : 
+            data.socialFootprint.total_fanbase.toString()
+          )
+        ) : '7.5M',
+      primaryMarket: data?.geographic?.primary_market?.country || 'Nigeria',
+      secondaryMarket: data?.geographic?.secondary_market?.country || 'United States',
+      primaryGender: data?.fanMetrics?.demographics?.gender?.primary || 'Male (58.1%)',
+      countries: data?.geographic?.breakdown?.slice(0, 5)?.map(country => ({
+        name: country.country,
+        percentage: country.percentage,
+        flag: getCountryFlag(country.country),
+        streams: country.streams ? country.streams.toLocaleString() : '0'
+      })) || [
         { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
         { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
         { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },

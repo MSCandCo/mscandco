@@ -243,28 +243,62 @@ export default async function handler(req, res) {
     const chartmetricToken = await getChartmetricToken();
     console.log('✅ Chartmetric token obtained');
     
-    // Start with just basic artist data to avoid timeouts
-    const artistResponse = await fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}`, {
-      headers: {
-        'Authorization': `Bearer ${chartmetricToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Fetch comprehensive analytics data
+    const headers = {
+      'Authorization': `Bearer ${chartmetricToken}`,
+      'Content-Type': 'application/json'
+    };
 
-    if (!artistResponse.ok) {
-      console.error('❌ Failed to fetch artist data:', artistResponse.status);
+    // Fetch multiple endpoints in parallel for comprehensive data
+    const [
+      artistResponse,
+      socialFootprintResponse,
+      fanMetricsResponse,
+      geographicResponse,
+      spotifyResponse
+    ] = await Promise.allSettled([
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/social-footprint`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/fan-metrics`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/geographic`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/stat/spotify`, { headers })
+    ]);
+
+    // Process the responses
+    const artistData = artistResponse.status === 'fulfilled' && artistResponse.value.ok ? 
+      await artistResponse.value.json() : null;
+    
+    const socialFootprintData = socialFootprintResponse.status === 'fulfilled' && socialFootprintResponse.value.ok ? 
+      await socialFootprintResponse.value.json() : null;
+    
+    const fanMetricsData = fanMetricsResponse.status === 'fulfilled' && fanMetricsResponse.value.ok ? 
+      await fanMetricsResponse.value.json() : null;
+    
+    const geographicData = geographicResponse.status === 'fulfilled' && geographicResponse.value.ok ? 
+      await geographicResponse.value.json() : null;
+    
+    const spotifyData = spotifyResponse.status === 'fulfilled' && spotifyResponse.value.ok ? 
+      await spotifyResponse.value.json() : null;
+
+    if (!artistData) {
+      console.error('❌ Failed to fetch basic artist data');
       return res.status(400).json({ 
-        error: 'Failed to fetch artist data from Chartmetric',
-        status: artistResponse.status
+        error: 'Failed to fetch artist data from Chartmetric'
       });
     }
 
-    const artistData = await artistResponse.json();
     console.log('✅ Artist data fetched successfully');
+    console.log('📊 Social footprint data:', socialFootprintData ? 'Available' : 'Not available');
+    console.log('🌍 Geographic data:', geographicData ? 'Available' : 'Not available');
+    console.log('👥 Fan metrics data:', fanMetricsData ? 'Available' : 'Not available');
     
-    // Return simplified analytics with real artist data
+    // Construct comprehensive analytics response
     const analytics = {
       artist: artistData.obj,
+      socialFootprint: socialFootprintData?.obj || null,
+      fanMetrics: fanMetricsData?.obj || null,
+      geographic: geographicData?.obj || null,
+      spotify: spotifyData?.obj || null,
       userContext: {
         linkedArtist: {
           id: profile.chartmetric_artist_id,
