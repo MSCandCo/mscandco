@@ -249,36 +249,84 @@ export default async function handler(req, res) {
       'Content-Type': 'application/json'
     };
 
-    // Fetch multiple endpoints in parallel for comprehensive data
+    // Fetch comprehensive data from multiple Chartmetric endpoints
+    const artistId = profile.chartmetric_artist_id;
+    console.log('🔍 Fetching comprehensive data for artist ID:', artistId);
+
     const [
       artistResponse,
       socialFootprintResponse,
       fanMetricsResponse,
       geographicResponse,
-      spotifyResponse
+      spotifyResponse,
+      appleResponse,
+      youtubeResponse,
+      instagramResponse,
+      tiktokResponse,
+      playlistsResponse,
+      chartsResponse,
+      rankingsResponse
     ] = await Promise.allSettled([
-      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}`, { headers }),
-      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/social-footprint`, { headers }),
-      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/fan-metrics`, { headers }),
-      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/geographic`, { headers }),
-      fetch(`${CHARTMETRIC_API_BASE}/artist/${profile.chartmetric_artist_id}/stat/spotify`, { headers })
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/social-footprint`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/fan-metrics`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/geographic`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/stat/spotify`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/stat/applemusic`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/stat/youtube`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/stat/instagram`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/stat/tiktok`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/playlists`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/charts`, { headers }),
+      fetch(`${CHARTMETRIC_API_BASE}/artist/${artistId}/rankings`, { headers })
     ]);
 
-    // Process the responses
-    const artistData = artistResponse.status === 'fulfilled' && artistResponse.value.ok ? 
-      await artistResponse.value.json() : null;
-    
-    const socialFootprintData = socialFootprintResponse.status === 'fulfilled' && socialFootprintResponse.value.ok ? 
-      await socialFootprintResponse.value.json() : null;
-    
-    const fanMetricsData = fanMetricsResponse.status === 'fulfilled' && fanMetricsResponse.value.ok ? 
-      await fanMetricsResponse.value.json() : null;
-    
-    const geographicData = geographicResponse.status === 'fulfilled' && geographicResponse.value.ok ? 
-      await geographicResponse.value.json() : null;
-    
-    const spotifyData = spotifyResponse.status === 'fulfilled' && spotifyResponse.value.ok ? 
-      await spotifyResponse.value.json() : null;
+    // Helper function to safely process API responses
+    const processResponse = async (response, name) => {
+      if (response.status === 'fulfilled' && response.value.ok) {
+        try {
+          const data = await response.value.json();
+          console.log(`✅ ${name} data: Available`);
+          return data;
+        } catch (error) {
+          console.log(`❌ ${name} data: JSON parse error`, error.message);
+          return null;
+        }
+      } else {
+        const status = response.status === 'fulfilled' ? response.value.status : 'Network Error';
+        console.log(`❌ ${name} data: ${status}`);
+        return null;
+      }
+    };
+
+    // Process all responses
+    const [
+      artistData,
+      socialFootprintData,
+      fanMetricsData,
+      geographicData,
+      spotifyData,
+      appleData,
+      youtubeData,
+      instagramData,
+      tiktokData,
+      playlistsData,
+      chartsData,
+      rankingsData
+    ] = await Promise.all([
+      processResponse(artistResponse, 'Artist'),
+      processResponse(socialFootprintResponse, 'Social Footprint'),
+      processResponse(fanMetricsResponse, 'Fan Metrics'),
+      processResponse(geographicResponse, 'Geographic'),
+      processResponse(spotifyResponse, 'Spotify'),
+      processResponse(appleResponse, 'Apple Music'),
+      processResponse(youtubeResponse, 'YouTube'),
+      processResponse(instagramResponse, 'Instagram'),
+      processResponse(tiktokResponse, 'TikTok'),
+      processResponse(playlistsResponse, 'Playlists'),
+      processResponse(chartsResponse, 'Charts'),
+      processResponse(rankingsResponse, 'Rankings')
+    ]);
 
     if (!artistData) {
       console.error('❌ Failed to fetch basic artist data');
@@ -288,17 +336,32 @@ export default async function handler(req, res) {
     }
 
     console.log('✅ Artist data fetched successfully');
-    console.log('📊 Social footprint data:', socialFootprintData ? 'Available' : 'Not available');
-    console.log('🌍 Geographic data:', geographicData ? 'Available' : 'Not available');
-    console.log('👥 Fan metrics data:', fanMetricsData ? 'Available' : 'Not available');
     
-    // Construct comprehensive analytics response
+    // Construct comprehensive analytics response with all real data
     const analytics = {
+      // Core artist information
       artist: artistData.obj,
+      
+      // Social and audience data
       socialFootprint: socialFootprintData?.obj || null,
       fanMetrics: fanMetricsData?.obj || null,
       geographic: geographicData?.obj || null,
-      spotify: spotifyData?.obj || null,
+      
+      // Platform statistics
+      platforms: {
+        spotify: spotifyData?.obj || null,
+        apple: appleData?.obj || null,
+        youtube: youtubeData?.obj || null,
+        instagram: instagramData?.obj || null,
+        tiktok: tiktokData?.obj || null
+      },
+      
+      // Performance and discovery data
+      playlists: playlistsData?.obj || null,
+      charts: chartsData?.obj || null,
+      rankings: rankingsData?.obj || null,
+      
+      // Metadata
       userContext: {
         linkedArtist: {
           id: profile.chartmetric_artist_id,
@@ -307,7 +370,22 @@ export default async function handler(req, res) {
         }
       },
       dateRange,
-      userId
+      userId,
+      fetchedAt: new Date().toISOString(),
+      dataAvailability: {
+        artist: !!artistData,
+        socialFootprint: !!socialFootprintData,
+        fanMetrics: !!fanMetricsData,
+        geographic: !!geographicData,
+        spotify: !!spotifyData,
+        apple: !!appleData,
+        youtube: !!youtubeData,
+        instagram: !!instagramData,
+        tiktok: !!tiktokData,
+        playlists: !!playlistsData,
+        charts: !!chartsData,
+        rankings: !!rankingsData
+      }
     };
 
     return res.json({
