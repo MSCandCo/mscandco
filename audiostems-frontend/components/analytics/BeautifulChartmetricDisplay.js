@@ -530,63 +530,37 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
 
         {/* Platform Performance Metrics - REAL DATA FROM API */}
         <div className="flex space-x-4 overflow-x-auto pb-4">
-          <div className="stats">
-            <div className="flex-shrink-0 w-56 p-6 bg-green-50 rounded-xl border border-slate-200">
-              <div className="text-center">
-                <h4 className="font-bold text-slate-900 mb-2">Spotify</h4>
-                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.spotify?.streams || '0'}</p>
-                <p className="text-xs text-slate-500">Total Streams</p>
-              </div>
-            </div>
-            <div className="flex-shrink-0 w-56 p-6 bg-blue-50 rounded-xl border border-slate-200">
-              <div className="text-center">
-                <h4 className="font-bold text-slate-900 mb-2">Apple Music</h4>
-                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.apple?.streams || '0'}</p>
-                <p className="text-xs text-slate-500">Total Streams</p>
-              </div>
-            </div>
-            <div className="flex-shrink-0 w-56 p-6 bg-red-50 rounded-xl border border-slate-200">
-              <div className="text-center">
-                <h4 className="font-bold text-slate-900 mb-2">YouTube Music</h4>
-                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.youtube?.streams || '0'}</p>
-                <p className="text-xs text-slate-500">Total Streams</p>
-              </div>
-            </div>
-            <div className="flex-shrink-0 w-56 p-6 bg-orange-50 rounded-xl border border-slate-200">
-              <div className="text-center">
-                <h4 className="font-bold text-slate-900 mb-2">Amazon Music</h4>
-                <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.amazon?.streams || '0'}</p>
-                <p className="text-xs text-slate-500">Total Streams</p>
-              </div>
+          <div className="flex-shrink-0 w-56 p-6 bg-green-50 rounded-xl border border-slate-200">
+            <div className="text-center">
+              <h4 className="font-bold text-slate-900 mb-2">Spotify</h4>
+              <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.spotify?.streams || '0'}</p>
+              <p className="text-xs text-slate-500">Total Streams</p>
             </div>
           </div>
-        )}
-
-        {/* OLD HARDCODED VERSION REMOVED - Replace with real API data */}
-        <div className="hidden">
-          {[].map((platform, index) => (
-            <div key={index} className={`flex-shrink-0 w-56 p-6 ${platform.bgColor} rounded-xl border border-slate-200 hover:shadow-md transition-all`}>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-4">
-                  <div className={`w-12 h-12 ${platform.bgColor} rounded-lg flex items-center justify-center`}>
-                    <Play className={`w-6 h-6 ${platform.iconColor}`} />
-                  </div>
-                </div>
-                <h4 className="font-bold text-slate-900 mb-2">{platform.platform}</h4>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900">{platform.streams}</p>
-                    <p className="text-xs text-slate-500">Total Streams</p>
-                  </div>
-                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${platform.textColor} ${platform.bgColor}`}>
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    {platform.change}
-                  </div>
-                </div>
-              </div>
+          <div className="flex-shrink-0 w-56 p-6 bg-blue-50 rounded-xl border border-slate-200">
+            <div className="text-center">
+              <h4 className="font-bold text-slate-900 mb-2">Apple Music</h4>
+              <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.apple?.streams || '0'}</p>
+              <p className="text-xs text-slate-500">Total Streams</p>
             </div>
-          ))}
+          </div>
+          <div className="flex-shrink-0 w-56 p-6 bg-red-50 rounded-xl border border-slate-200">
+            <div className="text-center">
+              <h4 className="font-bold text-slate-900 mb-2">YouTube Music</h4>
+              <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.youtube?.streams || '0'}</p>
+              <p className="text-xs text-slate-500">Total Streams</p>
+            </div>
+          </div>
+          <div className="flex-shrink-0 w-56 p-6 bg-orange-50 rounded-xl border border-slate-200">
+            <div className="text-center">
+              <h4 className="font-bold text-slate-900 mb-2">Amazon Music</h4>
+              <p className="text-2xl font-bold text-slate-900">{latestRelease?.stats?.amazon?.streams || '0'}</p>
+              <p className="text-xs text-slate-500">Total Streams</p>
+            </div>
+          </div>
         </div>
+
+
 
         {/* Performance Summary - REAL DATA FROM API */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
