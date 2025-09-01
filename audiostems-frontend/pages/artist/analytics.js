@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
-import ChartmetricArtistLinking from '../../components/analytics/ChartmetricArtistLinking';
+import AdminAnalyticsInterface from '../../components/analytics/AdminAnalyticsInterface';
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
@@ -87,11 +87,11 @@ export default function ArtistAnalytics() {
     fetchSubscriptionStatus();
   }, [user]);
 
-  // Load analytics data
+  // Load manual analytics data from database
   const loadAnalyticsData = async (forceRefresh = false) => {
     if (!user || !hasProAccess || (analyticsLoading && !forceRefresh)) return;
     
-    console.log('📊 Loading analytics data...', forceRefresh ? '(Force refresh)' : '');
+    console.log('📊 Loading manual analytics data...', forceRefresh ? '(Force refresh)' : '');
     setAnalyticsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -99,7 +99,7 @@ export default function ArtistAnalytics() {
       
       if (!token) return;
 
-      const response = await fetch(`/api/chartmetric/artist-analytics?dateRange=${selectedPeriod}`, {
+      const response = await fetch(`/api/artist/analytics-data`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -107,47 +107,36 @@ export default function ArtistAnalytics() {
       
       if (result.success) {
         setAnalyticsData(result.data);
-        setLinkedArtist(result.data.userContext?.linkedArtist);
-        console.log('Analytics loaded:', result.data);
-      } else if (result.requiresLinking) {
-        setLinkedArtist(null);
-        console.log('Artist linking required');
+        setLinkedArtist({ name: user.user_metadata?.full_name || 'Artist', id: user.id });
+        console.log('Manual analytics loaded:', result.data);
       } else {
-        // Handle API errors gracefully
-        if (response.status === 429) {
-          console.log('Rate limit exceeded, will retry later');
-          // Could show a toast notification here
-        } else if (response.status === 401) {
-          console.log('Authentication error');
-        } else {
-          console.log('API error:', result.message);
-        }
-        // Keep existing data if available, don't clear it on error
-        if (!analyticsData) {
-          setLinkedArtist(null);
-        }
+        console.log('No analytics data available yet');
+        setLinkedArtist({ name: user.user_metadata?.full_name || 'Artist', id: user.id });
+        setAnalyticsData(null);
       }
     } catch (error) {
       console.error('Error loading analytics data:', error);
-      // Don't clear existing data on network errors
+      // Set basic artist info even if no analytics data
+      setLinkedArtist({ name: user.user_metadata?.full_name || 'Artist', id: user.id });
     } finally {
       setAnalyticsLoading(false);
     }
   };
 
-  const handleArtistLinked = (artist) => {
-    console.log('🎯 Artist linked callback:', artist);
-    setLinkedArtist(artist);
-    loadAnalyticsData();
+  const handleDataUpdated = () => {
+    console.log('🎯 Analytics data updated by admin');
+    loadAnalyticsData(true); // Force refresh
   };
 
-  // Load analytics data when linked artist is found (prevent infinite loop)
+  // Load analytics data when user and subscription are ready
   useEffect(() => {
-    if (linkedArtist && hasProAccess && !analyticsLoading && !analyticsData) {
-      console.log('🔄 Auto-loading analytics for linked artist:', linkedArtist.name);
+    if (user && hasProAccess && !analyticsLoading) {
+      console.log('🔄 Auto-loading manual analytics for user:', user.user_metadata?.full_name);
+      // Set artist as "linked" immediately for manual system
+      setLinkedArtist({ name: user.user_metadata?.full_name || 'Artist', id: user.id });
       loadAnalyticsData();
     }
-  }, [linkedArtist, hasProAccess]);
+  }, [user, hasProAccess]);
 
   if (isLoading) {
     return (
@@ -353,9 +342,9 @@ export default function ArtistAnalytics() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
-            {/* Artist Profile Search - Above Both Basic and Advanced */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-8">
-              <ChartmetricArtistLinking onLinked={handleArtistLinked} />
+            {/* Admin Analytics Interface - Above Both Basic and Advanced */}
+            <div className="mb-8">
+              <AdminAnalyticsInterface onDataUpdated={handleDataUpdated} />
             </div>
             
             {/* Beautiful Tab Navigation */}

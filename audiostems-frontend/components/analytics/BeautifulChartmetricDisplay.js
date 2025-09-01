@@ -81,16 +81,19 @@ const CareerStage = ({ title, currentStage, stages }) => {
 export default function BeautifulChartmetricDisplay({ data, loading, linkedArtist, onRefresh }) {
   const [selectedRange, setSelectedRange] = useState('30D');
   
-  // Add these state variables
+  // Manual analytics data state
   const [latestRelease, setLatestRelease] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // Add this useEffect
+  // Process manual analytics data
   useEffect(() => {
     if (data) {
       setLatestRelease(data.latestRelease);
       setMilestones(data.milestones || []);
+      setDataLoading(false);
+    } else {
+      // Always show the artist as "linked" for manual system
       setDataLoading(false);
     }
   }, [data]);
