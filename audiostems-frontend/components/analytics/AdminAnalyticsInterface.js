@@ -14,7 +14,7 @@ import {
   Edit3
 } from 'lucide-react';
 
-export default function AdminAnalyticsInterface({ onDataUpdated }) {
+export default function AdminAnalyticsInterface({ selectedArtistId, onDataUpdated }) {
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ export default function AdminAnalyticsInterface({ onDataUpdated }) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          artistId: user.id,
+          artistId: selectedArtistId || user.id,
           ...releaseForm
         })
       });
@@ -128,7 +128,7 @@ export default function AdminAnalyticsInterface({ onDataUpdated }) {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            artistId: user.id,
+            artistId: selectedArtistId || user.id,
             ...milestone
           })
         });

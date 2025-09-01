@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
-import AdminAnalyticsInterface from '../../components/analytics/AdminAnalyticsInterface';
+// AdminAnalyticsInterface removed - now in /companyadmin/analytics-management
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
 import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
@@ -342,10 +342,7 @@ export default function ArtistAnalytics() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
-            {/* Admin Analytics Interface - Above Both Basic and Advanced */}
-            <div className="mb-8">
-              <AdminAnalyticsInterface onDataUpdated={handleDataUpdated} />
-            </div>
+            {/* Analytics data is now managed by admins at /companyadmin/analytics-management */}
             
             {/* Beautiful Tab Navigation */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-8">
