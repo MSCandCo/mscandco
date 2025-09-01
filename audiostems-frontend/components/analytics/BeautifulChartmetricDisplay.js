@@ -439,32 +439,66 @@ export default function BeautifulChartmetricDisplay({ data, loading, linkedArtis
       }
     ],
     demographics: {
-      // Real social footprint with professional fallback
-      socialFootprint: data?.socialFootprint?.total_fanbase ? 
-        (data.socialFootprint.total_fanbase >= 1000000 ? 
-          (data.socialFootprint.total_fanbase / 1000000).toFixed(1) + 'M' : 
-          (data.socialFootprint.total_fanbase >= 1000 ? 
-            (data.socialFootprint.total_fanbase / 1000).toFixed(1) + 'K' : 
-            data.socialFootprint.total_fanbase.toString()
-          )
-        ) : '7.5M',
-      // Real geographic data with professional fallbacks
-      primaryMarket: data?.geographic?.primary_market?.country || 'Nigeria',
-      secondaryMarket: data?.geographic?.secondary_market?.country || 'United States',
-      primaryGender: data?.fanMetrics?.demographics?.gender?.primary || 'Male (58.1%)',
-      // Real country breakdown with professional fallback
-      countries: data?.geographic?.breakdown?.slice(0, 5)?.map(country => ({
-        name: country.country,
-        percentage: country.percentage,
-        flag: getCountryFlag(country.country),
-        streams: country.streams ? country.streams.toLocaleString() : '0'
-      })) || [
-        { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
-        { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
-        { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },
-        { name: 'United Kingdom', percentage: 6.8, flag: '🇬🇧', streams: '201,000' },
-        { name: 'South Africa', percentage: 5.2, flag: '🇿🇦', streams: '154,000' }
-      ]
+      // Ensure string values for all demographic fields
+      socialFootprint: (() => {
+        if (data?.socialFootprint?.total_fanbase) {
+          const total = data.socialFootprint.total_fanbase;
+          if (total >= 1000000) {
+            return (total / 1000000).toFixed(1) + 'M';
+          } else if (total >= 1000) {
+            return (total / 1000).toFixed(1) + 'K';
+          } else {
+            return total.toString();
+          }
+        }
+        return '7.5M';
+      })(),
+      // Ensure string values for markets
+      primaryMarket: (() => {
+        if (data?.geographic?.primary_market) {
+          if (typeof data.geographic.primary_market === 'string') {
+            return data.geographic.primary_market;
+          } else if (data.geographic.primary_market.country) {
+            return data.geographic.primary_market.country;
+          }
+        }
+        return 'Nigeria';
+      })(),
+      secondaryMarket: (() => {
+        if (data?.geographic?.secondary_market) {
+          if (typeof data.geographic.secondary_market === 'string') {
+            return data.geographic.secondary_market;
+          } else if (data.geographic.secondary_market.country) {
+            return data.geographic.secondary_market.country;
+          }
+        }
+        return 'United States';
+      })(),
+      // Ensure string value for gender
+      primaryGender: (() => {
+        if (data?.fanMetrics?.demographics?.gender?.primary) {
+          return data.fanMetrics.demographics.gender.primary;
+        }
+        return 'Male (58.1%)';
+      })(),
+      // Safe country breakdown
+      countries: (() => {
+        if (data?.geographic?.breakdown && Array.isArray(data.geographic.breakdown)) {
+          return data.geographic.breakdown.slice(0, 5).map(country => ({
+            name: country.country || 'Unknown',
+            percentage: country.percentage || 0,
+            flag: getCountryFlag(country.country || 'Unknown'),
+            streams: country.streams ? country.streams.toLocaleString() : '0'
+          }));
+        }
+        return [
+          { name: 'Nigeria', percentage: 52.7, flag: '🇳🇬', streams: '1,560,000' },
+          { name: 'United States', percentage: 10.1, flag: '🇺🇸', streams: '298,000' },
+          { name: 'Ghana', percentage: 8.3, flag: '🇬🇭', streams: '245,000' },
+          { name: 'United Kingdom', percentage: 6.8, flag: '🇬🇧', streams: '201,000' },
+          { name: 'South Africa', percentage: 5.2, flag: '🇿🇦', streams: '154,000' }
+        ];
+      })()
     }
   };
 
