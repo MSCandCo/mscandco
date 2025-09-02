@@ -8,6 +8,29 @@ import {
   Pause
 } from 'lucide-react';
 
+// Helper function for relative dates
+function calculateRelativeDate(dateString) {
+  if (!dateString) return 'Recently';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return months === 1 ? '1 month ago' : `${months} months ago`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return years === 1 ? '1 year ago' : `${years} years ago`;
+}
+
 export default function DatabaseDrivenDisplay({ artistId, loading }) {
   const [latestRelease, setLatestRelease] = useState(null);
   const [platformStats, setPlatformStats] = useState([]);
@@ -222,25 +245,32 @@ export default function DatabaseDrivenDisplay({ artistId, loading }) {
           </h3>
           
           <div className="space-y-4">
-            {milestones.map((milestone) => (
-              <div key={milestone.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+            {milestones.map((milestone, index) => (
+              <div key={milestone.id || index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
                   <Award className="w-5 h-5 text-green-600" />
                 </div>
-                <div>
+                <div className="flex-1">
+                  {/* Title and Tag inline */}
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold">{milestone.title}</h4>
-                    {milestone.highlight && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                        {milestone.highlight}
+                    <h4 className="font-bold text-slate-900">{milestone.title}</h4>
+                    {milestone.tag && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        {milestone.tag}
                       </span>
                     )}
                   </div>
-                  {milestone.description && (
-                    <p className="text-gray-600 text-sm">{milestone.description}</p>
+                  
+                  {/* Description in light gray */}
+                  {milestone.milestone && (
+                    <p className="text-gray-600 text-sm mb-2">{milestone.milestone}</p>
                   )}
-                  <p className="text-gray-500 text-xs mt-1">
-                    {milestone.relative_date || new Date(milestone.milestone_date).toLocaleDateString()}
+                  
+                  {/* Relative date */}
+                  <p className="text-gray-500 text-xs">
+                    {milestone.relativeDate || milestone.relative_date || (
+                      milestone.date ? calculateRelativeDate(milestone.date) : 'Recently'
+                    )}
                   </p>
                 </div>
               </div>
