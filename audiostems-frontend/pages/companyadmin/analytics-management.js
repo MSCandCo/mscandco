@@ -359,6 +359,7 @@ export default function AnalyticsManagement() {
                   {/* Admin Analytics Interface */}
                   <AdminAnalyticsInterface 
                     selectedArtistId={selectedArtist.id}
+                    selectedArtistData={selectedArtist}
                     onDataUpdated={handleDataUpdated} 
                   />
                 </div>
