@@ -42,7 +42,8 @@ export default async function handler(req, res) {
     if (releaseData) {
       analyticsData.latestRelease = releaseData;
     }
-    if (milestonesData) {
+    // Only update milestones if explicitly provided (not null or empty from Advanced save)
+    if (milestonesData !== null && milestonesData !== undefined) {
       analyticsData.milestones = milestonesData;
     }
 
@@ -50,6 +51,8 @@ export default async function handler(req, res) {
     if (advancedData) {
       analyticsData.advancedData = advancedData;
     }
+
+    console.log('📦 Final analytics data to save:', analyticsData);
 
     const { data: updated, error } = await supabase
       .from('user_profiles')

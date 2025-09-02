@@ -315,7 +315,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
         body: JSON.stringify({
           artistId: selectedArtistId,
           releaseData: null, // Advanced doesn't update release data
-          milestonesData: [], // Advanced doesn't update milestones (managed from Basic)
+          milestonesData: null, // Don't touch milestones data at all
           advancedData: {
             artistRanking,
             careerSnapshot,
