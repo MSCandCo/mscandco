@@ -1,24 +1,12 @@
 // Admin API for managing artist releases
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 
-// Add user roles
-const USER_ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  COMPANY_ADMIN: 'company_admin',
-  ARTIST: 'artist'
-};
-
-// Check if user has admin permissions
-async function checkAdminPermissions(userId) {
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('role')
-    .eq('id', userId)
-    .single();
-  
-  return profile?.role === USER_ROLES.SUPER_ADMIN || profile?.role === USER_ROLES.COMPANY_ADMIN;
-}
+// Server-side Supabase client with service role key
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   try {
@@ -31,12 +19,15 @@ export default async function handler(req, res) {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.decode(token);
     const userId = decoded?.sub;
+    const userRole = decoded?.user_metadata?.role;
 
     if (!userId) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const isAdmin = await checkAdminPermissions(userId);
+    // Check admin permissions from user metadata (correct source)
+    const isAdmin = ['super_admin', 'company_admin'].includes(userRole);
+    console.log('🔐 Admin check:', { userId, userRole, isAdmin });
 
     if (req.method === 'GET') {
       // Get releases for specific artist
@@ -66,6 +57,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       // Create new release (admin only)
       if (!isAdmin) {
+        console.log('❌ Admin permission denied:', { userId, userRole });
         return res.status(403).json({ error: 'Admin permissions required' });
       }
 
@@ -82,36 +74,52 @@ export default async function handler(req, res) {
         isLive
       } = req.body;
 
+      console.log('💾 Saving release data:', { 
+        artistId, 
+        title, 
+        artist, 
+        releaseType, 
+        platformsCount: platforms?.length || 0,
+        isLive 
+      });
+
       // If setting as live, unset other live releases for this artist
       if (isLive) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('artist_releases')
           .update({ is_live: false })
           .eq('artist_id', artistId);
+          
+        if (updateError) {
+          console.log('⚠️ Error updating other releases:', updateError);
+        }
       }
 
+      // Insert new release
       const { data: release, error } = await supabase
         .from('artist_releases')
         .insert({
           artist_id: artistId,
-          title,
-          artist,
-          featuring,
-          release_date: releaseDate,
-          release_type: releaseType,
-          audio_file_url: audioFileUrl,
-          cover_image_url: coverImageUrl,
+          title: title || '',
+          artist: artist || '',
+          featuring: featuring || null,
+          release_date: releaseDate || null,
+          release_type: releaseType || '',
+          audio_file_url: audioFileUrl || null,
+          cover_image_url: coverImageUrl || null,
           platforms: platforms || [],
-          is_live: isLive,
+          is_live: isLive || false,
           status: 'live'
         })
         .select()
         .single();
 
       if (error) {
+        console.error('❌ Database insert error:', error);
         return res.status(500).json({ error: 'Failed to create release', details: error.message });
       }
 
+      console.log('✅ Release saved successfully:', release.id);
       return res.json({
         success: true,
         data: release,

@@ -1,24 +1,12 @@
 // Admin API for managing artist milestones
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 
-// Add user roles
-const USER_ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  COMPANY_ADMIN: 'company_admin',
-  ARTIST: 'artist'
-};
-
-// Check if user has admin permissions
-async function checkAdminPermissions(userId) {
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('role')
-    .eq('id', userId)
-    .single();
-  
-  return profile?.role === USER_ROLES.SUPER_ADMIN || profile?.role === USER_ROLES.COMPANY_ADMIN;
-}
+// Server-side Supabase client with service role key
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   try {
@@ -31,12 +19,15 @@ export default async function handler(req, res) {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.decode(token);
     const userId = decoded?.sub;
+    const userRole = decoded?.user_metadata?.role;
 
     if (!userId) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const isAdmin = await checkAdminPermissions(userId);
+    // Check admin permissions from user metadata (correct source)
+    const isAdmin = ['super_admin', 'company_admin'].includes(userRole);
+    console.log('🔐 Milestones admin check:', { userId, userRole, isAdmin });
 
     if (req.method === 'GET') {
       // Get milestones for specific artist
@@ -76,41 +67,67 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Create new milestone (admin only)
+      // Create/update milestones (admin only)
       if (!isAdmin) {
+        console.log('❌ Milestones admin permission denied:', { userId, userRole });
         return res.status(403).json({ error: 'Admin permissions required' });
       }
 
-      const {
-        artistId,
-        title,
-        highlight,
-        description,
-        milestoneDate,
-        category
-      } = req.body;
+      const { artistId, milestones } = req.body;
 
-      const { data: milestone, error } = await supabase
-        .from('artist_milestones')
-        .insert({
-          artist_id: artistId,
-          title,
-          highlight,
-          description,
-          milestone_date: milestoneDate,
-          category: category || 'advanced'
-        })
-        .select()
-        .single();
-
-      if (error) {
-        return res.status(500).json({ error: 'Failed to create milestone', details: error.message });
+      if (!artistId) {
+        return res.status(400).json({ error: 'Artist ID required' });
       }
 
+      console.log('💾 Saving milestones data:', { 
+        artistId, 
+        milestonesCount: milestones?.length || 0,
+        milestones: milestones 
+      });
+
+      // Delete existing milestones for this artist
+      const { error: deleteError } = await supabase
+        .from('artist_milestones')
+        .delete()
+        .eq('artist_id', artistId);
+
+      if (deleteError) {
+        console.log('⚠️ Error deleting old milestones:', deleteError);
+      }
+
+      // Insert new milestones (only if they have content)
+      const validMilestones = milestones.filter(m => m.title || m.tag || m.milestone || m.date);
+      
+      if (validMilestones.length === 0) {
+        console.log('✅ No milestones to save (all empty)');
+        return res.json({
+          success: true,
+          message: 'Empty milestones cleared successfully'
+        });
+      }
+
+      const { data: savedMilestones, error } = await supabase
+        .from('artist_milestones')
+        .insert(validMilestones.map(milestone => ({
+          artist_id: artistId,
+          title: milestone.title || '',
+          highlight: milestone.tag || '', // Map 'tag' to 'highlight' 
+          description: milestone.milestone || '', // Map 'milestone' to 'description'
+          milestone_date: milestone.date || new Date().toISOString().split('T')[0],
+          category: 'basic' // All milestones are basic since managed from basic tab
+        })))
+        .select();
+
+      if (error) {
+        console.error('❌ Database insert error (milestones):', error);
+        return res.status(500).json({ error: 'Failed to create milestones', details: error.message });
+      }
+
+      console.log('✅ Milestones saved successfully:', savedMilestones?.length || 0);
       return res.json({
         success: true,
-        data: milestone,
-        message: 'Milestone created successfully'
+        data: savedMilestones,
+        message: `${savedMilestones?.length || 0} milestones saved successfully`
       });
     }
 
