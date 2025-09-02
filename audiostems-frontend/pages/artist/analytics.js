@@ -6,7 +6,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
 // AdminAnalyticsInterface removed - now in /companyadmin/analytics-management
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
-import CleanAnalyticsDisplay from '../../components/analytics/CleanAnalyticsDisplay';
+import DatabaseDrivenDisplay from '../../components/analytics/DatabaseDrivenDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { 
   Calendar, 
@@ -163,8 +163,8 @@ export default function ArtistAnalytics() {
 
   const renderBasicAnalytics = () => (
     <div className="space-y-8">
-      {/* Show Latest Release Performance if artist is linked */}
-      {linkedArtist && analyticsData && (
+      {/* REMOVED - Show Latest Release Performance if artist is linked */}
+      {false && (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
             <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
@@ -178,9 +178,9 @@ export default function ArtistAnalytics() {
                 <Music className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-slate-900">Latest Single</h4>
-                <p className="text-slate-600">Released: Recent</p>
-                <p className="text-sm text-slate-500">Single • Cross-platform performance</p>
+                <h4 className="text-lg font-bold text-slate-900">No Release Data</h4>
+                <p className="text-slate-600">Admin needs to add release information</p>
+                <p className="text-sm text-slate-500">Contact admin to set up your analytics</p>
               </div>
             </div>
           </div>
@@ -203,8 +203,8 @@ export default function ArtistAnalytics() {
         </div>
       )}
 
-      {/* Show Recent Milestones if artist is linked */}
-      {linkedArtist && analyticsData && (
+      {/* REMOVED - Show Recent Milestones if artist is linked */}
+      {false && (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-slate-900 flex items-center">
@@ -253,6 +253,14 @@ export default function ArtistAnalytics() {
         </div>
       )}
 
+      {/* DATABASE-DRIVEN ANALYTICS - NO MOCK DATA */}
+      {linkedArtist && (
+        <DatabaseDrivenDisplay 
+          artistId={user?.id}
+          loading={analyticsLoading}
+        />
+      )}
+
       {/* Show message if no artist is linked */}
       {!linkedArtist && (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-16 text-center">
@@ -290,13 +298,11 @@ export default function ArtistAnalytics() {
 
   const renderAdvancedAnalytics = () => (
     <div className="space-y-8">
-      {/* Show clean analytics if artist is linked */}
+      {/* Show database-driven analytics - NO MOCK DATA */}
       {linkedArtist && (
-        <CleanAnalyticsDisplay 
-          data={analyticsData} 
+        <DatabaseDrivenDisplay 
+          artistId={user?.id}
           loading={analyticsLoading}
-          linkedArtist={linkedArtist}
-          onRefresh={loadAnalyticsData}
         />
       )}
       
