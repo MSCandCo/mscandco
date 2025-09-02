@@ -20,7 +20,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, onDataUpdate
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  // Latest Release Management
+  // Latest Release Management - Clean form with no placeholder data
   const [releaseForm, setReleaseForm] = useState({
     title: '',
     artist: '',
@@ -30,48 +30,39 @@ export default function AdminAnalyticsInterface({ selectedArtistId, onDataUpdate
     audioFileUrl: '',
     coverImageUrl: '',
     platforms: [
-      { name: 'Spotify', value: '2.4M', percentage: '+12.5%' },
-      { name: 'Apple Music', value: '1.8M', percentage: '+8.3%' },
-      { name: 'YouTube Music', value: '3.1M', percentage: '+15.7%' },
-      { name: 'Amazon Music', value: '890K', percentage: '+6.2%' }
+      { name: '', value: '', percentage: '' },
+      { name: '', value: '', percentage: '' },
+      { name: '', value: '', percentage: '' },
+      { name: '', value: '', percentage: '' }
     ],
     isLive: false
   });
 
-  // Milestones Management
+  // Milestones Management - Clean form with no placeholder data
   const [milestones, setMilestones] = useState([
     {
-      title: '1M Streams Milestone',
-      highlight: '+25% growth',
-      description: 'Your latest single reached 1 million streams across all platforms',
-      milestoneDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 2 days ago
+      title: '',
+      highlight: '',
+      description: '',
+      milestoneDate: '',
       category: 'advanced'
     }
   ]);
 
-  // Check admin permissions
+  // Check admin permissions from user metadata (not database)
   useEffect(() => {
-    const checkPermissions = async () => {
-      if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        const adminRoles = ['super_admin', 'company_admin'];
-        setIsAdmin(adminRoles.includes(profile?.role));
-      } catch (error) {
-        console.error('Error checking permissions:', error);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkPermissions();
+    // Get role from user metadata (where roles are actually stored)
+    const userRole = user.user_metadata?.role;
+    const adminRoles = ['super_admin', 'company_admin'];
+    
+    console.log('🔐 Checking admin permissions:', { userRole, isAdmin: adminRoles.includes(userRole) });
+    setIsAdmin(adminRoles.includes(userRole));
+    setLoading(false);
   }, [user]);
 
   // Save latest release

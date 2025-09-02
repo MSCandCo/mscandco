@@ -24,34 +24,46 @@ export default function AnalyticsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch all users (artists and label admins) for management
+  // Fetch artists and label admins with proper role filtering
   useEffect(() => {
-    const fetchAllUsers = async () => {
+    const fetchArtistsAndLabelAdmins = async () => {
       if (!user) return;
 
       try {
-        // Fetch ALL user profiles (artists and label admins)
-        const { data: profiles, error } = await supabase
-          .from('user_profiles')
-          .select('id, first_name, last_name, email, artist_name')
-          .order('first_name');
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
 
-        if (error) {
-          console.error('Error fetching users:', error);
+        if (!token) {
+          console.error('No auth token available');
+          setLoading(false);
           return;
         }
 
-        console.log('📊 Found user profiles:', profiles?.length || 0);
-        setArtists(profiles || []);
-        setSearchResults(profiles || []); // Initialize search results with all users
+        const response = await fetch('/api/admin/get-artists', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          console.log('📊 Found artists/label admins:', result.breakdown);
+          setArtists(result.users || []);
+          setSearchResults(result.users?.slice(0, 10) || []); // Initialize with first 10
+        } else {
+          console.error('Failed to fetch artists:', result.error);
+        }
       } catch (error) {
-        console.error('Error loading users:', error);
+        console.error('Error loading artists:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllUsers();
+    fetchArtistsAndLabelAdmins();
   }, [user]);
 
   // Search functionality with debounce
@@ -208,11 +220,13 @@ export default function AnalyticsManagement() {
                                   </p>
                                   <div className="flex items-center text-xs text-slate-600 space-x-2">
                                     <span className="truncate">{user.email}</span>
-                                    {user.artist_name && (
-                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
-                                        Artist
-                                      </span>
-                                    )}
+                                    <span className={`px-2 py-1 rounded-full whitespace-nowrap text-xs font-medium ${
+                                      user.role === 'artist' 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                      {user.role === 'artist' ? 'Artist' : 'Label Admin'}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -247,11 +261,13 @@ export default function AnalyticsManagement() {
                             }
                           </p>
                           <p className="text-sm text-slate-600">{selectedArtist.email}</p>
-                          {selectedArtist.artist_name && (
-                            <span className="inline-block mt-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                              Artist Profile
-                            </span>
-                          )}
+                          <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            selectedArtist.role === 'artist' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {selectedArtist.role === 'artist' ? 'Artist Profile' : 'Label Admin Profile'}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -293,11 +309,13 @@ export default function AnalyticsManagement() {
                               </p>
                               <p className="text-xs text-slate-600 truncate">{user.email}</p>
                             </div>
-                            {user.artist_name && (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs ml-2">
-                                Artist
-                              </span>
-                            )}
+                            <span className={`px-2 py-1 rounded-full text-xs ml-2 font-medium ${
+                              user.role === 'artist' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {user.role === 'artist' ? 'Artist' : 'Label Admin'}
+                            </span>
                           </div>
                         </button>
                       ))}
