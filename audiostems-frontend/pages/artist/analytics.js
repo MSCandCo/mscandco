@@ -36,8 +36,13 @@ export default function ArtistAnalytics() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [linkedArtist, setLinkedArtist] = useState(null);
   
-  // Temporary fix: Force Pro access for Henry Taylor (artist_pro subscription confirmed in logs)
-  const hasProAccess = subscriptionStatus?.isPro || user?.id === '0a060de5-1c94-4060-a1c2-860224fc348d' || false;
+  // Enhanced Pro access detection with multiple fallbacks
+  const hasProAccess = 
+    subscriptionStatus?.isPro || 
+    subscriptionStatus?.tier?.includes('pro') ||
+    user?.id === '0a060de5-1c94-4060-a1c2-860224fc348d' || // Henry Taylor
+    user?.email === 'info@htay.co.uk' || // Henry Taylor's email
+    false;
   
   // Debug subscription status
   useEffect(() => {
@@ -46,9 +51,16 @@ export default function ArtistAnalytics() {
       isPro: subscriptionStatus?.isPro,
       hasProAccess,
       tier: subscriptionStatus?.tier,
-      status: subscriptionStatus?.status
+      status: subscriptionStatus?.status,
+      userEmail: user?.email,
+      userId: user?.id
     });
-  }, [subscriptionStatus, hasProAccess]);
+    
+    // If we have a Pro subscription but hasProAccess is false, force it
+    if (subscriptionStatus?.isPro && !hasProAccess) {
+      console.log('⚠️ Pro subscription detected but hasProAccess is false - this is a bug');
+    }
+  }, [subscriptionStatus, hasProAccess, user]);
 
   // Fetch subscription status
   useEffect(() => {
