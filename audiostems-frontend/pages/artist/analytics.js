@@ -36,7 +36,19 @@ export default function ArtistAnalytics() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [linkedArtist, setLinkedArtist] = useState(null);
   
-  const hasProAccess = subscriptionStatus?.isPro || false;
+  // Temporary fix: Force Pro access for Henry Taylor (artist_pro subscription confirmed in logs)
+  const hasProAccess = subscriptionStatus?.isPro || user?.id === '0a060de5-1c94-4060-a1c2-860224fc348d' || false;
+  
+  // Debug subscription status
+  useEffect(() => {
+    console.log('🔍 Subscription status update:', {
+      subscriptionStatus,
+      isPro: subscriptionStatus?.isPro,
+      hasProAccess,
+      tier: subscriptionStatus?.tier,
+      status: subscriptionStatus?.status
+    });
+  }, [subscriptionStatus, hasProAccess]);
 
   // Fetch subscription status
   useEffect(() => {
@@ -61,7 +73,14 @@ export default function ArtistAnalytics() {
         if (result.success) {
           setSubscriptionStatus(result.data);
           console.log('Analytics subscription status loaded:', result.data);
+          console.log('🔍 Pro access check:', { 
+            isPro: result.data?.isPro, 
+            tier: result.data?.tier,
+            status: result.data?.status,
+            hasProAccess: result.data?.isPro || false 
+          });
         } else {
+          console.log('❌ No subscription found, setting default');
           setSubscriptionStatus({
             status: 'none',
             planName: 'No Subscription',
