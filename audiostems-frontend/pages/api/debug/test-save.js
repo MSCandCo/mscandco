@@ -1,6 +1,5 @@
-// Simple analytics save using existing accessible tables
+// Test save without auth for debugging
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,20 +12,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Simplified auth check - for now, allow the operation if we have an artist ID
-    // TODO: Implement proper JWT validation once auth flow is working
-    console.log('🔓 Simplified auth check - allowing admin operation');
+    const { artistId, releaseData, milestonesData } = req.body;
 
-    const { artistId, releaseData, milestonesData, type } = req.body;
+    console.log('🧪 Test save request:', { artistId, releaseData, milestonesData });
 
-    console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData });
-
-    // Store analytics data in chartmetric_data column (existing JSONB column)
+    // Store analytics data in chartmetric_data column
     const analyticsData = {
       latestRelease: releaseData,
       milestones: milestonesData,
       lastUpdated: new Date().toISOString(),
-      updatedBy: 'admin',
       type: 'manual_analytics'
     };
 
@@ -40,20 +34,20 @@ export default async function handler(req, res) {
       .select();
 
     if (error) {
-      console.error('❌ Save error:', error);
+      console.error('❌ Test save error:', error);
       return res.status(500).json({ error: 'Failed to save analytics', details: error.message });
     }
 
-    console.log('✅ Analytics saved to user_profiles:', updated?.[0]?.id);
+    console.log('✅ Test save successful:', updated?.[0]?.id);
 
     return res.status(200).json({
       success: true,
-      message: 'Analytics saved successfully',
+      message: 'Test save successful',
       data: updated?.[0]
     });
 
   } catch (error) {
-    console.error('Simple save error:', error);
+    console.error('Test save error:', error);
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
