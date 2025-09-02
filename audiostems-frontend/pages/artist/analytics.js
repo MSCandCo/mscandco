@@ -6,7 +6,7 @@ import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
 // AdminAnalyticsInterface removed - now in /companyadmin/analytics-management
 import SocialFootprintIntegration from '../../components/analytics/SocialFootprintIntegration';
-import BeautifulChartmetricDisplay from '../../components/analytics/BeautifulChartmetricDisplay';
+import CleanAnalyticsDisplay from '../../components/analytics/CleanAnalyticsDisplay';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
 import { 
   Calendar, 
@@ -290,9 +290,9 @@ export default function ArtistAnalytics() {
 
   const renderAdvancedAnalytics = () => (
     <div className="space-y-8">
-      {/* Show beautiful analytics if artist is linked */}
+      {/* Show clean analytics if artist is linked */}
       {linkedArtist && (
-        <BeautifulChartmetricDisplay 
+        <CleanAnalyticsDisplay 
           data={analyticsData} 
           loading={analyticsLoading}
           linkedArtist={linkedArtist}

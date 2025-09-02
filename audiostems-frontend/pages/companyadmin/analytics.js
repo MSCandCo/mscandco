@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { 
   BarChart3, TrendingUp, Users, Clock, 
-  Target, Activity, Zap, CheckCircle
+  Target, Activity, Zap, CheckCircle, Settings
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -104,6 +105,12 @@ export default function CompanyAdminAnalytics() {
             <h1 className="text-3xl font-bold text-gray-900">Business Analytics</h1>
             <p className="text-gray-600 mt-2">Operations efficiency and performance metrics</p>
           </div>
+          <Link href="/companyadmin/analytics-management">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <Settings className="w-4 h-4 mr-2" />
+              Manage Artist Analytics
+            </button>
+          </Link>
           <div className="flex items-center space-x-4">
             <CurrencySelector 
               selectedCurrency={selectedCurrency}
