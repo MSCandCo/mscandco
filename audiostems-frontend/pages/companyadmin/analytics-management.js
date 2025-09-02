@@ -17,67 +17,96 @@ import {
 export default function AnalyticsManagement() {
   const { user, isLoading } = useUser();
   const [artists, setArtists] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch all artists for management
+  // Fetch all users (artists and label admins) for management
   useEffect(() => {
-    const fetchArtists = async () => {
+    const fetchAllUsers = async () => {
       if (!user) return;
 
       try {
-        // Fetch user profiles (contains names and artist info)
+        // Fetch ALL user profiles (artists and label admins)
         const { data: profiles, error } = await supabase
           .from('user_profiles')
           .select('id, first_name, last_name, email, artist_name')
           .order('first_name');
 
         if (error) {
-          console.error('Error fetching artists:', error);
+          console.error('Error fetching users:', error);
           return;
         }
 
-        // Filter to only include artists by checking if they have artist names or are known artists
-        const artistProfiles = profiles?.filter(profile => 
-          profile.artist_name || 
-          profile.first_name || 
-          profile.email.includes('artist') ||
-          profile.email.includes('bliss') ||
-          profile.email.includes('dada') ||
-          profile.email.includes('johnson') ||
-          profile.email.includes('williams') ||
-          profile.email === 'info@htay.co.uk' // Current user
-        ) || [];
-
-        console.log('📊 Found artist profiles:', artistProfiles);
-        setArtists(artistProfiles);
+        console.log('📊 Found user profiles:', profiles?.length || 0);
+        setArtists(profiles || []);
+        setSearchResults(profiles || []); // Initialize search results with all users
       } catch (error) {
-        console.error('Error loading artists:', error);
+        console.error('Error loading users:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArtists();
+    fetchAllUsers();
   }, [user]);
+
+  // Search functionality with debounce
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (!searchTerm.trim()) {
+        setSearchResults(artists.slice(0, 10)); // Show first 10 when no search
+        setShowDropdown(false);
+        return;
+      }
+
+      setSearching(true);
+      setShowDropdown(true);
+
+      // Client-side search across first_name, last_name, artist_name, and email
+      const filtered = artists.filter(user => {
+        const searchLower = searchTerm.toLowerCase();
+        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim().toLowerCase();
+        const artistName = (user.artist_name || '').toLowerCase();
+        const email = (user.email || '').toLowerCase();
+
+        return (
+          fullName.includes(searchLower) ||
+          artistName.includes(searchLower) ||
+          email.includes(searchLower) ||
+          (user.first_name || '').toLowerCase().includes(searchLower) ||
+          (user.last_name || '').toLowerCase().includes(searchLower)
+        );
+      });
+
+      // Limit results to 50 for performance
+      setSearchResults(filtered.slice(0, 50));
+      setSearching(false);
+    };
+
+    const debounceTimer = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm, artists]);
 
   const handleDataUpdated = () => {
     console.log('🎯 Analytics data updated for artist:', selectedArtist?.first_name);
     // Could refresh analytics preview here
   };
 
-  const filteredArtists = artists.filter(artist => {
-    const fullName = `${artist.first_name || ''} ${artist.last_name || ''}`.trim();
-    const searchLower = searchTerm.toLowerCase();
-    
-    return (
-      fullName.toLowerCase().includes(searchLower) ||
-      artist.email.toLowerCase().includes(searchLower) ||
-      (artist.first_name || '').toLowerCase().includes(searchLower) ||
-      (artist.last_name || '').toLowerCase().includes(searchLower)
-    );
-  });
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (isLoading || loading) {
     return (
@@ -117,65 +146,91 @@ export default function AnalyticsManagement() {
                   <h2 className="text-xl font-semibold text-gray-900">Select Artist</h2>
                 </div>
 
-                {/* Artist Dropdown with Search */}
+                {/* Professional Search Dropdown */}
                 <div className="relative">
                   <div className="relative">
                     <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 z-10" />
                     <input
                       type="text"
-                      placeholder="Search and select artist..."
-                      value={selectedArtist ? `${selectedArtist.first_name || selectedArtist.email} ${selectedArtist.last_name || ''}`.trim() : searchTerm}
+                      placeholder="Search by name, artist name, or email..."
+                      value={selectedArtist ? 
+                        `${selectedArtist.artist_name || `${selectedArtist.first_name || ''} ${selectedArtist.last_name || ''}`.trim() || selectedArtist.email}` 
+                        : searchTerm
+                      }
                       onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        if (selectedArtist && e.target.value !== `${selectedArtist.first_name || selectedArtist.email} ${selectedArtist.last_name || ''}`.trim()) {
+                        const value = e.target.value;
+                        setSearchTerm(value);
+                        if (selectedArtist) {
                           setSelectedArtist(null);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (!selectedArtist && searchTerm.trim()) {
+                          setShowDropdown(true);
                         }
                       }}
                       className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                     />
+                    {searching && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Dropdown Results */}
-                  {searchTerm && !selectedArtist && (
-                    <div className="absolute top-full left-0 right-0 bg-white border border-slate-300 rounded-lg shadow-lg mt-1 z-50 max-h-64 overflow-y-auto">
-                      {filteredArtists.length > 0 ? (
-                        filteredArtists.map((artist) => (
-                          <button
-                            key={artist.id}
-                            onClick={() => {
-                              setSelectedArtist(artist);
-                              setSearchTerm('');
-                            }}
-                            className="w-full text-left p-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
-                          >
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                <Music className="w-4 h-4 text-blue-600" />
+                  {showDropdown && searchTerm && !selectedArtist && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-slate-300 rounded-lg shadow-lg mt-1 z-50 max-h-80 overflow-y-auto">
+                      {searchResults.length > 0 ? (
+                        <>
+                          <div className="px-3 py-2 text-xs text-slate-500 bg-slate-50 border-b">
+                            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+                          </div>
+                          {searchResults.map((user) => (
+                            <button
+                              key={user.id}
+                              onClick={() => {
+                                setSelectedArtist(user);
+                                setSearchTerm('');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left p-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+                            >
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                  <Music className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-slate-900 truncate">
+                                    {user.artist_name || 
+                                     (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email)
+                                    }
+                                  </p>
+                                  <div className="flex items-center text-xs text-slate-600 space-x-2">
+                                    <span className="truncate">{user.email}</span>
+                                    {user.artist_name && (
+                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
+                                        Artist
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium text-slate-900">
-                                  {artist.first_name && artist.last_name 
-                                    ? `${artist.first_name} ${artist.last_name}`
-                                    : artist.email
-                                  }
-                                </p>
-                                <p className="text-xs text-slate-600">{artist.email}</p>
-                              </div>
-                            </div>
-                          </button>
-                        ))
+                            </button>
+                          ))}
+                        </>
                       ) : (
                         <div className="p-4 text-center text-slate-500">
                           <Music className="w-6 h-6 mx-auto mb-2 text-slate-400" />
-                          <p className="text-sm">No artists found</p>
-                          <p className="text-xs mt-1">Try searching by name or email</p>
+                          <p className="text-sm">No users found</p>
+                          <p className="text-xs mt-1">Try searching by name, artist name, or email</p>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
 
-                {/* Selected Artist Display */}
+                {/* Selected User Display */}
                 {selectedArtist && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
@@ -185,20 +240,27 @@ export default function AnalyticsManagement() {
                         </div>
                         <div>
                           <p className="font-semibold text-slate-900">
-                            {selectedArtist.first_name && selectedArtist.last_name 
-                              ? `${selectedArtist.first_name} ${selectedArtist.last_name}`
-                              : selectedArtist.email
+                            {selectedArtist.artist_name || 
+                             (selectedArtist.first_name && selectedArtist.last_name 
+                               ? `${selectedArtist.first_name} ${selectedArtist.last_name}` 
+                               : selectedArtist.email)
                             }
                           </p>
                           <p className="text-sm text-slate-600">{selectedArtist.email}</p>
+                          {selectedArtist.artist_name && (
+                            <span className="inline-block mt-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                              Artist Profile
+                            </span>
+                          )}
                         </div>
                       </div>
                       <button
                         onClick={() => {
                           setSelectedArtist(null);
                           setSearchTerm('');
+                          setShowDropdown(false);
                         }}
-                        className="text-slate-400 hover:text-slate-600 p-1"
+                        className="text-slate-400 hover:text-slate-600 p-1 text-xl"
                       >
                         ✕
                       </button>
@@ -206,34 +268,45 @@ export default function AnalyticsManagement() {
                   </div>
                 )}
 
-                {/* All Artists List (when no search) */}
+                {/* Recent Users (when no search) */}
                 {!searchTerm && !selectedArtist && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-slate-700 mb-3">All Artists ({artists.length})</h4>
+                    <h4 className="text-sm font-medium text-slate-700 mb-3">Recent Users ({Math.min(artists.length, 10)})</h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {artists.map((artist) => (
+                      {artists.slice(0, 10).map((user) => (
                         <button
-                          key={artist.id}
-                          onClick={() => setSelectedArtist(artist)}
+                          key={user.id}
+                          onClick={() => setSelectedArtist(user)}
                           className="w-full text-left p-3 rounded-lg transition-colors bg-slate-50 hover:bg-slate-100 border border-transparent hover:border-slate-200"
                         >
                           <div className="flex items-center">
                             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                               <Music className="w-4 h-4 text-blue-600" />
                             </div>
-                            <div>
-                              <p className="font-medium text-slate-900">
-                                {artist.first_name && artist.last_name 
-                                  ? `${artist.first_name} ${artist.last_name}`
-                                  : artist.email
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-slate-900 truncate">
+                                {user.artist_name || 
+                                 (user.first_name && user.last_name 
+                                   ? `${user.first_name} ${user.last_name}` 
+                                   : user.email)
                                 }
                               </p>
-                              <p className="text-xs text-slate-600">{artist.email}</p>
+                              <p className="text-xs text-slate-600 truncate">{user.email}</p>
                             </div>
+                            {user.artist_name && (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs ml-2">
+                                Artist
+                              </span>
+                            )}
                           </div>
                         </button>
                       ))}
                     </div>
+                    {artists.length > 10 && (
+                      <p className="text-xs text-slate-500 mt-2 text-center">
+                        Type to search {artists.length - 10} more users...
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
