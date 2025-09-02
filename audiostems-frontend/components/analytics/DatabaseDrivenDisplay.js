@@ -31,10 +31,11 @@ function calculateRelativeDate(dateString) {
   return years === 1 ? '1 year ago' : `${years} years ago`;
 }
 
-export default function DatabaseDrivenDisplay({ artistId, loading }) {
+export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced = false }) {
   const [latestRelease, setLatestRelease] = useState(null);
   const [platformStats, setPlatformStats] = useState([]);
   const [milestones, setMilestones] = useState([]);
+  const [advancedData, setAdvancedData] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState(null);
@@ -75,6 +76,12 @@ export default function DatabaseDrivenDisplay({ artistId, loading }) {
           // Set milestones data
           if (result.data.milestones) {
             setMilestones(result.data.milestones);
+          }
+
+          // Set advanced analytics data
+          if (result.data.advancedData) {
+            setAdvancedData(result.data.advancedData);
+            console.log('🔮 Advanced analytics data loaded:', result.data.advancedData);
           }
         } else {
           console.log('📭 No saved analytics data found');
@@ -291,6 +298,109 @@ export default function DatabaseDrivenDisplay({ artistId, loading }) {
             <p className="text-sm">Admin needs to add milestone achievements</p>
           </div>
         </div>
+      )}
+
+      {/* Advanced Analytics Sections - Only show if showAdvanced is true and data exists */}
+      {showAdvanced && advancedData && (
+        <>
+          {/* Artist Ranking */}
+          {advancedData.artistRanking && advancedData.artistRanking.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Artist Ranking</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {advancedData.artistRanking
+                  .filter(ranking => ranking.title && ranking.value)
+                  .map((ranking, index) => (
+                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1">{ranking.title}</h4>
+                      <p className="text-xl font-bold text-slate-900">{ranking.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Career Snapshot */}
+          {advancedData.careerSnapshot && advancedData.careerSnapshot.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {advancedData.careerSnapshot
+                  .filter(stage => stage.title && stage.value)
+                  .map((stage, index) => (
+                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1">{stage.title}</h4>
+                      <p className="text-lg font-bold text-purple-600">{stage.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Audience Summary */}
+          {advancedData.audienceSummary && advancedData.audienceSummary.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Audience Summary</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {advancedData.audienceSummary
+                  .filter(field => field.title && field.value)
+                  .map((field, index) => (
+                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1">{field.title}</h4>
+                      <p className="text-lg font-bold text-orange-600">{field.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Statistics */}
+          {advancedData.topStatistics && advancedData.topStatistics.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Top Statistics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {advancedData.topStatistics
+                  .filter(stat => stat.title && stat.value)
+                  .map((stat, index) => (
+                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1">{stat.title}</h4>
+                      <p className="text-xl font-bold text-blue-600">{stat.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Platform Performance */}
+          {advancedData.platformPerformance && advancedData.platformPerformance.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Platform Performance</h3>
+              <div className="space-y-4">
+                {advancedData.platformPerformance
+                  .filter(platform => platform.platformTitle && (platform.metadataStat || platform.tag))
+                  .map((platform, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <h4 className="font-semibold text-slate-900">{platform.platformTitle}</h4>
+                        <span className="text-sm text-slate-600">{platform.metadataTitle}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg font-bold text-slate-900">{platform.metadataStat}</span>
+                        {platform.tag && (
+                          <span className={`text-sm font-medium ${
+                            platform.tag.startsWith('+') ? 'text-green-600' : 
+                            platform.tag.startsWith('-') ? 'text-red-600' : 'text-slate-600'
+                          }`}>
+                            {platform.tag}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
     </div>

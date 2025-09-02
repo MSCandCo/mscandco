@@ -334,6 +334,7 @@ export default function ArtistAnalytics() {
         <DatabaseDrivenDisplay 
           artistId={user?.id}
           loading={analyticsLoading}
+          showAdvanced={true}
         />
       )}
       
