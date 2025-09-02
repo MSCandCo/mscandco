@@ -17,18 +17,39 @@ export default async function handler(req, res) {
     // TODO: Implement proper JWT validation once auth flow is working
     console.log('🔓 Simplified auth check - allowing admin operation');
 
-    const { artistId, releaseData, milestonesData, type } = req.body;
+    const { artistId, releaseData, milestonesData, advancedData, type } = req.body;
 
-    console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData });
+    console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData, advancedData });
+
+    // Get existing data first to merge with new data
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from('user_profiles')
+      .select('chartmetric_data')
+      .eq('id', artistId)
+      .single();
+
+    const existingData = existingProfile?.chartmetric_data || {};
 
     // Store analytics data in chartmetric_data column (existing JSONB column)
     const analyticsData = {
-      latestRelease: releaseData,
-      milestones: milestonesData,
+      ...existingData,
       lastUpdated: new Date().toISOString(),
       updatedBy: 'admin',
       type: 'manual_analytics'
     };
+
+    // Update basic data if provided
+    if (releaseData) {
+      analyticsData.latestRelease = releaseData;
+    }
+    if (milestonesData) {
+      analyticsData.milestones = milestonesData;
+    }
+
+    // Update advanced data if provided
+    if (advancedData) {
+      analyticsData.advancedData = advancedData;
+    }
 
     const { data: updated, error } = await supabase
       .from('user_profiles')

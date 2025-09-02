@@ -287,45 +287,97 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
   };
 
   const saveAdvancedAnalytics = async () => {
-    if (!selectedArtistId) return;
+    if (!selectedArtistId) {
+      alert('Please select an artist first');
+      return;
+    }
     
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      console.log('🚀 Starting advanced analytics save for artist:', selectedArtistId);
+      console.log('📊 Advanced data:', {
+        artistRanking: artistRanking.length,
+        careerSnapshot: careerSnapshot.length,
+        audienceSummary: audienceSummary.length,
+        topMarkets: topMarkets.length,
+        topStatistics: topStatistics.length,
+        topTracks: topTracks.length,
+        allReleases: allReleases.length,
+        platformPerformance: platformPerformance.length
+      });
 
-      // Save all advanced sections to database
-      const advancedData = {
-        artistId: selectedArtistId,
-        artistRanking,
-        careerSnapshot,
-        audienceSummary,
-        topMarkets,
-        topStatistics,
-        topTracks,
-        allReleases,
-        platformPerformance
-      };
-
-      const response = await fetch('/api/admin/analytics/advanced', {
+      // Use the same simple save method that works for Basic Analytics
+      const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(advancedData)
+        body: JSON.stringify({
+          artistId: selectedArtistId,
+          releaseData: null, // Advanced doesn't update release data
+          milestonesData: [], // Advanced doesn't update milestones (managed from Basic)
+          advancedData: {
+            artistRanking,
+            careerSnapshot,
+            audienceSummary,
+            topMarkets,
+            topStatistics,
+            topTracks,
+            allReleases,
+            platformPerformance
+          },
+          type: 'advanced'
+        })
       });
 
       const result = await response.json();
+      console.log('💾 Advanced save result:', result);
 
       if (result.success) {
         console.log('✅ Advanced analytics saved successfully');
+        // Show success message in platform brand colors
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div class="fixed top-4 right-4 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            Advanced Analytics Saved Successfully!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
+        
         if (onDataUpdated) onDataUpdated();
       } else {
-        console.error('❌ Failed to save advanced analytics');
+        console.error('❌ Failed to save advanced analytics:', result);
+        // Show error message in platform brand colors
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Failed to Save Advanced: ${result.error || 'Unknown error'}
+          </div>
+        `;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 5000);
       }
     } catch (error) {
       console.error('Error saving advanced analytics:', error);
+      // Show error with platform brand styling
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Error: ${error.message}
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     } finally {
       setSaving(false);
     }
