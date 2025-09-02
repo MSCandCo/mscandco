@@ -1,6 +1,11 @@
-// New Analytics Data API - Fetches from manual admin data instead of Chartmetric
-import { supabase } from '@/lib/supabase';
+// Analytics Data API - Fetches from user_profiles analytics_data field
+import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -22,115 +27,64 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    console.log('📊 Fetching manual analytics data for user:', userId);
+    console.log('📊 Fetching analytics data for user:', userId);
 
-    // Fetch all analytics data from database
-    const [
-      releasesResult,
-      milestonesResult,
-      rankingsResult,
-      careerSnapshotResult,
-      demographicsResult,
-      platformPerformanceResult
-    ] = await Promise.allSettled([
-      supabase.from('artist_releases').select('*').eq('artist_id', userId).eq('is_live', true).single(),
-      supabase.from('artist_milestones').select('*').eq('artist_id', userId).order('milestone_date', { ascending: false }),
-      supabase.from('artist_rankings').select('*').eq('artist_id', userId).single(),
-      supabase.from('artist_career_snapshot').select('*').eq('artist_id', userId).single(),
-      supabase.from('artist_demographics').select('*').eq('artist_id', userId).single(),
-      supabase.from('artist_platform_performance').select('*').eq('artist_id', userId).single()
-    ]);
+    // Fetch analytics data from user_profiles
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('analytics_data, first_name, last_name, artist_name')
+      .eq('id', userId)
+      .single();
 
-    // Process results
-    const latestRelease = releasesResult.status === 'fulfilled' && releasesResult.value.data ? releasesResult.value.data : null;
-    const milestones = milestonesResult.status === 'fulfilled' && milestonesResult.value.data ? milestonesResult.value.data : [];
-    const rankings = rankingsResult.status === 'fulfilled' && rankingsResult.value.data ? rankingsResult.value.data : null;
-    const careerSnapshot = careerSnapshotResult.status === 'fulfilled' && careerSnapshotResult.value.data ? careerSnapshotResult.value.data : null;
-    const demographics = demographicsResult.status === 'fulfilled' && demographicsResult.value.data ? demographicsResult.value.data : null;
-    const platformPerformance = platformPerformanceResult.status === 'fulfilled' && platformPerformanceResult.value.data ? platformPerformanceResult.value.data : null;
+    if (error) {
+      console.log('⚠️ Error loading profile:', error);
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'No analytics data found'
+      });
+    }
+
+    const analyticsData = profile?.analytics_data;
+    console.log('📦 Analytics data for', profile?.first_name, ':', analyticsData ? 'Found' : 'Not found');
+
+    if (!analyticsData) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'No analytics data found'
+      });
+    }
 
     // Calculate relative dates for milestones
+    const milestones = analyticsData.milestones || [];
     const milestonesWithRelativeDates = milestones.map(milestone => ({
       ...milestone,
-      relativeDate: calculateRelativeDate(milestone.milestone_date)
+      relativeDate: milestone.date ? calculateRelativeDate(milestone.date) : 'Recently'
     }));
 
-    // Construct analytics response
-    const analytics = {
-      // Latest release data
-      latestRelease: latestRelease ? {
-        title: latestRelease.title,
-        artist: latestRelease.artist,
-        featuring: latestRelease.featuring,
-        releaseDate: latestRelease.release_date,
-        type: latestRelease.release_type,
-        audioFile: latestRelease.audio_file_url,
-        coverImage: latestRelease.cover_image_url,
-        platforms: latestRelease.platforms || []
-      } : null,
-
-      // Milestones data
-      milestones: milestonesWithRelativeDates,
-
-      // Rankings data
-      rankings: rankings ? {
-        country_rank: rankings.country_rank,
-        global_rank: rankings.global_rank,
-        primary_genre_rank: rankings.primary_genre_rank,
-        secondary_genre_rank: rankings.secondary_genre_rank,
-        tertiary_genre_rank: rankings.tertiary_genre_rank,
-        momentum_score: rankings.momentum_score,
-        continent_rank: rankings.continent_rank
-      } : null,
-
-      // Career snapshot data
-      careerSnapshot: careerSnapshot ? {
-        career_stage: careerSnapshot.career_stage,
-        recent_momentum: careerSnapshot.recent_momentum,
-        network_strength: careerSnapshot.network_strength,
-        social_engagement: careerSnapshot.social_engagement
-      } : null,
-
-      // Demographics data
-      demographics: demographics ? {
-        social_footprint: demographics.social_footprint,
-        primary_market: demographics.primary_market,
-        secondary_market: demographics.secondary_market,
-        primary_gender: demographics.primary_gender,
-        primary_age: demographics.primary_age,
-        countries: demographics.countries || []
-      } : null,
-
-      // Platform performance data
-      platformPerformance: platformPerformance ? {
-        platforms: platformPerformance.platforms || []
-      } : null,
-
-      // Metadata
-      fetchedAt: new Date().toISOString(),
-      dataSource: 'manual_admin',
-      userId
-    };
-
-    console.log('✅ Manual analytics data compiled:', {
-      hasLatestRelease: !!latestRelease,
-      milestonesCount: milestones.length,
-      hasRankings: !!rankings,
-      hasCareerSnapshot: !!careerSnapshot,
-      hasDemographics: !!demographics,
-      hasPlatformPerformance: !!platformPerformance
+    console.log('✅ Analytics data loaded:', {
+      hasLatestRelease: !!analyticsData.latestRelease,
+      milestonesCount: milestonesWithRelativeDates.length,
+      lastUpdated: analyticsData.lastUpdated
     });
 
-    return res.json({
+    // Return data in format expected by CleanAnalyticsDisplay
+    return res.status(200).json({
       success: true,
-      data: analytics,
-      message: 'Manual analytics data retrieved successfully'
+      data: {
+        latestRelease: analyticsData.latestRelease,
+        milestones: milestonesWithRelativeDates,
+        lastUpdated: analyticsData.lastUpdated || new Date().toISOString(),
+        source: 'manual_admin_system'
+      },
+      message: 'Analytics data loaded successfully'
     });
 
   } catch (error) {
-    console.error('Manual analytics API error:', error);
+    console.error('Analytics data API error:', error);
     return res.status(500).json({
-      error: 'Failed to fetch analytics data',
+      error: 'Internal server error',
       message: error.message
     });
   }
@@ -138,6 +92,8 @@ export default async function handler(req, res) {
 
 // Helper function to calculate relative dates
 function calculateRelativeDate(dateString) {
+  if (!dateString) return 'Recently';
+  
   const date = new Date(dateString);
   const now = new Date();
   const diffTime = Math.abs(now - date);

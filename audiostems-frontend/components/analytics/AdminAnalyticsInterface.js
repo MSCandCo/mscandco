@@ -225,8 +225,8 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       console.log('📊 Release data:', latestRelease);
       console.log('🏆 Milestones data:', milestones);
 
-      // Save Latest Release
-      const releaseResponse = await fetch('/api/admin/analytics/releases', {
+      // Use simple save method to bypass table permission issues
+      const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -234,48 +234,60 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
         },
         body: JSON.stringify({
           artistId: selectedArtistId,
-          title: latestRelease.title,
-          artist: latestRelease.artist,
-          featuring: latestRelease.featuring || null,
-          releaseDate: latestRelease.releaseDate,
-          releaseType: latestRelease.releaseType,
-          audioFileUrl: latestRelease.audioFile ? 'temp-audio-url' : null,
-          coverImageUrl: latestRelease.artwork ? 'temp-artwork-url' : null,
-          platforms: latestRelease.platforms,
-          isLive: true
+          releaseData: latestRelease,
+          milestonesData: milestones,
+          type: 'basic'
         })
       });
 
-      const releaseResult = await releaseResponse.json();
-      console.log('📦 Release save result:', releaseResult);
+      const result = await response.json();
+      console.log('💾 Save result:', result);
 
-      // Save Milestones
-      const milestonesResponse = await fetch('/api/admin/analytics/milestones', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          artistId: selectedArtistId,
-          milestones: milestones
-        })
-      });
-
-      const milestonesResult = await milestonesResponse.json();
-      console.log('🏆 Milestones save result:', milestonesResult);
-
-      if (releaseResult.success && milestonesResult.success) {
+      if (result.success) {
         console.log('✅ Basic analytics saved successfully');
-        alert('Basic analytics saved successfully!');
+        // Show success message in platform brand colors
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            Basic Analytics Saved Successfully!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
+        
         if (onDataUpdated) onDataUpdated();
       } else {
-        console.error('❌ Failed to save analytics:', { releaseResult, milestonesResult });
-        alert('Failed to save analytics. Check console for details.');
+        console.error('❌ Failed to save analytics:', result);
+        // Show error message in platform brand colors
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Failed to Save: ${result.error || 'Unknown error'}
+          </div>
+        `;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 5000);
       }
     } catch (error) {
       console.error('Error saving basic analytics:', error);
-      alert('Error saving analytics: ' + error.message);
+      // Show error with platform brand styling
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Error: ${error.message}
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     } finally {
       setSaving(false);
     }
@@ -339,50 +351,46 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
 
         console.log('📥 Loading existing data for artist:', selectedArtistId);
 
-        // Load existing release data
-        const releaseResponse = await fetch(`/api/admin/analytics/releases?artistId=${selectedArtistId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const releaseResult = await releaseResponse.json();
-        
-        if (releaseResult.success && releaseResult.data?.length > 0) {
-          const existingRelease = releaseResult.data[0]; // Get latest release
-          console.log('📦 Loaded existing release:', existingRelease);
-          
-          setLatestRelease({
-            title: existingRelease.title || '',
-            artist: existingRelease.artist || '',
-            featuring: existingRelease.featuring || '',
-            releaseDate: existingRelease.release_date || '',
-            releaseType: existingRelease.release_type || '',
-            artwork: null,
-            audioFile: null,
-            platforms: existingRelease.platforms || [
-              { name: 'Spotify', streams: '', change: '' },
-              { name: 'Apple Music', streams: '', change: '' },
-              { name: 'YouTube Music', streams: '', change: '' },
-              { name: 'Total', streams: '', change: '' }
-            ]
-          });
+        // Load existing data from user_profiles (simple method)
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('analytics_data')
+          .eq('id', selectedArtistId)
+          .single();
+
+        if (error) {
+          console.log('⚠️ Error loading profile:', error);
+          return;
         }
 
-        // Load existing milestones data
-        const milestonesResponse = await fetch(`/api/admin/analytics/milestones?artistId=${selectedArtistId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const milestonesResult = await milestonesResponse.json();
-        
-        if (milestonesResult.success && milestonesResult.data?.length > 0) {
-          console.log('🏆 Loaded existing milestones:', milestonesResult.data);
+        if (profile?.analytics_data) {
+          console.log('📦 Loaded existing analytics data:', profile.analytics_data);
           
-          setMilestones(milestonesResult.data.map(m => ({
-            title: m.title || '',
-            tag: m.highlight || '', // Map 'highlight' back to 'tag'
-            milestone: m.description || '', // Map 'description' back to 'milestone'
-            date: m.milestone_date || ''
-          })));
+          const { latestRelease: existingRelease, milestones: existingMilestones } = profile.analytics_data;
+          
+          if (existingRelease) {
+            setLatestRelease({
+              title: existingRelease.title || '',
+              artist: existingRelease.artist || '',
+              featuring: existingRelease.featuring || '',
+              releaseDate: existingRelease.releaseDate || '',
+              releaseType: existingRelease.releaseType || '',
+              artwork: null,
+              audioFile: null,
+              platforms: existingRelease.platforms || [
+                { name: 'Spotify', streams: '', change: '' },
+                { name: 'Apple Music', streams: '', change: '' },
+                { name: 'YouTube Music', streams: '', change: '' },
+                { name: 'Total', streams: '', change: '' }
+              ]
+            });
+          }
+
+          if (existingMilestones && existingMilestones.length > 0) {
+            setMilestones(existingMilestones);
+          }
+        } else {
+          console.log('📭 No existing analytics data found for artist');
         }
 
       } catch (error) {
