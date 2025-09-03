@@ -17,9 +17,9 @@ export default async function handler(req, res) {
     // TODO: Implement proper JWT validation once auth flow is working
     console.log('🔓 Simplified auth check - allowing admin operation');
 
-    const { artistId, releaseData, milestonesData, advancedData, sectionVisibility, type } = req.body;
+    const { artistId, releaseData, milestonesData, advancedData, sectionVisibility, lastUpdated, type } = req.body;
 
-    console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData, advancedData, sectionVisibility });
+    console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData, advancedData, sectionVisibility, lastUpdated });
 
     // Get existing data first to merge with new data
     const { data: existingProfile, error: fetchError } = await supabase
@@ -55,6 +55,11 @@ export default async function handler(req, res) {
     // Update visibility settings if provided
     if (sectionVisibility) {
       analyticsData.sectionVisibility = sectionVisibility;
+    }
+
+    // Update last updated timestamps if provided
+    if (lastUpdated) {
+      analyticsData.lastUpdatedTimestamps = lastUpdated;
     }
 
     console.log('📦 Final analytics data to save:', analyticsData);

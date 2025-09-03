@@ -38,6 +38,12 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     ]
   });
 
+  // Last Updated Controls
+  const [lastUpdated, setLastUpdated] = useState({
+    basic: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM format
+    advanced: new Date().toISOString().slice(0, 16)
+  });
+
   // Recent Milestones State
   const [milestones, setMilestones] = useState([
     {
@@ -244,6 +250,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           releaseData: latestRelease,
           milestonesData: milestones,
           sectionVisibility: sectionVisibility,
+          lastUpdated: lastUpdated,
           type: 'basic'
         })
       });
@@ -341,6 +348,8 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
             allReleases,
             platformPerformance
           },
+          sectionVisibility: sectionVisibility,
+          lastUpdated: lastUpdated,
           type: 'advanced'
         })
       });
@@ -521,30 +530,43 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
         </div>
       </div>
 
-      {/* Basic/Advanced Tabs */}
+      {/* Basic/Advanced Tabs with Last Updated Controls */}
       <div className="border-b border-slate-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('basic')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'basic'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Basic Analytics (2 sections)
-          </button>
-          <button
-            onClick={() => setActiveTab('advanced')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'advanced'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Advanced Analytics (10 sections)
-          </button>
-        </nav>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('basic')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'basic'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Basic Analytics (2 sections)
+            </button>
+            <button
+              onClick={() => setActiveTab('advanced')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'advanced'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Advanced Analytics (10 sections)
+            </button>
+          </nav>
+          
+          {/* Last Updated Control */}
+          <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+            <span className="text-sm text-slate-600">Last Updated:</span>
+            <input
+              type="datetime-local"
+              value={lastUpdated[activeTab]}
+              onChange={(e) => setLastUpdated(prev => ({ ...prev, [activeTab]: e.target.value }))}
+              className="border border-slate-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
       </div>
 
       {/* BASIC ANALYTICS - 2 sections */}

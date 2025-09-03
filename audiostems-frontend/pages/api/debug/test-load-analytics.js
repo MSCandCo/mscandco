@@ -55,6 +55,7 @@ export default async function handler(req, res) {
         milestones: milestonesWithRelativeDates,
         advancedData: analyticsData.advancedData, // Include advanced data
         sectionVisibility: analyticsData.sectionVisibility, // Include visibility settings
+        lastUpdatedTimestamps: analyticsData.lastUpdatedTimestamps, // Include manual timestamps
         lastUpdated: analyticsData.lastUpdated,
         source: 'manual_admin_system'
       },

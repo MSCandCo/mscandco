@@ -385,7 +385,8 @@ export default function ArtistAnalytics() {
             {/* Beautiful Tab Navigation */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-8">
               <div className="border-b border-slate-200">
-                <nav className="-mb-px flex space-x-8 px-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4">
+                  <nav className="-mb-px flex space-x-8">
                   <button
                     onClick={() => setActiveTab('basic')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -424,6 +425,17 @@ export default function ArtistAnalytics() {
                     )}
                   </button>
                 </nav>
+                
+                {/* Last Updated Display */}
+                <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+                  <span className="text-sm text-slate-600">Last updated:</span>
+                  <span className="text-sm font-medium text-slate-900">
+                    {analyticsData?.lastUpdatedTimestamps?.[activeTab] ? 
+                      new Date(analyticsData.lastUpdatedTimestamps[activeTab]).toLocaleString() : 
+                      'Not set'
+                    }
+                  </span>
+                </div>
               </div>
             </div>
 

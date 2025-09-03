@@ -167,15 +167,20 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
             <div className="flex items-center space-x-4">
               {/* Cover Image */}
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {latestRelease.cover_image_url ? (
+                {latestRelease.cover_image_url || latestRelease.artwork ? (
                   <img 
-                    src={latestRelease.cover_image_url} 
+                    src={latestRelease.cover_image_url || latestRelease.artwork || '/api/placeholder/64/64'} 
                     alt={latestRelease.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
-                ) : (
+                ) : null}
+                <div className="w-full h-full flex items-center justify-center" style={{ display: latestRelease.cover_image_url || latestRelease.artwork ? 'none' : 'flex' }}>
                   <Music className="w-8 h-8 text-white" />
-                )}
+                </div>
               </div>
               
               {/* Release Info - FROM DATABASE */}
@@ -194,7 +199,7 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                   </div>
                   
                   {/* Audio Player - FROM DATABASE */}
-                  {latestRelease.audio_file_url && (
+                  {(latestRelease.audio_file_url || latestRelease.audioFile) && (
                     <button
                       onClick={toggleAudio}
                       className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-colors"
@@ -209,10 +214,10 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                 </div>
                 
                 {/* Hidden audio element */}
-                {latestRelease.audio_file_url && (
+                {(latestRelease.audio_file_url || latestRelease.audioFile) && (
                   <audio
                     ref={(ref) => setAudioRef(ref)}
-                    src={latestRelease.audio_file_url}
+                    src={latestRelease.audio_file_url || latestRelease.audioFile || ''}
                     onEnded={() => setAudioPlaying(false)}
                   />
                 )}
