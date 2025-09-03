@@ -465,6 +465,7 @@ export default function ArtistAnalytics() {
             )}
           </div>
         </div>
+      </div>
       </Layout>
     </SubscriptionGate>
   );
