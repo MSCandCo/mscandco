@@ -106,13 +106,22 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
 
   // Audio player controls
   const toggleAudio = () => {
-    if (!audioRef || !latestRelease?.audio_file_url) return;
+    const audioUrl = latestRelease?.audioFileUrl || latestRelease?.audio_file_url;
+    if (!audioRef || !audioUrl) {
+      console.log('❌ Audio not available:', { audioRef: !!audioRef, audioUrl: !!audioUrl });
+      return;
+    }
+    
+    console.log('🎵 Toggle audio:', audioPlaying ? 'PAUSE' : 'PLAY');
     
     if (audioPlaying) {
       audioRef.pause();
       setAudioPlaying(false);
     } else {
-      audioRef.play();
+      audioRef.play().catch(error => {
+        console.error('❌ Audio play error:', error);
+        setAudioPlaying(false);
+      });
       setAudioPlaying(true);
     }
   };
@@ -164,53 +173,55 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           
           {/* Release Header - FROM DATABASE */}
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-            <div className="flex items-center space-x-4">
-              {/* Cover Image */}
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {latestRelease.artworkUrl || latestRelease.cover_image_url ? (
-                  <img 
-                    src={latestRelease.artworkUrl || latestRelease.cover_image_url} 
-                    alt={latestRelease.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div className="w-full h-full flex items-center justify-center" style={{ display: latestRelease.artworkUrl || latestRelease.cover_image_url ? 'none' : 'flex' }}>
-                  <Music className="w-8 h-8 text-white" />
+            <div className="flex items-center space-x-6">
+              {/* Cover Image with Overlay Play Button */}
+              <div className="relative">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  {latestRelease.artworkUrl || latestRelease.cover_image_url ? (
+                    <img 
+                      src={latestRelease.artworkUrl || latestRelease.cover_image_url} 
+                      alt={latestRelease.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="w-full h-full flex items-center justify-center" style={{ display: latestRelease.artworkUrl || latestRelease.cover_image_url ? 'none' : 'flex' }}>
+                    <Music className="w-8 h-8 text-white" />
+                  </div>
                 </div>
+                
+                {/* Overlay Play Button - Only show if audio exists */}
+                {(latestRelease.audioFileUrl || latestRelease.audio_file_url) && (
+                  <button
+                    onClick={toggleAudio}
+                    className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center group"
+                  >
+                    <div className="bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200">
+                      {audioPlaying ? (
+                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-slate-800" />
+                      ) : (
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-slate-800 ml-0.5" />
+                      )}
+                    </div>
+                  </button>
+                )}
               </div>
               
               {/* Release Info - FROM DATABASE */}
               <div className="flex-1">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900">
-                      {latestRelease.title || 'Untitled Release'}
-                    </h4>
-                    <p className="text-slate-600">
-                      Released: {latestRelease.releaseDate ? new Date(latestRelease.releaseDate).toLocaleDateString() : 'Date not set'}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      {latestRelease.releaseType || 'Unknown Type'} • Cross-platform performance
-                    </p>
-                  </div>
-                  
-                  {/* Audio Player - FROM DATABASE */}
-                  {(latestRelease.audioFileUrl || latestRelease.audio_file_url) && (
-                    <button
-                      onClick={toggleAudio}
-                      className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-colors"
-                    >
-                      {audioPlaying ? (
-                        <Pause className="w-5 h-5" />
-                      ) : (
-                        <Play className="w-5 h-5" />
-                      )}
-                    </button>
-                  )}
+                <div>
+                  <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                    {latestRelease.title || 'Untitled Release'}
+                  </h4>
+                  <p className="text-slate-600 mb-1">
+                    Released: {latestRelease.releaseDate ? new Date(latestRelease.releaseDate).toLocaleDateString() : 'Date not set'}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {latestRelease.releaseType || 'Unknown Type'} • Cross-platform performance
+                  </p>
                 </div>
                 
                 {/* Hidden audio element */}

@@ -18,6 +18,32 @@ import {
 export default function AdminAnalyticsInterface({ selectedArtistId, selectedArtistData, onDataUpdated }) {
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Brand Error Modal State
+  const [errorModal, setErrorModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    icon: '❌'
+  });
+
+  const showBrandError = (title, message, icon = '❌') => {
+    setErrorModal({
+      show: true,
+      title,
+      message,
+      icon
+    });
+  };
+
+  const closeBrandError = () => {
+    setErrorModal({
+      show: false,
+      title: '',
+      message: '',
+      icon: '❌'
+    });
+  };
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
