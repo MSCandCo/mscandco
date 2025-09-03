@@ -223,21 +223,23 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
   // File upload handlers - Simple approach
   const handleArtworkUpload = (file) => {
     if (file) {
-      // For now, just store the file name and create a placeholder URL
-      const fileName = file.name;
-      const fileUrl = `/uploads/artwork/${selectedArtistId}/${fileName}`;
-      setLatestRelease(prev => ({ ...prev, artworkUrl: fileUrl, artworkFile: file }));
-      console.log('🖼️ Artwork uploaded:', fileName);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
+        console.log('🖼️ Artwork uploaded and converted to data URL');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleAudioUpload = (file) => {
     if (file) {
-      // For now, just store the file name and create a placeholder URL
-      const fileName = file.name;
-      const fileUrl = `/uploads/audio/${selectedArtistId}/${fileName}`;
-      setLatestRelease(prev => ({ ...prev, audioFileUrl: fileUrl, audioFile: file }));
-      console.log('🎵 Audio uploaded:', fileName);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLatestRelease(prev => ({ ...prev, audioFileUrl: e.target.result }));
+        console.log('🎵 Audio uploaded and converted to data URL');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
