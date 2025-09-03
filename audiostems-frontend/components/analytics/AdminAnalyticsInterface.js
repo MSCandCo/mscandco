@@ -832,14 +832,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <CheckCircle className="w-5 h-5 text-blue-600 mr-2" />
                 Artist Ranking
               </h3>
-              <button
-                type="button"
-                onClick={addArtistRanking}
-                className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Ranking
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, artistRanking: !prev.artistRanking }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.artistRanking ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.artistRanking ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addArtistRanking}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Ranking
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {artistRanking.map((ranking, index) => (
@@ -881,7 +898,22 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <Settings className="w-5 h-5 text-purple-600 mr-2" />
                 Career Snapshot
               </h3>
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, careerSnapshot: !prev.careerSnapshot }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.careerSnapshot ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.careerSnapshot ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={addCareerSnapshot}
@@ -935,14 +967,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <Users className="w-5 h-5 text-orange-600 mr-2" />
                 Audience Summary
               </h3>
-              <button
-                type="button"
-                onClick={addAudienceSummary}
-                className="bg-orange-100 hover:bg-orange-200 text-orange-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Field
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, audienceSummary: !prev.audienceSummary }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.audienceSummary ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.audienceSummary ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addAudienceSummary}
+                  className="bg-orange-100 hover:bg-orange-200 text-orange-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Field
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {audienceSummary.map((field, index) => (
@@ -981,14 +1030,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           <div className="border border-slate-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900">Top Markets & Demographics</h3>
-              <button
-                type="button"
-                onClick={addTopMarket}
-                className="bg-green-100 hover:bg-green-200 text-green-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Market
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, topMarkets: !prev.topMarkets }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.topMarkets ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.topMarkets ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addTopMarket}
+                  className="bg-green-100 hover:bg-green-200 text-green-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Market
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {topMarkets.map((market, index) => (
@@ -1027,14 +1093,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           <div className="border border-slate-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900">Top Statistics</h3>
-              <button
-                type="button"
-                onClick={addTopStatistic}
-                className="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Statistic
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, topStatistics: !prev.topStatistics }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.topStatistics ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.topStatistics ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addTopStatistic}
+                  className="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Statistic
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {topStatistics.map((stat, index) => (
@@ -1073,14 +1156,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           <div className="border border-slate-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900">Top Tracks</h3>
-              <button
-                type="button"
-                onClick={addTopTrack}
-                className="bg-pink-100 hover:bg-pink-200 text-pink-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Track
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, topTracks: !prev.topTracks }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.topTracks ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.topTracks ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addTopTrack}
+                  className="bg-pink-100 hover:bg-pink-200 text-pink-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Track
+                </button>
+              </div>
             </div>
             <div className="space-y-4">
               {topTracks.map((track, index) => (
@@ -1172,14 +1272,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           <div className="border border-slate-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900">All Releases</h3>
-              <button
-                type="button"
-                onClick={addRelease}
-                className="bg-teal-100 hover:bg-teal-200 text-teal-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Release
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, allReleases: !prev.allReleases }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.allReleases ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.allReleases ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addRelease}
+                  className="bg-teal-100 hover:bg-teal-200 text-teal-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Release
+                </button>
+              </div>
             </div>
             <div className="space-y-4">
               {allReleases.map((release, index) => (
@@ -1264,14 +1381,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <BarChart3 className="w-5 h-5 text-blue-600 mr-2" />
                 Platform Performance
               </h3>
-              <button
-                type="button"
-                onClick={addPlatformPerformance}
-                className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Platform
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, platformPerformance: !prev.platformPerformance }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.platformPerformance ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.platformPerformance ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addPlatformPerformance}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Platform
+                </button>
+              </div>
             </div>
             <div className="space-y-4">
               {platformPerformance.map((platform, index) => (
