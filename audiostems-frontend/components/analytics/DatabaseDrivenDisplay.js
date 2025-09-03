@@ -186,10 +186,10 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                       {latestRelease.title || 'Untitled Release'}
                     </h4>
                     <p className="text-slate-600">
-                      Released: {latestRelease.release_date ? new Date(latestRelease.release_date).toLocaleDateString() : 'Date not set'}
+                      Released: {latestRelease.releaseDate ? new Date(latestRelease.releaseDate).toLocaleDateString() : 'Date not set'}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {latestRelease.release_type || 'Unknown Type'} • Cross-platform performance
+                      {latestRelease.releaseType || 'Unknown Type'} • Cross-platform performance
                     </p>
                   </div>
                   
