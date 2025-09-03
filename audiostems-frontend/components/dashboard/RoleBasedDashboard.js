@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
-import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Settings, Eye } from 'lucide-react';
+import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Settings, Eye, Edit3 } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { DashboardRenewalNotification } from '@/components/notifications/RenewalNotification';
@@ -255,6 +255,7 @@ export default function RoleBasedDashboard() {
           cards: [
             { title: 'Releases', description: 'Manage your music releases', icon: Music, onClick: () => router.push('/artist/releases') },
             { title: 'Analytics', description: 'View performance metrics', icon: BarChart3, onClick: () => router.push('/artist/analytics') },
+            { title: 'Manage Analytics', description: 'Update your analytics data', icon: Edit3, onClick: () => router.push('/artist/analytics-management') },
             { title: 'Earnings', description: 'Track your revenue', icon: DollarSign, onClick: () => router.push('/artist/earnings') },
             { title: 'Profile', description: 'Update your information', icon: Settings, onClick: () => router.push('/artist/profile') }
           ]
@@ -385,6 +386,7 @@ export default function RoleBasedDashboard() {
           cards: [
             { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/companyadmin/users') },
             { title: 'Analytics', description: 'View platform analytics', icon: BarChart3, onClick: () => router.push('/companyadmin/analytics') },
+            { title: 'Manage Artist Analytics', description: 'Update artist analytics data', icon: Edit3, onClick: () => router.push('/companyadmin/analytics-management') },
             { title: 'Finance', description: 'Platform financial reports', icon: DollarSign, onClick: () => router.push('/companyadmin/finance') },
             { title: 'Artist Requests', description: 'Manage artist approvals', icon: FileText, onClick: () => router.push('/companyadmin/artist-requests') }
           ]

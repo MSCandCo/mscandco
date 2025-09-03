@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   X,
+  Edit3,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -627,6 +628,12 @@ export default function RoleBasedNavigation() {
                   Analytics
                 </Link>
                 <Link
+                  href="/companyadmin/analytics-management"
+                  className={getNavLinkClasses('/companyadmin/analytics-management')}
+                >
+                  Manage Analytics
+                </Link>
+                <Link
                   href="/companyadmin/earnings"
                   className={getNavLinkClasses('/companyadmin/earnings')}
                 >
@@ -984,6 +991,7 @@ export default function RoleBasedNavigation() {
   const navigationItems = [
     { href: '/artist/releases', label: 'My Releases', icon: FileText },
     { href: '/artist/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/artist/analytics-management', label: 'Manage Analytics', icon: Edit3 },
     { href: '/artist/earnings', label: 'Earnings', icon: DollarSign },
     { href: '/artist/roster', label: 'Roster', icon: Users }
   ];
