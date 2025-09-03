@@ -234,10 +234,18 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
 
   const handleAudioUpload = (file) => {
     if (file) {
+      console.log('🎵 Audio file selected:', file.name, file.type, file.size);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setLatestRelease(prev => ({ ...prev, audioFileUrl: e.target.result }));
-        console.log('🎵 Audio uploaded and converted to data URL');
+        console.log('🎵 Audio file converted to data URL, length:', e.target.result.length);
+        setLatestRelease(prev => ({ 
+          ...prev, 
+          audioFileUrl: e.target.result,
+          audioFileName: file.name 
+        }));
+      };
+      reader.onerror = (e) => {
+        console.error('❌ Error reading audio file:', e);
       };
       reader.readAsDataURL(file);
     }
@@ -256,7 +264,16 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       console.log('🔓 Bypassing auth for testing - using direct API call');
 
       console.log('🚀 Starting save process for artist:', selectedArtistId);
-      console.log('📊 Release data:', latestRelease);
+      console.log('📊 Release data:', {
+        title: latestRelease.title,
+        artist: latestRelease.artist,
+        releaseDate: latestRelease.releaseDate,
+        releaseType: latestRelease.releaseType,
+        hasArtwork: !!latestRelease.artworkUrl,
+        hasAudio: !!latestRelease.audioFileUrl,
+        artworkLength: latestRelease.artworkUrl?.length || 0,
+        audioLength: latestRelease.audioFileUrl?.length || 0
+      });
       console.log('🏆 Milestones data:', milestones);
 
       // Use simple save method to bypass table permission issues
