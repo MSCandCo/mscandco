@@ -21,6 +21,82 @@ export default function SubscriptionGate({
         return;
       }
 
+      // Distribution Partners (Code Group) should have full access without subscription
+      const userEmail = user.email?.toLowerCase() || '';
+      const userRoleFromMetadata = user.user_metadata?.role || user.app_metadata?.role;
+      
+      // Check if user should bypass subscription (Distribution Partner, Company Admin, Super Admin)
+      const isDistributionPartner = (
+        userRoleFromMetadata === 'distribution_partner' ||
+        userRole === 'distribution_partner' ||
+        userEmail === 'codegroup@mscandco.com' ||
+        userEmail.includes('codegroup') ||
+        userEmail.includes('code-group')
+      );
+
+      const isCompanyAdmin = (
+        userRoleFromMetadata === 'company_admin' ||
+        userRole === 'company_admin' ||
+        userEmail === 'companyadmin@mscandco.com'
+      );
+
+      const isSuperAdmin = (
+        userRoleFromMetadata === 'super_admin' ||
+        userRole === 'super_admin' ||
+        userEmail === 'superadmin@mscandco.com'
+      );
+
+      if (isDistributionPartner) {
+        console.log('🎯 Distribution Partner detected - bypassing subscription check', {
+          userEmail,
+          userRoleFromMetadata,
+          userRole
+        });
+        setSubscriptionStatus({ 
+          hasSubscription: true, 
+          planName: 'Distribution Partner',
+          status: 'distribution_partner',
+          isPro: true,
+          bypassReason: 'Distribution Partner Access'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isCompanyAdmin) {
+        console.log('🎯 Company Admin detected - bypassing subscription check', {
+          userEmail,
+          userRoleFromMetadata,
+          userRole
+        });
+        setSubscriptionStatus({ 
+          hasSubscription: true, 
+          planName: 'Company Admin',
+          status: 'company_admin',
+          isPro: true,
+          bypassReason: 'Company Admin Access'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isSuperAdmin) {
+        console.log('🎯 Super Admin detected - bypassing subscription check', {
+          userEmail,
+          userRoleFromMetadata,
+          userRole
+        });
+        setSubscriptionStatus({ 
+          hasSubscription: true, 
+          planName: 'Super Admin',
+          status: 'super_admin',
+          isPro: true,
+          bypassReason: 'Super Admin Access'
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
@@ -50,7 +126,7 @@ export default function SubscriptionGate({
     };
 
     checkSubscription();
-  }, [user]);
+  }, [user, userRole]);
 
   // Show loading state
   if (loading) {

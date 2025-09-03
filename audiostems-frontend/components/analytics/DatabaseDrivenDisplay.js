@@ -176,7 +176,7 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
             <div className="flex items-center space-x-6">
               {/* Cover Image with Overlay Play Button */}
               <div className="relative">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   {latestRelease.artworkUrl || latestRelease.cover_image_url ? (
                     <img 
                       src={latestRelease.artworkUrl || latestRelease.cover_image_url} 
@@ -199,11 +199,11 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                     onClick={toggleAudio}
                     className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center group"
                   >
-                    <div className="bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200">
+                    <div className="bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-3 sm:p-4 shadow-lg transition-all duration-200">
                       {audioPlaying ? (
-                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-slate-800" />
+                        <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-slate-800" />
                       ) : (
-                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-slate-800 ml-0.5" />
+                        <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
                       )}
                     </div>
                   </button>
