@@ -36,6 +36,7 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
   const [platformStats, setPlatformStats] = useState([]);
   const [milestones, setMilestones] = useState([]);
   const [advancedData, setAdvancedData] = useState(null);
+  const [sectionVisibility, setSectionVisibility] = useState({});
   const [dataLoading, setDataLoading] = useState(true);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState(null);
@@ -82,6 +83,12 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           if (result.data.advancedData) {
             setAdvancedData(result.data.advancedData);
             console.log('🔮 Advanced analytics data loaded:', result.data.advancedData);
+          }
+
+          // Set visibility settings
+          if (result.data.sectionVisibility) {
+            setSectionVisibility(result.data.sectionVisibility);
+            console.log('👁️ Section visibility settings loaded:', result.data.sectionVisibility);
           }
         } else {
           console.log('📭 No saved analytics data found');
@@ -148,7 +155,7 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
     <div className="space-y-8">
       
       {/* Latest Release Performance - DATABASE DRIVEN */}
-      {latestRelease && (
+      {latestRelease && sectionVisibility.latestRelease !== false && (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
             <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
@@ -243,8 +250,8 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
         </div>
       )}
 
-      {/* Recent Milestones - DATABASE DRIVEN */}
-      {milestones.length > 0 && (
+      {/* Recent Milestones - Only in Basic tab (not in Advanced - it shows at bottom) */}
+      {!showAdvanced && milestones.length > 0 && sectionVisibility.milestones !== false && (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
             <Award className="w-6 h-6 text-yellow-600 mr-3" />
@@ -282,20 +289,6 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty state for milestones */}
-      {milestones.length === 0 && latestRelease && (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-          <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
-            <Award className="w-6 h-6 text-yellow-600 mr-3" />
-            Recent Milestones
-          </h3>
-          <div className="text-center py-8 text-slate-500">
-            <p>No milestones available</p>
-            <p className="text-sm">Admin needs to add milestone achievements</p>
           </div>
         </div>
       )}
@@ -397,6 +390,49 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
                       </div>
                     </div>
                   ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Milestones - At bottom of Advanced tab */}
+          {milestones.length > 0 && sectionVisibility.milestones !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
+                <Award className="w-6 h-6 text-yellow-600 mr-3" />
+                Recent Milestones
+              </h3>
+              
+              <div className="space-y-4">
+                {milestones.map((milestone, index) => (
+                  <div key={milestone.id || index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                      <Award className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      {/* Title and Tag inline */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-bold text-slate-900">{milestone.title}</h4>
+                        {milestone.tag && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            {milestone.tag}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Description in light gray */}
+                      {milestone.milestone && (
+                        <p className="text-gray-600 text-sm mb-2">{milestone.milestone}</p>
+                      )}
+                      
+                      {/* Relative date */}
+                      <p className="text-gray-500 text-xs">
+                        {milestone.relativeDate || milestone.relative_date || (
+                          milestone.date ? calculateRelativeDate(milestone.date) : 'Recently'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

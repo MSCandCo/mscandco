@@ -48,6 +48,20 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     }
   ]);
 
+  // Visibility Controls
+  const [sectionVisibility, setSectionVisibility] = useState({
+    latestRelease: true,
+    milestones: true,
+    artistRanking: true,
+    careerSnapshot: true,
+    audienceSummary: true,
+    topMarkets: true,
+    topStatistics: true,
+    topTracks: true,
+    allReleases: true,
+    platformPerformance: true
+  });
+
   // Advanced Analytics State
   const [artistRanking, setArtistRanking] = useState([
     { title: 'Country Ranking', value: '' },
@@ -229,6 +243,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           artistId: selectedArtistId,
           releaseData: latestRelease,
           milestonesData: milestones,
+          sectionVisibility: sectionVisibility,
           type: 'basic'
         })
       });
@@ -538,10 +553,27 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           
           {/* 1. Latest Release Performance */}
           <div className="border border-slate-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
-              Latest Release Performance
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+                <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
+                Latest Release Performance
+              </h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-slate-600">Visible to users:</span>
+                <button
+                  onClick={() => setSectionVisibility(prev => ({ ...prev, latestRelease: !prev.latestRelease }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    sectionVisibility.latestRelease ? 'bg-green-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      sectionVisibility.latestRelease ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
             
             {/* Basic Release Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -675,14 +707,31 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <Award className="w-5 h-5 text-yellow-600 mr-2" />
                 Recent Milestones
               </h3>
-              <button
-                type="button"
-                onClick={addMilestone}
-                className="bg-green-100 hover:bg-green-200 text-green-600 px-3 py-1 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Milestone
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <button
+                    onClick={() => setSectionVisibility(prev => ({ ...prev, milestones: !prev.milestones }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      sectionVisibility.milestones ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        sectionVisibility.milestones ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addMilestone}
+                  className="bg-green-100 hover:bg-green-200 text-green-600 px-3 py-1 rounded-lg flex items-center text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Milestone
+                </button>
+              </div>
             </div>
             
             <div className="space-y-4">
