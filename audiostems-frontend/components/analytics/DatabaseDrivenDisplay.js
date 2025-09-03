@@ -156,9 +156,9 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
       
       {/* Latest Release Performance - DATABASE DRIVEN */}
       {latestRelease && sectionVisibility.latestRelease !== false && (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-          <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
-            <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 flex items-center">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3" />
             Latest Release Performance
           </h3>
           
@@ -297,16 +297,16 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
       {showAdvanced && advancedData && (
         <>
           {/* Artist Ranking */}
-          {advancedData.artistRanking && advancedData.artistRanking.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Artist Ranking</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {advancedData.artistRanking && advancedData.artistRanking.length > 0 && sectionVisibility.artistRanking !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Artist Ranking</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {advancedData.artistRanking
                   .filter(ranking => ranking.title && ranking.value)
                   .map((ranking, index) => (
-                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
-                      <h4 className="font-semibold text-slate-900 mb-1">{ranking.title}</h4>
-                      <p className="text-xl font-bold text-slate-900">{ranking.value}</p>
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{ranking.title}</h4>
+                      <p className="text-lg sm:text-xl font-bold text-slate-900">{ranking.value}</p>
                     </div>
                   ))}
               </div>
@@ -314,16 +314,16 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           )}
 
           {/* Career Snapshot */}
-          {advancedData.careerSnapshot && advancedData.careerSnapshot.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Career Snapshot</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {advancedData.careerSnapshot && advancedData.careerSnapshot.length > 0 && sectionVisibility.careerSnapshot !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Career Snapshot</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {advancedData.careerSnapshot
                   .filter(stage => stage.title && stage.value)
                   .map((stage, index) => (
-                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
-                      <h4 className="font-semibold text-slate-900 mb-1">{stage.title}</h4>
-                      <p className="text-lg font-bold text-purple-600">{stage.value}</p>
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{stage.title}</h4>
+                      <p className="text-base sm:text-lg font-bold text-purple-600">{stage.value}</p>
                     </div>
                   ))}
               </div>
@@ -331,16 +331,33 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           )}
 
           {/* Audience Summary */}
-          {advancedData.audienceSummary && advancedData.audienceSummary.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Audience Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {advancedData.audienceSummary && advancedData.audienceSummary.length > 0 && sectionVisibility.audienceSummary !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Audience Summary</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 {advancedData.audienceSummary
                   .filter(field => field.title && field.value)
                   .map((field, index) => (
-                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
-                      <h4 className="font-semibold text-slate-900 mb-1">{field.title}</h4>
-                      <p className="text-lg font-bold text-orange-600">{field.value}</p>
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{field.title}</h4>
+                      <p className="text-base sm:text-lg font-bold text-orange-600">{field.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Markets & Demographics */}
+          {advancedData.topMarkets && advancedData.topMarkets.length > 0 && sectionVisibility.topMarkets !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Top Markets & Demographics</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {advancedData.topMarkets
+                  .filter(market => market.title && market.value)
+                  .map((market, index) => (
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{market.title}</h4>
+                      <p className="text-base sm:text-lg font-bold text-green-600">{market.value}</p>
                     </div>
                   ))}
               </div>
@@ -348,16 +365,88 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           )}
 
           {/* Top Statistics */}
-          {advancedData.topStatistics && advancedData.topStatistics.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Top Statistics</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {advancedData.topStatistics && advancedData.topStatistics.length > 0 && sectionVisibility.topStatistics !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Top Statistics</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {advancedData.topStatistics
                   .filter(stat => stat.title && stat.value)
                   .map((stat, index) => (
-                    <div key={index} className="p-4 bg-slate-50 rounded-xl text-center">
-                      <h4 className="font-semibold text-slate-900 mb-1">{stat.title}</h4>
-                      <p className="text-xl font-bold text-blue-600">{stat.value}</p>
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl text-center">
+                      <h4 className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{stat.title}</h4>
+                      <p className="text-lg sm:text-xl font-bold text-blue-600">{stat.value}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Tracks */}
+          {advancedData.topTracks && advancedData.topTracks.length > 0 && sectionVisibility.topTracks !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Top Tracks</h3>
+              <div className="space-y-3 sm:space-y-4">
+                {advancedData.topTracks
+                  .filter(track => track.title || track.artist || track.metrics)
+                  .map((track, index) => (
+                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-xl">
+                      {/* Track artwork placeholder */}
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Music className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                      </div>
+                      
+                      {/* Track info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-slate-900 text-sm sm:text-base truncate">{track.title}</h4>
+                        <p className="text-slate-600 text-xs sm:text-sm truncate">{track.artist}</p>
+                        {track.platform && (
+                          <p className="text-slate-500 text-xs">via {track.platform}</p>
+                        )}
+                      </div>
+                      
+                      {/* Metrics */}
+                      {track.metrics && (
+                        <div className="text-right">
+                          <p className="text-sm sm:text-base font-semibold text-slate-900">{track.metrics}</p>
+                        </div>
+                      )}
+                      
+                      {/* Play button placeholder */}
+                      <button className="bg-pink-100 hover:bg-pink-200 text-pink-600 p-2 rounded-full flex-shrink-0">
+                        <Play className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* All Releases */}
+          {advancedData.allReleases && advancedData.allReleases.length > 0 && sectionVisibility.allReleases !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">All Releases</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {advancedData.allReleases
+                  .filter(release => release.title || release.releaseDate)
+                  .map((release, index) => (
+                    <div key={index} className="p-3 sm:p-4 bg-slate-50 rounded-xl">
+                      <div className="flex items-center gap-3 mb-2">
+                        {/* Release artwork placeholder */}
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-teal-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base truncate">{release.title}</h4>
+                          <p className="text-slate-600 text-xs sm:text-sm">
+                            {release.releaseType} • {release.releaseDate ? new Date(release.releaseDate).getFullYear() : 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+                      {release.releaseDate && (
+                        <p className="text-slate-500 text-xs">
+                          Released: {new Date(release.releaseDate).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                   ))}
               </div>
@@ -365,22 +454,22 @@ export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced 
           )}
 
           {/* Platform Performance */}
-          {advancedData.platformPerformance && advancedData.platformPerformance.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Platform Performance</h3>
-              <div className="space-y-4">
+          {advancedData.platformPerformance && advancedData.platformPerformance.length > 0 && sectionVisibility.platformPerformance !== false && (
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Platform Performance</h3>
+              <div className="space-y-3 sm:space-y-4">
                 {advancedData.platformPerformance
                   .filter(platform => platform.platformTitle && (platform.metadataStat || platform.tag))
                   .map((platform, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                      <div className="flex items-center space-x-4">
-                        <h4 className="font-semibold text-slate-900">{platform.platformTitle}</h4>
-                        <span className="text-sm text-slate-600">{platform.metadataTitle}</span>
+                    <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl gap-2 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4">
+                        <h4 className="font-semibold text-slate-900 text-sm sm:text-base">{platform.platformTitle}</h4>
+                        <span className="text-xs sm:text-sm text-slate-600">{platform.metadataTitle}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-slate-900">{platform.metadataStat}</span>
+                        <span className="text-base sm:text-lg font-bold text-slate-900">{platform.metadataStat}</span>
                         {platform.tag && (
-                          <span className={`text-sm font-medium ${
+                          <span className={`text-xs sm:text-sm font-medium ${
                             platform.tag.startsWith('+') ? 'text-green-600' : 
                             platform.tag.startsWith('-') ? 'text-red-600' : 'text-slate-600'
                           }`}>

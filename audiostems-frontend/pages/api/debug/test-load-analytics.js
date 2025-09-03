@@ -54,6 +54,7 @@ export default async function handler(req, res) {
         latestRelease: analyticsData.latestRelease,
         milestones: milestonesWithRelativeDates,
         advancedData: analyticsData.advancedData, // Include advanced data
+        sectionVisibility: analyticsData.sectionVisibility, // Include visibility settings
         lastUpdated: analyticsData.lastUpdated,
         source: 'manual_admin_system'
       },
