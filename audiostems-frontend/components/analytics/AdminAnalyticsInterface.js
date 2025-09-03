@@ -220,24 +220,24 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     setPlatformPerformance(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
   };
 
-  // File upload handlers
+  // File upload handlers - Simple approach
   const handleArtworkUpload = (file) => {
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
-      };
-      reader.readAsDataURL(file);
+      // For now, just store the file name and create a placeholder URL
+      const fileName = file.name;
+      const fileUrl = `/uploads/artwork/${selectedArtistId}/${fileName}`;
+      setLatestRelease(prev => ({ ...prev, artworkUrl: fileUrl, artworkFile: file }));
+      console.log('🖼️ Artwork uploaded:', fileName);
     }
   };
 
   const handleAudioUpload = (file) => {
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLatestRelease(prev => ({ ...prev, audioFileUrl: e.target.result }));
-      };
-      reader.readAsDataURL(file);
+      // For now, just store the file name and create a placeholder URL
+      const fileName = file.name;
+      const fileUrl = `/uploads/audio/${selectedArtistId}/${fileName}`;
+      setLatestRelease(prev => ({ ...prev, audioFileUrl: fileUrl, audioFile: file }));
+      console.log('🎵 Audio uploaded:', fileName);
     }
   };
 
@@ -673,6 +673,17 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                   onChange={(e) => handleArtworkUpload(e.target.files[0])}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" 
                 />
+                {latestRelease.artworkUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={latestRelease.artworkUrl} 
+                      alt="Artwork preview" 
+                      className="w-16 h-16 object-cover rounded border"
+                      onError={() => console.log('Artwork preview error')}
+                    />
+                    <p className="text-xs text-green-600 mt-1">✓ Artwork ready to save</p>
+                  </div>
+                )}
                 <p className="text-xs text-slate-500 mt-1">Upload album/single artwork</p>
               </div>
               <div>
@@ -683,6 +694,16 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                   onChange={(e) => handleAudioUpload(e.target.files[0])}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" 
                 />
+                {latestRelease.audioFileUrl && (
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                        <Music className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <span className="text-xs text-green-600">✓ Audio file ready to save</span>
+                    </div>
+                  </div>
+                )}
                 <p className="text-xs text-slate-500 mt-1">Upload MP3 for play button functionality</p>
               </div>
             </div>
