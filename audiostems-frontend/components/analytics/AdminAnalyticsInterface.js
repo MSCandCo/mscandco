@@ -220,35 +220,78 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     setPlatformPerformance(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
   };
 
-  // File upload handlers - Simple approach
+  // File upload handlers with validation
   const handleArtworkUpload = (file) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
-        console.log('🖼️ Artwork uploaded and converted to data URL');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // File size limit: 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      alert('❌ Artwork file too large. Please use an image under 2MB.');
+      return;
     }
+
+    // File type validation
+    if (!file.type.startsWith('image/')) {
+      alert('❌ File not compatible. Please use JPG, PNG, or WebP images.');
+      return;
+    }
+
+    console.log('🖼️ Processing artwork:', file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
+        console.log('✅ Artwork uploaded successfully');
+      } catch (error) {
+        console.error('❌ Artwork processing error:', error);
+        alert('❌ File not compatible. Please use a smaller JPG or PNG image.');
+      }
+    };
+    reader.onerror = (e) => {
+      console.error('❌ Error reading artwork file:', e);
+      alert('❌ File not compatible. Please try a different image file.');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAudioUpload = (file) => {
-    if (file) {
-      console.log('🎵 Audio file selected:', file.name, file.type, file.size);
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    if (!file) return;
+
+    // File size limit: 5MB (audio files can be larger than images)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ Audio file too large. Please use an MP3 file under 5MB.');
+      return;
+    }
+
+    // File type validation
+    if (!file.type.startsWith('audio/')) {
+      alert('❌ File not compatible. Please use MP3, WAV, or M4A audio files.');
+      return;
+    }
+
+    console.log('🎵 Processing audio:', file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
         console.log('🎵 Audio file converted to data URL, length:', e.target.result.length);
         setLatestRelease(prev => ({ 
           ...prev, 
           audioFileUrl: e.target.result,
           audioFileName: file.name 
         }));
-      };
-      reader.onerror = (e) => {
-        console.error('❌ Error reading audio file:', e);
-      };
-      reader.readAsDataURL(file);
-    }
+        console.log('✅ Audio uploaded successfully');
+      } catch (error) {
+        console.error('❌ Audio processing error:', error);
+        alert('❌ File not compatible. Please use a smaller MP3 or WAV file.');
+      }
+    };
+    reader.onerror = (e) => {
+      console.error('❌ Error reading audio file:', e);
+      alert('❌ File not compatible. Please try a different audio file.');
+    };
+    reader.readAsDataURL(file);
   };
 
   // Save Functions
@@ -703,7 +746,9 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                     <p className="text-xs text-green-600 mt-1">✓ Artwork ready to save</p>
                   </div>
                 )}
-                <p className="text-xs text-slate-500 mt-1">Upload album/single artwork</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  <strong>Requirements:</strong> JPG/PNG/WebP, Square format preferred, Under 2MB
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Audio File (MP3)</label>
@@ -723,7 +768,9 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-slate-500 mt-1">Upload MP3 for play button functionality</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  <strong>Requirements:</strong> MP3/WAV/M4A, Under 5MB, Max 3 minutes duration
+                </p>
               </div>
             </div>
             
