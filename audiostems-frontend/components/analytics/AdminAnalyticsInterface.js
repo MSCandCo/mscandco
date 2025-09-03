@@ -258,15 +258,16 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
   const handleAudioUpload = (file) => {
     if (!file) return;
 
-    // File size limit: 5MB (audio files can be larger than images)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('❌ Audio file too large. Please use an MP3 file under 5MB.');
+    // More restrictive file size limit: 2MB for data URL compatibility
+    if (file.size > 2 * 1024 * 1024) {
+      alert('❌ Audio file too large. Please use an MP3 file under 2MB for database compatibility.');
       return;
     }
 
-    // File type validation
-    if (!file.type.startsWith('audio/')) {
-      alert('❌ File not compatible. Please use MP3, WAV, or M4A audio files.');
+    // File type validation - be more specific
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/m4a'];
+    if (!allowedTypes.includes(file.type)) {
+      alert(`❌ File not compatible. Please use MP3 files only. Current type: ${file.type}`);
       return;
     }
 
@@ -275,21 +276,37 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        console.log('🎵 Audio file converted to data URL, length:', e.target.result.length);
+        const dataUrl = e.target.result;
+        const dataUrlLength = dataUrl.length;
+        
+        console.log('🎵 Audio file converted to data URL, length:', dataUrlLength);
+        
+        // Check if data URL is too large (base64 encoding increases size by ~33%)
+        if (dataUrlLength > 3 * 1024 * 1024) { // 3MB limit for data URL
+          alert('❌ File not compatible. Audio file creates too large data URL. Please use a smaller MP3 file (under 1.5MB).');
+          return;
+        }
+
+        // Validate data URL format
+        if (!dataUrl.startsWith('data:audio/')) {
+          alert('❌ File not compatible. Invalid audio format detected.');
+          return;
+        }
+
         setLatestRelease(prev => ({ 
           ...prev, 
-          audioFileUrl: e.target.result,
+          audioFileUrl: dataUrl,
           audioFileName: file.name 
         }));
         console.log('✅ Audio uploaded successfully');
       } catch (error) {
         console.error('❌ Audio processing error:', error);
-        alert('❌ File not compatible. Please use a smaller MP3 or WAV file.');
+        alert('❌ File not compatible. Error processing audio file. Please use a smaller MP3 file.');
       }
     };
     reader.onerror = (e) => {
       console.error('❌ Error reading audio file:', e);
-      alert('❌ File not compatible. Please try a different audio file.');
+      alert('❌ File not compatible. Could not read audio file. Please try a different MP3 file.');
     };
     reader.readAsDataURL(file);
   };
@@ -300,6 +317,17 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       alert('Please select an artist first');
       return;
     }
+
+    // Validate data URLs before saving to prevent database errors
+    if (latestRelease.audioFileUrl && latestRelease.audioFileUrl.length > 3 * 1024 * 1024) {
+      alert('❌ Audio file too large for database. Please use a smaller MP3 file (under 1.5MB).');
+      return;
+    }
+
+    if (latestRelease.artworkUrl && latestRelease.artworkUrl.length > 3 * 1024 * 1024) {
+      alert('❌ Artwork file too large for database. Please use a smaller image (under 2MB).');
+      return;
+    }
     
     setSaving(true);
     try {
@@ -307,6 +335,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       console.log('🔓 Bypassing auth for testing - using direct API call');
 
       console.log('🚀 Starting save process for artist:', selectedArtistId);
+      console.log('📊 Data URL validation passed - Audio:', latestRelease.audioFileUrl?.length || 0, 'chars, Artwork:', latestRelease.artworkUrl?.length || 0, 'chars');
       console.log('📊 Release data:', {
         title: latestRelease.title,
         artist: latestRelease.artist,
@@ -769,7 +798,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                   </div>
                 )}
                 <p className="text-xs text-slate-500 mt-1">
-                  <strong>Requirements:</strong> MP3/WAV/M4A, Under 5MB, Max 3 minutes duration
+                  <strong>Requirements:</strong> MP3 files only, Under 2MB, 30-60 second previews recommended
                 </p>
               </div>
             </div>
