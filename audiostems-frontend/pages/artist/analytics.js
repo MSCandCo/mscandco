@@ -430,8 +430,8 @@ export default function ArtistAnalytics() {
                 <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                   <span className="text-sm text-slate-600">Last updated:</span>
                   <span className="text-sm font-medium text-slate-900">
-                    {analyticsData?.lastUpdatedTimestamps?.[activeTab] ? 
-                      new Date(analyticsData.lastUpdatedTimestamps[activeTab]).toLocaleString() : 
+                    {analyticsData?.lastUpdated ? 
+                      new Date(analyticsData.lastUpdated).toLocaleString() : 
                       'Not set'
                     }
                   </span>

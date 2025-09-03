@@ -57,9 +57,9 @@ export default async function handler(req, res) {
       analyticsData.sectionVisibility = sectionVisibility;
     }
 
-    // Update last updated timestamps if provided
+    // Update last updated timestamp if provided (single datetime for both Basic and Advanced)
     if (lastUpdated) {
-      analyticsData.lastUpdatedTimestamps = lastUpdated;
+      analyticsData.lastUpdated = lastUpdated; // Single timestamp for display
     }
 
     console.log('📦 Final analytics data to save:', analyticsData);

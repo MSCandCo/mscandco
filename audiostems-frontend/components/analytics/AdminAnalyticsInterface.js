@@ -28,8 +28,8 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     artist: '',
     releaseDate: '',
     releaseType: '',
-    artwork: null,
-    audioFile: null,
+    artworkUrl: '', // Store as URL string instead of File object
+    audioFileUrl: '', // Store as URL string instead of File object
     platforms: [
       { name: 'Spotify', streams: '', change: '' },
       { name: 'Apple Music', streams: '', change: '' },
@@ -38,11 +38,8 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     ]
   });
 
-  // Last Updated Controls
-  const [lastUpdated, setLastUpdated] = useState({
-    basic: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM format
-    advanced: new Date().toISOString().slice(0, 16)
-  });
+  // Single Last Updated Control for both Basic and Advanced
+  const [lastUpdated, setLastUpdated] = useState(new Date().toISOString().slice(0, 16));
 
   // Recent Milestones State
   const [milestones, setMilestones] = useState([
@@ -223,6 +220,27 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     setPlatformPerformance(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
   };
 
+  // File upload handlers
+  const handleArtworkUpload = (file) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAudioUpload = (file) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLatestRelease(prev => ({ ...prev, audioFileUrl: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Save Functions
   const saveBasicAnalytics = async () => {
     if (!selectedArtistId) {
@@ -250,7 +268,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           releaseData: latestRelease,
           milestonesData: milestones,
           sectionVisibility: sectionVisibility,
-          lastUpdated: lastUpdated,
+          lastUpdated: lastUpdated, // Single datetime
           type: 'basic'
         })
       });
@@ -349,7 +367,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
             platformPerformance
           },
           sectionVisibility: sectionVisibility,
-          lastUpdated: lastUpdated,
+          lastUpdated: lastUpdated, // Single datetime
           type: 'advanced'
         })
       });
@@ -556,13 +574,13 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
             </button>
           </nav>
           
-          {/* Last Updated Control */}
+          {/* Last Updated Control - Single datetime for both Basic and Advanced */}
           <div className="flex items-center space-x-2 mt-2 sm:mt-0">
             <span className="text-sm text-slate-600">Last Updated:</span>
             <input
               type="datetime-local"
-              value={lastUpdated[activeTab]}
-              onChange={(e) => setLastUpdated(prev => ({ ...prev, [activeTab]: e.target.value }))}
+              value={lastUpdated}
+              onChange={(e) => setLastUpdated(e.target.value)}
               className="border border-slate-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -652,7 +670,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <input 
                   type="file" 
                   accept="image/*"
-                  onChange={(e) => setLatestRelease(prev => ({ ...prev, artwork: e.target.files[0] }))}
+                  onChange={(e) => handleArtworkUpload(e.target.files[0])}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" 
                 />
                 <p className="text-xs text-slate-500 mt-1">Upload album/single artwork</p>
@@ -662,7 +680,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 <input 
                   type="file" 
                   accept="audio/*"
-                  onChange={(e) => setLatestRelease(prev => ({ ...prev, audioFile: e.target.files[0] }))}
+                  onChange={(e) => handleAudioUpload(e.target.files[0])}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" 
                 />
                 <p className="text-xs text-slate-500 mt-1">Upload MP3 for play button functionality</p>
