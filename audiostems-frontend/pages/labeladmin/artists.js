@@ -1,421 +1,508 @@
-import { useState } from 'react';
-import Layout from '../../components/layouts/mainLayout';
-import { Users, Plus, Music, TrendingUp, DollarSign, Search } from 'lucide-react';
-import MSCVideo from '@/components/shared/MSCVideo';
+// Label Admin Artists Page - REBUILT FROM SCRATCH
+// New artist invitation system with real database integration
+import { useState, useEffect } from 'react';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/router';
+import { 
+  Users, Plus, Search, Send, CheckCircle, XCircle, Clock,
+  AlertTriangle, User, Mail, Calendar, TrendingUp
+} from 'lucide-react';
+import MainLayout from '@/components/layouts/mainLayout';
+import SEO from '@/components/seo';
+import { getUserRole } from '@/lib/user-utils';
 
-export default function LabelAdminArtists() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showAddArtistModal, setShowAddArtistModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [formData, setFormData] = useState({
+export default function LabelAdminArtistsRebuilt() {
+  const { user, isLoading } = useUser();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  
+  // Real database state
+  const [myArtists, setMyArtists] = useState([]);
+  const [artistRequests, setArtistRequests] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  
+  // Invitation form state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
     firstName: '',
     lastName: '',
-    stageName: '',
-    labelRoyaltyPercent: ''
+    message: ''
+  });
+  const [inviting, setInviting] = useState(false);
+  
+  // Notification state
+  const [notification, setNotification] = useState({ 
+    show: false, type: '', title: '', message: '' 
   });
 
-  // Empty artists list for now - will be populated from real data
-  const artists = [];
+  // Check access and load data
+  useEffect(() => {
+    if (!isLoading && user) {
+      const role = getUserRole(user);
+      if (role !== 'label_admin') {
+        router.push('/dashboard');
+        return;
+      }
+      loadLabelAdminData();
+      setLoading(false);
+    } else if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [isLoading, user, router]);
 
-  // Handle form input changes
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Load real data for label admin
+  const loadLabelAdminData = async () => {
+    try {
+      setDataLoading(true);
+      console.log('🎵 Loading real label admin data...');
+
+      // Load artists under this label admin
+      const { data: artists, error: artistsError } = await supabase
+        .from('user_profiles')
+        .select(`
+          *,
+          releases!releases_artist_id_fkey(
+            id,
+            title,
+            status,
+            release_date,
+            created_at
+          ),
+          subscriptions!subscriptions_user_id_fkey(
+            tier,
+            status,
+            expires_at
+          )
+        `)
+        .eq('role', 'artist')
+        .eq('label_admin_id', user.id);
+
+      if (artistsError) {
+        console.error('❌ Error loading artists:', artistsError);
+        showNotification('error', 'Database Error', 'Failed to load your artists');
+      } else {
+        console.log('✅ My artists loaded:', artists?.length || 0);
+        setMyArtists(artists || []);
+      }
+
+      // Load artist requests sent by this label admin
+      const { data: requests, error: requestsError } = await supabase
+        .from('artist_requests')
+        .select('*')
+        .eq('from_label_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (requestsError) {
+        console.error('❌ Error loading requests:', requestsError);
+        showNotification('error', 'Database Error', 'Failed to load artist requests');
+      } else {
+        console.log('✅ Artist requests loaded:', requests?.length || 0);
+        setArtistRequests(requests || []);
+      }
+
+    } catch (error) {
+      console.error('❌ Error loading label admin data:', error);
+      showNotification('error', 'Connection Error', 'Failed to connect to database');
+    } finally {
+      setDataLoading(false);
+    }
   };
 
-  // Handle form submission
-  const handleSubmitArtist = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.stageName || !formData.labelRoyaltyPercent) {
-      alert('Please fill in all fields');
+  // Send artist invitation - NEW WORKFLOW
+  const sendArtistInvitation = async () => {
+    if (!inviteForm.firstName.trim() || !inviteForm.lastName.trim()) {
+      showNotification('error', 'Validation Error', 'First name and last name are required');
       return;
     }
 
-    setIsSubmitting(true);
-    
     try {
-      // Submit artist request to API (will be approved by company admin/super admin)
-      const response = await fetch('/api/labeladmin/add-artist-request', {
+      setInviting(true);
+      console.log('📤 Sending artist invitation:', inviteForm);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/labeladmin/invite-artist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(inviteForm)
       });
 
-      if (response.ok) {
-        setShowAddArtistModal(false);
-        setShowSuccessMessage(true);
-        setFormData({
-          firstName: '',
-          lastName: '',
-          stageName: '',
-          labelRoyaltyPercent: ''
-        });
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => setShowSuccessMessage(false), 5000);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        showNotification('success', 'Invitation Sent!', result.message);
+        setShowInviteModal(false);
+        setInviteForm({ firstName: '', lastName: '', message: '' });
+        loadLabelAdminData(); // Refresh data
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Failed to submit artist request');
+        // Handle specific error types with branded messages
+        if (result.type === 'artist_not_found') {
+          showNotification('error', 'Artist Not Registered', 
+            `${result.searchedName} is not registered on the platform. They need to create an account first.`);
+        } else if (result.type === 'duplicate_request') {
+          showNotification('error', 'Duplicate Request', result.error);
+        } else {
+          showNotification('error', 'Invitation Failed', result.error || 'Unknown error occurred');
+        }
       }
     } catch (error) {
-      console.error('Error submitting artist request:', error);
-      alert('Error submitting request. Please try again.');
+      console.error('❌ Error sending invitation:', error);
+      showNotification('error', 'Connection Error', 'Failed to send invitation');
     } finally {
-      setIsSubmitting(false);
+      setInviting(false);
     }
   };
 
+  const showNotification = (type, title, message) => {
+    setNotification({ show: true, type, title, message });
+    setTimeout(() => setNotification({ show: false, type: '', title: '', message: '' }), 5000);
+  };
+
+  if (loading || dataLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-600 text-lg">Loading your artists and requests...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
-    <Layout>
+    <MainLayout>
+      <SEO 
+        title="My Artists - Label Admin"
+        description="Manage your artists with real database integration"
+      />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
+        <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white mb-8">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Artist Management</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Manage artists signed to your label
+              <div className="flex items-center mb-2">
+                <Users className="w-8 h-8 mr-3" />
+                <h1 className="text-3xl font-bold">My Artists</h1>
+              </div>
+              <p className="text-green-100 text-lg">
+                Manage your roster - {myArtists.length} artists, {artistRequests.filter(r => r.status === 'pending').length} pending requests
               </p>
             </div>
-            <button 
-              onClick={() => setShowAddArtistModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center"
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="flex items-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-colors"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Artist
+              <Plus className="w-5 h-5 mr-2" />
+              Invite Artist
             </button>
           </div>
         </div>
 
-        {/* MSC & Co Video */}
-        <div className="mb-8">
-          <MSCVideo 
-            artistName="H-Tay"
-            songTitle="Featured Track"
-          />
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600 mb-1">My Artists</p>
+                <p className="text-3xl font-bold text-slate-900">{myArtists.length}</p>
+                <p className="text-xs text-green-600">
+                  {myArtists.filter(a => a.subscriptions?.some(s => s.status === 'active')).length} with subscriptions
+                </p>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Artists</dt>
-                  <dd className="text-lg font-medium text-gray-900">{artists.length}</dd>
-                </dl>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                  <Music className="w-5 h-5 text-white" />
-                </div>
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600 mb-1">Total Releases</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {myArtists.reduce((sum, artist) => sum + (artist.releases?.length || 0), 0)}
+                </p>
+                <p className="text-xs text-blue-600">
+                  {myArtists.reduce((sum, artist) => sum + (artist.releases?.filter(r => r.status === 'live').length || 0), 0)} live
+                </p>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Active Releases</dt>
-                  <dd className="text-lg font-medium text-gray-900">0</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Streams</dt>
-                  <dd className="text-lg font-medium text-gray-900">0</dd>
-                </dl>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-white" />
-                </div>
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600 mb-1">Pending Requests</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {artistRequests.filter(r => r.status === 'pending').length}
+                </p>
+                <p className="text-xs text-orange-600">
+                  {artistRequests.filter(r => r.status === 'accepted').length} accepted total
+                </p>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-                  <dd className="text-lg font-medium text-gray-900">£0.00</dd>
-                </dl>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-orange-600" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Search and Filter */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search artists..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Artists</option>
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
+        {/* My Artists List */}
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200 mb-8">
+          <div className="px-6 py-4 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900">My Artists ({myArtists.length})</h3>
+            <p className="text-sm text-slate-600">Artists who have accepted your label invitation</p>
           </div>
-        </div>
 
-        {/* Artists List */}
-        <div className="bg-white rounded-lg shadow">
-          {artists.length === 0 ? (
-            <div className="p-12 text-center">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Artists Yet</h3>
-              <p className="text-gray-600 mb-6">
-                Start building your label by signing artists and managing their releases.
-              </p>
-              <button 
-                onClick={() => setShowAddArtistModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg flex items-center mx-auto"
+          {myArtists.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 text-lg">No artists in your roster yet</p>
+              <p className="text-slate-400 text-sm mb-6">Start by inviting artists to join your label</p>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Your First Artist
+                Invite Your First Artist
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Artist
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Releases
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {/* Artist rows will be mapped here */}
-                </tbody>
-              </table>
+            <div className="divide-y divide-slate-200">
+              {myArtists.map((artist) => {
+                const activeSubscription = artist.subscriptions?.find(s => s.status === 'active');
+                const totalReleases = artist.releases?.length || 0;
+                const liveReleases = artist.releases?.filter(r => r.status === 'live').length || 0;
+                
+                return (
+                  <div key={artist.id} className="p-6 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-slate-900">
+                            {artist.artist_name || `${artist.first_name} ${artist.last_name}`}
+                          </h4>
+                          <p className="text-slate-600">{artist.email}</p>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              activeSubscription 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {activeSubscription ? activeSubscription.tier.replace('_', ' ').toUpperCase() : 'No Subscription'}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {totalReleases} releases ({liveReleases} live)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right text-sm">
+                          <div className="text-slate-900 font-medium">{totalReleases} Releases</div>
+                          <div className="text-slate-500">{liveReleases} Live</div>
+                        </div>
+                        <button className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Manage
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Call to Action */}
-        <div className="mt-12 bg-blue-50 rounded-lg p-8 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Build Your Label</h3>
-          <p className="text-gray-600 mb-6">
-            Start signing artists and releasing music to grow your label and generate revenue.
-          </p>
-          <div className="flex justify-center space-x-4">
-            <button 
-              onClick={() => setShowAddArtistModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg"
-            >
-              Add Artist
-            </button>
-            <a 
-              href="/labeladmin/releases" 
-              className="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 font-medium py-2 px-6 rounded-lg"
-            >
-              Manage Releases
-            </a>
+        {/* Artist Requests Status */}
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+          <div className="px-6 py-4 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900">Artist Invitation Requests ({artistRequests.length})</h3>
+            <p className="text-sm text-slate-600">Track your sent invitations and responses</p>
           </div>
-        </div>
-      </div>
 
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center">
-          <div className="mr-3">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div>
-            <h4 className="font-semibold">Request Successfully Sent</h4>
-            <p className="text-sm">Your artist request is pending approval from Company Admin or Super Admin.</p>
-          </div>
-          <button 
-            onClick={() => setShowSuccessMessage(false)}
-            className="ml-4 text-white hover:text-gray-200"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Add Artist Modal */}
-      {showAddArtistModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto transform transition-all">
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Add New Artist</h3>
-                  <p className="text-sm text-gray-600 mt-1">Submit a request to add an artist to your label</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowAddArtistModal(false);
-                    setFormData({
-                      firstName: '',
-                      lastName: '',
-                      stageName: '',
-                      labelRoyaltyPercent: ''
-                    });
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Form Content */}
-              <div className="space-y-5">
-                {/* First Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">First Name</label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Enter artist's first name..."
-                  />
-                </div>
-
-                {/* Last Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Last Name</label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Enter artist's last name..."
-                  />
-                </div>
-
-                {/* Stage Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Stage Name</label>
-                  <input
-                    type="text"
-                    value={formData.stageName}
-                    onChange={(e) => handleInputChange('stageName', e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Enter artist's stage name..."
-                  />
-                </div>
-
-                {/* Label Royalty % */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Label Royalty %</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={formData.labelRoyaltyPercent}
-                      onChange={(e) => handleInputChange('labelRoyaltyPercent', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors pr-12"
-                      placeholder="Enter royalty percentage..."
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span className="text-gray-500 text-sm font-medium">%</span>
+          {artistRequests.length === 0 ? (
+            <div className="text-center py-12">
+              <Send className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 text-lg">No invitations sent yet</p>
+              <p className="text-slate-400 text-sm">Start building your roster by inviting artists</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-200">
+              {artistRequests.map((request) => (
+                <div key={request.id} className="p-6 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        request.status === 'accepted' ? 'bg-green-100' :
+                        request.status === 'declined' ? 'bg-red-100' : 'bg-yellow-100'
+                      }`}>
+                        {request.status === 'accepted' ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : request.status === 'declined' ? (
+                          <XCircle className="w-5 h-5 text-red-600" />
+                        ) : (
+                          <Clock className="w-5 h-5 text-yellow-600" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-slate-900">
+                          {request.artist_first_name} {request.artist_last_name}
+                        </h4>
+                        <p className="text-slate-600">{request.artist_email}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                            request.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                            request.status === 'declined' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {request.status.toUpperCase()}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            Sent {new Date(request.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-slate-500">
+                      {request.status === 'pending' && (
+                        <div>Awaiting response</div>
+                      )}
+                      {request.responded_at && (
+                        <div>Responded {new Date(request.responded_at).toLocaleDateString()}</div>
+                      )}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Percentage of royalties that go to the label</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Artist Invitation Modal */}
+        {showInviteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+              <div className="bg-gradient-to-r from-green-600 to-blue-600 p-6 text-white">
+                <h3 className="text-xl font-bold">Invite Artist to Label</h3>
+                <p className="text-green-100">Search by artist's registered name</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">First Name *</label>
+                  <input
+                    type="text"
+                    value={inviteForm.firstName}
+                    onChange={(e) => setInviteForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Artist's first name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Last Name *</label>
+                  <input
+                    type="text"
+                    value={inviteForm.lastName}
+                    onChange={(e) => setInviteForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Artist's last name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Personal Message (Optional)</label>
+                  <textarea
+                    value={inviteForm.message}
+                    onChange={(e) => setInviteForm(prev => ({ ...prev, message: e.target.value }))}
+                    rows="3"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Add a personal message to your invitation..."
+                  />
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium">How it works:</p>
+                      <p>We'll search for an artist with this exact name. If found, they'll receive your invitation and can accept or decline.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50"
+                    disabled={inviting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={sendArtistInvitation}
+                    disabled={inviting || !inviteForm.firstName.trim() || !inviteForm.lastName.trim()}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {inviting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Invitation
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
 
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+        {/* MSC & Co Branded Notification */}
+        {notification.show && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
+              <div className={`flex items-center mb-4 ${
+                notification.type === 'error' ? 'text-red-600' : 'text-green-600'
+              }`}>
+                {notification.type === 'error' ? (
+                  <AlertTriangle className="w-6 h-6 mr-3" />
+                ) : (
+                  <CheckCircle className="w-6 h-6 mr-3" />
+                )}
+                <h3 className="text-lg font-semibold">{notification.title}</h3>
+              </div>
+              <p className="text-slate-600 mb-6">{notification.message}</p>
+              <div className="flex justify-end">
                 <button
-                  onClick={() => {
-                    setShowAddArtistModal(false);
-                    setFormData({
-                      firstName: '',
-                      lastName: '',
-                      stageName: '',
-                      labelRoyaltyPercent: ''
-                    });
-                  }}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                  disabled={isSubmitting}
+                  onClick={() => setNotification({ show: false, type: '', title: '', message: '' })}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmitArtist}
-                  disabled={!formData.firstName || !formData.lastName || !formData.stageName || !formData.labelRoyaltyPercent || isSubmitting}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed flex items-center"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Request'
-                  )}
+                  OK
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </Layout>
+        )}
+      </div>
+    </MainLayout>
   );
 }
