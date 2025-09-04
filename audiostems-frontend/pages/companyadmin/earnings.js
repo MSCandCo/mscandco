@@ -19,7 +19,8 @@ import {
   PieChart,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Settings
 } from 'lucide-react';
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import CustomDateRangePicker from '../../components/shared/CustomDateRangePicker';
