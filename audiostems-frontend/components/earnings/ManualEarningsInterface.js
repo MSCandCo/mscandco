@@ -365,13 +365,13 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
             </button>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3 ml-8">
             <span className="text-sm text-slate-600">Last updated:</span>
             <input
               type="datetime-local"
               value={lastUpdated ? new Date(lastUpdated).toISOString().slice(0, 16) : ''}
               onChange={(e) => setLastUpdated(e.target.value ? new Date(e.target.value).toISOString() : '')}
-              className="text-sm px-2 py-1 border border-slate-300 rounded"
+              className="text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
         </div>
