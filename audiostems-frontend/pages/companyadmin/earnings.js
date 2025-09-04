@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/layouts/mainLayout';
+import Link from 'next/link';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -251,6 +252,12 @@ export default function CompanyAdminEarnings() {
               <p className="text-gray-600">Track and manage earnings from all assets across the platform</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 mt-4 lg:mt-0">
+              <Link href="/companyadmin/earnings-management">
+                <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Artist Earnings
+                </button>
+              </Link>
               <button
                 onClick={downloadEarningsReport}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

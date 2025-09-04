@@ -628,18 +628,6 @@ export default function RoleBasedNavigation() {
                   Analytics
                 </Link>
                 <Link
-                  href="/companyadmin/analytics-management"
-                  className={getNavLinkClasses('/companyadmin/analytics-management')}
-                >
-                  Manage Analytics
-                </Link>
-                <Link
-                  href="/companyadmin/earnings-management"
-                  className={getNavLinkClasses('/companyadmin/earnings-management')}
-                >
-                  Manage Earnings
-                </Link>
-                <Link
                   href="/companyadmin/earnings"
                   className={getNavLinkClasses('/companyadmin/earnings')}
                 >

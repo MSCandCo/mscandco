@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { 
@@ -367,10 +368,18 @@ export default function SuperAdminEarnings() {
                 Global revenue management and distribution control across all brands
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-red-100">Total Platform Revenue</div>
-              <div className="text-2xl font-bold">
-                {formatCurrency(platformEarningsData.totalPlatformEarnings, selectedCurrency)}
+            <div className="flex items-center space-x-4">
+              <Link href="/companyadmin/earnings-management">
+                <button className="flex items-center px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-colors">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Artist Earnings
+                </button>
+              </Link>
+              <div className="text-right">
+                <div className="text-sm text-red-100">Total Platform Revenue</div>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(platformEarningsData.totalPlatformEarnings, selectedCurrency)}
+                </div>
               </div>
             </div>
           </div>

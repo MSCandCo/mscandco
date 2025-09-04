@@ -1,10 +1,11 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import Link from 'next/link';
 import MainLayout from "@/components/layouts/mainLayout";
 import SEO from "@/components/seo";
 import { Card, Badge } from "flowbite-react";
-import { Users, Download, Music, CreditCard } from "lucide-react";
+import { Users, Download, Music, CreditCard, Settings } from "lucide-react";
 import useSWR from "swr";
 import { apiRoute } from "@/lib/utils";
 import moment from "moment";
@@ -116,11 +117,19 @@ function AdminAnalytics() {
               <h1 className="text-3xl font-bold">Business Analytics</h1>
               <p className="text-gray-600 mt-2">Operations efficiency and performance metrics</p>
             </div>
-            <CurrencySelector 
-              selectedCurrency={selectedCurrency}
-              onCurrencyChange={updateCurrency}
-              compact={true}
-            />
+            <div className="flex items-center space-x-4">
+              <Link href="/companyadmin/analytics-management">
+                <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Artist Analytics
+                </button>
+              </Link>
+              <CurrencySelector 
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+              />
+            </div>
           </div>
           
           {/* Business Stats Cards */}
