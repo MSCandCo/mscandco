@@ -255,7 +255,6 @@ export default function RoleBasedDashboard() {
           cards: [
             { title: 'Releases', description: 'Manage your music releases', icon: Music, onClick: () => router.push('/artist/releases') },
             { title: 'Analytics', description: 'View performance metrics', icon: BarChart3, onClick: () => router.push('/artist/analytics') },
-            { title: 'Manage Analytics', description: 'Update your analytics data', icon: Edit3, onClick: () => router.push('/artist/analytics-management') },
             { title: 'Earnings', description: 'Track your revenue', icon: DollarSign, onClick: () => router.push('/artist/earnings') },
             { title: 'Profile', description: 'Update your information', icon: Settings, onClick: () => router.push('/artist/profile') }
           ]
