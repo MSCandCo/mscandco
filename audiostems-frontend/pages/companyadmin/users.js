@@ -11,7 +11,7 @@ import {
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
-import { getApprovedArtistsByLabel, getUsers } from '@/lib/emptyData';
+// Removed mock data imports - using real database
 import { getUserRole } from '@/lib/user-utils';
 import Avatar from '@/components/shared/Avatar';
 import { SuccessModal } from '@/components/shared/SuccessModal';
@@ -63,11 +63,12 @@ export default function CompanyAdminUsersPage() {
   // Get user role
   const userRole = getUserRole(user);
 
-  // Company Admin can only see Label Admins and Artists (no Super Admin, Company Admin, or Distribution Partner)
-  const allUsers = getUsers();
-  const filteredUsersByRole = allUsers.filter(u => ['label_admin', 'artist'].includes(u.role));
+  // Real database state - Company Admin can only see Label Admins and Artists
+  const [allUsers, setAllUsers] = useState([]);
+  const [filteredUsersByRole, setFilteredUsersByRole] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
 
-  // Check admin access
+  // Check admin access and load real users
   useEffect(() => {
     if (!isLoading && user) {
       const role = getUserRole(user);
@@ -75,11 +76,63 @@ export default function CompanyAdminUsersPage() {
         router.push('/dashboard');
         return;
       }
+      loadRealUsers();
       setLoading(false);
     } else if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [isLoading, user, user, router]);
+  }, [isLoading, user, router]);
+
+  // Load real users from database
+  const loadRealUsers = async () => {
+    try {
+      setUsersLoading(true);
+      console.log('👥 Loading real users from database...');
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        console.error('No auth token available');
+        return;
+      }
+
+      const response = await fetch('/api/admin/get-artists', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Loaded real users:', result.breakdown);
+        const realUsers = result.users || [];
+        setAllUsers(realUsers);
+        
+        // Filter to only show Label Admins and Artists (not Super Admin, Company Admin, Distribution Partner)
+        const filtered = realUsers.filter(u => ['label_admin', 'artist'].includes(u.role));
+        setFilteredUsersByRole(filtered);
+        
+        console.log('📊 Company Admin Users Page - Real Data:', {
+          totalUsers: realUsers.length,
+          filteredUsers: filtered.length,
+          artists: filtered.filter(u => u.role === 'artist').length,
+          labelAdmins: filtered.filter(u => u.role === 'label_admin').length
+        });
+      } else {
+        console.error('Failed to load users:', result.error);
+        showError('Failed to load users from database', 'Database Error');
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      showError('Error connecting to database', 'Connection Error');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   // Load saved revenue split configuration
   useEffect(() => {
@@ -281,7 +334,7 @@ export default function CompanyAdminUsersPage() {
     }
   };
 
-  if (loading) {
+  if (loading || usersLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
