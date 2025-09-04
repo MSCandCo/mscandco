@@ -25,13 +25,13 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   
-  // Basic Earnings State (4 key metrics)
-  const [basicMetrics, setBasicMetrics] = useState({
-    totalEarnings: { value: 0, label: 'Total Earnings', change: '0%' },
-    thisMonth: { value: 0, label: 'This Month', change: '0%' },
-    available: { value: 0, label: 'Available', change: '0%' },
-    growth: { value: 0, label: 'Growth', change: '0%', isPercentage: true }
-  });
+  // Basic Earnings State - Dynamic metrics array
+  const [basicMetrics, setBasicMetrics] = useState([
+    { id: 1, label: 'Total Earnings', value: 0, change: '0%' },
+    { id: 2, label: 'This Month', value: 0, change: '0%' },
+    { id: 3, label: 'Available', value: 0, change: '0%' },
+    { id: 4, label: 'Growth', value: 0, change: '0%', isPercentage: true }
+  ]);
 
   // Advanced Earnings State
   const [advancedMetrics, setAdvancedMetrics] = useState({
@@ -124,8 +124,23 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
           const earningsData = data.earnings_data;
           console.log('📊 Loaded earnings data:', earningsData);
           
-          // Load data into state
-          if (earningsData.basicMetrics) setBasicMetrics(earningsData.basicMetrics);
+          // Load data into state - handle both array and object formats
+          if (earningsData.basicMetrics) {
+            // If it's an array (new format), use it directly
+            if (Array.isArray(earningsData.basicMetrics)) {
+              setBasicMetrics(earningsData.basicMetrics);
+            } else {
+              // If it's an object (old format), convert to array
+              const metricsArray = Object.entries(earningsData.basicMetrics).map(([key, metric], index) => ({
+                id: index + 1,
+                label: metric.label,
+                value: metric.value,
+                change: metric.change,
+                isPercentage: metric.isPercentage || false
+              }));
+              setBasicMetrics(metricsArray);
+            }
+          }
           if (earningsData.advancedMetrics) setAdvancedMetrics(earningsData.advancedMetrics);
           if (earningsData.platformRevenue) setPlatformRevenue(earningsData.platformRevenue);
           if (earningsData.territoryRevenue) setTerritoryRevenue(earningsData.territoryRevenue);
@@ -142,6 +157,27 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
   }, [selectedArtistId]);
 
   // Helper functions for dynamic arrays
+  const addBasicMetric = () => {
+    const newId = Math.max(...basicMetrics.map(m => m.id), 0) + 1;
+    setBasicMetrics(prev => [...prev, {
+      id: newId,
+      label: 'New Metric',
+      value: 0,
+      change: '0%',
+      isPercentage: false
+    }]);
+  };
+
+  const removeBasicMetric = (id) => {
+    setBasicMetrics(prev => prev.filter(m => m.id !== id));
+  };
+
+  const updateBasicMetric = (id, field, value) => {
+    setBasicMetrics(prev => prev.map(m => 
+      m.id === id ? { ...m, [field]: value } : m
+    ));
+  };
+
   const addPlatform = () => {
     const newId = Math.max(...platformRevenue.map(p => p.id), 0) + 1;
     setPlatformRevenue(prev => [...prev, {
@@ -347,50 +383,78 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Basic Earnings Metrics</h3>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-slate-600">Visible to users:</span>
-                <input
-                  type="checkbox"
-                  checked={sectionVisibility.basicMetrics !== false}
-                  onChange={(e) => setSectionVisibility(prev => ({ ...prev, basicMetrics: e.target.checked }))}
-                  className="rounded"
-                />
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-slate-600">Visible to users:</span>
+                  <input
+                    type="checkbox"
+                    checked={sectionVisibility.basicMetrics !== false}
+                    onChange={(e) => setSectionVisibility(prev => ({ ...prev, basicMetrics: e.target.checked }))}
+                    className="rounded"
+                  />
+                </div>
+                <button
+                  onClick={addBasicMetric}
+                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Metric
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(basicMetrics).map(([key, metric]) => (
-                <div key={key} className="border border-slate-200 rounded-xl p-6 bg-slate-50">
-                  <label className="block text-sm font-medium text-slate-700 mb-4">
-                    {metric.label}
-                  </label>
-                  <div className="space-y-4">
+            <div className="space-y-6">
+              {basicMetrics.map((metric) => (
+                <div key={metric.id} className="relative border border-slate-200 rounded-xl p-6 bg-slate-50">
+                  <button
+                    onClick={() => removeBasicMetric(metric.id)}
+                    className="absolute top-4 right-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pr-12">
                     <div>
-                      <label className="block text-xs text-slate-500 mb-2">Value</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Metric Label</label>
+                      <input
+                        type="text"
+                        value={metric.label}
+                        onChange={(e) => updateBasicMetric(metric.id, 'label', e.target.value)}
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="e.g. Total Earnings, This Month"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Value</label>
                       <input
                         type="number"
                         step="0.01"
                         value={metric.value}
-                        onChange={(e) => setBasicMetrics(prev => ({
-                          ...prev,
-                          [key]: { ...prev[key], value: parseFloat(e.target.value) || 0 }
-                        }))}
+                        onChange={(e) => updateBasicMetric(metric.id, 'value', parseFloat(e.target.value) || 0)}
                         className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500 mb-2">Change Percentage</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Change Percentage</label>
                       <input
                         type="text"
                         value={metric.change}
-                        onChange={(e) => setBasicMetrics(prev => ({
-                          ...prev,
-                          [key]: { ...prev[key], change: e.target.value }
-                        }))}
+                        onChange={(e) => updateBasicMetric(metric.id, 'change', e.target.value)}
                         className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                         placeholder="+5.2%"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Display Type</label>
+                      <select
+                        value={metric.isPercentage ? 'percentage' : 'currency'}
+                        onChange={(e) => updateBasicMetric(metric.id, 'isPercentage', e.target.value === 'percentage')}
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      >
+                        <option value="currency">💰 Currency Amount</option>
+                        <option value="percentage">📊 Percentage Value</option>
+                      </select>
                     </div>
                   </div>
                 </div>

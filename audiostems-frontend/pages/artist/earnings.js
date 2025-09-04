@@ -245,33 +245,55 @@ export default function ArtistEarnings() {
   };
 
   const renderBasicEarnings = () => {
-    const basicMetrics = earningsData?.basicMetrics || {
-      totalEarnings: { value: 0, label: 'Total Earnings', change: '0%' },
-      thisMonth: { value: 0, label: 'This Month', change: '0%' },
-      available: { value: 0, label: 'Available', change: '0%' },
-      growth: { value: 0, label: 'Growth', change: '0%' }
-    };
+    // Handle both array (new) and object (old) formats
+    let basicMetricsArray = [];
+    
+    if (earningsData?.basicMetrics) {
+      if (Array.isArray(earningsData.basicMetrics)) {
+        basicMetricsArray = earningsData.basicMetrics;
+      } else {
+        // Convert object format to array for backwards compatibility
+        basicMetricsArray = Object.entries(earningsData.basicMetrics).map(([key, metric], index) => ({
+          id: index + 1,
+          label: metric.label,
+          value: metric.value,
+          change: metric.change,
+          isPercentage: metric.isPercentage || false
+        }));
+      }
+    } else {
+      // Default metrics if no data
+      basicMetricsArray = [
+        { id: 1, label: 'Total Earnings', value: 0, change: '0%' },
+        { id: 2, label: 'This Month', value: 0, change: '0%' },
+        { id: 3, label: 'Available', value: 0, change: '0%' },
+        { id: 4, label: 'Growth', value: 0, change: '0%', isPercentage: true }
+      ];
+    }
 
     return (
       <div className="space-y-8">
         {/* Basic Earnings Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Object.entries(basicMetrics).map(([key, metric]) => {
+          {basicMetricsArray.map((metric, index) => {
             const isPositive = metric.change?.startsWith?.('+') || parseFloat(metric.change) > 0;
             const isNegative = metric.change?.startsWith?.('-') || parseFloat(metric.change) < 0;
             
+            // Assign colors based on index for visual variety
+            const colorClasses = [
+              'bg-green-100', 'bg-blue-100', 'bg-purple-100', 'bg-orange-100', 
+              'bg-pink-100', 'bg-indigo-100', 'bg-teal-100', 'bg-yellow-100'
+            ];
+            const iconColorClasses = [
+              'text-green-600', 'text-blue-600', 'text-purple-600', 'text-orange-600',
+              'text-pink-600', 'text-indigo-600', 'text-teal-600', 'text-yellow-600'
+            ];
+            
             return (
-              <div key={key} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-shadow">
+              <div key={metric.id} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    key === 'totalEarnings' ? 'bg-green-100' :
-                    key === 'thisMonth' ? 'bg-blue-100' :
-                    key === 'available' ? 'bg-purple-100' : 'bg-orange-100'
-                  }`}>
-                    {key === 'totalEarnings' ? <DollarSign className="w-6 h-6 text-green-600" /> :
-                     key === 'thisMonth' ? <Calendar className="w-6 h-6 text-blue-600" /> :
-                     key === 'available' ? <CreditCard className="w-6 h-6 text-purple-600" /> :
-                     <TrendingUp className="w-6 h-6 text-orange-600" />}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[index % colorClasses.length]}`}>
+                    <DollarSign className={`w-6 h-6 ${iconColorClasses[index % iconColorClasses.length]}`} />
                   </div>
                   {metric.change && (
                     <div className={`flex items-center text-sm font-medium ${
@@ -288,7 +310,7 @@ export default function ArtistEarnings() {
                     {metric.label}
                   </p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {key === 'growth' && metric.isPercentage ? 
+                    {metric.isPercentage ? 
                       `${metric.value}%` : 
                       formatCurrency(metric.value, selectedCurrency)
                     }
@@ -321,14 +343,16 @@ export default function ArtistEarnings() {
               You need at least {formatCurrency(100, selectedCurrency)} to request a payout
             </p>
             <button 
-              disabled={!basicMetrics.available || basicMetrics.available.value < 100}
+              disabled={!basicMetricsArray.find(m => m.label.toLowerCase().includes('available'))?.value || 
+                       basicMetricsArray.find(m => m.label.toLowerCase().includes('available'))?.value < 100}
               className={`font-medium py-3 px-6 rounded-lg transition-colors ${
-                basicMetrics.available?.value >= 100 
+                basicMetricsArray.find(m => m.label.toLowerCase().includes('available'))?.value >= 100
                   ? 'bg-green-600 text-white hover:bg-green-700' 
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {basicMetrics.available?.value >= 100 ? 'Request Payout' : 'Insufficient Balance'}
+              {basicMetricsArray.find(m => m.label.toLowerCase().includes('available'))?.value >= 100 
+                ? 'Request Payout' : 'Insufficient Balance'}
             </button>
           </div>
         </div>
