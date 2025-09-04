@@ -119,17 +119,14 @@ export default function ArtistEarnings() {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('earnings_data')
-          .eq('id', user.id)
-          .single();
+        const response = await fetch('/api/artist/earnings-data');
+        const result = await response.json();
 
-        if (error) {
-          console.error('Error loading earnings data:', error);
-        } else if (data?.earnings_data) {
-          console.log('📊 Loaded manual earnings data:', data.earnings_data);
-          setEarningsData(data.earnings_data);
+        if (result.success) {
+          console.log('📊 Loaded manual earnings data:', result.data);
+          setEarningsData(result.data);
+        } else {
+          console.error('Error loading earnings data:', result.error);
         }
       } catch (error) {
         console.error('Error loading earnings data:', error);
