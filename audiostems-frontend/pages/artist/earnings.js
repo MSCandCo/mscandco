@@ -231,7 +231,7 @@ export default function ArtistEarnings() {
 
   // Territory Revenue Chart Data  
   const territoryChartData = {
-    labels: earningsData?.territoryRevenue?.map(t => t.country.replace(/🏳️|🏴|[🇦-🇿]/g, '').trim()) || ['No Data'],
+    labels: earningsData?.territoryRevenue?.map(t => t.country.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '').trim()) || ['No Data'],
     datasets: [{
       label: 'Territory Revenue',
       data: earningsData?.territoryRevenue?.map(t => t.revenue) || [0],
@@ -488,7 +488,7 @@ export default function ArtistEarnings() {
               <div className="space-y-6">
                 <div className="h-64">
                   <Bar data={{
-                    labels: earningsData.territoryRevenue.map(t => t.country.replace(/🏳️|🏴|[🇦-🇿]/g, '').trim().slice(0, 10)),
+                    labels: earningsData.territoryRevenue.map(t => t.country.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '').trim().slice(0, 10)),
                     datasets: [{
                       label: 'Territory Revenue',
                       data: earningsData.territoryRevenue.map(t => t.revenue),
