@@ -358,15 +358,15 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Object.entries(basicMetrics).map(([key, metric]) => (
-                <div key={key} className="border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                <div key={key} className="border border-slate-200 rounded-xl p-6 bg-slate-50">
+                  <label className="block text-sm font-medium text-slate-700 mb-4">
                     {metric.label}
                   </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <span className="text-sm text-slate-500 mr-2">Value:</span>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-2">Value</label>
                       <input
                         type="number"
                         step="0.01"
@@ -375,12 +375,12 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                           ...prev,
                           [key]: { ...prev[key], value: parseFloat(e.target.value) || 0 }
                         }))}
-                        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-sm text-slate-500 mr-2">Change:</span>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-2">Change Percentage</label>
                       <input
                         type="text"
                         value={metric.change}
@@ -388,7 +388,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                           ...prev,
                           [key]: { ...prev[key], change: e.target.value }
                         }))}
-                        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                         placeholder="+5.2%"
                       />
                     </div>
@@ -417,13 +417,13 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
           {/* Date Range Selector */}
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Date Range Settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Period</label>
+                <label className="block text-sm font-medium text-slate-700 mb-3">Period</label>
                 <select
                   value={dateRange.period}
                   onChange={(e) => setDateRange(prev => ({ ...prev, period: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                 >
                   <option value="7d">Last 7 days</option>
                   <option value="30d">Last 30 days</option>
@@ -433,21 +433,21 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
+                <label className="block text-sm font-medium text-slate-700 mb-3">Start Date</label>
                 <input
                   type="date"
                   value={dateRange.startDate}
                   onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
+                <label className="block text-sm font-medium text-slate-700 mb-3">End Date</label>
                 <input
                   type="date"
                   value={dateRange.endDate}
                   onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                 />
               </div>
             </div>
@@ -468,10 +468,10 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.entries(advancedMetrics).map(([key, metric]) => (
-                <div key={key} className="border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                <div key={key} className="border border-slate-200 rounded-xl p-6 bg-slate-50">
+                  <label className="block text-sm font-medium text-slate-700 mb-3">
                     {metric.label}
                   </label>
                   <input
@@ -482,7 +482,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                       ...prev,
                       [key]: { ...prev[key], value: parseFloat(e.target.value) || 0 }
                     }))}
-                    className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                    className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                     placeholder="0.00"
                   />
                 </div>
@@ -514,61 +514,64 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {platformRevenue.map((platform) => (
-                <div key={platform.id} className="relative border border-slate-200 rounded-lg p-4">
+                <div key={platform.id} className="relative border border-slate-200 rounded-xl p-6 bg-slate-50">
                   <button
                     onClick={() => removePlatform(platform.id)}
-                    className="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700"
+                    className="absolute top-4 right-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pr-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pr-12">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Platform Name</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Platform Name</label>
                       <input
                         type="text"
                         value={platform.platform}
                         onChange={(e) => updatePlatform(platform.id, 'platform', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="e.g. Spotify, Apple Music"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Revenue</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Revenue Amount</label>
                       <input
                         type="number"
                         step="0.01"
                         value={platform.revenue}
                         onChange={(e) => updatePlatform(platform.id, 'revenue', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Percentage</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Percentage Share</label>
                       <input
                         type="number"
                         step="0.01"
                         value={platform.percentage}
                         onChange={(e) => updatePlatform(platform.id, 'percentage', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Chart Color</label>
                       <select
                         value={platform.color}
                         onChange={(e) => updatePlatform(platform.id, 'color', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                       >
-                        <option value="bg-green-500">Green</option>
-                        <option value="bg-blue-500">Blue</option>
-                        <option value="bg-red-500">Red</option>
-                        <option value="bg-purple-500">Purple</option>
-                        <option value="bg-orange-500">Orange</option>
-                        <option value="bg-pink-500">Pink</option>
-                        <option value="bg-gray-500">Gray</option>
-                        <option value="bg-yellow-500">Yellow</option>
+                        <option value="bg-green-500">🟢 Green</option>
+                        <option value="bg-blue-500">🔵 Blue</option>
+                        <option value="bg-red-500">🔴 Red</option>
+                        <option value="bg-purple-500">🟣 Purple</option>
+                        <option value="bg-orange-500">🟠 Orange</option>
+                        <option value="bg-pink-500">🩷 Pink</option>
+                        <option value="bg-gray-500">⚫ Gray</option>
+                        <option value="bg-yellow-500">🟡 Yellow</option>
                       </select>
                     </div>
                   </div>
@@ -601,45 +604,47 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {territoryRevenue.map((territory) => (
-                <div key={territory.id} className="relative border border-slate-200 rounded-lg p-4">
+                <div key={territory.id} className="relative border border-slate-200 rounded-xl p-6 bg-slate-50">
                   <button
                     onClick={() => removeTerritory(territory.id)}
-                    className="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700"
+                    className="absolute top-4 right-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pr-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pr-12">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Country/Territory</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Country/Territory</label>
                       <input
                         type="text"
                         value={territory.country}
                         onChange={(e) => updateTerritory(territory.id, 'country', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
-                        placeholder="🌍 Territory Name"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="🌍 Territory Name (e.g. 🇺🇸 United States)"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Revenue</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Revenue Amount</label>
                       <input
                         type="number"
                         step="0.01"
                         value={territory.revenue}
                         onChange={(e) => updateTerritory(territory.id, 'revenue', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Percentage</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Percentage Share</label>
                       <input
                         type="number"
                         step="0.01"
                         value={territory.percentage}
                         onChange={(e) => updateTerritory(territory.id, 'percentage', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-slate-300 rounded"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        placeholder="0.00"
                       />
                     </div>
                   </div>
