@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
 import { 
   Shield, Users, Settings, Eye, Edit3, Plus, Trash2,
-  AlertTriangle, CheckCircle, Crown, Lock
+  AlertTriangle, CheckCircle, Crown, Lock, Search
 } from 'lucide-react';
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
@@ -17,10 +17,16 @@ export default function SuperAdminUsers() {
   
   // Real database state
   const [allUsers, setAllUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [stats, setStats] = useState({});
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -41,6 +47,7 @@ export default function SuperAdminUsers() {
       if (result.success) {
         console.log('✅ ALL users loaded for Super Admin:', result.stats);
         setAllUsers(result.users);
+        setFilteredUsers(result.users); // Initialize filtered users
         setStats(result.stats);
         setError(null);
       } else {
@@ -51,6 +58,40 @@ export default function SuperAdminUsers() {
       setError('Failed to connect to database');
     }
   };
+
+  // Filter users based on search and filters
+  useEffect(() => {
+    let filtered = [...allUsers];
+
+    // Role filter
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'active') {
+        filtered = filtered.filter(user => user.hasActiveSubscription);
+      } else if (statusFilter === 'inactive') {
+        filtered = filtered.filter(user => !user.hasActiveSubscription);
+      }
+    }
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(user => 
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.first_name?.toLowerCase().includes(searchLower) ||
+        user.last_name?.toLowerCase().includes(searchLower) ||
+        user.artist_name?.toLowerCase().includes(searchLower) ||
+        user.displayName?.toLowerCase().includes(searchLower) ||
+        user.custom_admin_title?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    setFilteredUsers(filtered);
+  }, [allUsers, searchTerm, roleFilter, statusFilter]);
 
   if (loading) {
     return (
@@ -113,6 +154,55 @@ export default function SuperAdminUsers() {
           </div>
         </div>
 
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search users by name, email, or role..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">All Roles</option>
+                <option value="artist">Artists</option>
+                <option value="label_admin">Label Admins</option>
+                <option value="company_admin">Company Admins</option>
+                <option value="super_admin">Super Admins</option>
+                <option value="distribution_partner">Distribution Partners</option>
+                <option value="custom_admin">Custom Admins</option>
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active Subscription</option>
+                <option value="inactive">No Subscription</option>
+              </select>
+              <button
+                onClick={loadRealUsers}
+                className="flex items-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* ALL 6 Roles Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
@@ -168,7 +258,7 @@ export default function SuperAdminUsers() {
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 bg-red-50">
             <h3 className="text-lg font-semibold text-slate-900">
-              All Platform Users ({allUsers.length}) - REAL DATABASE DATA
+              All Platform Users ({filteredUsers.length} of {allUsers.length}) - REAL DATABASE DATA
             </h3>
             <p className="text-sm text-red-700">Complete visibility across all 6 user roles</p>
           </div>
@@ -186,7 +276,7 @@ export default function SuperAdminUsers() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {allUsers.map((user) => {
+                {filteredUsers.map((user) => {
                   const roleColors = {
                     artist: 'bg-green-500',
                     label_admin: 'bg-blue-500', 
