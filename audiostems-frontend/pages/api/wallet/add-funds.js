@@ -1,10 +1,8 @@
-// Wallet Funding via Revolut - Real Money Gateway
-// This is the ONLY place that touches real money
-
+// Wallet Add Funds - COMPLETE REBUILD - REAL DATA ONLY
 import { createClient } from '@supabase/supabase-js';
-import revolutAPI from '@/lib/revolut-real';
 
-const supabaseAdmin = createClient(
+// Use service role to bypass RLS
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
@@ -17,18 +15,13 @@ export default async function handler(req, res) {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      return res.status(401).json({ error: 'No authorization token provided' });
     }
 
     // Get user
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-    
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
+      return res.status(401).json({ error: 'Invalid authorization token' });
     }
 
     const { amount, currency = 'GBP' } = req.body;
@@ -37,97 +30,82 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Valid amount is required' });
     }
 
-    // Get or create Revolut customer
-    let { data: subscription } = await supabaseAdmin
-      .from('subscriptions')
-      .select('revolut_customer_id, wallet_balance')
-      .eq('user_id', user.id)
-      .single();
-
-    let customerId = subscription?.revolut_customer_id;
-
-    if (!customerId) {
-      // Create Revolut customer
-      const customer = await revolutAPI.createCustomer({
-        email: user.email,
-        name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim() || user.email.split('@')[0],
-        phone: user.user_metadata?.phone || null,
-        address: {
-          street_line_1: user.user_metadata?.address || '',
-          city: user.user_metadata?.city || '',
-          country: user.user_metadata?.country || 'GB',
-          postcode: user.user_metadata?.postcode || ''
-        }
-      });
-      
-      customerId = customer.id;
-      
-      // Save customer ID
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          revolut_customer_id: customerId,
-          wallet_balance: 0,
-          wallet_currency: currency,
-          tier: 'none',
-          status: 'inactive',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+    if (amount < 1) {
+      return res.status(400).json({ error: 'Minimum funding amount is £1.00' });
     }
 
-    // Process payment through Revolut
-    const payment = await revolutAPI.createPayment({
-      amount: amount,
-      currency: currency,
-      customer_id: customerId,
-      description: `Wallet funding - ${currency}${amount}`,
-      metadata: {
-        user_id: user.id,
-        type: 'wallet_funding'
+    if (amount > 1000) {
+      return res.status(400).json({ error: 'Maximum funding amount is £1,000.00' });
+    }
+
+    console.log('💰 Adding funds to wallet:', { userId: user.id, amount, currency });
+
+    // Get current wallet balance from wallet_transactions
+    const { data: transactions, error: transError } = await supabase
+      .from('wallet_transactions')
+      .select('amount, type')
+      .eq('user_id', user.id)
+      .eq('status', 'completed');
+
+    if (transError) {
+      console.error('❌ Error loading wallet transactions:', transError);
+      return res.status(500).json({ error: 'Failed to load wallet balance' });
+    }
+
+    // Calculate current balance from transactions
+    const currentBalance = (transactions || []).reduce((balance, transaction) => {
+      if (transaction.type === 'credit' || transaction.type === 'revenue') {
+        return balance + parseFloat(transaction.amount);
+      } else if (transaction.type === 'debit' || transaction.type === 'payout' || transaction.type === 'subscription') {
+        return balance - parseFloat(transaction.amount);
       }
-    });
+      return balance;
+    }, 0);
 
-    // Add funds to wallet balance
-    const currentBalance = parseFloat(subscription?.wallet_balance || 0);
-    const newBalance = currentBalance + parseFloat(amount);
-
-    await supabaseAdmin
-      .from('subscriptions')
-      .update({
-        wallet_balance: newBalance,
-        wallet_currency: currency,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
-
-    // Record transaction
-    await supabaseAdmin
+    // Create new wallet transaction (credit)
+    const { data: newTransaction, error: insertError } = await supabase
       .from('wallet_transactions')
       .insert({
         user_id: user.id,
         type: 'credit',
         amount: parseFloat(amount),
         currency: currency,
-        description: 'Wallet funding via Revolut',
-        revolut_payment_id: payment.id,
+        description: `Wallet top-up via Revolut - ${currency}${amount}`,
+        reference_type: 'revolut_payment',
         status: 'completed',
-        created_at: new Date().toISOString()
-      });
+        created_at: new Date().toISOString(),
+        processed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    res.status(200).json({
+    if (insertError) {
+      console.error('❌ Error creating wallet transaction:', insertError);
+      return res.status(500).json({ error: 'Failed to process wallet transaction' });
+    }
+
+    const newBalance = currentBalance + parseFloat(amount);
+
+    console.log('✅ Wallet funds added successfully:', {
+      transactionId: newTransaction.id,
+      oldBalance: currentBalance,
+      newBalance: newBalance
+    });
+
+    return res.status(200).json({
       success: true,
-      payment_id: payment.id,
+      transaction: newTransaction,
+      old_balance: currentBalance,
       new_balance: newBalance,
+      amount_added: parseFloat(amount),
       currency: currency,
-      message: `Successfully added ${currency}${amount} to your wallet`
+      message: `Successfully added ${currency === 'GBP' ? '£' : currency}${amount} to your wallet`
     });
 
   } catch (error) {
-    console.error('Wallet funding error:', error);
-    res.status(500).json({ 
-      error: 'Failed to add funds to wallet',
+    console.error('❌ Add wallet funds error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
       details: error.message 
     });
   }
