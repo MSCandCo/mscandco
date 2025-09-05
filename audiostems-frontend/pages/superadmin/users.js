@@ -203,9 +203,9 @@ export default function SuperAdminUsers() {
           </div>
         </div>
 
-        {/* ALL 6 Roles Statistics */}
+        {/* ALL 6 Roles Statistics - With Hover Effects */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Users className="w-4 h-4 text-green-600" />
             </div>
@@ -213,7 +213,7 @@ export default function SuperAdminUsers() {
             <p className="text-xs text-slate-600">Artists</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Users className="w-4 h-4 text-blue-600" />
             </div>
@@ -221,7 +221,7 @@ export default function SuperAdminUsers() {
             <p className="text-xs text-slate-600">Label Admins</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Shield className="w-4 h-4 text-purple-600" />
             </div>
@@ -229,7 +229,7 @@ export default function SuperAdminUsers() {
             <p className="text-xs text-slate-600">Company Admins</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Crown className="w-4 h-4 text-red-600" />
             </div>
@@ -237,7 +237,7 @@ export default function SuperAdminUsers() {
             <p className="text-xs text-slate-600">Super Admins</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Settings className="w-4 h-4 text-orange-600" />
             </div>
@@ -245,7 +245,7 @@ export default function SuperAdminUsers() {
             <p className="text-xs text-slate-600">Distribution Partners</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
             <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Lock className="w-4 h-4 text-indigo-600" />
             </div>

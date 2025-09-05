@@ -1,7 +1,7 @@
-// Artist Profile API - BYPASS AUTH FOR TESTING - REAL DATA ONLY
+// Artist Profile API - COMPLETE REBUILD - REAL DATA ONLY
 import { createClient } from '@supabase/supabase-js';
 
-// Use service role to bypass all auth issues
+// Use service role to bypass RLS issues
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -9,27 +9,64 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   try {
-    // For testing, use Henry Taylor's ID directly
-    const userId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry Taylor
-    
-    console.log('👤 Artist profile API (bypass auth) for Henry Taylor');
+    // Get user from auth header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid authorization token' });
+    }
+
+    console.log('👤 Artist profile API called by:', user.email);
 
     if (req.method === 'GET') {
-      // Load Henry's profile from rebuilt database
+      // Load artist profile from rebuilt database
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
 
       if (error) {
-        console.error('❌ Error loading Henry\'s profile:', error);
+        console.error('❌ Error loading profile:', error);
         return res.status(500).json({ error: 'Failed to load profile' });
       }
 
-      console.log('✅ Henry\'s profile loaded from database');
+      if (!profile) {
+        // Return empty profile structure
+        return res.status(200).json({
+          id: user.id,
+          email: user.email,
+          firstName: '',
+          lastName: '',
+          artistName: '',
+          dateOfBirth: null,
+          nationality: '',
+          country: '',
+          city: '',
+          artistType: '',
+          phone: '',
+          countryCode: '+44',
+          primaryGenre: '',
+          secondaryGenre: '',
+          yearsActive: '',
+          recordLabel: '',
+          bio: '',
+          website: '',
+          instagram: '',
+          facebook: '',
+          twitter: '',
+          youtube: '',
+          tiktok: ''
+        });
+      }
 
-      // Return real profile data in expected format
+      // Return real profile data
       return res.status(200).json({
         id: profile.id,
         email: profile.email,
@@ -58,9 +95,9 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      console.log('💾 Updating Henry\'s profile directly:', req.body);
+      // Update profile directly - NO RPC FUNCTIONS
+      console.log('💾 Updating artist profile with real data:', req.body);
 
-      // Map frontend fields to database fields
       const updateData = {
         first_name: req.body.firstName,
         last_name: req.body.lastName,
@@ -86,23 +123,23 @@ export default async function handler(req, res) {
         updated_at: new Date().toISOString()
       };
 
-      // Direct database update for Henry Taylor
+      // Direct database update
       const { data: updatedProfile, error } = await supabase
         .from('user_profiles')
         .update(updateData)
-        .eq('id', userId)
+        .eq('id', user.id)
         .select()
         .single();
 
       if (error) {
-        console.error('❌ Error updating Henry\'s profile:', error);
+        console.error('❌ Error updating profile:', error);
         return res.status(500).json({ 
           error: 'Failed to update profile', 
           details: error.message 
         });
       }
 
-      console.log('✅ Henry\'s profile updated successfully');
+      console.log('✅ Profile updated successfully');
 
       return res.status(200).json({
         success: true,
@@ -138,7 +175,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
 
   } catch (error) {
-    console.error('❌ Artist profile bypass API error:', error);
+    console.error('❌ Artist profile API error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
       details: error.message 
