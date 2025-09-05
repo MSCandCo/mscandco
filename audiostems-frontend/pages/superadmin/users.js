@@ -27,6 +27,7 @@ export default function SuperAdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activeRoleBox, setActiveRoleBox] = useState(null); // For sticky hover filter
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -91,7 +92,28 @@ export default function SuperAdminUsers() {
     }
     
     setFilteredUsers(filtered);
-  }, [allUsers, searchTerm, roleFilter, statusFilter]);
+  }, [allUsers, searchTerm, roleFilter, statusFilter, activeRoleBox]);
+
+  // Handle role box click for filtering
+  const handleRoleBoxClick = (role) => {
+    if (activeRoleBox === role) {
+      // Click again to clear filter
+      setActiveRoleBox(null);
+      setRoleFilter('all');
+    } else {
+      // Set new filter
+      setActiveRoleBox(role);
+      setRoleFilter(role);
+    }
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setActiveRoleBox(null);
+    setRoleFilter('all');
+    setStatusFilter('all');
+    setSearchTerm('');
+  };
 
   if (loading) {
     return (
@@ -193,6 +215,12 @@ export default function SuperAdminUsers() {
                 <option value="inactive">No Subscription</option>
               </select>
               <button
+                onClick={clearAllFilters}
+                className="flex items-center px-3 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Clear Filters
+              </button>
+              <button
                 onClick={loadRealUsers}
                 className="flex items-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
@@ -203,54 +231,132 @@ export default function SuperAdminUsers() {
           </div>
         </div>
 
-        {/* ALL 6 Roles Statistics - With Hover Effects */}
+        {/* ALL 6 Roles Statistics - Click to Filter */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Users className="w-4 h-4 text-green-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('artist')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'artist' 
+                ? 'bg-green-500 text-white border-green-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-green-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'artist' ? 'bg-white bg-opacity-20' : 'bg-green-100'
+            }`}>
+              <Users className={`w-4 h-4 ${activeRoleBox === 'artist' ? 'text-white' : 'text-green-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.artist || 0}</p>
-            <p className="text-xs text-slate-600">Artists</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'artist' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.artist || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'artist' ? 'text-green-100' : 'text-slate-600'}`}>
+              Artists
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Users className="w-4 h-4 text-blue-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('label_admin')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'label_admin' 
+                ? 'bg-blue-500 text-white border-blue-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-blue-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'label_admin' ? 'bg-white bg-opacity-20' : 'bg-blue-100'
+            }`}>
+              <Users className={`w-4 h-4 ${activeRoleBox === 'label_admin' ? 'text-white' : 'text-blue-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.label_admin || 0}</p>
-            <p className="text-xs text-slate-600">Label Admins</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'label_admin' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.label_admin || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'label_admin' ? 'text-blue-100' : 'text-slate-600'}`}>
+              Label Admins
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Shield className="w-4 h-4 text-purple-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('company_admin')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'company_admin' 
+                ? 'bg-purple-500 text-white border-purple-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-purple-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'company_admin' ? 'bg-white bg-opacity-20' : 'bg-purple-100'
+            }`}>
+              <Shield className={`w-4 h-4 ${activeRoleBox === 'company_admin' ? 'text-white' : 'text-purple-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.company_admin || 0}</p>
-            <p className="text-xs text-slate-600">Company Admins</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'company_admin' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.company_admin || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'company_admin' ? 'text-purple-100' : 'text-slate-600'}`}>
+              Company Admins
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Crown className="w-4 h-4 text-red-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('super_admin')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'super_admin' 
+                ? 'bg-red-500 text-white border-red-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-red-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'super_admin' ? 'bg-white bg-opacity-20' : 'bg-red-100'
+            }`}>
+              <Crown className={`w-4 h-4 ${activeRoleBox === 'super_admin' ? 'text-white' : 'text-red-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.super_admin || 0}</p>
-            <p className="text-xs text-slate-600">Super Admins</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'super_admin' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.super_admin || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'super_admin' ? 'text-red-100' : 'text-slate-600'}`}>
+              Super Admins
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Settings className="w-4 h-4 text-orange-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('distribution_partner')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'distribution_partner' 
+                ? 'bg-orange-500 text-white border-orange-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-orange-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'distribution_partner' ? 'bg-white bg-opacity-20' : 'bg-orange-100'
+            }`}>
+              <Settings className={`w-4 h-4 ${activeRoleBox === 'distribution_partner' ? 'text-white' : 'text-orange-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.distribution_partner || 0}</p>
-            <p className="text-xs text-slate-600">Distribution Partners</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'distribution_partner' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.distribution_partner || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'distribution_partner' ? 'text-orange-100' : 'text-slate-600'}`}>
+              Distribution Partners
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200 text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4">
-            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Lock className="w-4 h-4 text-indigo-600" />
+          <div 
+            onClick={() => handleRoleBoxClick('custom_admin')}
+            className={`rounded-xl shadow-lg p-4 border text-center hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer sticky top-4 ${
+              activeRoleBox === 'custom_admin' 
+                ? 'bg-indigo-500 text-white border-indigo-600 scale-105 shadow-xl' 
+                : 'bg-white border-slate-200 hover:border-indigo-300'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 ${
+              activeRoleBox === 'custom_admin' ? 'bg-white bg-opacity-20' : 'bg-indigo-100'
+            }`}>
+              <Lock className={`w-4 h-4 ${activeRoleBox === 'custom_admin' ? 'text-white' : 'text-indigo-600'}`} />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{stats.byRole?.custom_admin || 0}</p>
-            <p className="text-xs text-slate-600">Custom Admins</p>
+            <p className={`text-2xl font-bold ${activeRoleBox === 'custom_admin' ? 'text-white' : 'text-slate-900'}`}>
+              {stats.byRole?.custom_admin || 0}
+            </p>
+            <p className={`text-xs ${activeRoleBox === 'custom_admin' ? 'text-indigo-100' : 'text-slate-600'}`}>
+              Custom Admins
+            </p>
           </div>
         </div>
 
