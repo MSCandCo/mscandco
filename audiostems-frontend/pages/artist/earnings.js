@@ -292,7 +292,7 @@ export default function ArtistEarnings() {
         {/* Quick Stats */}
         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
           <h2 className="text-xl font-bold mb-4" style={{color: '#1f2937'}}>Wallet Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f0fdf4', border: '1px solid #bbf7d0'}}>
               <div>
                 <p className="text-sm font-medium" style={{color: '#065f46'}}>Paid Earnings</p>
@@ -315,6 +315,16 @@ export default function ArtistEarnings() {
                 <p className="text-xl font-bold" style={{color: '#475569'}}>{displayAmount(wallet.minimum_payout || 50)}</p>
               </div>
               <CreditCard className="w-8 h-8" style={{color: '#475569'}} />
+            </div>
+            
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #e2e8f0'}}>
+              <div>
+                <p className="text-sm font-medium" style={{color: '#475569'}}>Pending Payouts</p>
+                <p className="text-xl font-bold" style={{color: '#475569'}}>
+                  {recent_history.filter(entry => entry.earning_type === 'payout_request' && entry.status === 'pending').length || 0}
+                </p>
+              </div>
+              <Clock className="w-8 h-8" style={{color: '#475569'}} />
             </div>
           </div>
         </div>
