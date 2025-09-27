@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
+import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -83,9 +84,25 @@ export default function ArtistWallet() {
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
   const [showAmounts, setShowAmounts] = useState(true);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
+  
+  // Use currency conversion hook
+  const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);
 
   useEffect(() => {
     fetchWalletData();
+    // Fetch live exchange rates on component mount
+    fetchLiveExchangeRates();
+  }, []);
+
+  // Listen for currency updates and refresh rates
+  useEffect(() => {
+    const handleRateUpdate = () => {
+      // Force re-render when rates update
+      setWalletData(prev => ({ ...prev }));
+    };
+
+    window.addEventListener('exchangeRatesUpdated', handleRateUpdate);
+    return () => window.removeEventListener('exchangeRatesUpdated', handleRateUpdate);
   }, []);
 
   const fetchWalletData = async () => {
@@ -112,11 +129,9 @@ export default function ArtistWallet() {
     setSelectedCurrency(currency);
   };
 
-  const formatAmount = (amount) => {
+  const displayAmount = (gbpAmount) => {
     if (!showAmounts) return '••••';
-    
-    const currencySymbol = selectedCurrency === 'USD' ? '$' : selectedCurrency === 'EUR' ? '€' : '£';
-    return `${currencySymbol}${Number(amount).toFixed(2)}`;
+    return formatAmount(gbpAmount);
   };
 
   const toggleAmountVisibility = () => {
@@ -212,7 +227,7 @@ export default function ArtistWallet() {
                 <h3 className="text-sm opacity-90">Available Balance</h3>
                 <Wallet className="w-5 h-5 opacity-70" />
               </div>
-              <h1 className="text-4xl font-bold mb-3">{formatAmount(wallet.available_balance)}</h1>
+              <h1 className="text-4xl font-bold mb-3">{displayAmount(wallet.available_balance)}</h1>
               <p className="text-sm opacity-90 mb-4">Ready for withdrawal</p>
               <button 
                 className="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-all w-full"
@@ -233,7 +248,7 @@ export default function ArtistWallet() {
               <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Pending Income</h3>
               <Clock className="w-5 h-5" style={{color: '#d97706'}} />
             </div>
-            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{formatAmount(wallet.pending_balance)}</h2>
+            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{displayAmount(wallet.pending_balance)}</h2>
             <p className="text-sm" style={{color: '#64748b'}}>
               {pending_entries.length} pending {pending_entries.length === 1 ? 'entry' : 'entries'}
             </p>
@@ -248,7 +263,7 @@ export default function ArtistWallet() {
               <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Total Earned</h3>
               <TrendingUp className="w-5 h-5" style={{color: '#065f46'}} />
             </div>
-            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{formatAmount(wallet.total_earned)}</h2>
+            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{displayAmount(wallet.total_earned)}</h2>
             <p className="text-sm" style={{color: '#64748b'}}>All time earnings</p>
           </div>
 
@@ -277,7 +292,7 @@ export default function ArtistWallet() {
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f0fdf4', border: '1px solid #bbf7d0'}}>
               <div>
                 <p className="text-sm font-medium" style={{color: '#065f46'}}>Paid Earnings</p>
-                <p className="text-xl font-bold" style={{color: '#065f46'}}>{formatAmount(wallet.available_balance)}</p>
+                <p className="text-xl font-bold" style={{color: '#065f46'}}>{displayAmount(wallet.available_balance)}</p>
               </div>
               <CheckCircle className="w-8 h-8" style={{color: '#065f46'}} />
             </div>
@@ -285,7 +300,7 @@ export default function ArtistWallet() {
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#fef3c7', border: '1px solid #fcd34d'}}>
               <div>
                 <p className="text-sm font-medium" style={{color: '#78350f'}}>Awaiting Payment</p>
-                <p className="text-xl font-bold" style={{color: '#78350f'}}>{formatAmount(wallet.pending_balance)}</p>
+                <p className="text-xl font-bold" style={{color: '#78350f'}}>{displayAmount(wallet.pending_balance)}</p>
               </div>
               <Clock className="w-8 h-8" style={{color: '#d97706'}} />
             </div>
@@ -293,7 +308,7 @@ export default function ArtistWallet() {
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #cbd5e1'}}>
               <div>
                 <p className="text-sm font-medium" style={{color: '#475569'}}>Minimum Payout</p>
-                <p className="text-xl font-bold" style={{color: '#475569'}}>{formatAmount(wallet.minimum_payout || 50)}</p>
+                <p className="text-xl font-bold" style={{color: '#475569'}}>{displayAmount(wallet.minimum_payout || 50)}</p>
               </div>
               <CreditCard className="w-8 h-8" style={{color: '#475569'}} />
             </div>
@@ -330,7 +345,7 @@ export default function ArtistWallet() {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-lg" style={{color: '#1f2937'}}>{formatAmount(entry.amount)}</p>
+                    <p className="font-bold text-lg" style={{color: '#1f2937'}}>{displayAmount(entry.amount)}</p>
                     <div className="flex items-center space-x-1">
                       <Clock className="w-3 h-3" style={{color: '#d97706'}} />
                       <span className="text-sm font-medium" style={{color: '#d97706'}}>Pending</span>
@@ -385,7 +400,7 @@ export default function ArtistWallet() {
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-lg" style={{color: '#1f2937'}}>{formatAmount(entry.amount)}</p>
+                  <p className="font-bold text-lg" style={{color: '#1f2937'}}>{displayAmount(Math.abs(entry.amount))}</p>
                   <div className="flex items-center justify-end space-x-1">
                     {entry.status === 'paid' ? (
                       <>
@@ -416,8 +431,8 @@ export default function ArtistWallet() {
       <PayoutRequestModal
         isOpen={showPayoutModal}
         onClose={() => setShowPayoutModal(false)}
-        availableBalance={wallet?.available_balance || 0}
-        minimumPayout={wallet?.minimum_payout || 50}
+        availableBalance={convertAmount(wallet?.available_balance || 0)}
+        minimumPayout={convertAmount(wallet?.minimum_payout || 50)}
         currency={selectedCurrency}
         onSuccess={handlePayoutSuccess}
       />
