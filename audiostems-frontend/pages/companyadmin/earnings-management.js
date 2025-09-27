@@ -379,10 +379,10 @@ export default function EarningsManagement() {
                     </div>
                   </div>
 
-                  {/* Earnings History */}
+                  {/* Wallet History */}
                   <div className="mb-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
                     <h3 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
-                      Earnings History ({earningsHistory.length} entries)
+                      Wallet History ({earningsHistory.length} entries)
                     </h3>
                     {earningsHistory.length > 0 ? (
                       <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -422,9 +422,9 @@ export default function EarningsManagement() {
                     ) : (
                       <div className="text-center py-8">
                         <DollarSign className="w-12 h-12 mx-auto mb-3" style={{color: '#9ca3af'}} />
-                        <p style={{color: '#64748b'}}>No earnings history found</p>
+                        <p style={{color: '#64748b'}}>No wallet history found</p>
                         <p className="text-sm mt-1" style={{color: '#9ca3af'}}>
-                          Earnings will appear here after being added
+                          Earnings and payouts will appear here after being added
                         </p>
                       </div>
                     )}
