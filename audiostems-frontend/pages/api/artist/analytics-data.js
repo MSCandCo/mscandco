@@ -15,14 +15,14 @@ export default async function handler(req, res) {
   try {
     // Simplified for testing - use Henry Taylor's ID
     const userId = '0a060de5-1c94-4060-a1c2-860224fc348d';
-    console.log('🔓 Test mode - loading data for Henry Taylor');
+    console.log('Test mode - loading data for Henry Taylor');
 
-    console.log('📊 Fetching analytics data for user:', userId);
+    console.log('Fetching analytics data for user:', userId);
 
-    // Fetch analytics data from user_profiles (using chartmetric_data column)
+    // Fetch analytics data from user_profiles (using analytics_data column)
     const { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('chartmetric_data, first_name, last_name, artist_name')
+      .select('analytics_data, first_name, last_name, artist_name')
       .eq('id', userId)
       .single();
 
@@ -35,8 +35,8 @@ export default async function handler(req, res) {
       });
     }
 
-    const analyticsData = profile?.chartmetric_data;
-    console.log('📦 Analytics data for', profile?.first_name, ':', analyticsData ? 'Found' : 'Not found');
+    const analyticsData = profile?.analytics_data;
+    console.log('Analytics data for', profile?.first_name, ':', analyticsData ? 'Found' : 'Not found');
 
     if (!analyticsData || analyticsData.type !== 'manual_analytics') {
       return res.status(200).json({
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       relativeDate: milestone.date ? calculateRelativeDate(milestone.date) : 'Recently'
     }));
 
-    console.log('✅ Analytics data loaded:', {
+    console.log('Analytics data loaded:', {
       hasLatestRelease: !!analyticsData.latestRelease,
       milestonesCount: milestonesWithRelativeDates.length,
       lastUpdated: analyticsData.lastUpdated
@@ -65,6 +65,8 @@ export default async function handler(req, res) {
       data: {
         latestRelease: analyticsData.latestRelease,
         milestones: milestonesWithRelativeDates,
+        sectionVisibility: analyticsData.sectionVisibility || {},
+        advancedData: analyticsData.advancedData || {},
         lastUpdated: analyticsData.lastUpdated || new Date().toISOString(),
         source: 'manual_admin_system'
       },

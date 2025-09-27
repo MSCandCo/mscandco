@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         roleDisplay: user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         
         // Data availability
-        hasAnalyticsData: !!user.chartmetric_data,
+        hasAnalyticsData: !!user.analytics_data,
         hasEarningsData: !!user.earnings_data,
         
         lastActiveFormatted: user.last_active_at ? 

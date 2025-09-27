@@ -1,5 +1,10 @@
 // Simple Earnings Save API - Similar to Analytics Save
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,13 +18,11 @@ export default async function handler(req, res) {
       advancedMetrics, 
       platformRevenue, 
       territoryRevenue, 
-      dateRange, 
-      sectionVisibility, 
       lastUpdated, 
       type 
     } = req.body;
 
-    console.log('💰 Earnings save request:', { 
+    console.log('Earnings save request:', { 
       artistId, 
       type, 
       hasBasicMetrics: !!basicMetrics,
@@ -45,42 +48,52 @@ export default async function handler(req, res) {
 
     const existingData = existingProfile?.earnings_data || {};
 
-    // Merge earnings data
-    const earningsData = {
-      ...existingData,
-      lastUpdated: lastUpdated || new Date().toISOString(),
+    const currentTimestamp = new Date().toISOString();
+    
+    // Create earnings history entry with timestamp
+    const newEarningsEntry = {
+      timestamp: currentTimestamp,
       updatedBy: 'admin',
-      type: 'manual_earnings'
+      type: type || 'manual_earnings',
+      data: {}
     };
 
-    // Update basic data if provided
+    // Add the specific data for this entry
     if (basicMetrics) {
-      earningsData.basicMetrics = basicMetrics;
+      newEarningsEntry.data.basicMetrics = basicMetrics;
     }
 
-    // Update advanced data if provided
     if (advancedMetrics) {
-      earningsData.advancedMetrics = advancedMetrics;
+      newEarningsEntry.data.advancedMetrics = advancedMetrics;
     }
 
     if (platformRevenue) {
-      earningsData.platformRevenue = platformRevenue;
+      newEarningsEntry.data.platformRevenue = platformRevenue;
     }
 
     if (territoryRevenue) {
-      earningsData.territoryRevenue = territoryRevenue;
+      newEarningsEntry.data.territoryRevenue = territoryRevenue;
     }
 
-    if (dateRange) {
-      earningsData.dateRange = dateRange;
-    }
+    // Maintain earnings history array and current data
+    const earningsData = {
+      ...existingData,
+      lastUpdated: currentTimestamp,
+      updatedBy: 'admin',
+      type: 'manual_earnings',
+      // Current data (latest values for display)
+      currentData: newEarningsEntry.data,
+      // History array for time-based filtering
+      history: [...(existingData.history || []), newEarningsEntry].slice(-50) // Keep last 50 entries
+    };
 
-    // Update visibility settings if provided
-    if (sectionVisibility) {
-      earningsData.sectionVisibility = sectionVisibility;
-    }
+    // Also merge current data into top level for backward compatibility
+    Object.assign(earningsData, newEarningsEntry.data);
 
-    console.log('💾 Final earnings data to save:', {
+
+    // All sections are always visible - no visibility toggles
+
+    console.log('Final earnings data to save:', {
       artistId,
       dataKeys: Object.keys(earningsData),
       platformCount: earningsData.platformRevenue?.length || 0,
@@ -102,7 +115,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to save earnings data' });
     }
 
-    console.log('✅ Earnings data saved successfully for artist:', artistId);
+      console.log('Earnings data saved successfully for artist:', artistId);
 
     return res.status(200).json({
       success: true,

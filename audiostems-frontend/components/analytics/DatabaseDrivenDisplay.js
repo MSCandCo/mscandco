@@ -31,7 +31,12 @@ function calculateRelativeDate(dateString) {
   return years === 1 ? '1 year ago' : `${years} years ago`;
 }
 
-export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced = false }) {
+export default function DatabaseDrivenDisplay({ artistId, loading, showAdvanced = false, data }) {
+  console.log('🔍 DatabaseDrivenDisplay received props:', { artistId, loading, showAdvanced, data });
+  console.log('🔍 Data keys:', data ? Object.keys(data) : 'no data');
+  console.log('🔍 latestRelease:', data?.latestRelease);
+  console.log('🔍 milestones:', data?.milestones);
+  
   const [latestRelease, setLatestRelease] = useState(null);
   const [platformStats, setPlatformStats] = useState([]);
   const [milestones, setMilestones] = useState([]);

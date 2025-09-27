@@ -99,7 +99,7 @@ export default async function handler(req, res) {
         acceptedRequests: requestCountMap[user.id]?.accepted || 0,
         
         // Analytics data availability
-        hasAnalyticsData: !!user.chartmetric_data,
+        hasAnalyticsData: !!user.analytics_data,
         hasEarningsData: !!user.earnings_data,
         
         // Last activity

@@ -96,14 +96,14 @@ export default function ArtistAnalytics() {
   return (
     <SubscriptionGate>
       <Layout>
-        <div className="min-h-screen" style={{background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)'}}>
-          {/* MSC Brand Hero Header */}
-          <div className="text-white" style={{background: 'linear-gradient(135deg, #0f172a 0%, #1f2937 50%, #374151 100%)'}}>
+        <div className="min-h-screen bg-slate-50">
+          {/* Gradient Header - matching new design system */}
+          <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex-1">
                   <h1 className="text-4xl font-bold mb-4">Analytics Dashboard</h1>
-                  <p className="text-xl text-white mb-6 lg:mb-0">
+                  <p className="text-xl text-violet-100 mb-6 lg:mb-0">
                     Track your music performance across all platforms
                   </p>
                 </div>
@@ -121,10 +121,9 @@ export default function ArtistAnalytics() {
                     onClick={() => setActiveTab('basic')}
                     className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                       activeTab === 'basic'
-                        ? 'text-white shadow-md'
+                        ? 'bg-violet-600 text-white shadow-md'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
-                    style={activeTab === 'basic' ? {background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'} : {}}
                   >
                     <span className="flex items-center">
                       <BarChart3 className="w-4 h-4 mr-2" />
@@ -139,19 +138,18 @@ export default function ArtistAnalytics() {
                   onClick={() => hasProAccess ? setActiveTab('advanced') : null}
                   className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                     activeTab === 'advanced'
-                      ? 'text-white shadow-md'
+                      ? 'bg-violet-600 text-white shadow-md'
                       : hasProAccess 
                         ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         : 'text-slate-400 cursor-not-allowed'
                   }`}
-                  style={activeTab === 'advanced' ? {background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'} : {}}
                   disabled={!hasProAccess}
                 >
                   <span className="flex items-center">
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Advanced Analytics Pro
                     {hasProAccess ? (
-                      <span className="ml-2 text-xs text-white px-2 py-1 rounded-full opacity-90 flex items-center" style={{background: '#1f2937'}}>
+                      <span className="ml-2 text-xs bg-violet-500 text-white px-2 py-1 rounded-full opacity-90 flex items-center">
                         <Crown className="w-3 h-3 mr-1" />
                         Pro
                       </span>
@@ -173,23 +171,18 @@ export default function ArtistAnalytics() {
             )}
             
             {activeTab === 'advanced' && !hasProAccess && (
-              <div className="rounded-2xl shadow-lg p-16 text-center" style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-              }}>
+              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-16 text-center">
                 <div className="max-w-md mx-auto">
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{background: 'linear-gradient(145deg, #1f2937 0%, #0f172a 100%)'}}>
-                    <Crown className="w-10 h-10 text-white" />
+                  <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Crown className="w-10 h-10 text-purple-600" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-4" style={{color: '#1f2937'}}>Unlock Advanced Analytics</h2>
-                  <p className="mb-8" style={{color: '#64748b'}}>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4">Unlock Advanced Analytics</h2>
+                  <p className="text-slate-600 mb-8">
                     Get access to comprehensive platform breakdowns, career snapshots, audience demographics, 
                     social footprint analysis, and detailed performance insights.
                   </p>
                   <Link href="/billing">
-                    <button className="text-white font-semibold py-4 px-8 rounded-lg transition-all" style={{background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'}}>
+                    <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-colors">
                       Upgrade to Pro Plan
                     </button>
                   </Link>

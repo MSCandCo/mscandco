@@ -25,7 +25,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   
-  // Basic Earnings State - Dynamic metrics array
+  // Basic Earnings State - Always start from 0
   const [basicMetrics, setBasicMetrics] = useState([
     { id: 1, label: 'Total Earnings', value: 0, change: '0%' },
     { id: 2, label: 'This Month', value: 0, change: '0%' },
@@ -33,7 +33,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
     { id: 4, label: 'Growth', value: 0, change: '0%', isPercentage: true }
   ]);
 
-  // Advanced Earnings State
+  // Advanced Earnings State - Always start from 0
   const [advancedMetrics, setAdvancedMetrics] = useState({
     totalEarnings: { value: 0, label: 'Total Earnings' },
     streamingRevenue: { value: 0, label: 'Streaming Revenue' },
@@ -42,38 +42,22 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
     pending: { value: 0, label: 'Pending' }
   });
 
-  // Dynamic Platform Revenue
+  // Dynamic Platform Revenue - Always start from 0
   const [platformRevenue, setPlatformRevenue] = useState([
     { id: 1, platform: 'Spotify', revenue: 0, percentage: 0, color: 'bg-green-500' },
     { id: 2, platform: 'Apple Music', revenue: 0, percentage: 0, color: 'bg-gray-800' },
     { id: 3, platform: 'YouTube Music', revenue: 0, percentage: 0, color: 'bg-red-500' }
   ]);
 
-  // Dynamic Territory Revenue
+  // Dynamic Territory Revenue - Always start from 0
   const [territoryRevenue, setTerritoryRevenue] = useState([
     { id: 1, country: '🇺🇸 United States', revenue: 0, percentage: 0 },
     { id: 2, country: '🇬🇧 United Kingdom', revenue: 0, percentage: 0 },
     { id: 3, country: '🇩🇪 Germany', revenue: 0, percentage: 0 }
   ]);
 
-  // Date Range for Advanced
-  const [dateRange, setDateRange] = useState({
-    startDate: '',
-    endDate: '',
-    period: '30d'
-  });
 
-  // Section Visibility
-  const [sectionVisibility, setSectionVisibility] = useState({
-    basicMetrics: true,
-    earningsOverview: true,
-    recentTransactions: true,
-    payoutSection: true,
-    advancedMetrics: true,
-    platformRevenue: true,
-    territoryRevenue: true,
-    transactionHistory: true
-  });
+  // ALL SECTIONS ALWAYS VISIBLE - No visibility toggles needed
 
   // Last Updated
   const [lastUpdated, setLastUpdated] = useState('');
@@ -122,7 +106,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
 
         if (data?.earnings_data) {
           const earningsData = data.earnings_data;
-          console.log('📊 Loaded earnings data:', earningsData);
+          console.log('Loaded earnings data:', earningsData);
           
           // Load data into state - handle both array and object formats
           if (earningsData.basicMetrics) {
@@ -144,8 +128,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
           if (earningsData.advancedMetrics) setAdvancedMetrics(earningsData.advancedMetrics);
           if (earningsData.platformRevenue) setPlatformRevenue(earningsData.platformRevenue);
           if (earningsData.territoryRevenue) setTerritoryRevenue(earningsData.territoryRevenue);
-          if (earningsData.dateRange) setDateRange(earningsData.dateRange);
-          if (earningsData.sectionVisibility) setSectionVisibility(earningsData.sectionVisibility);
+          // No section visibility - all sections always visible
           if (earningsData.lastUpdated) setLastUpdated(earningsData.lastUpdated);
         }
       } catch (error) {
@@ -234,7 +217,6 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
         body: JSON.stringify({
           artistId: selectedArtistId,
           basicMetrics,
-          sectionVisibility,
           lastUpdated: lastUpdated || new Date().toISOString(),
           type: 'basic'
         })
@@ -243,16 +225,73 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
       const result = await response.json();
       
       if (result.success) {
-        console.log('✅ Basic earnings saved successfully');
-        alert('✅ Basic earnings saved successfully!');
+        console.log('Basic earnings saved successfully');
+        // Show success notification using your brand success style
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #f0fdf4; 
+            border-left: 4px solid #065f46; 
+            padding: 16px 24px; 
+            color: #065f46; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Basic earnings saved successfully!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
         if (onDataUpdated) onDataUpdated();
       } else {
-        console.error('❌ Failed to save basic earnings:', result.error);
-        alert('❌ Failed to save basic earnings: ' + result.error);
+        console.error('Failed to save basic earnings:', result.error);
+        // Show error notification using your brand error style
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #fef2f2; 
+            border-left: 4px solid #991b1b; 
+            padding: 16px 24px; 
+            color: #991b1b; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Failed to save basic earnings: ${result.error}
+          </div>
+        `;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 5000);
       }
     } catch (error) {
-      console.error('❌ Error saving basic earnings:', error);
-      alert('❌ Error saving basic earnings: ' + error.message);
+      console.error('Error saving basic earnings:', error);
+      // Show error notification using your brand error style
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="
+          position: fixed; 
+          top: 20px; 
+          right: 20px; 
+          background: #fef2f2; 
+          border-left: 4px solid #991b1b; 
+          padding: 16px 24px; 
+          color: #991b1b; 
+          border-radius: 8px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 1000;
+        ">
+          Error saving basic earnings: ${error.message}
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     } finally {
       setSaving(false);
     }
@@ -274,8 +313,6 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
           advancedMetrics,
           platformRevenue,
           territoryRevenue,
-          dateRange,
-          sectionVisibility,
           lastUpdated: lastUpdated || new Date().toISOString(),
           type: 'advanced'
         })
@@ -284,16 +321,73 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
       const result = await response.json();
       
       if (result.success) {
-        console.log('✅ Advanced earnings saved successfully');
-        alert('✅ Advanced earnings saved successfully!');
+        console.log('Advanced earnings saved successfully');
+        // Show success notification using your brand success style
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #f0fdf4; 
+            border-left: 4px solid #065f46; 
+            padding: 16px 24px; 
+            color: #065f46; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Advanced earnings saved successfully!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
         if (onDataUpdated) onDataUpdated();
       } else {
-        console.error('❌ Failed to save advanced earnings:', result.error);
-        alert('❌ Failed to save advanced earnings: ' + result.error);
+        console.error('Failed to save advanced earnings:', result.error);
+        // Show error notification using your brand error style
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #fef2f2; 
+            border-left: 4px solid #991b1b; 
+            padding: 16px 24px; 
+            color: #991b1b; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Failed to save advanced earnings: ${result.error}
+          </div>
+        `;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 5000);
       }
     } catch (error) {
-      console.error('❌ Error saving advanced earnings:', error);
-      alert('❌ Error saving advanced earnings: ' + error.message);
+      console.error('Error saving advanced earnings:', error);
+      // Show error notification using your brand error style
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="
+          position: fixed; 
+          top: 20px; 
+          right: 20px; 
+          background: #fef2f2; 
+          border-left: 4px solid #991b1b; 
+          padding: 16px 24px; 
+          color: #991b1b; 
+          border-radius: 8px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 1000;
+        ">
+          Error saving advanced earnings: ${error.message}
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     } finally {
       setSaving(false);
     }
@@ -371,7 +465,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               type="datetime-local"
               value={lastUpdated ? new Date(lastUpdated).toISOString().slice(0, 16) : ''}
               onChange={(e) => setLastUpdated(e.target.value ? new Date(e.target.value).toISOString() : '')}
-              className="text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent"
             />
           </div>
         </div>
@@ -384,18 +478,9 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Basic Earnings Metrics</h3>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-slate-600">Visible to users:</span>
-                  <input
-                    type="checkbox"
-                    checked={sectionVisibility.basicMetrics !== false}
-                    onChange={(e) => setSectionVisibility(prev => ({ ...prev, basicMetrics: e.target.checked }))}
-                    className="rounded"
-                  />
-                </div>
                 <button
                   onClick={addBasicMetric}
-                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="flex items-center px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Metric
@@ -420,7 +505,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         type="text"
                         value={metric.label}
                         onChange={(e) => updateBasicMetric(metric.id, 'label', e.target.value)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="e.g. Total Earnings, This Month"
                       />
                     </div>
@@ -431,7 +516,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         step="0.01"
                         value={metric.value}
                         onChange={(e) => updateBasicMetric(metric.id, 'value', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -441,7 +526,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         type="text"
                         value={metric.change}
                         onChange={(e) => updateBasicMetric(metric.id, 'change', e.target.value)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="+5.2%"
                       />
                     </div>
@@ -450,10 +535,10 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                       <select
                         value={metric.isPercentage ? 'percentage' : 'currency'}
                         onChange={(e) => updateBasicMetric(metric.id, 'isPercentage', e.target.value === 'percentage')}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                       >
-                        <option value="currency">💰 Currency Amount</option>
-                        <option value="percentage">📊 Percentage Value</option>
+                        <option value="currency">Currency Amount</option>
+                        <option value="percentage">Percentage Value</option>
                       </select>
                     </div>
                   </div>
@@ -465,7 +550,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
               <button
                 onClick={saveBasicEarnings}
                 disabled={saving}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50"
               >
                 <Save className="w-4 h-4 mr-2" />
                 {saving ? 'Saving...' : 'Save Basic Earnings'}
@@ -478,58 +563,11 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
       {/* Advanced Earnings Tab */}
       {activeTab === 'advanced' && (
         <div className="space-y-6">
-          {/* Date Range Selector */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Date Range Settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-3">Period</label>
-                <select
-                  value={dateRange.period}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, period: e.target.value }))}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                >
-                  <option value="7d">Last 7 days</option>
-                  <option value="30d">Last 30 days</option>
-                  <option value="90d">Last 90 days</option>
-                  <option value="1y">Last year</option>
-                  <option value="custom">Custom range</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-3">Start Date</label>
-                <input
-                  type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-3">End Date</label>
-                <input
-                  type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Advanced Metrics */}
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Advanced Earnings Metrics</h3>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-slate-600">Visible to users:</span>
-                <input
-                  type="checkbox"
-                  checked={sectionVisibility.advancedMetrics !== false}
-                  onChange={(e) => setSectionVisibility(prev => ({ ...prev, advancedMetrics: e.target.checked }))}
-                  className="rounded"
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -546,7 +584,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                       ...prev,
                       [key]: { ...prev[key], value: parseFloat(e.target.value) || 0 }
                     }))}
-                    className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                    className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                     placeholder="0.00"
                   />
                 </div>
@@ -559,18 +597,9 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Revenue by Platform</h3>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-slate-600">Visible to users:</span>
-                  <input
-                    type="checkbox"
-                    checked={sectionVisibility.platformRevenue !== false}
-                    onChange={(e) => setSectionVisibility(prev => ({ ...prev, platformRevenue: e.target.checked }))}
-                    className="rounded"
-                  />
-                </div>
                 <button
                   onClick={addPlatform}
-                  className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="flex items-center px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Platform
@@ -595,7 +624,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         type="text"
                         value={platform.platform}
                         onChange={(e) => updatePlatform(platform.id, 'platform', e.target.value)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="e.g. Spotify, Apple Music"
                       />
                     </div>
@@ -606,7 +635,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         step="0.01"
                         value={platform.revenue}
                         onChange={(e) => updatePlatform(platform.id, 'revenue', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -617,7 +646,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         step="0.01"
                         value={platform.percentage}
                         onChange={(e) => updatePlatform(platform.id, 'percentage', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -626,7 +655,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                       <select
                         value={platform.color}
                         onChange={(e) => updatePlatform(platform.id, 'color', e.target.value)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                       >
                         <option value="bg-green-500">🟢 Green</option>
                         <option value="bg-blue-500">🔵 Blue</option>
@@ -649,18 +678,9 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Revenue by Territory</h3>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-slate-600">Visible to users:</span>
-                  <input
-                    type="checkbox"
-                    checked={sectionVisibility.territoryRevenue !== false}
-                    onChange={(e) => setSectionVisibility(prev => ({ ...prev, territoryRevenue: e.target.checked }))}
-                    className="rounded"
-                  />
-                </div>
                 <button
                   onClick={addTerritory}
-                  className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="flex items-center px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Territory
@@ -685,7 +705,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         type="text"
                         value={territory.country}
                         onChange={(e) => updateTerritory(territory.id, 'country', e.target.value)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="🌍 Territory Name (e.g. 🇺🇸 United States)"
                       />
                     </div>
@@ -696,7 +716,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         step="0.01"
                         value={territory.revenue}
                         onChange={(e) => updateTerritory(territory.id, 'revenue', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -707,7 +727,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
                         step="0.01"
                         value={territory.percentage}
                         onChange={(e) => updateTerritory(territory.id, 'percentage', parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent bg-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -721,7 +741,7 @@ export default function ManualEarningsInterface({ selectedArtistId, selectedArti
             <button
               onClick={saveAdvancedEarnings}
               disabled={saving}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50"
             >
               <Save className="w-4 h-4 mr-2" />
               {saving ? 'Saving...' : 'Save Advanced Earnings'}

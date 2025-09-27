@@ -75,7 +75,7 @@ export default async function handler(req, res) {
         draftReleases: releaseStats.draft || 0,
         hasActiveSubscription: !!subscription,
         subscriptionTier: subscription?.tier || 'none',
-        hasAnalyticsData: !!user.chartmetric_data,
+        hasAnalyticsData: !!user.analytics_data,
         hasEarningsData: !!user.earnings_data,
         displayName: user.artist_name || 
                     `${user.first_name || ''} ${user.last_name || ''}`.trim() || 

@@ -1,5 +1,10 @@
 // Artist Earnings Data API - Load Manual Earnings Data
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -10,7 +15,7 @@ export default async function handler(req, res) {
     // For now, use hardcoded user ID - in production this would come from auth
     const userId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry Taylor
 
-    console.log('💰 Loading earnings data for user:', userId);
+    console.log('Loading earnings data for user:', userId);
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -25,7 +30,7 @@ export default async function handler(req, res) {
 
     const earningsData = data?.earnings_data || {};
 
-    console.log('📊 Earnings data loaded:', {
+    console.log('Earnings data loaded:', {
       hasBasicMetrics: !!earningsData.basicMetrics,
       hasAdvancedMetrics: !!earningsData.advancedMetrics,
       platformCount: earningsData.platformRevenue?.length || 0,

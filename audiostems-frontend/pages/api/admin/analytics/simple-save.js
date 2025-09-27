@@ -24,13 +24,13 @@ export default async function handler(req, res) {
     // Get existing data first to merge with new data
     const { data: existingProfile, error: fetchError } = await supabase
       .from('user_profiles')
-      .select('chartmetric_data')
+      .select('analytics_data')
       .eq('id', artistId)
       .single();
 
-    const existingData = existingProfile?.chartmetric_data || {};
+    const existingData = existingProfile?.analytics_data || {};
 
-    // Store analytics data in chartmetric_data column (existing JSONB column)
+    // Store analytics data in analytics_data column (existing JSONB column)
     const analyticsData = {
       ...existingData,
       lastUpdated: new Date().toISOString(),
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     const { data: updated, error } = await supabase
       .from('user_profiles')
       .update({ 
-        chartmetric_data: analyticsData,
+        analytics_data: analyticsData,
         updated_at: new Date().toISOString()
       })
       .eq('id', artistId)

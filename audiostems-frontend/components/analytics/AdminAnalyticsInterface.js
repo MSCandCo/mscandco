@@ -24,10 +24,10 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     show: false,
     title: '',
     message: '',
-    icon: '❌'
+    icon: 'error'
   });
 
-  const showBrandError = (title, message, icon = '❌') => {
+  const showBrandError = (title, message, icon = 'error') => {
     setErrorModal({
       show: true,
       title,
@@ -41,7 +41,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       show: false,
       title: '',
       message: '',
-      icon: '❌'
+      icon: 'error'
     });
   };
   const [loading, setLoading] = useState(true);
@@ -252,17 +252,33 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
 
     // File size limit: 2MB
     if (file.size > 2 * 1024 * 1024) {
-      alert('❌ Artwork file too large. Please use an image under 2MB.');
+      // Show error using brand error style
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #fef2f2; border-left: 4px solid #991b1b; padding: 16px 24px; color: #991b1b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+          Artwork file too large. Please use an image under 2MB.
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
       return;
     }
 
     // File type validation
     if (!file.type.startsWith('image/')) {
-      alert('❌ File not compatible. Please use JPG, PNG, or WebP images.');
+      // Show error using brand error style
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #fef2f2; border-left: 4px solid #991b1b; padding: 16px 24px; color: #991b1b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+          File not compatible. Please use JPG, PNG, or WebP images.
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
       return;
     }
 
-    console.log('🖼️ Processing artwork:', file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
+    console.log('Processing artwork:', file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -550,22 +566,30 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       try {
         console.log('📥 Loading existing data for artist:', selectedArtistId);
 
-        // Load existing data from user_profiles (using chartmetric_data column)
-        const { data: profile, error } = await supabase
-          .from('user_profiles')
-          .select('chartmetric_data')
-          .eq('id', selectedArtistId)
-          .single();
+        // Load existing data using the proper admin load API
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
 
-        if (error) {
-          console.log('⚠️ Error loading profile:', error);
+        if (!token) {
+          console.log('❌ No auth token for loading data');
           return;
         }
 
-        if (profile?.chartmetric_data && profile.chartmetric_data.type === 'manual_analytics') {
-          console.log('📦 Loaded existing analytics data:', profile.chartmetric_data);
+        const response = await fetch(`/api/admin/analytics/load-data?artistId=${selectedArtistId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          console.log('⚠️ Error loading analytics data:', response.status);
+          return;
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.type === 'manual_analytics') {
+          console.log('📦 Loaded existing analytics data:', result.data);
           
-          const { latestRelease: existingRelease, milestones: existingMilestones } = profile.chartmetric_data;
+          const { latestRelease: existingRelease, milestones: existingMilestones, advancedData, sectionVisibility } = result.data;
           
           if (existingRelease) {
             setLatestRelease({
@@ -574,8 +598,8 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
               featuring: existingRelease.featuring || '',
               releaseDate: existingRelease.releaseDate || '',
               releaseType: existingRelease.releaseType || '',
-              artwork: null,
-              audioFile: null,
+              artworkUrl: existingRelease.artworkUrl || existingRelease.artwork || '',
+              audioFileUrl: existingRelease.audioFileUrl || existingRelease.audioFile || '',
               platforms: existingRelease.platforms || [
                 { name: 'Spotify', streams: '', change: '' },
                 { name: 'Apple Music', streams: '', change: '' },
@@ -587,6 +611,28 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
 
           if (existingMilestones && existingMilestones.length > 0) {
             setMilestones(existingMilestones);
+          }
+
+          // Load advanced data
+          if (advancedData) {
+            if (advancedData.artistRanking) setArtistRanking(advancedData.artistRanking);
+            if (advancedData.careerSnapshot) setCareerSnapshot(advancedData.careerSnapshot);
+            if (advancedData.audienceSummary) setAudienceSummary(advancedData.audienceSummary);
+            if (advancedData.topMarkets) setTopMarkets(advancedData.topMarkets);
+            if (advancedData.topStatistics) setTopStatistics(advancedData.topStatistics);
+            if (advancedData.topTracks) setTopTracks(advancedData.topTracks);
+            if (advancedData.allReleases) setAllReleases(advancedData.allReleases);
+            if (advancedData.platformPerformance) setPlatformPerformance(advancedData.platformPerformance);
+          }
+
+          // Load section visibility
+          if (sectionVisibility) {
+            setSectionVisibility(sectionVisibility);
+          }
+
+          // Load last updated timestamp
+          if (result.data.lastUpdated) {
+            setLastUpdated(result.data.lastUpdated);
           }
         } else {
           console.log('📭 No existing analytics data found for artist');
