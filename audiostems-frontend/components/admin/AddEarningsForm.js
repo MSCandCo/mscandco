@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 
-export default function AddEarningsForm({ artistId, onSuccess }) {
+export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess, onDataUpdated }) {
+  // Use selectedArtistId if passed, fall back to artistId for compatibility
+  const currentArtistId = selectedArtistId || artistId;
   const [releases, setReleases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,8 +23,8 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
 
   useEffect(() => {
     // Fetch artist's live releases
-    if (artistId) {
-      fetch(`/api/admin/releases?artist_id=${artistId}&status=live`)
+    if (currentArtistId) {
+      fetch(`/api/admin/releases?artist_id=${currentArtistId}&status=live`)
         .then(res => res.json())
         .then(data => {
           // Handle API response properly
@@ -40,11 +42,11 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
           setReleases([]); // Set empty array on error
         });
     }
-  }, [artistId]);
+  }, [currentArtistId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🔄 Form submission started...', { formData, artistId });
+    console.log('🔄 Form submission started...', { formData, currentArtistId });
     
     if (loading) {
       console.log('⏳ Already submitting, ignoring...');
@@ -55,7 +57,7 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
     
     try {
       const submitData = {
-        artist_id: artistId,
+        artist_id: currentArtistId,
         earning_type: formData.earning_type,
         amount: parseFloat(formData.amount),
         currency: formData.currency,
@@ -69,6 +71,18 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
       };
       
       console.log('📤 Sending data:', submitData);
+      
+      // Validation check before sending
+      if (!submitData.artist_id || !submitData.earning_type || !submitData.amount || !submitData.platform) {
+        console.error('❌ Missing required fields:', {
+          artist_id: !!submitData.artist_id,
+          earning_type: !!submitData.earning_type, 
+          amount: !!submitData.amount,
+          platform: !!submitData.platform
+        });
+        setLoading(false);
+        return;
+      }
       
       const response = await fetch('/api/admin/earnings/add-simple', {
         method: 'POST',
@@ -100,12 +114,12 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
       document.body.appendChild(successDiv);
       setTimeout(() => document.body.removeChild(successDiv), 3000);
       
-      onSuccess();
+      (onDataUpdated || onSuccess)();
       setLoading(false);
       
       // Reset form
       setFormData({
-        asset_id: '',
+        asset_id: 'general',
         earning_type: 'streaming',
         amount: '',
         currency: 'GBP',
