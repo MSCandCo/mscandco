@@ -20,9 +20,25 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
 
   useEffect(() => {
     // Fetch artist's live releases
-    fetch(`/api/admin/releases?artist_id=${artistId}&status=live`)
-      .then(res => res.json())
-      .then(data => setReleases(data));
+    if (artistId) {
+      fetch(`/api/admin/releases?artist_id=${artistId}&status=live`)
+        .then(res => res.json())
+        .then(data => {
+          // Handle API response properly
+          if (data && Array.isArray(data)) {
+            setReleases(data);
+          } else if (data && Array.isArray(data.releases)) {
+            setReleases(data.releases);
+          } else {
+            console.log('No releases found or API error:', data);
+            setReleases([]); // Set empty array to prevent map errors
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching releases:', err);
+          setReleases([]); // Set empty array on error
+        });
+    }
   }, [artistId]);
 
   const handleSubmit = async (e) => {
