@@ -317,7 +317,12 @@ export default function ArtistWallet() {
               <div>
                 <p className="text-sm font-medium" style={{color: '#475569'}}>Pending Payouts</p>
                 <p className="text-xl font-bold" style={{color: '#475569'}}>
-                  {recent_history.filter(entry => entry.earning_type === 'payout_request' && entry.status === 'pending').length || 0}
+                  {(() => {
+                    const pendingPayouts = recent_history.filter(entry => entry.earning_type === 'payout_request' && entry.status === 'pending');
+                    const count = pendingPayouts.length;
+                    const totalAmount = pendingPayouts.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+                    return count > 0 ? `${count} - ${displayAmount(totalAmount)}` : '0';
+                  })()}
                 </p>
               </div>
               <Clock className="w-8 h-8" style={{color: '#475569'}} />
