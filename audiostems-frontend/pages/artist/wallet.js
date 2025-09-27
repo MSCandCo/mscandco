@@ -418,6 +418,7 @@ export default function ArtistWallet() {
         onClose={() => setShowPayoutModal(false)}
         availableBalance={wallet?.available_balance || 0}
         minimumPayout={wallet?.minimum_payout || 50}
+        currency={selectedCurrency}
         onSuccess={handlePayoutSuccess}
       />
     </div>

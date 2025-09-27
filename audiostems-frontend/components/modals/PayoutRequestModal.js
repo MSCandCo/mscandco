@@ -6,7 +6,8 @@ export default function PayoutRequestModal({
   onClose, 
   availableBalance = 0, 
   minimumPayout = 50, 
-  onSuccess 
+  onSuccess,
+  currency = 'GBP'
 }) {
   const [formData, setFormData] = useState({
     amount: '',
@@ -21,6 +22,24 @@ export default function PayoutRequestModal({
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Get currency symbol based on selected currency
+  const getCurrencySymbol = (currencyCode) => {
+    const currencyMap = {
+      'USD': '$',
+      'EUR': '€', 
+      'GBP': '£',
+      'CAD': 'C$',
+      'NGN': '₦',
+      'GHS': '₵',
+      'KES': 'KSh',
+      'ZAR': 'R',
+      'ZMW': 'ZK'
+    };
+    return currencyMap[currencyCode] || '£';
+  };
+
+  const currencySymbol = getCurrencySymbol(currency);
 
   const payoutMethods = [
     {
@@ -200,7 +219,9 @@ export default function PayoutRequestModal({
               Payout Amount
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{color: '#64748b'}} />
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm font-medium" style={{color: '#64748b'}}>
+                {currencySymbol}
+              </span>
               <input
                 type="number"
                 step="0.01"
@@ -218,7 +239,7 @@ export default function PayoutRequestModal({
               <p className="mt-1 text-sm" style={{color: '#991b1b'}}>{errors.amount}</p>
             )}
             <p className="mt-1 text-xs" style={{color: '#64748b'}}>
-              Minimum payout: £{minimumPayout} • Available: £{availableBalance.toFixed(2)}
+              Minimum payout: {currencySymbol}{minimumPayout} • Available: {currencySymbol}{availableBalance.toFixed(2)}
             </p>
           </div>
 
