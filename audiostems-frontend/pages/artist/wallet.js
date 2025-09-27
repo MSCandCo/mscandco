@@ -53,7 +53,7 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
         </button>
         
         {isOpen && (
-          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px] max-h-64 overflow-y-auto">
+          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[120px] max-h-64 overflow-y-auto">
             {currencies.map(currency => (
               <button
                 key={currency.code}
@@ -64,7 +64,6 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
                 className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm first:rounded-t-lg last:rounded-b-lg text-slate-700 hover:text-slate-900"
               >
                 <span className="font-medium">{currency.symbol} {currency.code}</span>
-                <span className="text-slate-500 ml-2">- {currency.name}</span>
               </button>
             ))}
           </div>
