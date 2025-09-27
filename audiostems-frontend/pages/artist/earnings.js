@@ -83,9 +83,79 @@ export default function ArtistEarnings() {
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
   const [showAmounts, setShowAmounts] = useState(true);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('all_time');
   
   // Use currency conversion hook
   const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);
+
+  // Time period options
+  const timePeriods = [
+    { value: 'last_7_days', label: 'Last 7 Days' },
+    { value: 'last_30_days', label: 'Last 30 Days' },
+    { value: 'last_90_days', label: 'Last 3 Months' },
+    { value: 'last_365_days', label: 'Last 12 Months' },
+    { value: 'all_time', label: 'All Time' }
+  ];
+
+  // Calculate metrics based on selected period
+  const calculatePeriodMetrics = () => {
+    if (!walletData?.recent_history) return null;
+
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch(selectedPeriod) {
+      case 'last_7_days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'last_30_days':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'last_90_days':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case 'last_365_days':
+        startDate.setDate(now.getDate() - 365);
+        break;
+      default:
+        startDate = new Date('2020-01-01'); // All time
+    }
+
+    const periodEntries = walletData.recent_history.filter(entry => {
+      const entryDate = new Date(entry.created_at);
+      return entryDate >= startDate && entry.amount > 0; // Only positive earnings
+    });
+
+    const periodEarnings = periodEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    
+    // Calculate previous period for growth comparison
+    const previousStartDate = new Date(startDate);
+    const previousEndDate = new Date(startDate);
+    const periodDays = (now - startDate) / (24 * 60 * 60 * 1000);
+    previousStartDate.setDate(previousStartDate.getDate() - periodDays);
+    
+    const previousPeriodEntries = walletData.recent_history.filter(entry => {
+      const entryDate = new Date(entry.created_at);
+      return entryDate >= previousStartDate && entryDate < previousEndDate && entry.amount > 0;
+    });
+
+    const previousPeriodEarnings = previousPeriodEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    
+    // Calculate growth percentage
+    const growthPercentage = previousPeriodEarnings > 0 
+      ? ((periodEarnings - previousPeriodEarnings) / previousPeriodEarnings) * 100 
+      : periodEarnings > 0 ? 100 : 0;
+
+    return {
+      periodEarnings,
+      previousPeriodEarnings,
+      growthPercentage,
+      entryCount: periodEntries.length,
+      averagePerEntry: periodEntries.length > 0 ? periodEarnings / periodEntries.length : 0
+    };
+  };
+
+  const periodMetrics = calculatePeriodMetrics();
 
   useEffect(() => {
     fetchWalletData();
@@ -239,6 +309,9 @@ export default function ArtistEarnings() {
               >
                 Request Payout
               </button>
+              <p className="text-xs mt-2 opacity-75">
+                Min: {displayAmount(wallet.minimum_payout || 50)}
+              </p>
             </div>
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-8 translate-x-8"></div>
           </div>
@@ -289,26 +362,80 @@ export default function ArtistEarnings() {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Period Selector */}
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold" style={{color: '#1f2937'}}>Earnings Overview</h2>
+          <div className="flex items-center space-x-3">
+            <label className="text-sm font-medium" style={{color: '#64748b'}}>Period:</label>
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              style={{color: '#1f2937'}}
+            >
+              {timePeriods.map(period => (
+                <option key={period.value} value={period.value}>
+                  {period.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Enhanced Wallet Summary */}
         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
-          <h2 className="text-xl font-bold mb-4" style={{color: '#1f2937'}}>Wallet Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Available Balance */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f0fdf4', border: '1px solid #bbf7d0'}}>
               <div>
-                <p className="text-sm font-medium" style={{color: '#065f46'}}>Paid Earnings</p>
+                <p className="text-sm font-medium" style={{color: '#065f46'}}>Available Balance</p>
                 <p className="text-xl font-bold" style={{color: '#065f46'}}>{displayAmount(wallet.available_balance)}</p>
+                <p className="text-xs mt-1" style={{color: '#065f46'}}>Ready for withdrawal</p>
               </div>
               <CheckCircle className="w-8 h-8" style={{color: '#065f46'}} />
             </div>
             
+            {/* Period Earnings with Growth */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #cbd5e1'}}>
               <div>
-                <p className="text-sm font-medium" style={{color: '#475569'}}>Minimum Payout</p>
-                <p className="text-xl font-bold" style={{color: '#475569'}}>{displayAmount(wallet.minimum_payout || 50)}</p>
+                <p className="text-sm font-medium" style={{color: '#475569'}}>
+                  {timePeriods.find(p => p.value === selectedPeriod)?.label} Earnings
+                </p>
+                <p className="text-xl font-bold" style={{color: '#475569'}}>
+                  {periodMetrics ? displayAmount(periodMetrics.periodEarnings) : displayAmount(wallet.total_earned)}
+                </p>
+                {periodMetrics && periodMetrics.growthPercentage !== 0 && (
+                  <p className="text-xs mt-1 flex items-center space-x-1">
+                    {periodMetrics.growthPercentage > 0 ? (
+                      <>
+                        <ArrowUpRight className="w-3 h-3" style={{color: '#065f46'}} />
+                        <span style={{color: '#065f46'}}>+{periodMetrics.growthPercentage.toFixed(1)}%</span>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowDownRight className="w-3 h-3" style={{color: '#991b1b'}} />
+                        <span style={{color: '#991b1b'}}>{periodMetrics.growthPercentage.toFixed(1)}%</span>
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
-              <CreditCard className="w-8 h-8" style={{color: '#475569'}} />
+              <TrendingUp className="w-8 h-8" style={{color: '#475569'}} />
+            </div>
+
+            {/* Total Lifetime Value */}
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#fef3c7', border: '1px solid #fcd34d'}}>
+              <div>
+                <p className="text-sm font-medium" style={{color: '#78350f'}}>Total Lifetime Value</p>
+                <p className="text-xl font-bold" style={{color: '#78350f'}}>
+                  {displayAmount((wallet.available_balance || 0) + (wallet.pending_balance || 0) + (wallet.total_paid_out || 0))}
+                </p>
+                <p className="text-xs mt-1" style={{color: '#78350f'}}>All earnings ever</p>
+              </div>
+              <DollarSign className="w-8 h-8" style={{color: '#d97706'}} />
             </div>
             
+            {/* Pending Payouts */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #e2e8f0'}}>
               <div>
                 <p className="text-sm font-medium" style={{color: '#475569'}}>Pending Payouts</p>
@@ -320,6 +447,7 @@ export default function ArtistEarnings() {
                     return count > 0 ? `${count} - ${displayAmount(totalAmount)}` : '0';
                   })()}
                 </p>
+                <p className="text-xs mt-1" style={{color: '#475569'}}>Withdrawal requests</p>
               </div>
               <Clock className="w-8 h-8" style={{color: '#475569'}} />
             </div>
