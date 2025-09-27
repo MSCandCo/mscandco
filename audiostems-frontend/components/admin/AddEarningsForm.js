@@ -44,13 +44,21 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const response = await fetch('/api/admin/earnings/add-entry', {
+    const response = await fetch('/api/admin/earnings/add-simple', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...formData,
         artist_id: artistId,
-        created_by: 'current-admin-id' // Get from auth
+        earning_type: formData.earning_type,
+        amount: parseFloat(formData.amount),
+        currency: formData.currency,
+        platform: formData.platform,
+        territory: formData.territory,
+        status: formData.status,
+        notes: formData.notes,
+        payment_date: formData.expected_payment_date || null,
+        period_start: formData.period_start || null,
+        period_end: formData.period_end || null
       })
     });
 
