@@ -27,14 +27,14 @@ export default function PayoutRequestModal({
       id: 'bank_transfer',
       name: 'Bank Transfer',
       icon: Building,
-      description: 'Direct transfer to your bank account (1-3 business days)',
+      description: 'Direct transfer to your bank account (2-5 business days)',
       fields: ['account_name', 'account_number', 'sort_code', 'bank_name']
     },
     {
       id: 'paypal',
       name: 'PayPal',
       icon: CreditCard,
-      description: 'Transfer to your PayPal account (Instant)',
+      description: 'Transfer to your PayPal account (1-3 business days)',
       fields: ['paypal_email']
     }
   ];
@@ -390,7 +390,7 @@ export default function PayoutRequestModal({
             <AlertCircle className="w-5 h-5 mt-0.5 mr-3" style={{color: '#475569'}} />
             <div className="text-sm" style={{color: '#475569'}}>
               <div className="font-medium mb-1">Processing Time</div>
-              <div>Bank transfers typically take 1-3 business days to process. You'll receive an email confirmation once your payout has been sent.</div>
+              <div>Bank transfers typically take 2-5 business days, PayPal takes 1-3 business days to process. You'll receive an email confirmation once your payout has been sent.</div>
             </div>
           </div>
 
