@@ -22,14 +22,20 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-// Currency selector component
+// Comprehensive currency selector component
 const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const currencies = [
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
     { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' }
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+    { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi' },
+    { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
+    { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+    { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' }
   ];
 
   const selectedCurr = currencies.find(c => c.code === selectedCurrency) || currencies[0];
@@ -39,15 +45,15 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center space-x-2 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50"
+          className="flex items-center space-x-2 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700"
         >
           <span>{selectedCurr.symbol}</span>
           <span>{selectedCurr.code}</span>
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-4 h-4 text-slate-600" />
         </button>
         
         {isOpen && (
-          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px] max-h-64 overflow-y-auto">
             {currencies.map(currency => (
               <button
                 key={currency.code}
@@ -55,9 +61,10 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
                   onCurrencyChange(currency.code);
                   setIsOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm first:rounded-t-lg last:rounded-b-lg"
+                className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm first:rounded-t-lg last:rounded-b-lg text-slate-700 hover:text-slate-900"
               >
-                {currency.symbol} {currency.code}
+                <span className="font-medium">{currency.symbol} {currency.code}</span>
+                <span className="text-slate-500 ml-2">- {currency.name}</span>
               </button>
             ))}
           </div>
