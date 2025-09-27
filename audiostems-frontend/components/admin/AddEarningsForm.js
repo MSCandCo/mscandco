@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 export default function AddEarningsForm({ artistId, onSuccess }) {
   const [releases, setReleases] = useState([]);
   const [formData, setFormData] = useState({
-    asset_id: '',
+    asset_id: 'general', // Default to general earnings (not track-specific)
     earning_type: 'streaming',
     amount: '',
     currency: 'GBP',
@@ -119,7 +119,7 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
               focusBoxShadow: '0 0 0 3px rgba(31, 41, 55, 0.1)'
             }}
           >
-            <option value="">Choose a release...</option>
+            <option value="general">General Earnings (Not track-specific)</option>
             {releases.map(release => (
               <option key={release.id} value={release.id}>
                 {release.title} - {release.artist}
