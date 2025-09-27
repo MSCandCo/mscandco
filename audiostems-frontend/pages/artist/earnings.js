@@ -365,25 +365,6 @@ export default function ArtistEarnings() {
           </div>
         </div>
 
-        {/* Period Selector */}
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold" style={{color: '#1f2937'}}>Earnings Overview</h2>
-          <div className="flex items-center space-x-3">
-            <label className="text-sm font-medium" style={{color: '#64748b'}}>Period:</label>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-              style={{color: '#1f2937'}}
-            >
-              {timePeriods.map(period => (
-                <option key={period.value} value={period.value}>
-                  {period.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
         {/* Wallet Summary - 3 Core Cards */}
         <div className="mb-6 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
@@ -431,10 +412,25 @@ export default function ArtistEarnings() {
 
         {/* Period Analytics - Separate Row */}
         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold" style={{color: '#1f2937'}}>
-              {timePeriods.find(p => p.value === selectedPeriod)?.label} Performance
-            </h3>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-bold" style={{color: '#1f2937'}}>Performance Analytics</h3>
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium" style={{color: '#64748b'}}>Period:</label>
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  style={{color: '#1f2937'}}
+                >
+                  {timePeriods.map(period => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {periodMetrics && periodMetrics.growthPercentage !== 0 && (
               <div className="flex items-center space-x-2">
                 {periodMetrics.growthPercentage > 0 ? (
