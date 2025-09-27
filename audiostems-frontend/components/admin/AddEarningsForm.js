@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export default function AddEarningsForm({ artistId, onSuccess }) {
   const [releases, setReleases] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     asset_id: 'general', // Default to general earnings (not track-specific)
     earning_type: 'streaming',
@@ -43,11 +44,17 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔄 Form submission started...', { formData, artistId });
     
-    const response = await fetch('/api/admin/earnings/add-simple', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    if (loading) {
+      console.log('⏳ Already submitting, ignoring...');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const submitData = {
         artist_id: artistId,
         earning_type: formData.earning_type,
         amount: parseFloat(formData.amount),
@@ -59,8 +66,17 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
         payment_date: formData.expected_payment_date || null,
         period_start: formData.period_start || null,
         period_end: formData.period_end || null
-      })
-    });
+      };
+      
+      console.log('📤 Sending data:', submitData);
+      
+      const response = await fetch('/api/admin/earnings/add-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submitData)
+      });
+      
+      console.log('📥 Response status:', response.status);
 
     if (response.ok) {
       // Show success notification using MSC brand style
@@ -85,6 +101,8 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
       setTimeout(() => document.body.removeChild(successDiv), 3000);
       
       onSuccess();
+      setLoading(false);
+      
       // Reset form
       setFormData({
         asset_id: '',
@@ -101,6 +119,57 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
         period_end: '',
         notes: ''
       });
+    } else {
+      console.error('❌ API Error:', response.status, response.statusText);
+      const errorData = await response.text();
+      console.error('❌ Error details:', errorData);
+      setLoading(false);
+      
+      // Show error notification
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="
+          position: fixed; 
+          top: 20px; 
+          right: 20px; 
+          background: #fef2f2; 
+          border-left: 4px solid #991b1b; 
+          padding: 16px 24px; 
+          color: #991b1b; 
+          border-radius: 8px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 1000;
+        ">
+          Failed to add earnings entry. Check console for details.
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
+    }
+    } catch (error) {
+      console.error('❌ Network/JS Error:', error);
+      setLoading(false);
+      
+      // Show error notification
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div style="
+          position: fixed; 
+          top: 20px; 
+          right: 20px; 
+          background: #fef2f2; 
+          border-left: 4px solid #991b1b; 
+          padding: 16px 24px; 
+          color: #991b1b; 
+          border-radius: 8px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 1000;
+        ">
+          Network error. Check your connection and try again.
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     }
   };
 
@@ -336,15 +405,16 @@ export default function AddEarningsForm({ artistId, onSuccess }) {
 
         <button 
           type="submit" 
-          className="text-white font-medium py-3 px-6 rounded-lg transition-all"
+          disabled={loading}
+          className="text-white font-medium py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            background: loading ? '#6b7280' : 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
             border: '1px solid #1f2937'
           }}
-          onMouseEnter={(e) => e.target.style.background = 'linear-gradient(135deg, #374151 0%, #4b5563 100%)'}
-          onMouseLeave={(e) => e.target.style.background = 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'}
+          onMouseEnter={(e) => !loading && (e.target.style.background = 'linear-gradient(135deg, #374151 0%, #4b5563 100%)')}
+          onMouseLeave={(e) => !loading && (e.target.style.background = 'linear-gradient(135deg, #1f2937 0%, #374151 100%)')}
         >
-          Add Earnings Entry
+          {loading ? 'Adding...' : 'Add Earnings Entry'}
         </button>
       </form>
     </div>
