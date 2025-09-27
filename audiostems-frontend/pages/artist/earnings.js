@@ -94,7 +94,8 @@ export default function ArtistEarnings() {
     { value: 'last_30_days', label: 'Last 30 Days' },
     { value: 'last_90_days', label: 'Last 3 Months' },
     { value: 'last_365_days', label: 'Last 12 Months' },
-    { value: 'all_time', label: 'All Time' }
+    { value: 'all_time', label: 'All Time' },
+    { value: 'custom', label: 'Custom Date Range' }
   ];
 
   // Calculate metrics based on selected period
@@ -331,17 +332,19 @@ export default function ArtistEarnings() {
             </p>
           </div>
 
-          {/* Total Earned */}
+          {/* Active Platforms */}
           <div className="p-6 rounded-2xl shadow-lg" style={{
             background: 'linear-gradient(145deg, #ffffff 0%, #f9fafb 100%)',
             border: '1px solid rgba(31, 41, 55, 0.08)'
           }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Total Earned</h3>
+              <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Active Platforms</h3>
               <TrendingUp className="w-5 h-5" style={{color: '#065f46'}} />
             </div>
-            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{displayAmount(wallet.total_earned)}</h2>
-            <p className="text-sm" style={{color: '#64748b'}}>All time earnings</p>
+            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>
+              {[...new Set([...pending_entries.map(e => e.platform), ...recent_history.filter(e => e.amount > 0).map(e => e.platform)])].length}
+            </h2>
+            <p className="text-sm" style={{color: '#64748b'}}>Earning sources</p>
           </div>
 
           {/* Last Updated */}
@@ -382,9 +385,9 @@ export default function ArtistEarnings() {
           </div>
         </div>
 
-        {/* Enhanced Wallet Summary */}
-        <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Wallet Summary - 3 Core Cards */}
+        <div className="mb-6 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Available Balance */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f0fdf4', border: '1px solid #bbf7d0'}}>
               <div>
@@ -394,43 +397,15 @@ export default function ArtistEarnings() {
               </div>
               <CheckCircle className="w-8 h-8" style={{color: '#065f46'}} />
             </div>
-            
-            {/* Period Earnings with Growth */}
-            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #cbd5e1'}}>
-              <div>
-                <p className="text-sm font-medium" style={{color: '#475569'}}>
-                  {timePeriods.find(p => p.value === selectedPeriod)?.label} Earnings
-                </p>
-                <p className="text-xl font-bold" style={{color: '#475569'}}>
-                  {periodMetrics ? displayAmount(periodMetrics.periodEarnings) : displayAmount(wallet.total_earned)}
-                </p>
-                {periodMetrics && periodMetrics.growthPercentage !== 0 && (
-                  <p className="text-xs mt-1 flex items-center space-x-1">
-                    {periodMetrics.growthPercentage > 0 ? (
-                      <>
-                        <ArrowUpRight className="w-3 h-3" style={{color: '#065f46'}} />
-                        <span style={{color: '#065f46'}}>+{periodMetrics.growthPercentage.toFixed(1)}%</span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDownRight className="w-3 h-3" style={{color: '#991b1b'}} />
-                        <span style={{color: '#991b1b'}}>{periodMetrics.growthPercentage.toFixed(1)}%</span>
-                      </>
-                    )}
-                  </p>
-                )}
-              </div>
-              <TrendingUp className="w-8 h-8" style={{color: '#475569'}} />
-            </div>
 
-            {/* Total Lifetime Value */}
+            {/* Total Lifetime Value (CORRECTED) */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#fef3c7', border: '1px solid #fcd34d'}}>
               <div>
-                <p className="text-sm font-medium" style={{color: '#78350f'}}>Total Lifetime Value</p>
+                <p className="text-sm font-medium" style={{color: '#78350f'}}>Total Lifetime Earnings</p>
                 <p className="text-xl font-bold" style={{color: '#78350f'}}>
-                  {displayAmount((wallet.available_balance || 0) + (wallet.pending_balance || 0) + (wallet.total_paid_out || 0))}
+                  {displayAmount((wallet.available_balance || 0) + (wallet.pending_balance || 0) + (recent_history.filter(e => e.status === 'paid' && e.earning_type !== 'payout_request' && e.amount > 0).reduce((sum, e) => sum + e.amount, 0)))}
                 </p>
-                <p className="text-xs mt-1" style={{color: '#78350f'}}>All earnings ever</p>
+                <p className="text-xs mt-1" style={{color: '#78350f'}}>Paid + Available + Pending</p>
               </div>
               <DollarSign className="w-8 h-8" style={{color: '#d97706'}} />
             </div>
@@ -450,6 +425,55 @@ export default function ArtistEarnings() {
                 <p className="text-xs mt-1" style={{color: '#475569'}}>Withdrawal requests</p>
               </div>
               <Clock className="w-8 h-8" style={{color: '#475569'}} />
+            </div>
+          </div>
+        </div>
+
+        {/* Period Analytics - Separate Row */}
+        <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold" style={{color: '#1f2937'}}>
+              {timePeriods.find(p => p.value === selectedPeriod)?.label} Performance
+            </h3>
+            {periodMetrics && periodMetrics.growthPercentage !== 0 && (
+              <div className="flex items-center space-x-2">
+                {periodMetrics.growthPercentage > 0 ? (
+                  <>
+                    <ArrowUpRight className="w-4 h-4" style={{color: '#065f46'}} />
+                    <span className="text-sm font-medium" style={{color: '#065f46'}}>
+                      +{periodMetrics.growthPercentage.toFixed(1)}% vs previous period
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownRight className="w-4 h-4" style={{color: '#991b1b'}} />
+                    <span className="text-sm font-medium" style={{color: '#991b1b'}}>
+                      {periodMetrics.growthPercentage.toFixed(1)}% vs previous period
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Period Earnings</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? displayAmount(periodMetrics.periodEarnings) : displayAmount(0)}
+              </p>
+            </div>
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Transactions</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? periodMetrics.entryCount : 0}
+              </p>
+            </div>
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Average per Transaction</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? displayAmount(periodMetrics.averagePerEntry) : displayAmount(0)}
+              </p>
             </div>
           </div>
         </div>
