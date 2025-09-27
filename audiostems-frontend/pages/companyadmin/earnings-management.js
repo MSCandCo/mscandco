@@ -18,6 +18,7 @@ export default function EarningsManagement() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [earningsHistory, setEarningsHistory] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -101,6 +102,29 @@ export default function EarningsManagement() {
 
   const handleDataUpdated = () => {
     console.log('💰 Earnings data updated for artist:', selectedArtist?.first_name);
+    // Refresh earnings history when data is updated
+    if (selectedArtist) {
+      fetchEarningsHistory(selectedArtist.id);
+    }
+  };
+
+  // Fetch earnings history for selected artist
+  const fetchEarningsHistory = async (artistId) => {
+    try {
+      const response = await fetch(`/api/admin/earnings/list?artist_id=${artistId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setEarningsHistory(data.earnings || []);
+        console.log(`📊 Loaded ${data.earnings?.length || 0} earnings entries for artist`);
+      } else {
+        console.error('Failed to load earnings history:', data.error);
+        setEarningsHistory([]);
+      }
+    } catch (error) {
+      console.error('Error fetching earnings history:', error);
+      setEarningsHistory([]);
+    }
   };
 
   // Click outside to close dropdown
@@ -200,6 +224,7 @@ export default function EarningsManagement() {
                                 setSelectedArtist(user);
                                 setSearchTerm('');
                                 setShowDropdown(false);
+                                fetchEarningsHistory(user.id);
                               }}
                               className="w-full text-left p-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
                             >
@@ -287,7 +312,10 @@ export default function EarningsManagement() {
                       {artists.slice(0, 10).map((user) => (
                         <button
                           key={user.id}
-                          onClick={() => setSelectedArtist(user)}
+                          onClick={() => {
+                            setSelectedArtist(user);
+                            fetchEarningsHistory(user.id);
+                          }}
                           className="w-full text-left p-3 rounded-lg transition-colors bg-slate-50 hover:bg-slate-100 border border-transparent hover:border-slate-200"
                         >
                           <div className="flex items-center">
@@ -349,6 +377,57 @@ export default function EarningsManagement() {
                         </span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Earnings History */}
+                  <div className="mb-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                    <h3 className="text-lg font-bold mb-4" style={{color: '#1f2937'}}>
+                      Earnings History ({earningsHistory.length} entries)
+                    </h3>
+                    {earningsHistory.length > 0 ? (
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {earningsHistory.map(entry => (
+                          <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-1">
+                                <span className="font-semibold" style={{color: '#1f2937'}}>{entry.platform}</span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
+                                  background: entry.status === 'paid' ? '#f0fdf4' : '#fef3c7',
+                                  color: entry.status === 'paid' ? '#065f46' : '#78350f'
+                                }}>
+                                  {entry.earning_type}
+                                </span>
+                              </div>
+                              <p className="text-sm" style={{color: '#64748b'}}>
+                                {entry.territory} • {new Date(entry.created_at).toLocaleDateString()}
+                              </p>
+                              {entry.notes && (
+                                <p className="text-xs mt-1" style={{color: '#9ca3af'}}>{entry.notes}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold" style={{color: '#1f2937'}}>
+                                £{Math.abs(entry.amount).toFixed(2)}
+                              </p>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
+                                background: entry.status === 'paid' ? '#f0fdf4' : entry.status === 'pending' ? '#fef3c7' : '#fee2e2',
+                                color: entry.status === 'paid' ? '#065f46' : entry.status === 'pending' ? '#78350f' : '#991b1b'
+                              }}>
+                                {entry.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <DollarSign className="w-12 h-12 mx-auto mb-3" style={{color: '#9ca3af'}} />
+                        <p style={{color: '#64748b'}}>No earnings history found</p>
+                        <p className="text-sm mt-1" style={{color: '#9ca3af'}}>
+                          Earnings will appear here after being added
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Add Earnings Form */}
