@@ -6,8 +6,9 @@
 ## 🎯 **PRE-TEST SETUP**
 
 ### **Test Data Baseline**
-- **Henry's Current Wallet**: Available £125.50, Pending £465.00, Total £590.50
+- **Henry's Current Wallet**: Available £225.50, Pending £465.00, Total £690.50
 - **Approved Payouts**: 1 request (£100 approved)
+- **Pending Entries**: 4 entries (Netflix £200, YouTube £89.25, Tidal £125.75, Deezer £50)
 - **Analytics Data**: Latest release "Love", 1 milestone
 - **Test Amounts**: Use £50 for new payout, £25 for new earnings
 
@@ -30,14 +31,15 @@
 □ 2.2 Verify URL: /artist/earnings
 □ 2.3 Verify page title: "Earnings & Wallet"
 □ 2.4 Check wallet cards display:
-     □ Available Balance: £125.50
+     □ Available Balance: £225.50
      □ Pending Income: £465.00  
-     □ Total Earned: £590.50
+     □ Total Earned: £690.50
      □ Last Payout: Shows recent data
-□ 2.5 Verify pending income breakdown shows 3 entries:
+□ 2.5 Verify pending income breakdown shows 4 entries:
      □ Netflix: £200.00 (Sync)
      □ YouTube Music: £89.25 (Streaming)
      □ Tidal: £125.75 (Streaming)
+     □ Deezer: £50.00 (Streaming)
 □ 2.6 Verify recent history shows past transactions
 □ 2.7 Check "Request Payout" button is visible and styled correctly
 □ 2.8 Verify no placeholder/mock data anywhere
@@ -235,9 +237,9 @@
 ### **After All Tests Complete:**
 ```
 Henry's Wallet Should Show:
-✅ Available Balance: £75.50
-✅ Pending Balance: £490.00  
-✅ Total Earned: £615.50
+✅ Available Balance: £175.50 (£225.50 - £50 payout)
+✅ Pending Balance: £490.00 (£465.00 + £25 new earnings)
+✅ Total Earned: £715.50 (£690.50 + £25 new earnings)
 ✅ Recent History: 2 new entries (payout + earnings)
 
 Admin Dashboard Should Show:

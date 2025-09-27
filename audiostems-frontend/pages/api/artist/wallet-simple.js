@@ -27,16 +27,16 @@ export default async function handler(req, res) {
 
     // Calculate balances
     const walletSummary = {
-      available_balance: allEarnings?.filter(e => e.status === 'paid').reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      pending_balance: allEarnings?.filter(e => e.status === 'pending').reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      held_balance: allEarnings?.filter(e => e.status === 'held').reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      total_earned: allEarnings?.reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      available_balance: allEarnings?.filter(e => e.status === 'paid' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      pending_balance: allEarnings?.filter(e => e.status === 'pending' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      held_balance: allEarnings?.filter(e => e.status === 'held' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      total_earned: allEarnings?.filter(e => e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
       total_entries: allEarnings?.length || 0,
       last_updated: new Date().toISOString()
     };
 
-    // Filter pending entries
-    const pendingEntries = allEarnings?.filter(e => ['pending', 'processing'].includes(e.status)) || [];
+    // Filter pending entries (only positive amounts - actual earnings waiting to be paid)
+    const pendingEntries = allEarnings?.filter(e => ['pending', 'processing'].includes(e.status) && e.amount > 0) || [];
     
     // Get recent history (all entries, latest first)
     const recentHistory = allEarnings?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20) || [];
