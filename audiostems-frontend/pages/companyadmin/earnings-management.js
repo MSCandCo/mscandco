@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import Layout from '../../components/layouts/mainLayout';
-import ManualEarningsInterface from '../../components/earnings/ManualEarningsInterface';
+import AddEarningsForm from '../../components/admin/AddEarningsForm';
 import { 
   Users, 
   DollarSign, 
@@ -351,11 +351,11 @@ export default function EarningsManagement() {
                     </div>
                   </div>
 
-                  {/* Manual Earnings Interface */}
-                  <ManualEarningsInterface 
+                  {/* Add Earnings Form */}
+                  <AddEarningsForm 
                     selectedArtistId={selectedArtist.id}
                     selectedArtistData={selectedArtist}
-                    onDataUpdated={handleDataUpdated} 
+                    onDataUpdated={handleDataUpdated}
                   />
                 </div>
               ) : (

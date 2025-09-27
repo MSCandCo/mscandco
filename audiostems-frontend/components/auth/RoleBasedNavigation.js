@@ -622,14 +622,20 @@ export default function RoleBasedNavigation() {
                   Content
                 </Link>
                 <Link
-                  href="/companyadmin/analytics"
-                  className={getNavLinkClasses('/companyadmin/analytics')}
+                  href="/companyadmin/analytics-management"
+                  className={getNavLinkClasses('/companyadmin/analytics-management')}
                 >
                   Analytics
                 </Link>
                 <Link
-                  href="/companyadmin/earnings"
-                  className={getNavLinkClasses('/companyadmin/earnings')}
+                  href="/companyadmin/payout-requests"
+                  className={getNavLinkClasses('/companyadmin/payout-requests')}
+                >
+                  Payouts
+                </Link>
+                <Link
+                  href="/companyadmin/earnings-management"
+                  className={getNavLinkClasses('/companyadmin/earnings-management')}
                 >
                   Earnings
                 </Link>
@@ -720,14 +726,21 @@ export default function RoleBasedNavigation() {
                   Content
                 </Link>
                 <Link
-                  href="/companyadmin/analytics"
+                  href="/companyadmin/analytics-management"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Analytics
                 </Link>
                 <Link
-                  href="/companyadmin/earnings"
+                  href="/companyadmin/payout-requests"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Payouts
+                </Link>
+                <Link
+                  href="/companyadmin/earnings-management"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

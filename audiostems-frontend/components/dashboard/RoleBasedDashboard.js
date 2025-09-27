@@ -386,7 +386,8 @@ export default function RoleBasedDashboard() {
             { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/companyadmin/users') },
             { title: 'Analytics', description: 'View platform analytics', icon: BarChart3, onClick: () => router.push('/companyadmin/analytics') },
             { title: 'Manage Artist Analytics', description: 'Update artist analytics data', icon: Edit3, onClick: () => router.push('/companyadmin/analytics-management') },
-            { title: 'Manage Artist Earnings', description: 'Update artist earnings data', icon: TrendingUp, onClick: () => router.push('/companyadmin/earnings-management') },
+            { title: 'Manage Artist Earnings', description: 'Add earnings & approve payouts', icon: TrendingUp, onClick: () => router.push('/companyadmin/earnings-management') },
+            { title: 'Payout Approvals', description: 'Review and approve payout requests', icon: DollarSign, onClick: () => router.push('/companyadmin/payout-requests') },
             { title: 'Finance', description: 'Platform financial reports', icon: DollarSign, onClick: () => router.push('/companyadmin/finance') },
             { title: 'Artist Requests', description: 'Manage artist approvals', icon: FileText, onClick: () => router.push('/companyadmin/artist-requests') }
           ]
