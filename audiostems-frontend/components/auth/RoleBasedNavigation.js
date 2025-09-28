@@ -220,9 +220,9 @@ export default function RoleBasedNavigation() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
-                  src="/logos/msc-logo.png"
+                  src="/logos/msc-logo-square.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -379,9 +379,9 @@ export default function RoleBasedNavigation() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
-                  src="/logos/msc-logo.png"
+                  src="/logos/msc-logo-square.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -590,9 +590,9 @@ export default function RoleBasedNavigation() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
-                  src="/logos/msc-logo.png"
+                  src="/logos/msc-logo-square.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}
@@ -801,9 +801,9 @@ export default function RoleBasedNavigation() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <img
-                  src="/logos/msc-logo.png"
+                  src="/logos/msc-logo-square.png"
                   alt="MSC & Co"
-                  className="h-8 md:h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   onError={(e) => {
                     e.target.src = '/logos/msc-logo.svg';
                   }}

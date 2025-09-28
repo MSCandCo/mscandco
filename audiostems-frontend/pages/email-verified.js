@@ -120,9 +120,9 @@ export default function EmailVerified() {
             <div className="flex items-center justify-center mb-6">
               <span className="text-4xl font-bold text-[#1f2937] mr-2">Welcome to</span>
               <img
-                src="/logos/msc-logo.png"
+                src="/logos/msc-logo-square.png"
                 alt="MSC & Co Logo"
-                className="h-12 w-auto"
+                className="h-16 w-16 object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'inline';

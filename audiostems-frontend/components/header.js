@@ -93,14 +93,14 @@ function Header({ largeLogo = false }) {
           {/* Logo - Left */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-                          <img
-              className={`${largeLogo ? 'h-32' : 'h-12 md:h-16'} w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200`}
-              src="/logos/msc-logo.png"
-              alt="MSC & Co Logo"
-              onError={(e) => {
-                e.target.src = '/logos/msc-logo.svg';
-              }}
-            />
+              <img
+                className={`${largeLogo ? 'h-32 w-32' : 'h-16 w-16 md:h-20 md:w-20'} object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200`}
+                src="/logos/msc-logo-square.png"
+                alt="MSC & Co Logo"
+                onError={(e) => {
+                  e.target.src = '/logos/msc-logo.png';
+                }}
+              />
             </Link>
           </div>
 

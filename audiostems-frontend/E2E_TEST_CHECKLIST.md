@@ -104,7 +104,7 @@
 □ 6.1 Click "Manage Artist Earnings" or navigate to /companyadmin/earnings-management
 □ 6.2 Verify page loads with artist selection
 □ 6.3 Select Henry Taylor from dropdown
-□ 6.4 Check earnings history displays (should show 7 entries)
+□ 6.4 Check wallet history displays (should show 9 entries - earnings + payouts)
 □ 6.5 Verify AddEarningsForm displays correctly
 □ 6.6 Fill new earnings form:
      □ Amount: £25.00
