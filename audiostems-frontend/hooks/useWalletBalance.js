@@ -26,20 +26,26 @@ export function useWalletBalance() {
         throw new Error('No active session');
       }
 
-      // Fetch wallet balance from user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('wallet_balance')
-        .eq('id', user.id)
-        .single();
+      // Fetch wallet balance from wallet API (same as earnings page)
+      const response = await fetch(`/api/artist/wallet-simple?artist_id=${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
 
-      if (profileError) {
-        throw profileError;
+      if (!response.ok) {
+        throw new Error(`Wallet API error: ${response.status}`);
       }
 
-      const balance = profile?.wallet_balance || 0;
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch wallet data');
+      }
+
+      const balance = data.wallet?.available_balance || 0;
       setWalletBalance(balance);
-      console.log('Wallet balance fetched:', balance);
+      console.log('Wallet balance fetched from API:', balance);
 
     } catch (err) {
       console.error('Error fetching wallet balance:', err);
