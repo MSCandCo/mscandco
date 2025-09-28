@@ -35,8 +35,8 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
       lyrics: '',
       
       // Genre & Classification
-      genre: '',
-      subGenre: '',
+      primaryGenre: '',
+      secondaryGenre: '',
       
       // Rights & Publishing
       isrc: '',
@@ -263,6 +263,7 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🎵 Release form submission started...', formData);
     setIsSubmitting(true);
 
     try {
@@ -293,6 +294,8 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
       };
 
       // Submit to API
+      console.log('📤 Submitting to API:', submitData);
+      
       const response = await fetch('/api/releases/create', {
         method: 'POST',
         headers: {
@@ -301,8 +304,12 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
         body: JSON.stringify(submitData)
       });
 
+      console.log('📥 API Response:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Failed to create release');
+        const errorText = await response.text();
+        console.error('❌ API Error:', errorText);
+        throw new Error(`Failed to create release: ${response.status} ${errorText}`);
       }
 
       const result = await response.json();
@@ -511,14 +518,31 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Genre
+                          Primary Genre *
                         </label>
                         <select
-                          value={asset.genre}
-                          onChange={(e) => updateAsset(assetIndex, 'genre', e.target.value)}
+                          value={asset.primaryGenre}
+                          onChange={(e) => updateAsset(assetIndex, 'primaryGenre', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          required
+                        >
+                          <option value="">Select primary genre</option>
+                          {GENRES.map(genre => (
+                            <option key={genre} value={genre}>{genre}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Secondary Genre
+                        </label>
+                        <select
+                          value={asset.secondaryGenre}
+                          onChange={(e) => updateAsset(assetIndex, 'secondaryGenre', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                          <option value="">Select genre</option>
+                          <option value="">Select secondary genre (optional)</option>
                           {GENRES.map(genre => (
                             <option key={genre} value={genre}>{genre}</option>
                           ))}
