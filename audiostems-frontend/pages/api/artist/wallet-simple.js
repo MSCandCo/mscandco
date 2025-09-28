@@ -26,20 +26,24 @@ export default async function handler(req, res) {
     }
 
     // Calculate balances
+    // Calculate wallet balances (exclude cancelled entries)
+    const activeEarnings = allEarnings?.filter(e => e.status !== 'cancelled') || [];
+    
     const walletSummary = {
-      available_balance: allEarnings?.filter(e => e.status === 'paid' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      pending_balance: allEarnings?.filter(e => e.status === 'pending' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      held_balance: allEarnings?.filter(e => e.status === 'held' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      total_earned: allEarnings?.filter(e => e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      total_entries: allEarnings?.length || 0,
+      available_balance: activeEarnings?.filter(e => e.status === 'paid' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      pending_balance: activeEarnings?.filter(e => e.status === 'pending' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      held_balance: activeEarnings?.filter(e => e.status === 'held' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      total_earned: activeEarnings?.filter(e => e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
+      total_entries: activeEarnings?.length || 0,
       last_updated: new Date().toISOString()
     };
 
-    // Filter pending entries (only positive amounts - actual earnings waiting to be paid)
-    const pendingEntries = allEarnings?.filter(e => ['pending', 'processing'].includes(e.status) && e.amount > 0) || [];
+    // Filter pending entries (only positive amounts - actual earnings waiting to be paid, exclude cancelled)
+    const pendingEntries = activeEarnings?.filter(e => ['pending', 'processing'].includes(e.status) && e.amount > 0) || [];
     
-    // Get recent history (all entries, latest first)
-    const recentHistory = allEarnings?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20) || [];
+    // Get recent history (already filtered to exclude cancelled entries, latest first)
+    const recentHistory = activeEarnings?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 20) || [];
 
     const wallet = {
       artist_id,
