@@ -1,5 +1,10 @@
 // Update earnings entry status API
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
@@ -7,8 +12,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const supabase = createServerSupabaseClient({ req, res });
-    
     const {
       entry_id,
       status,
@@ -34,8 +37,7 @@ export default async function handler(req, res) {
 
     // Prepare update data
     const updateData = {
-      status,
-      updated_at: new Date().toISOString()
+      status
     };
 
     // Add payment_date if status is 'paid' and date provided
