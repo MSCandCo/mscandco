@@ -84,6 +84,8 @@ export default function ArtistEarnings() {
   const [showAmounts, setShowAmounts] = useState(true);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('all_time');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   
   // Use currency conversion hook
   const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);
@@ -118,13 +120,27 @@ export default function ArtistEarnings() {
       case 'last_365_days':
         startDate.setDate(now.getDate() - 365);
         break;
+      case 'custom':
+        if (customStartDate) {
+          startDate = new Date(customStartDate);
+        } else {
+          startDate = new Date('2020-01-01'); // Fallback to all time if no custom date
+        }
+        break;
       default:
         startDate = new Date('2020-01-01'); // All time
     }
 
+    // Apply end date filter for custom range
+    let endDate = now;
+    if (selectedPeriod === 'custom' && customEndDate) {
+      endDate = new Date(customEndDate);
+      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+    }
+
     const periodEntries = walletData.recent_history.filter(entry => {
       const entryDate = new Date(entry.created_at);
-      return entryDate >= startDate && entry.amount > 0; // Only positive earnings
+      return entryDate >= startDate && entryDate <= endDate && entry.amount > 0; // Only positive earnings
     });
 
     const periodEarnings = periodEntries.reduce((sum, entry) => sum + entry.amount, 0);
@@ -429,6 +445,32 @@ export default function ArtistEarnings() {
                     </option>
                   ))}
                 </select>
+                
+                {/* Custom Date Range Inputs */}
+                {selectedPeriod === 'custom' && (
+                  <div className="flex items-center space-x-3 ml-4">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium" style={{color: '#64748b'}}>From:</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                        style={{color: '#1f2937'}}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium" style={{color: '#64748b'}}>To:</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                        style={{color: '#1f2937'}}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             {periodMetrics && periodMetrics.growthPercentage !== 0 && (
