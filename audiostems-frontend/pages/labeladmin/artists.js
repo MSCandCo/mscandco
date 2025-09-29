@@ -88,25 +88,39 @@ export default function LabelAdminArtistsRebuilt() {
         setMyArtists([]);
       }
 
-      // Load artist requests sent by this label admin
-      // Note: artist_requests table may not exist yet, so handle gracefully
+      // Load affiliation requests sent by this label admin
       try {
         const { data: requests, error: requestsError } = await supabase
-          .from('artist_requests')
-          .select('*')
-          .eq('from_label_id', user.id)
+          .from('affiliation_requests')
+          .select(`
+            id,
+            artist_id,
+            message,
+            label_percentage,
+            status,
+            created_at,
+            artist:user_profiles!affiliation_requests_artist_id_fkey (
+              id,
+              first_name,
+              last_name,
+              artist_name,
+              email
+            )
+          `)
+          .eq('label_admin_id', user.id)
           .order('created_at', { ascending: false });
 
+        console.log('🔍 Looking for requests with label_admin_id:', user.id);
+
         if (requestsError) {
-          console.warn('⚠️ Artist requests table not available:', requestsError.message);
-          // Set empty array instead of showing error to user
+          console.warn('⚠️ Affiliation requests error:', requestsError.message);
           setArtistRequests([]);
         } else {
-          console.log('✅ Artist requests loaded:', requests?.length || 0);
+          console.log('✅ Affiliation requests loaded:', requests?.length || 0);
           setArtistRequests(requests || []);
         }
       } catch (error) {
-        console.warn('⚠️ Artist requests feature not yet implemented:', error);
+        console.warn('⚠️ Affiliation requests error:', error);
         setArtistRequests([]);
       }
 
