@@ -29,19 +29,63 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid authorization token' });
     }
 
-    // Get label admin profile
-    const { data: labelProfile, error: labelError } = await supabase
+    // Use same role detection logic as other APIs
+    const userEmail = requestingUser.email?.toLowerCase() || '';
+    let userRole = requestingUser.user_metadata?.role || requestingUser.app_metadata?.role;
+    
+    // Email-based role detection for known users
+    if (!userRole) {
+      if (userEmail === 'labeladmin@mscandco.com') {
+        userRole = 'label_admin';
+      } else if (userEmail === 'companyadmin@mscandco.com') {
+        userRole = 'company_admin';
+      } else if (userEmail === 'superadmin@mscandco.com') {
+        userRole = 'super_admin';
+      } else {
+        userRole = 'artist'; // default
+      }
+    }
+
+    console.log('🔍 Role detection for invite-artist:', {
+      userId: requestingUser.id,
+      userEmail,
+      detectedRole: userRole
+    });
+
+    if (userRole !== 'label_admin') {
+      return res.status(403).json({ error: 'Only label admins can send artist invitations' });
+    }
+
+    // Get or create label admin profile
+    let { data: labelProfile, error: labelError } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', requestingUser.id)
       .single();
 
-    if (labelError || !labelProfile) {
-      return res.status(404).json({ error: 'Label admin profile not found' });
-    }
+    if (labelError && labelError.code === 'PGRST116') {
+      // Profile doesn't exist, create it
+      const { data: newProfile, error: createError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: requestingUser.id,
+          email: requestingUser.email,
+          role: userRole,
+          first_name: 'Label',
+          last_name: 'Admin',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-    if (labelProfile.role !== 'label_admin') {
-      return res.status(403).json({ error: 'Only label admins can send artist invitations' });
+      if (createError) {
+        console.error('Failed to create label admin profile:', createError);
+        return res.status(500).json({ error: 'Failed to create profile' });
+      }
+      labelProfile = newProfile;
+    } else if (labelError) {
+      console.error('Profile lookup error:', labelError);
+      return res.status(500).json({ error: 'Profile lookup failed' });
     }
 
     console.log('🎵 Label admin artist invitation request:', {
@@ -49,12 +93,11 @@ export default async function handler(req, res) {
       searchingFor: `${firstName} ${lastName}`
     });
 
-    // Search for artist by first name and last name
+    // Search for artist by first name, last name, or artist name
     const { data: artists, error: searchError } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('first_name', firstName.trim())
-      .eq('last_name', lastName.trim())
+      .or(`and(first_name.eq.${firstName.trim()},last_name.eq.${lastName.trim()}),artist_name.eq.${firstName.trim() + ' ' + lastName.trim()}`)
       .eq('role', 'artist');
 
     if (searchError) {
