@@ -501,6 +501,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
   // Simplified Save to draft function
   const saveToDraft = async (isAutoSave = false) => {
+    // Prevent multiple simultaneous calls
+    if (saving) {
+      console.log('⏸️ Save already in progress, ignoring duplicate call');
+      return;
+    }
+    
     console.log('🔥 saveToDraft ENTRY - Component props:', {
       hasEditingRelease: !!editingRelease,
       editingReleaseId: editingRelease?.id,
@@ -514,6 +520,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       setErrors({ submit: 'Release Title is required to save' });
       return;
     }
+    
+    setSaving(true);
+    setErrors({});
     
     try {
       // Simplified data structure for draft save
@@ -655,6 +664,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       console.error('❌ Save to draft error:', error);
       setErrors({ submit: `Save failed: ${error.message}` });
       throw error;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -776,14 +787,23 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             
             <button
               type="button"
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (saving) {
+                  console.log('⏸️ Save button clicked but save already in progress');
+                  return;
+                }
+                
+                console.log('💾 Save Draft button clicked');
                 try {
                   await saveToDraft(false);
                 } catch (error) {
                   console.error('Manual save failed:', error);
                 }
               }}
-              disabled={!formData.releaseTitle || loading}
+              disabled={!formData.releaseTitle || loading || saving}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -1563,14 +1583,23 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             
             <button
               type="button"
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (saving) {
+                  console.log('⏸️ Save button clicked but save already in progress');
+                  return;
+                }
+                
+                console.log('💾 Save Draft button clicked');
                 try {
                   await saveToDraft(false);
                 } catch (error) {
                   console.error('Manual save failed:', error);
                 }
               }}
-              disabled={!formData.releaseTitle || loading}
+              disabled={!formData.releaseTitle || loading || saving}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
