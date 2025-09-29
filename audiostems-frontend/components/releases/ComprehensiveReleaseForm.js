@@ -642,7 +642,7 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
 
                 {expandedAssets.includes(assetIndex) && (
                   <div className="p-6">
-                    {/* Basic Asset Info */}
+                    {/* Code Group Asset Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -660,7 +660,20 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Duration
+                          Any Other Featuring Artists
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.anyOtherFeaturingArtists}
+                          onChange={(e) => updateAsset(assetIndex, 'anyOtherFeaturingArtists', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Enter featuring artists"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration *
                         </label>
                         <input
                           type="text"
@@ -668,6 +681,34 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                           onChange={(e) => updateAsset(assetIndex, 'duration', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="3:45"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Explicit
+                        </label>
+                        <select
+                          value={asset.explicit ? 'Yes' : 'No'}
+                          onChange={(e) => updateAsset(assetIndex, 'explicit', e.target.value === 'Yes')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="No">No</option>
+                          <option value="Yes">Yes</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Version
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.version}
+                          onChange={(e) => updateAsset(assetIndex, 'version', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Original, Remix, Acoustic, etc."
                         />
                       </div>
 
@@ -699,6 +740,90 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                           ))}
                         </select>
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mood Description
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.moodDescription}
+                          onChange={(e) => updateAsset(assetIndex, 'moodDescription', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Upbeat, Emotional, Energetic, etc."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Tags
+                        </label>
+                        <input
+                          type="text"
+                          value={asset.tags}
+                          onChange={(e) => updateAsset(assetIndex, 'tags', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="summer, party, love, etc."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Language with conditional custom input */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Language
+                        </label>
+                        <select
+                          value={asset.language}
+                          onChange={(e) => updateAsset(assetIndex, 'language', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {LANGUAGES.map(language => (
+                            <option key={language} value={language}>{language}</option>
+                          ))}
+                        </select>
+                        {(asset.language === 'Multiple Languages' || asset.language === 'Other') && (
+                          <input
+                            type="text"
+                            value={asset.customLanguageDetails}
+                            onChange={(e) => updateAsset(assetIndex, 'customLanguageDetails', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2"
+                            placeholder={asset.language === 'Multiple Languages' ? 'Specify multiple languages' : 'Specify other language'}
+                          />
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Vocal Type
+                        </label>
+                        <select
+                          value={asset.vocalType}
+                          onChange={(e) => updateAsset(assetIndex, 'vocalType', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select vocal type</option>
+                          {VOCAL_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Lyrics */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Lyrics
+                      </label>
+                      <textarea
+                        value={asset.lyrics}
+                        onChange={(e) => updateAsset(assetIndex, 'lyrics', e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter song lyrics..."
+                      />
+                    </div>
 
 
                       <div>
