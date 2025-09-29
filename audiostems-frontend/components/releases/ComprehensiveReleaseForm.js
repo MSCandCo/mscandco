@@ -9,7 +9,6 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
     // Project/Release Level Data
     projectName: '',
     releaseType: 'Single', // Single, EP, Album
-    expectedReleaseDate: '',
     primaryArtist: '',
     label: '',
     catalogueNo: '',
@@ -433,23 +432,10 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Expected Release Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.expectedReleaseDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, expectedReleaseDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Release Details */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Release Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -510,7 +496,7 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                   return businessDays < 20 ? (
                     <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-sm text-green-800">
-                        <strong>TIP:</strong> Set your release date 4 weeks from today to give stores time to review your release
+                        <strong>TIP:</strong> Set your release date 20 business days from today to give stores time to review your release
                       </p>
                       <p className="text-xs text-green-600 mt-1">
                         Your release will go live on {releaseDate.toLocaleDateString('en-US', { 
@@ -682,38 +668,6 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Primary Genre *
-                        </label>
-                        <select
-                          value={asset.primaryGenre}
-                          onChange={(e) => updateAsset(assetIndex, 'primaryGenre', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        >
-                          <option value="">Select primary genre</option>
-                          {GENRES.map(genre => (
-                            <option key={genre} value={genre}>{genre}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Secondary Genre
-                        </label>
-                        <select
-                          value={asset.secondaryGenre}
-                          onChange={(e) => updateAsset(assetIndex, 'secondaryGenre', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">Select secondary genre (optional)</option>
-                          {GENRES.map(genre => (
-                            <option key={genre} value={genre}>{genre}</option>
-                          ))}
-                        </select>
-                      </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
