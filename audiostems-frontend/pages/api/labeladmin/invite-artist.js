@@ -43,10 +43,27 @@ export default async function handler(req, res) {
     // 3. CREATE AFFILIATION REQUEST in database
     const { message, labelPercentage = 15.0 } = req.body; // Default 15% for label
     
+    // Get the actual label admin ID from the database
+    const { data: labelAdmin, error: labelError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('email', 'labeladmin@mscandco.com')
+      .single();
+
+    if (labelError || !labelAdmin) {
+      console.error('❌ Label admin not found in database:', labelError);
+      return res.status(500).json({ 
+        error: 'Label admin profile not found',
+        details: labelError?.message
+      });
+    }
+
+    console.log('✅ Found label admin:', labelAdmin.id);
+
     const { data: newRequest, error: insertError } = await supabase
       .from('affiliation_requests')
       .insert({
-        label_admin_id: 'c1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6', // Use fixed label admin ID for now
+        label_admin_id: labelAdmin.id,
         artist_id: targetArtist.id,
         message: message || `MSC & Co would like to partner with you as your label. We offer ${labelPercentage}% partnership on earnings.`,
         label_percentage: labelPercentage,
@@ -57,7 +74,11 @@ export default async function handler(req, res) {
 
     if (insertError) {
       console.error('❌ Error creating affiliation request:', insertError);
-      return res.status(500).json({ error: 'Failed to create affiliation request' });
+      console.error('❌ Detailed error:', JSON.stringify(insertError, null, 2));
+      return res.status(500).json({ 
+        error: 'Failed to create affiliation request',
+        details: insertError.message
+      });
     }
 
     console.log('✅ Affiliation request created:', newRequest.id);
