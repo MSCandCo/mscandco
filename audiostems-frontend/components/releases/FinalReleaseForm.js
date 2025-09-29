@@ -367,12 +367,33 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     
     try {
+      // Transform contributors to match API expectations
+      const transformedAssets = formData.assets.map(asset => ({
+        ...asset,
+        contributors: {
+          // Group contributors by type for API compatibility
+          ...asset.contributors.reduce((acc, contributor) => {
+            const type = contributor.type;
+            if (!acc[type]) acc[type] = [];
+            acc[type].push({
+              name: contributor.name,
+              role: contributor.type,
+              isni: '',
+              pro: '',
+              caeIpi: ''
+            });
+            return acc;
+          }, {})
+        }
+      }));
+
       const submitData = {
         ...formData,
         label: formData.label || 'MSC & Co',
         distributionCompany: 'MSC & Co',
         releaseLabel: 'MSC & Co',
-        status: 'draft'
+        status: 'draft',
+        assets: transformedAssets
       };
       
       console.log('📤 Submitting to API:', submitData);
