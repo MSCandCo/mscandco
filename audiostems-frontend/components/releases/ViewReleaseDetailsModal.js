@@ -202,17 +202,6 @@ export default function ViewReleaseDetailsModal({ isOpen, onClose, release, curr
             </div>
           </div>
 
-          {/* Form Data Debug (if needed) */}
-          {savedFormData && Object.keys(savedFormData).length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Form Data</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                  {JSON.stringify(savedFormData, null, 2)}
-                </pre>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer - Match main form styling */}
