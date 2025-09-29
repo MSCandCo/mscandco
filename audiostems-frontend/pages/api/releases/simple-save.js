@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         artist_name: primaryArtist || 'Unknown Artist',
         title: releaseTitle,
         release_type: 'single',
-        release_date: releaseDate,
+        release_date: releaseDate ? new Date(releaseDate).toISOString().split('T')[0] : null,
         status: 'draft'
       })
       .select()
