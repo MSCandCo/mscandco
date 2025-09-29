@@ -70,6 +70,56 @@ export default function ArtistReleases() {
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
+  // Handle submitting a release (draft → submitted)
+  const handleSubmitRelease = async (releaseId) => {
+    try {
+      console.log('📤 Submitting release:', releaseId);
+      
+      const response = await fetch(`/api/releases/${releaseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: 'submitted',
+          submitted_at: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Release submitted successfully');
+        
+        // Show success notification
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #f0fdf4; 
+            border-left: 4px solid #065f46; 
+            padding: 16px 24px; 
+            color: #065f46; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Release submitted for review!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
+
+        // Refresh releases to show updated status
+        window.location.reload();
+      } else {
+        console.error('❌ Failed to submit release:', response.status);
+        alert('Failed to submit release. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error submitting release:', error);
+      alert('Error submitting release. Please try again.');
+    }
+  };
+
   // Load data from centralized source
   useEffect(() => {
     const loadData = async () => {
@@ -296,16 +346,28 @@ export default function ArtistReleases() {
             <span>View Details</span>
           </button>
           {isStatusEditableByArtist(release.status) && (
-            <button
-              onClick={() => {
-                setSelectedRelease(release);
-                setIsCreateModalOpen(true);
-              }}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
-            >
-              <FaEdit className="w-4 h-4" />
-              <span>Edit</span>
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setSelectedRelease(release);
+                  setIsCreateModalOpen(true);
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+              >
+                <FaEdit className="w-4 h-4" />
+                <span>Edit Release</span>
+              </button>
+              
+              {release.status === 'draft' && (
+                <button
+                  onClick={() => handleSubmitRelease(release.id)}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Submit Release</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
