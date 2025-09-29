@@ -895,6 +895,157 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                         )}
                       </div>
                     </div>
+
+                    {/* Code Group Technical Fields */}
+                    <div className="mb-6">
+                      <h4 className="text-md font-semibold text-gray-900 mb-4">Technical Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Catalogue No.</label>
+                          <input
+                            type="text"
+                            value={asset.catalogueNo}
+                            onChange={(e) => updateAsset(assetIndex, 'catalogueNo', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter catalogue number"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                          <select
+                            value={asset.format}
+                            onChange={(e) => updateAsset(assetIndex, 'format', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="Digital">Digital</option>
+                            <option value="Physical">Physical</option>
+                            <option value="Both">Both</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+                          <select
+                            value={asset.productType}
+                            onChange={(e) => updateAsset(assetIndex, 'productType', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="Single">Single</option>
+                            <option value="EP">EP</option>
+                            <option value="Album">Album</option>
+                            <option value="Compilation">Compilation</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Barcode</label>
+                          <input
+                            type="text"
+                            value={asset.barcode}
+                            onChange={(e) => updateAsset(assetIndex, 'barcode', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter barcode"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Tunecode</label>
+                          <input
+                            type="text"
+                            value={asset.tunecode}
+                            onChange={(e) => updateAsset(assetIndex, 'tunecode', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter tunecode"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">ICE Work Key</label>
+                          <input
+                            type="text"
+                            value={asset.iceWorkKey}
+                            onChange={(e) => updateAsset(assetIndex, 'iceWorkKey', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter ICE work key"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">ISWC</label>
+                          <input
+                            type="text"
+                            value={asset.iswc}
+                            onChange={(e) => updateAsset(assetIndex, 'iswc', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter ISWC code"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">ISRC</label>
+                          <input
+                            type="text"
+                            value={asset.isrc}
+                            onChange={(e) => updateAsset(assetIndex, 'isrc', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter ISRC code"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Recording Country</label>
+                          <input
+                            type="text"
+                            value={asset.recordingCountry}
+                            onChange={(e) => updateAsset(assetIndex, 'recordingCountry', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter recording country"
+                          />
+                        </div>
+                      </div>
+
+                      {/* BOWI Previously Released */}
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">BOWI Previously Released</label>
+                        <div className="flex items-center space-x-4">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`bowiPrevious-${assetIndex}`}
+                              value="yes"
+                              checked={asset.bowiPreviouslyReleased === true}
+                              onChange={(e) => updateAsset(assetIndex, 'bowiPreviouslyReleased', true)}
+                              className="mr-2"
+                            />
+                            Yes
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`bowiPrevious-${assetIndex}`}
+                              value="no"
+                              checked={asset.bowiPreviouslyReleased === false}
+                              onChange={(e) => updateAsset(assetIndex, 'bowiPreviouslyReleased', false)}
+                              className="mr-2"
+                            />
+                            No
+                          </label>
+                        </div>
+                        
+                        {asset.bowiPreviouslyReleased && (
+                          <div className="mt-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Previous Release Date</label>
+                            <input
+                              type="date"
+                              value={asset.previousReleaseDate}
+                              onChange={(e) => updateAsset(assetIndex, 'previousReleaseDate', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     
                     {assetIndex > 0 && (
                           <button
