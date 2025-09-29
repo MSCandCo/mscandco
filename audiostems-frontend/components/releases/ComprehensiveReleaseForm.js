@@ -15,19 +15,35 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
     catalogueNo: '',
     upc: '',
     
-    // Additional Release Information
-    recordLabel: '',
-    distributionPartner: '',
-    originalReleaseDate: '',
-    territory: 'Worldwide',
-    priceTier: 'Standard',
-    preOrderDate: '',
-    physicalReleaseDate: '',
-    genre: '', // Release-level primary genre
-    secondaryGenre: '', // Release-level secondary genre
-    releaseDescription: '',
-    marketingPlan: '',
-    pressReleaseNotes: '',
+    // Code Group Required Fields
+    companyName: '',
+    legalNames: '',
+    artistName: '',
+    phoneticPronunciation: '',
+    stylised: '',
+    akaFka: '',
+    artistType: 'Solo Artist',
+    productTitle: '', // Same as projectName
+    altTitle: '',
+    label: '', // Optional - defaults to MSC & Co if empty
+    catalogueNo: '',
+    format: 'Digital',
+    productType: 'Single',
+    barcode: '',
+    tunecode: '',
+    iceWorkKey: '',
+    upc: '',
+    releaseDate: '', // Main release date
+    preOrderDate: '', // Optional pre-order
+    preReleaseDate: '',
+    preReleaseUrl: '',
+    releaseUrl: '',
+    releaseLabel: 'MSC & Co',
+    distributionCompany: 'MSC & Co',
+    copyrightYear: new Date().getFullYear(),
+    copyrightOwner: '',
+    pLine: '',
+    cLine: '',
     
     // Assets (individual tracks)
     assets: [{
@@ -437,32 +453,6 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Record Label
-                </label>
-                <input
-                  type="text"
-                  value={formData.recordLabel}
-                  onChange={(e) => setFormData(prev => ({ ...prev, recordLabel: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter record label"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Distribution Partner
-                </label>
-                <input
-                  type="text"
-                  value={formData.distributionPartner}
-                  onChange={(e) => setFormData(prev => ({ ...prev, distributionPartner: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter distribution partner"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Primary Genre *
                 </label>
                 <select
@@ -496,190 +486,90 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Territory
-                </label>
-                <select
-                  value={formData.territory}
-                  onChange={(e) => setFormData(prev => ({ ...prev, territory: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Worldwide">Worldwide</option>
-                  <option value="United States">United States</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Europe">Europe</option>
-                  <option value="North America">North America</option>
-                  <option value="Asia Pacific">Asia Pacific</option>
-                  <option value="Latin America">Latin America</option>
-                  <option value="Africa">Africa</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price Tier
-                </label>
-                <select
-                  value={formData.priceTier}
-                  onChange={(e) => setFormData(prev => ({ ...prev, priceTier: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Standard">Standard</option>
-                  <option value="Premium">Premium</option>
-                  <option value="Budget">Budget</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pre-Order Date
+                  Release Date *
                 </label>
                 <input
                   type="date"
-                  value={formData.preOrderDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
+                  value={formData.releaseDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, releaseDate: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
                 />
+                {formData.releaseDate && (() => {
+                  const today = new Date();
+                  const releaseDate = new Date(formData.releaseDate);
+                  let businessDays = 0;
+                  const current = new Date(today);
+                  
+                  while (current < releaseDate) {
+                    const dayOfWeek = current.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) businessDays++;
+                    current.setDate(current.getDate() + 1);
+                  }
+                  
+                  return businessDays < 20 ? (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800">
+                        <strong>TIP:</strong> Set your release date 4 weeks from today to give stores time to review your release
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Your release will go live on {releaseDate.toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })} 12:00 AM in your listeners' timezones.
+                      </p>
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Physical Release Date
+                  Pre-Order (Optional)
                 </label>
-                <input
-                  type="date"
-                  value={formData.physicalReleaseDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, physicalReleaseDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="preOrder"
+                        value="yes"
+                        checked={formData.hasPreOrder === true}
+                        onChange={(e) => setFormData(prev => ({ ...prev, hasPreOrder: true }))}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="preOrder"
+                        value="no"
+                        checked={formData.hasPreOrder === false}
+                        onChange={(e) => setFormData(prev => ({ ...prev, hasPreOrder: false, preOrderDate: '' }))}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
+                  
+                  {formData.hasPreOrder && (
+                    <div>
+                      <input
+                        type="date"
+                        value={formData.preOrderDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        <strong>Best Practice:</strong> Set pre-order 2-4 weeks before release date for optimal campaign results
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Release Description
-              </label>
-              <textarea
-                value={formData.releaseDescription}
-                onChange={(e) => setFormData(prev => ({ ...prev, releaseDescription: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Brief description of the release for promotional use..."
-              />
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Marketing Plan
-              </label>
-              <textarea
-                value={formData.marketingPlan}
-                onChange={(e) => setFormData(prev => ({ ...prev, marketingPlan: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Marketing strategy and promotional plans..."
-              />
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Press Release Notes
-              </label>
-              <textarea
-                value={formData.pressReleaseNotes}
-                onChange={(e) => setFormData(prev => ({ ...prev, pressReleaseNotes: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Information for press releases and media coverage..."
-              />
-            </div>
-          </div>
-
-          {/* Distribution & Royalties */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribution & Royalties</h3>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Distribution Platforms
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {['Spotify', 'Apple Music', 'YouTube Music', 'Amazon Music', 'Deezer', 'Tidal', 'Pandora', 'SoundCloud', 'Bandcamp'].map(platform => (
-                  <label key={platform} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.assets[0]?.distributionPlatforms?.includes(platform) || false}
-                      onChange={(e) => {
-                        const platforms = formData.assets[0]?.distributionPlatforms || [];
-                        const newPlatforms = e.target.checked 
-                          ? [...platforms, platform]
-                          : platforms.filter(p => p !== platform);
-                        updateAsset(0, 'distributionPlatforms', newPlatforms);
-                      }}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{platform}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Artist Royalty %
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.assets[0]?.artistRoyaltyPercentage || 70}
-                  onChange={(e) => updateAsset(0, 'artistRoyaltyPercentage', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Label Royalty %
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.assets[0]?.labelRoyaltyPercentage || 20}
-                  onChange={(e) => updateAsset(0, 'labelRoyaltyPercentage', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Distributor %
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.assets[0]?.distributorRoyaltyPercentage || 10}
-                  onChange={(e) => updateAsset(0, 'distributorRoyaltyPercentage', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Release Strategy
-              </label>
-              <select
-                value={formData.assets[0]?.releaseStrategy || 'immediate'}
-                onChange={(e) => updateAsset(0, 'releaseStrategy', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="immediate">Immediate Release</option>
-                <option value="scheduled">Scheduled Release</option>
-                <option value="pre-order">Pre-Order Campaign</option>
-              </select>
             </div>
           </div>
 
