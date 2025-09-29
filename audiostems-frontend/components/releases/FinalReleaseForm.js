@@ -457,17 +457,25 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
       console.log('📤 Saving draft data:', draftData);
 
+      // Match the exact API structure from admin/releases
+      const apiData = {
+        artistId: '0a060de5-1c94-4060-a1c2-860224fc348d', // Henry's ID
+        title: draftData.releaseTitle,
+        artist: draftData.primaryArtist,
+        featuring: draftData.assets[0]?.anyOtherFeaturingArtists || null,
+        releaseDate: draftData.releaseDate,
+        releaseType: draftData.releaseType,
+        audioFileUrl: null, // Will be uploaded later
+        coverImageUrl: null, // Will be uploaded later
+        isLive: false
+      };
+
+      console.log('📤 Sending to admin API:', apiData);
+
       const response = await fetch('/api/admin/releases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          artistId: '0a060de5-1c94-4060-a1c2-860224fc348d', // Henry's ID
-          title: draftData.releaseTitle,
-          artist: draftData.primaryArtist,
-          releaseDate: draftData.releaseDate,
-          releaseType: draftData.releaseType,
-          isLive: false
-        })
+        body: JSON.stringify(apiData)
       });
 
       console.log('📥 Save response:', response.status, response.statusText);
