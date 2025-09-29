@@ -269,6 +269,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   });
 
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
   const [autoSaving, setAutoSaving] = useState(false);
