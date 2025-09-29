@@ -370,6 +370,39 @@ export const SOCIAL_MEDIA_TYPES = [
   'Apple ID'
 ];
 
+// Other Release Details Types (alphabetical)
+export const OTHER_RELEASE_DETAIL_TYPES = [
+  'ASCAP Work #',
+  'Barcode',
+  'BMI Work #',
+  'BOWI',
+  'CAE/IPI',
+  'Catalogue No.',
+  'C Line (©)',
+  'Composer / Author',
+  'Copyright Owner',
+  'Copyright Year',
+  'Format',
+  'ICE Work Key',
+  'ISNI',
+  'ISRC',
+  'ISWC',
+  'Mechanical',
+  'P Line (℗)',
+  'PRO',
+  'Product Type',
+  'Publisher IPI',
+  'Publishing',
+  'Publishing Admin',
+  'Publishing Admin IPI',
+  'Publishing Type',
+  'Recording Country',
+  'Role',
+  'Sub-Publisher',
+  'Tunecode',
+  'Vocal Type'
+];
+
 // Release Type Constants
 export const RELEASE_TYPES = [
   'Single',

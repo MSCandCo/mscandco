@@ -1,6 +1,6 @@
 // Final Code Group Release Form - Complete & Working
 import { useState, useEffect } from 'react';
-import { RELEASE_TYPES, GENRES, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES } from '../../lib/constants';
+import { RELEASE_TYPES, GENRES, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES, OTHER_RELEASE_DETAIL_TYPES } from '../../lib/constants';
 
 // Comprehensive country list (alphabetical)
 const ALL_COUNTRIES = [
@@ -206,6 +206,11 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
     releaseDate: '',
     hasPreOrder: false,
     preOrderDate: '',
+    previouslyReleased: false,
+    previousReleaseDate: '',
+    
+    // Other Release Details (optional)
+    otherReleaseDetails: [],
     
     // Advanced Details
     label: '',
@@ -305,6 +310,13 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
     setFormData(prev => ({
       ...prev,
       releaseContributors: [...prev.releaseContributors, { type, value: '' }]
+    }));
+  };
+
+  const addOtherReleaseDetail = (type) => {
+    setFormData(prev => ({
+      ...prev,
+      otherReleaseDetails: [...prev.otherReleaseDetails, { type, value: '' }]
     }));
   };
 
@@ -531,6 +543,67 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
+          {/* Other Release Details (Optional) */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Release Details (Optional)</h3>
+            <div className="flex items-center space-x-2 mb-4">
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    addOtherReleaseDetail(e.target.value);
+                    e.target.selectedIndex = 0;
+                  }
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Add Release Detail...</option>
+                {OTHER_RELEASE_DETAIL_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2 mb-6">
+              {formData.otherReleaseDetails.map((detail, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={detail.type}
+                      disabled
+                      className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-100"
+                    />
+                    <input
+                      type="text"
+                      value={detail.value}
+                      onChange={(e) => {
+                        const newDetails = [...formData.otherReleaseDetails];
+                        newDetails[index].value = e.target.value;
+                        setFormData(prev => ({ ...prev, otherReleaseDetails: newDetails }));
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                      placeholder={`Enter ${detail.type.toLowerCase()}`}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      otherReleaseDetails: prev.otherReleaseDetails.filter((_, i) => i !== index)
+                    }))}
+                    className="px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              
+              {formData.otherReleaseDetails.length === 0 && (
+                <p className="text-gray-500 text-sm italic">No release details added yet. Use the dropdown above to add technical details.</p>
+              )}
+            </div>
+          </div>
+
           {/* Complete Asset Section */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Assets (1)</h3>
@@ -585,17 +658,34 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Explicit</label>
-                  <select
-                    value={formData.assets[0].explicit ? 'Yes' : 'No'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      assets: [{ ...prev.assets[0], explicit: e.target.value === 'Yes' }]
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="explicit"
+                        checked={formData.assets[0].explicit === true}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assets: [{ ...prev.assets[0], explicit: true }]
+                        }))}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="explicit"
+                        checked={formData.assets[0].explicit === false}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assets: [{ ...prev.assets[0], explicit: false }]
+                        }))}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
                 </div>
                 
                 <div>
