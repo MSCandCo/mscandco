@@ -120,6 +120,55 @@ export default function ArtistReleases() {
     }
   };
 
+  // Handle deleting a draft release
+  const handleDeleteDraft = async (releaseId) => {
+    if (!confirm('Are you sure you want to delete this draft release? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Deleting draft release:', releaseId);
+      
+      const response = await fetch(`/api/releases/delete?id=${releaseId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        console.log('✅ Release deleted successfully');
+        
+        // Show success notification
+        const successDiv = document.createElement('div');
+        successDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #fef2f2; 
+            border-left: 4px solid #ef4444; 
+            padding: 16px 24px; 
+            color: #ef4444; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+          ">
+            Draft release deleted!
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        setTimeout(() => document.body.removeChild(successDiv), 3000);
+
+        // Refresh releases to remove deleted release
+        window.location.reload();
+      } else {
+        console.error('❌ Failed to delete release:', response.status);
+        alert('Failed to delete release. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error deleting release:', error);
+      alert('Error deleting release. Please try again.');
+    }
+  };
+
   // Load data from centralized source
   useEffect(() => {
     const loadData = async () => {
@@ -349,6 +398,7 @@ export default function ArtistReleases() {
             <>
               <button
                 onClick={() => {
+                  console.log('✏️ Editing release - passing data:', release);
                   setSelectedRelease(release);
                   setIsCreateModalOpen(true);
                 }}
@@ -359,13 +409,23 @@ export default function ArtistReleases() {
               </button>
               
               {release.status === 'draft' && (
-                <button
-                  onClick={() => handleSubmitRelease(release.id)}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Submit Release</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => handleSubmitRelease(release.id)}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Submit Release</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleDeleteDraft(release.id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                  >
+                    <FaTimes className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </>
               )}
             </>
           )}
@@ -682,6 +742,7 @@ export default function ArtistReleases() {
               setIsCreateModalOpen(false);
               setSelectedRelease(null);
             }}
+            editingRelease={selectedRelease}
           />
         )}
 
