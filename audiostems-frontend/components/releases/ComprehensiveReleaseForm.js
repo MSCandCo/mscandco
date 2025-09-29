@@ -15,6 +15,20 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
     catalogueNo: '',
     upc: '',
     
+    // Additional Release Information
+    recordLabel: '',
+    distributionPartner: '',
+    originalReleaseDate: '',
+    territory: 'Worldwide',
+    priceTier: 'Standard',
+    preOrderDate: '',
+    physicalReleaseDate: '',
+    genre: '', // Release-level primary genre
+    secondaryGenre: '', // Release-level secondary genre
+    releaseDescription: '',
+    marketingPlan: '',
+    pressReleaseNotes: '',
+    
     // Assets (individual tracks)
     assets: [{
       // Basic Asset Info
@@ -50,6 +64,16 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
       previouslyReleased: false,
       previousReleaseDate: '',
       recordingCountry: '',
+      
+      // Distribution & Platforms
+      distributionPlatforms: ['Spotify', 'Apple Music', 'YouTube Music', 'Amazon Music', 'Deezer', 'Tidal'],
+      excludedPlatforms: [],
+      releaseStrategy: 'immediate', // immediate, scheduled, pre-order
+      
+      // Royalty Information  
+      artistRoyaltyPercentage: 70,
+      labelRoyaltyPercentage: 20,
+      distributorRoyaltyPercentage: 10,
       
       // Contributors (People who will be added to roster)
       contributors: {
@@ -404,6 +428,258 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Release Details */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Release Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Record Label
+                </label>
+                <input
+                  type="text"
+                  value={formData.recordLabel}
+                  onChange={(e) => setFormData(prev => ({ ...prev, recordLabel: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter record label"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Distribution Partner
+                </label>
+                <input
+                  type="text"
+                  value={formData.distributionPartner}
+                  onChange={(e) => setFormData(prev => ({ ...prev, distributionPartner: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter distribution partner"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primary Genre *
+                </label>
+                <select
+                  value={formData.genre}
+                  onChange={(e) => setFormData(prev => ({ ...prev, genre: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select primary genre</option>
+                  {GENRES.map(genre => (
+                    <option key={genre} value={genre}>{genre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Secondary Genre
+                </label>
+                <select
+                  value={formData.secondaryGenre}
+                  onChange={(e) => setFormData(prev => ({ ...prev, secondaryGenre: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select secondary genre (optional)</option>
+                  {GENRES.map(genre => (
+                    <option key={genre} value={genre}>{genre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Territory
+                </label>
+                <select
+                  value={formData.territory}
+                  onChange={(e) => setFormData(prev => ({ ...prev, territory: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="Worldwide">Worldwide</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Europe">Europe</option>
+                  <option value="North America">North America</option>
+                  <option value="Asia Pacific">Asia Pacific</option>
+                  <option value="Latin America">Latin America</option>
+                  <option value="Africa">Africa</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price Tier
+                </label>
+                <select
+                  value={formData.priceTier}
+                  onChange={(e) => setFormData(prev => ({ ...prev, priceTier: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="Standard">Standard</option>
+                  <option value="Premium">Premium</option>
+                  <option value="Budget">Budget</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pre-Order Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.preOrderDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Physical Release Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.physicalReleaseDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, physicalReleaseDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Release Description
+              </label>
+              <textarea
+                value={formData.releaseDescription}
+                onChange={(e) => setFormData(prev => ({ ...prev, releaseDescription: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Brief description of the release for promotional use..."
+              />
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Marketing Plan
+              </label>
+              <textarea
+                value={formData.marketingPlan}
+                onChange={(e) => setFormData(prev => ({ ...prev, marketingPlan: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Marketing strategy and promotional plans..."
+              />
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Press Release Notes
+              </label>
+              <textarea
+                value={formData.pressReleaseNotes}
+                onChange={(e) => setFormData(prev => ({ ...prev, pressReleaseNotes: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Information for press releases and media coverage..."
+              />
+            </div>
+          </div>
+
+          {/* Distribution & Royalties */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribution & Royalties</h3>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Distribution Platforms
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {['Spotify', 'Apple Music', 'YouTube Music', 'Amazon Music', 'Deezer', 'Tidal', 'Pandora', 'SoundCloud', 'Bandcamp'].map(platform => (
+                  <label key={platform} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.assets[0]?.distributionPlatforms?.includes(platform) || false}
+                      onChange={(e) => {
+                        const platforms = formData.assets[0]?.distributionPlatforms || [];
+                        const newPlatforms = e.target.checked 
+                          ? [...platforms, platform]
+                          : platforms.filter(p => p !== platform);
+                        updateAsset(0, 'distributionPlatforms', newPlatforms);
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{platform}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Artist Royalty %
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.assets[0]?.artistRoyaltyPercentage || 70}
+                  onChange={(e) => updateAsset(0, 'artistRoyaltyPercentage', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Label Royalty %
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.assets[0]?.labelRoyaltyPercentage || 20}
+                  onChange={(e) => updateAsset(0, 'labelRoyaltyPercentage', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Distributor %
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.assets[0]?.distributorRoyaltyPercentage || 10}
+                  onChange={(e) => updateAsset(0, 'distributorRoyaltyPercentage', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Release Strategy
+              </label>
+              <select
+                value={formData.assets[0]?.releaseStrategy || 'immediate'}
+                onChange={(e) => updateAsset(0, 'releaseStrategy', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="immediate">Immediate Release</option>
+                <option value="scheduled">Scheduled Release</option>
+                <option value="pre-order">Pre-Order Campaign</option>
+              </select>
             </div>
           </div>
 
