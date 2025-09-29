@@ -7,7 +7,7 @@ import { RELEASE_TYPES, GENRES, VOCAL_TYPES, SONG_KEYS, LANGUAGES } from '../../
 export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRelease = null, userRole = 'artist' }) {
   const [formData, setFormData] = useState({
     // Project/Release Level Data
-    projectName: '',
+    releaseTitle: '',
     releaseType: 'Single', // Single, EP, Album
     primaryArtist: '',
     label: '',
@@ -49,23 +49,54 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
       // Basic Asset Info
       songTitle: '',
       assetPosition: 1,
+      anyOtherFeaturingArtists: '',
       duration: '',
       explicit: false,
       version: '',
-      altTitle: '',
-      
-      // Audio Details
       bpm: '',
       songKey: '',
+      moodDescription: '',
+      tags: '',
+      lyrics: '',
       language: 'English',
       vocalType: '',
-      mood: '',
-      tags: [],
-      lyrics: '',
       
-      // Genre & Classification
-      primaryGenre: '',
-      secondaryGenre: '',
+      // Code Group Required Fields
+      catalogueNo: '',
+      format: 'Digital',
+      productType: 'Single',
+      barcode: '',
+      tunecode: '',
+      iceWorkKey: '',
+      iswc: '',
+      isrc: '',
+      bowiPreviouslyReleased: false,
+      previousReleaseDate: '',
+      recordingCountry: '',
+      preReleaseDate: '',
+      preReleaseUrl: '',
+      releaseDate: '',
+      releaseUrl: '',
+      releaseLabel: 'MSC & Co',
+      distributionCompany: 'MSC & Co',
+      copyrightYear: new Date().getFullYear(),
+      copyrightOwner: '',
+      pLine: '',
+      cLine: '',
+      composerAuthor: '',
+      role: '',
+      pro: '',
+      caeIpi: '',
+      publishing: '',
+      publisherIpi: '',
+      publishingAdmin: '',
+      publishingAdminIpi: '',
+      mechanical: '',
+      bmiWorkNumber: '',
+      ascapWorkNumber: '',
+      isni: '',
+      subPublisher: '',
+      publishingType: 'Original',
       
       // Rights & Publishing
       isrc: '',
@@ -390,14 +421,14 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Name *
+                  Release Title *
                 </label>
                 <input
                   type="text"
-                  value={formData.projectName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, projectName: e.target.value }))}
+                  value={formData.releaseTitle}
+                  onChange={(e) => setFormData(prev => ({ ...prev, releaseTitle: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter project name"
+                  placeholder="Enter release title"
                   required
                 />
               </div>
