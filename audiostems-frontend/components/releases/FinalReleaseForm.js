@@ -195,7 +195,7 @@ const ALL_COUNTRIES = [
   { code: 'ZW', name: 'Zimbabwe' }
 ];
 
-export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSave, editingRelease = null }) {
+export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRelease = null }) {
   const [formData, setFormData] = useState({
     // Basic Release Info
     releaseTitle: '',
@@ -272,8 +272,6 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
-  const [autoSaving, setAutoSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState(null);
 
   // Populate form when editing existing release
   useEffect(() => {
@@ -394,31 +392,6 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
     }
   }, [isOpen, editingRelease]);
 
-  // Auto-save trigger when top section is complete
-  useEffect(() => {
-    console.log('🔄 Auto-save check:', {
-      canAutoSave: canAutoSave(),
-      isOpen,
-      releaseTitle: formData.releaseTitle,
-      primaryArtist: formData.primaryArtist,
-      genre: formData.genre,
-      releaseDate: formData.releaseDate,
-      songTitle: formData.assets[0].songTitle
-    });
-    
-    if (canAutoSave() && isOpen) {
-      console.log('⏰ Setting auto-save timer for 2 seconds...');
-      const autoSaveTimer = setTimeout(() => {
-        console.log('💾 Auto-save timer triggered!');
-        autoSave();
-      }, 2000);
-
-      return () => {
-        console.log('🚫 Clearing auto-save timer');
-        clearTimeout(autoSaveTimer);
-      };
-    }
-  }, [formData.releaseTitle, formData.primaryArtist, formData.genre, formData.releaseDate, formData.assets[0].songTitle, isOpen]);
 
   // Create country list with user's country at top
   const getCountryList = () => {
@@ -465,51 +438,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
     }));
   };
 
-  // Auto-save functionality
-  const autoSave = async () => {
-    if (!canAutoSave()) {
-      console.log('❌ Cannot auto-save - missing required fields');
-      return;
-    }
-    
-    console.log('💾 Starting auto-save...');
-    setAutoSaving(true);
-    try {
-      const result = await saveToDraft(true); // true indicates auto-save
-      setLastSaved(new Date());
-      console.log('✅ Auto-saved release successfully');
-      
-      // Update editingRelease if this was a new release
-      if (!editingRelease && result?.data?.id) {
-        console.log('🆕 New release auto-saved with ID:', result.data.id);
-        
-        // Notify parent component about the new draft (for releases list update)
-        // Use onAutoSave callback to avoid closing the modal
-        if (onAutoSave) {
-          onAutoSave(result.data);
-        }
-        
-        // Update form to edit mode so future saves update this release
-        // Note: We don't set editingRelease directly here to avoid re-renders during typing
-      }
-    } catch (error) {
-      console.error('❌ Auto-save failed:', error);
-    } finally {
-      setAutoSaving(false);
-    }
-  };
 
-  // Check if top section is complete enough for auto-save
-  const canAutoSave = () => {
-    return formData.releaseTitle && 
-           formData.primaryArtist && 
-           formData.genre && 
-           formData.releaseDate &&
-           formData.assets[0].songTitle;
-  };
-
-  // Simplified Save to draft function
-  const saveToDraft = async (isAutoSave = false) => {
+  // Save to draft function
+  const saveToDraft = async () => {
     // Prevent multiple simultaneous calls
     if (saving) {
       console.log('⏸️ Save already in progress, ignoring duplicate call');
@@ -519,10 +450,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
     console.log('🔥 saveToDraft ENTRY - Component props:', {
       hasEditingRelease: !!editingRelease,
       editingReleaseId: editingRelease?.id,
-      isAutoSave,
       currentFormTitle: formData.releaseTitle
     });
-    console.log('💾 Save to draft called:', { isAutoSave, releaseTitle: formData.releaseTitle });
+    console.log('💾 Save to draft called:', { releaseTitle: formData.releaseTitle });
     
     if (!formData.releaseTitle) {
       console.error('❌ Cannot save - Release Title required');
@@ -650,19 +580,15 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
         const result = await response.json();
         console.log('✅ Draft saved successfully:', result);
         
-        if (!isAutoSave) {
-          // Show save notification and close modal for manual saves
-          alert('Release saved to draft!');
-          
-          // Notify parent component and close modal
-          console.log('📞 Calling onSuccess with result:', result.data || result);
-          if (onSuccess) {
-            onSuccess(result.data || result);
-          }
-          onClose();
-        }
+        // Show save notification and close modal
+        alert('Release saved to draft!');
         
-        setLastSaved(new Date());
+        // Notify parent component and close modal
+        console.log('📞 Calling onSuccess with result:', result.data || result);
+        if (onSuccess) {
+          onSuccess(result.data || result);
+        }
+        onClose();
         return result;
       } else {
         const errorText = await response.text();
@@ -808,7 +734,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
                 
                 console.log('💾 Save Draft button clicked');
                 try {
-                  await saveToDraft(false);
+                  await saveToDraft();
                 } catch (error) {
                   console.error('Manual save failed:', error);
                 }
@@ -1569,30 +1495,6 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
             </div>
           </div>
 
-          {/* Auto-save Status */}
-          {canAutoSave() && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center space-x-2">
-                {autoSaving ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 border-2 border-green-600 border-t-transparent rounded-full"></div>
-                    <span className="text-sm text-green-800">Auto-saving...</span>
-                  </>
-                ) : lastSaved ? (
-                  <>
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm text-green-800">
-                      Auto-saved at {lastSaved.toLocaleTimeString()}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-sm text-green-800">Ready for auto-save</span>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -1617,7 +1519,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSav
                 
                 console.log('💾 Save Draft button clicked');
                 try {
-                  await saveToDraft(false);
+                  await saveToDraft();
                 } catch (error) {
                   console.error('Manual save failed:', error);
                 }

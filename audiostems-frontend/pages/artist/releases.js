@@ -784,24 +784,6 @@ export default function ArtistReleases() {
               setSelectedRelease(null);
               // No page refresh needed! ✨
             }}
-            onAutoSave={(newRelease) => {
-              console.log('💾 Auto-save completed - updating releases list:', newRelease);
-              
-              // Add new auto-saved release to the list (don't close modal)
-              setReleases(prev => {
-                // Check if release already exists (to avoid duplicates)
-                const exists = prev.some(release => release.id === newRelease.id);
-                if (exists) {
-                  // Update existing
-                  return prev.map(release => 
-                    release.id === newRelease.id ? { ...release, ...newRelease } : release
-                  );
-                } else {
-                  // Add new
-                  return [newRelease, ...prev];
-                }
-              });
-            }}
             editingRelease={selectedRelease}
           />
         )}
