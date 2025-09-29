@@ -355,6 +355,15 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('🎵 Final release form submission:', formData);
+    
+    // Validate pre-order date
+    if (formData.hasPreOrder && formData.preOrderDate && formData.releaseDate) {
+      if (new Date(formData.preOrderDate) >= new Date(formData.releaseDate)) {
+        setErrors({ submit: 'Pre-order date must be before release date' });
+        return;
+      }
+    }
+    
     setLoading(true);
     
     try {
@@ -533,19 +542,25 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                 </label>
               </div>
               
-              {formData.hasPreOrder && (
-                <div>
-                  <input
-                    type="date"
-                    value={formData.preOrderDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    <strong>Best Practice:</strong> Set pre-order 2-4 weeks before release date for optimal campaign results
-                  </p>
-                </div>
-              )}
+                {formData.hasPreOrder && (
+                  <div>
+                    <input
+                      type="date"
+                      value={formData.preOrderDate}
+                      max={formData.releaseDate ? new Date(new Date(formData.releaseDate).getTime() - 24*60*60*1000).toISOString().split('T')[0] : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      <strong>Best Practice:</strong> Set pre-order 2-4 weeks before release date for optimal campaign results
+                    </p>
+                    {formData.preOrderDate && formData.releaseDate && new Date(formData.preOrderDate) >= new Date(formData.releaseDate) && (
+                      <p className="text-xs text-red-600 mt-1">
+                        <strong>Error:</strong> Pre-order date must be before release date
+                      </p>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
 
