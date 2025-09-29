@@ -262,7 +262,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
       previousReleaseDate: '',
       recordingCountry: '',
       contributors: [],
-      audioFile: null
+      audioFile: null,
+      hasAppleLossless: false,
+      appleLosslessFile: null
     }]
   });
 
@@ -805,10 +807,10 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
 
               {/* Audio File Upload */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Audio File *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Audio File (WAV) *</label>
                 <input
                   type="file"
-                  accept=".wav,.flac,.aiff,.mp3"
+                  accept=".wav"
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (file) {
@@ -823,12 +825,68 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                 />
                 <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <p className="text-sm text-purple-800">
-                    <strong>Tip:</strong> Upload high-quality WAV files for best distribution results
+                    <strong>Required:</strong> WAV format only for professional distribution
                   </p>
                   <p className="text-xs text-purple-600 mt-1">
-                    Acceptable formats: WAV (preferred), FLAC, AIFF, MP3. Minimum 16-bit/44.1kHz quality required.
+                    Minimum quality: 16-bit/44.1kHz or higher. 24-bit/48kHz recommended for best results.
                   </p>
                 </div>
+              </div>
+
+              {/* Apple Lossless (Optional) */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Apple Lossless (Optional)</label>
+                <div className="flex items-center space-x-4 mb-3">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="appleLossless"
+                      checked={formData.assets[0].hasAppleLossless === true}
+                      onChange={() => setFormData(prev => ({
+                        ...prev,
+                        assets: [{ ...prev.assets[0], hasAppleLossless: true }]
+                      }))}
+                      className="mr-2"
+                    />
+                    Yes
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="appleLossless"
+                      checked={formData.assets[0].hasAppleLossless === false}
+                      onChange={() => setFormData(prev => ({
+                        ...prev,
+                        assets: [{ ...prev.assets[0], hasAppleLossless: false, appleLosslessFile: null }]
+                      }))}
+                      className="mr-2"
+                    />
+                    No
+                  </label>
+                </div>
+                
+                {formData.assets[0].hasAppleLossless && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Apple Lossless File</label>
+                    <input
+                      type="file"
+                      accept=".m4a,.alac"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFormData(prev => ({
+                            ...prev,
+                            assets: [{ ...prev.assets[0], appleLosslessFile: file }]
+                          }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Upload Apple Lossless (.m4a) or ALAC format for enhanced quality on Apple Music
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Asset Contributors */}
