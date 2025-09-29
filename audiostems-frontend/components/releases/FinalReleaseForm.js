@@ -595,7 +595,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                   value={formData.label}
                   onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Defaults to MSC & Co if empty"
+                  placeholder="Label Name"
                 />
                 <p className="text-xs text-gray-500 mt-1">If empty, will show as MSC & Co to distribution partner</p>
               </div>
@@ -657,16 +657,74 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Countries/Territories</label>
-                      <textarea
-                        value={formData.territoryRestrictions.join(', ')}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          territoryRestrictions: e.target.value.split(',').map(s => s.trim()).filter(s => s)
-                        }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        rows={2}
-                        placeholder="Enter countries separated by commas (e.g., US, UK, CA)"
-                      />
+                      <select
+                        multiple
+                        value={formData.territoryRestrictions}
+                        onChange={(e) => {
+                          const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                          setFormData(prev => ({ ...prev, territoryRestrictions: selectedOptions }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-32"
+                        size={8}
+                      >
+                        <option value="US">United States</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="IT">Italy</option>
+                        <option value="ES">Spain</option>
+                        <option value="NL">Netherlands</option>
+                        <option value="BE">Belgium</option>
+                        <option value="CH">Switzerland</option>
+                        <option value="AT">Austria</option>
+                        <option value="SE">Sweden</option>
+                        <option value="NO">Norway</option>
+                        <option value="DK">Denmark</option>
+                        <option value="FI">Finland</option>
+                        <option value="JP">Japan</option>
+                        <option value="KR">South Korea</option>
+                        <option value="CN">China</option>
+                        <option value="IN">India</option>
+                        <option value="BR">Brazil</option>
+                        <option value="MX">Mexico</option>
+                        <option value="AR">Argentina</option>
+                        <option value="CL">Chile</option>
+                        <option value="CO">Colombia</option>
+                        <option value="PE">Peru</option>
+                        <option value="ZA">South Africa</option>
+                        <option value="NG">Nigeria</option>
+                        <option value="KE">Kenya</option>
+                        <option value="GH">Ghana</option>
+                        <option value="EG">Egypt</option>
+                        <option value="MA">Morocco</option>
+                        <option value="RU">Russia</option>
+                        <option value="PL">Poland</option>
+                        <option value="CZ">Czech Republic</option>
+                        <option value="HU">Hungary</option>
+                        <option value="RO">Romania</option>
+                        <option value="BG">Bulgaria</option>
+                        <option value="HR">Croatia</option>
+                        <option value="SI">Slovenia</option>
+                        <option value="SK">Slovakia</option>
+                        <option value="LT">Lithuania</option>
+                        <option value="LV">Latvia</option>
+                        <option value="EE">Estonia</option>
+                        <option value="GR">Greece</option>
+                        <option value="TR">Turkey</option>
+                        <option value="IL">Israel</option>
+                        <option value="AE">UAE</option>
+                        <option value="SA">Saudi Arabia</option>
+                        <option value="TH">Thailand</option>
+                        <option value="VN">Vietnam</option>
+                        <option value="ID">Indonesia</option>
+                        <option value="MY">Malaysia</option>
+                        <option value="SG">Singapore</option>
+                        <option value="PH">Philippines</option>
+                        <option value="NZ">New Zealand</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Hold Ctrl (PC) or Cmd (Mac) to select multiple countries</p>
                     </div>
                   </div>
                 </div>
