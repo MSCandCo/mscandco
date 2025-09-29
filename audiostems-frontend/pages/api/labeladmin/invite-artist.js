@@ -40,17 +40,37 @@ export default async function handler(req, res) {
     const targetArtist = artists[0];
     console.log('✅ Found artist:', targetArtist.artist_name || `${targetArtist.first_name} ${targetArtist.last_name}`);
 
-    // 3. CREATE SIMPLE AFFILIATION REQUEST (store in a simple way for now)
-    // Since artist_requests table may not exist, let's just return success
-    // The actual request system can be implemented later
+    // 3. CREATE AFFILIATION REQUEST in database
+    const { message, labelPercentage = 15.0 } = req.body; // Default 15% for label
+    
+    const { data: newRequest, error: insertError } = await supabase
+      .from('affiliation_requests')
+      .insert({
+        label_admin_id: 'c1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6', // Use fixed label admin ID for now
+        artist_id: targetArtist.id,
+        message: message || `MSC & Co would like to partner with you as your label. We offer ${labelPercentage}% partnership on earnings.`,
+        label_percentage: labelPercentage,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating affiliation request:', insertError);
+      return res.status(500).json({ error: 'Failed to create affiliation request' });
+    }
+
+    console.log('✅ Affiliation request created:', newRequest.id);
     
     return res.status(200).json({
       success: true,
-      message: `Found artist: ${targetArtist.artist_name || targetArtist.first_name + ' ' + targetArtist.last_name}. Affiliation request sent!`,
-      artist: {
-        id: targetArtist.id,
-        name: targetArtist.artist_name || `${targetArtist.first_name} ${targetArtist.last_name}`,
-        email: targetArtist.email
+      message: `Affiliation request sent to ${targetArtist.artist_name || targetArtist.first_name + ' ' + targetArtist.last_name}!`,
+      request: {
+        id: newRequest.id,
+        artistName: targetArtist.artist_name || `${targetArtist.first_name} ${targetArtist.last_name}`,
+        artistEmail: targetArtist.email,
+        labelPercentage: labelPercentage,
+        status: 'pending'
       }
     });
 
