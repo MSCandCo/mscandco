@@ -825,28 +825,78 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
                       />
                     </div>
 
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Language
-                        </label>
-                        <select
-                          value={asset.language}
-                          onChange={(e) => updateAsset(assetIndex, 'language', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          {LANGUAGES.map(lang => (
-                            <option key={lang} value={lang}>{lang}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Contributors Section - This populates the roster */}
+                    {/* Asset Contributors - Dropdown Addition System */}
                     <div className="mb-6">
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-md font-semibold text-gray-900">Contributors</h4>
-                        {assetIndex > 0 && (
+                        <h4 className="text-md font-semibold text-gray-900">Asset Contributors</h4>
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                addContributor(assetIndex, e.target.value, { 
+                                  name: '',
+                                  role: e.target.value 
+                                });
+                                e.target.value = ''; // Reset dropdown
+                              }
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Add Contributor...</option>
+                            {ASSET_CONTRIBUTOR_TYPES.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      
+                      {/* Dynamic contributor list */}
+                      <div className="space-y-3">
+                        {asset.contributors && Object.entries(asset.contributors).map(([contributorType, contributors]) => 
+                          contributors.map((contributor, contributorIndex) => (
+                            <div key={`${contributorType}-${contributorIndex}`} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
+                                  <input
+                                    type="text"
+                                    value={contributorType}
+                                    disabled
+                                    className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-100"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                                  <input
+                                    type="text"
+                                    value={contributor.name}
+                                    onChange={(e) => updateContributor(assetIndex, contributorType, contributorIndex, 'name', e.target.value)}
+                                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                                    placeholder="Enter name"
+                                  />
+                                </div>
+                                <div className="flex items-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeContributor(assetIndex, contributorType, contributorIndex)}
+                                    className="px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                        
+                        {(!asset.contributors || Object.keys(asset.contributors).length === 0) && (
+                          <p className="text-gray-500 text-sm italic">No contributors added yet. Use the dropdown above to add contributors.</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {assetIndex > 0 && (
                           <button
                             type="button"
                             onClick={() => copyContributors(0, assetIndex)}
