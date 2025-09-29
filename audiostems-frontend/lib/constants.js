@@ -371,7 +371,7 @@ export const SOCIAL_MEDIA_TYPES = [
   'Apple ID'
 ];
 
-// Other Release Details Types (alphabetical)
+// Other Release Details Types (alphabetical, ISRC removed - has dedicated field)
 export const OTHER_RELEASE_DETAIL_TYPES = [
   'ASCAP Work #',
   'Barcode',
@@ -386,7 +386,6 @@ export const OTHER_RELEASE_DETAIL_TYPES = [
   'Format',
   'ICE Work Key',
   'ISNI',
-  'ISRC',
   'ISWC',
   'Mechanical',
   'P Line (℗)',
