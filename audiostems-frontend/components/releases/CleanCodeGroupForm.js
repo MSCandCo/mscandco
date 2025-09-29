@@ -917,6 +917,322 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
+          {/* Social Details (Optional) */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Details (Optional)</h3>
+            <div className="flex items-center space-x-2 mb-4">
+              <select
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    addSocialDetail(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Add Social Media...</option>
+                {SOCIAL_MEDIA_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2 mb-6">
+              {formData.socialDetails?.map((social, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <input
+                        type="text"
+                        value={social.type}
+                        disabled
+                        className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={social.value}
+                        onChange={(e) => {
+                          const newSocials = [...formData.socialDetails];
+                          newSocials[index].value = e.target.value;
+                          setFormData(prev => ({ ...prev, socialDetails: newSocials }));
+                        }}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        placeholder={`Enter ${social.type.toLowerCase()}`}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        socialDetails: prev.socialDetails.filter((_, i) => i !== index)
+                      }));
+                    }}
+                    className="px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              
+              {(!formData.socialDetails || formData.socialDetails.length === 0) && (
+                <p className="text-gray-500 text-sm italic">No social media added yet. Use the dropdown above to add social media links.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Advanced Details (Optional) */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Advanced Details (Optional)</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                <input
+                  type="text"
+                  value={formData.label}
+                  onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Defaults to MSC & Co if empty"
+                />
+                <p className="text-xs text-gray-500 mt-1">If empty, will show as "MSC & Co" to distribution partner</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">UPC</label>
+                <input
+                  type="text"
+                  value={formData.upc}
+                  onChange={(e) => setFormData(prev => ({ ...prev, upc: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter UPC code"
+                />
+                <p className="text-xs text-gray-500 mt-1">If you have one, please enter it above. Otherwise, we will generate one for you.</p>
+              </div>
+            </div>
+
+            {/* Territory Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sell this release worldwide?</label>
+              <div className="flex items-center space-x-4 mb-3">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="sellWorldwide"
+                    checked={formData.sellWorldwide === true}
+                    onChange={() => setFormData(prev => ({ ...prev, sellWorldwide: true, territoryRestrictions: [] }))}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="sellWorldwide"
+                    checked={formData.sellWorldwide === false}
+                    onChange={() => setFormData(prev => ({ ...prev, sellWorldwide: false }))}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+              </div>
+              
+              {formData.sellWorldwide === false && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-3">The release won't be sold in the selected countries/territories.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Territory Restriction Type</label>
+                      <select
+                        value={formData.territoryRestrictionType}
+                        onChange={(e) => setFormData(prev => ({ ...prev, territoryRestrictionType: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="exclude">Exclude</option>
+                        <option value="include">Include</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Countries/Territories</label>
+                      <textarea
+                        value={formData.territoryRestrictions.join(', ')}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          territoryRestrictions: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        rows={3}
+                        placeholder="Enter countries separated by commas (e.g., US, UK, CA)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Release Contributors */}
+            <div className="mb-6">
+              <h4 className="text-md font-semibold text-gray-900 mb-4">Release Contributors</h4>
+              <div className="flex items-center space-x-2 mb-4">
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      addReleaseContributor(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Add Release Contributor...</option>
+                  {RELEASE_CONTRIBUTOR_TYPES.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                {formData.releaseContributors?.map((contributor, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="text"
+                          value={contributor.type}
+                          disabled
+                          className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-100"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          value={contributor.value}
+                          onChange={(e) => {
+                            const newContributors = [...formData.releaseContributors];
+                            newContributors[index].value = e.target.value;
+                            setFormData(prev => ({ ...prev, releaseContributors: newContributors }));
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          placeholder={`Enter ${contributor.type.toLowerCase()}`}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          releaseContributors: prev.releaseContributors.filter((_, i) => i !== index)
+                        }));
+                      }}
+                      className="px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                
+                {(!formData.releaseContributors || formData.releaseContributors.length === 0) && (
+                  <p className="text-gray-500 text-sm italic">No release contributors added yet. Use the dropdown above to add contributors.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Distribution Details */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribution Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Digital Assets Folder</label>
+                <input
+                  type="text"
+                  value={formData.digitalAssetsFolder}
+                  onChange={(e) => setFormData(prev => ({ ...prev, digitalAssetsFolder: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter folder path"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Initials</label>
+                <input
+                  type="text"
+                  value={formData.initials}
+                  onChange={(e) => setFormData(prev => ({ ...prev, initials: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter initials"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Luminate</label>
+                <input
+                  type="text"
+                  value={formData.luminate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, luminate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter Luminate information"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mediabase</label>
+                <input
+                  type="text"
+                  value={formData.mediabase}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mediabase: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter Mediabase information"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="metadataApproved"
+                  checked={formData.metadataApproved}
+                  onChange={(e) => setFormData(prev => ({ ...prev, metadataApproved: e.target.checked }))}
+                  className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="metadataApproved" className="text-sm font-medium text-gray-700">
+                  Metadata Approved
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="submittedToStores"
+                  checked={formData.submittedToStores}
+                  onChange={(e) => setFormData(prev => ({ ...prev, submittedToStores: e.target.checked }))}
+                  className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="submittedToStores" className="text-sm font-medium text-gray-700">
+                  Submitted to Stores?
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter any additional notes..."
+              />
+            </div>
+          </div>
+
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button

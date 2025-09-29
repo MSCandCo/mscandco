@@ -8,7 +8,7 @@ import Layout from '../../components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
 import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
-import CleanCodeGroupForm from '../../components/releases/CleanCodeGroupForm';
+import FinalReleaseForm from '../../components/releases/FinalReleaseForm';
 import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
 import { 
   RELEASE_STATUSES, 
@@ -609,7 +609,7 @@ export default function ArtistReleases() {
 
         {/* Modals */}
         {isCreateModalOpen && (
-          <CleanCodeGroupForm
+          <FinalReleaseForm
             isOpen={isCreateModalOpen}
             onClose={() => {
               setIsCreateModalOpen(false);
