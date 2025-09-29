@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash, FaUser, FaCopy } from 'react-icons/fa';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { RELEASE_TYPES, GENRES, VOCAL_TYPES, SONG_KEYS, LANGUAGES } from '../../lib/constants';
+import { RELEASE_TYPES, GENRES, VOCAL_TYPES, SONG_KEYS, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES } from '../../lib/constants';
 
 // Comprehensive release form with asset-level data collection
 export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRelease = null, userRole = 'artist' }) {
@@ -59,6 +59,7 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
       tags: '',
       lyrics: '',
       language: 'English',
+      customLanguageDetails: '', // For "Multiple Languages" or "Other"
       vocalType: '',
       
       // Code Group Required Fields
