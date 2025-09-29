@@ -19,7 +19,20 @@ export default async function handler(req, res) {
       releaseType,
       genre,
       releaseDate,
-      songTitle
+      songTitle,
+      // Additional form data to preserve
+      secondaryGenre,
+      hasPreOrder,
+      preOrderDate,
+      previouslyReleased,
+      previousReleaseDate,
+      label,
+      upc,
+      sellWorldwide,
+      territoryRestrictionType,
+      territoryRestrictions,
+      // Store complete form data
+      ...formData
     } = req.body;
 
     if (!id) {
@@ -36,7 +49,16 @@ export default async function handler(req, res) {
         title: releaseTitle,
         release_type: 'single', // Keep as lowercase
         release_date: releaseDate ? new Date(releaseDate).toISOString().split('T')[0] : null,
-        genre: genre,
+        genre: genre || null,
+        subgenre: secondaryGenre || null,
+        upc: upc || null,
+        territories: territoryRestrictions ? JSON.stringify({
+          sellWorldwide,
+          restrictionType: territoryRestrictionType,
+          countries: territoryRestrictions
+        }) : null,
+        // Store complete form data in publishing_info for full persistence
+        publishing_info: JSON.stringify(req.body),
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

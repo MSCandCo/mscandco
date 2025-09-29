@@ -287,25 +287,36 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       });
       
       // Reset form to defaults first, then populate with existing data
+      // Try to load complete form data from publishing_info if available
+      let savedFormData = {};
+      if (editingRelease.publishing_info) {
+        try {
+          savedFormData = JSON.parse(editingRelease.publishing_info);
+          console.log('📊 Loaded saved form data:', savedFormData);
+        } catch (e) {
+          console.warn('⚠️ Could not parse publishing_info:', e);
+        }
+      }
+
       setFormData({
-        // Basic Release Info
-        releaseTitle: editingRelease.title || editingRelease.releaseTitle || '',
-        releaseType: editingRelease.release_type || editingRelease.releaseType || 'Single',
-        primaryArtist: editingRelease.artist_name || editingRelease.primaryArtist || editingRelease.artist || '',
-        genre: editingRelease.genre || '',
-        secondaryGenre: editingRelease.secondaryGenre || '',
-        releaseDate: editingRelease.release_date || editingRelease.releaseDate || '',
-        hasPreOrder: editingRelease.hasPreOrder || false,
-        preOrderDate: editingRelease.preOrderDate || '',
-        previouslyReleased: editingRelease.previouslyReleased || false,
-        previousReleaseDate: editingRelease.previousReleaseDate || '',
+        // Basic Release Info - use saved form data first, then database fields
+        releaseTitle: savedFormData.releaseTitle || editingRelease.title || editingRelease.releaseTitle || '',
+        releaseType: savedFormData.releaseType || editingRelease.release_type || editingRelease.releaseType || 'Single',
+        primaryArtist: savedFormData.primaryArtist || editingRelease.artist_name || editingRelease.primaryArtist || editingRelease.artist || '',
+        genre: savedFormData.genre || editingRelease.genre || '',
+        secondaryGenre: savedFormData.secondaryGenre || editingRelease.subgenre || editingRelease.secondaryGenre || '',
+        releaseDate: savedFormData.releaseDate || editingRelease.release_date || editingRelease.releaseDate || '',
+        hasPreOrder: savedFormData.hasPreOrder || editingRelease.hasPreOrder || false,
+        preOrderDate: savedFormData.preOrderDate || editingRelease.preOrderDate || '',
+        previouslyReleased: savedFormData.previouslyReleased || editingRelease.previouslyReleased || false,
+        previousReleaseDate: savedFormData.previousReleaseDate || editingRelease.previousReleaseDate || '',
         
         // Advanced Details
-        label: editingRelease.label || '',
-        upc: editingRelease.upc || '',
-        sellWorldwide: editingRelease.sellWorldwide !== false,
-        territoryRestrictionType: editingRelease.territoryRestrictionType || 'exclude',
-        territoryRestrictions: editingRelease.territoryRestrictions || [],
+        label: savedFormData.label || editingRelease.label || '',
+        upc: savedFormData.upc || editingRelease.upc || '',
+        sellWorldwide: savedFormData.sellWorldwide !== undefined ? savedFormData.sellWorldwide : (editingRelease.sellWorldwide !== false),
+        territoryRestrictionType: savedFormData.territoryRestrictionType || editingRelease.territoryRestrictionType || 'exclude',
+        territoryRestrictions: savedFormData.territoryRestrictions || editingRelease.territoryRestrictions || [],
         
         // Distribution Details  
         digitalAssetsFolder: editingRelease.digitalAssetsFolder || '',
@@ -570,7 +581,20 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             releaseType: draftData.releaseType,
             genre: draftData.genre,
             releaseDate: draftData.releaseDate,
-            songTitle: draftData.assets[0].songTitle
+            songTitle: draftData.assets[0].songTitle,
+            // Include additional form fields
+            secondaryGenre: draftData.secondaryGenre,
+            hasPreOrder: draftData.hasPreOrder,
+            preOrderDate: draftData.preOrderDate,
+            previouslyReleased: draftData.previouslyReleased,
+            previousReleaseDate: draftData.previousReleaseDate,
+            label: draftData.label,
+            upc: draftData.upc,
+            sellWorldwide: draftData.sellWorldwide,
+            territoryRestrictionType: draftData.territoryRestrictionType,
+            territoryRestrictions: draftData.territoryRestrictions,
+            // Pass complete form data
+            ...draftData
           })
         });
       } else {
@@ -584,7 +608,20 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             releaseType: draftData.releaseType,
             genre: draftData.genre,
             releaseDate: draftData.releaseDate,
-            songTitle: draftData.assets[0].songTitle
+            songTitle: draftData.assets[0].songTitle,
+            // Include additional form fields
+            secondaryGenre: draftData.secondaryGenre,
+            hasPreOrder: draftData.hasPreOrder,
+            preOrderDate: draftData.preOrderDate,
+            previouslyReleased: draftData.previouslyReleased,
+            previousReleaseDate: draftData.previousReleaseDate,
+            label: draftData.label,
+            upc: draftData.upc,
+            sellWorldwide: draftData.sellWorldwide,
+            territoryRestrictionType: draftData.territoryRestrictionType,
+            territoryRestrictions: draftData.territoryRestrictions,
+            // Pass complete form data
+            ...draftData
           })
         });
       }

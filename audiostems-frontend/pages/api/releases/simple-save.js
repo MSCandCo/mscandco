@@ -18,12 +18,25 @@ export default async function handler(req, res) {
       releaseType,
       genre,
       releaseDate,
-      songTitle
+      songTitle,
+      // Additional form data to preserve
+      secondaryGenre,
+      hasPreOrder,
+      preOrderDate,
+      previouslyReleased,
+      previousReleaseDate,
+      label,
+      upc,
+      sellWorldwide,
+      territoryRestrictionType,
+      territoryRestrictions,
+      // Store complete form data as JSON for full persistence
+      ...formData
     } = req.body;
 
     console.log('💾 Simple save request:', { releaseTitle, primaryArtist, releaseType });
 
-    // Insert into releases table with required fields
+    // Insert into releases table with both required fields and form data preservation
     const { data: release, error } = await supabase
       .from('releases')
       .insert({
@@ -32,6 +45,16 @@ export default async function handler(req, res) {
         title: releaseTitle,
         release_type: 'single',
         release_date: releaseDate ? new Date(releaseDate).toISOString().split('T')[0] : null,
+        genre: genre || null,
+        subgenre: secondaryGenre || null,
+        upc: upc || null,
+        territories: territoryRestrictions ? JSON.stringify({
+          sellWorldwide,
+          restrictionType: territoryRestrictionType,
+          countries: territoryRestrictions
+        }) : null,
+        // Store complete form data in publishing_info for full persistence
+        publishing_info: JSON.stringify(req.body),
         status: 'draft'
       })
       .select()
