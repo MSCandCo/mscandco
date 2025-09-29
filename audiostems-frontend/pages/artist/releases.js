@@ -383,13 +383,13 @@ export default function ArtistReleases() {
         </div>
 
         {/* Actions */}
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
               setSelectedRelease(release);
               setIsViewModalOpen(true);
             }}
-            className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 font-medium"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 font-medium"
           >
             <Eye className="w-4 h-4" />
             <span>View Details</span>
@@ -402,7 +402,7 @@ export default function ArtistReleases() {
                   setSelectedRelease(release);
                   setIsCreateModalOpen(true);
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
               >
                 <FaEdit className="w-4 h-4" />
                 <span>Edit Release</span>
@@ -412,7 +412,7 @@ export default function ArtistReleases() {
                 <>
                   <button
                     onClick={() => handleSubmitRelease(release.id)}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
                   >
                     <Send className="w-4 h-4" />
                     <span>Submit Release</span>

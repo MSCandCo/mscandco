@@ -278,6 +278,13 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   useEffect(() => {
     if (editingRelease && isOpen) {
       console.log('✏️ Loading existing release for editing:', editingRelease);
+      console.log('🔍 editingRelease fields:', {
+        id: editingRelease.id,
+        title: editingRelease.title,
+        artist_name: editingRelease.artist_name,
+        release_date: editingRelease.release_date,
+        genre: editingRelease.genre
+      });
       
       // Reset form to defaults first, then populate with existing data
       setFormData({
@@ -534,6 +541,13 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
       // Determine if we're editing an existing release or creating new one
       const isEditing = editingRelease && editingRelease.id;
+      console.log('🔍 DEBUG - saveToDraft called with:', {
+        isEditing,
+        editingReleaseId: editingRelease?.id,
+        editingReleaseTitle: editingRelease?.title,
+        hasEditingRelease: !!editingRelease,
+        editingReleaseKeys: editingRelease ? Object.keys(editingRelease) : 'none'
+      });
       console.log(`${isEditing ? '✏️ Updating existing' : '🆕 Creating new'} release`, { isEditing, releaseId: editingRelease?.id });
 
       let response;
