@@ -398,8 +398,10 @@ export default function ArtistReleases() {
             <>
               <button
                 onClick={() => {
-                  console.log('✏️ Editing release - passing data:', release);
+                  console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
+                  console.log('✏️ Setting selectedRelease to:', { id: release.id, title: release.title });
                   setSelectedRelease(release);
+                  console.log('✏️ Opening create modal for editing...');
                   setIsCreateModalOpen(true);
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
@@ -738,9 +740,12 @@ export default function ArtistReleases() {
               setSelectedRelease(null);
             }}
             onSuccess={(newRelease) => {
+              console.log('🎉 Release operation completed:', newRelease);
               setReleases(prev => [...prev, newRelease]);
               setIsCreateModalOpen(false);
               setSelectedRelease(null);
+              // Refresh the page to show updated releases
+              window.location.reload();
             }}
             editingRelease={selectedRelease}
           />

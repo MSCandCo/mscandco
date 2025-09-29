@@ -600,6 +600,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           alert('Release saved to draft!');
           
           // Notify parent component and close modal
+          console.log('📞 Calling onSuccess with result:', result.data || result);
           if (onSuccess) {
             onSuccess(result.data || result);
           }
