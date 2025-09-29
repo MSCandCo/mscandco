@@ -278,17 +278,79 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   useEffect(() => {
     if (editingRelease && isOpen) {
       console.log('✏️ Loading existing release for editing:', editingRelease);
-      setFormData(prev => ({
-        ...prev,
-        releaseTitle: editingRelease.releaseTitle || editingRelease.title || '',
-        releaseType: editingRelease.releaseType || 'Single',
-        primaryArtist: editingRelease.primaryArtist || editingRelease.artist || '',
+      
+      // Reset form to defaults first, then populate with existing data
+      setFormData({
+        // Basic Release Info
+        releaseTitle: editingRelease.title || editingRelease.releaseTitle || '',
+        releaseType: editingRelease.release_type || editingRelease.releaseType || 'Single',
+        primaryArtist: editingRelease.artist_name || editingRelease.primaryArtist || editingRelease.artist || '',
         genre: editingRelease.genre || '',
         secondaryGenre: editingRelease.secondaryGenre || '',
-        releaseDate: editingRelease.releaseDate || '',
-        // Add other fields as needed
-        assets: editingRelease.assets || prev.assets
-      }));
+        releaseDate: editingRelease.release_date || editingRelease.releaseDate || '',
+        hasPreOrder: editingRelease.hasPreOrder || false,
+        preOrderDate: editingRelease.preOrderDate || '',
+        previouslyReleased: editingRelease.previouslyReleased || false,
+        previousReleaseDate: editingRelease.previousReleaseDate || '',
+        
+        // Advanced Details
+        label: editingRelease.label || '',
+        upc: editingRelease.upc || '',
+        sellWorldwide: editingRelease.sellWorldwide !== false,
+        territoryRestrictionType: editingRelease.territoryRestrictionType || 'exclude',
+        territoryRestrictions: editingRelease.territoryRestrictions || [],
+        
+        // Distribution Details  
+        digitalAssetsFolder: editingRelease.digitalAssetsFolder || '',
+        metadataApproved: editingRelease.metadataApproved || false,
+        initials: editingRelease.initials || '',
+        submittedToStores: editingRelease.submittedToStores || false,
+        luminate: editingRelease.luminate || '',
+        mediabase: editingRelease.mediabase || '',
+        notes: editingRelease.notes || '',
+        
+        // Dynamic Arrays
+        socialDetails: editingRelease.socialDetails || [],
+        releaseContributors: editingRelease.releaseContributors || [],
+        otherReleaseDetails: editingRelease.otherReleaseDetails || [],
+        
+        // File uploads
+        coverArt: null,
+        
+        // Assets
+        assets: editingRelease.assets || [{
+          songTitle: editingRelease.songTitle || '',
+          anyOtherFeaturingArtists: '',
+          duration: '',
+          explicit: false,
+          version: '',
+          bpm: '',
+          songKey: '',
+          moodDescription: '',
+          tags: '',
+          lyrics: '',
+          language: 'English',
+          customLanguageDetails: '',
+          vocalType: '',
+          catalogueNo: '',
+          format: 'Digital',
+          productType: 'Single',
+          barcode: '',
+          tunecode: '',
+          iceWorkKey: '',
+          iswc: '',
+          isrc: '',
+          bowiPreviouslyReleased: false,
+          previousReleaseDate: '',
+          recordingCountry: '',
+          contributors: [],
+          audioFile: null,
+          hasAppleLossless: false,
+          appleLosslessFile: null
+        }]
+      });
+      
+      console.log('✅ Form populated with existing release data');
     }
   }, [editingRelease, isOpen]);
 
