@@ -264,48 +264,47 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
                   </div>
                 )}
               </div>
-            </div>
-            
-            {/* Pre-Order Section */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Pre-Order (Optional)</label>
-              <div className="flex items-center space-x-4 mb-3">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="preOrder"
-                    checked={formData.hasPreOrder === true}
-                    onChange={() => setFormData(prev => ({ ...prev, hasPreOrder: true }))}
-                    className="mr-2"
-                  />
-                  Yes
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="preOrder"
-                    checked={formData.hasPreOrder === false}
-                    onChange={() => setFormData(prev => ({ ...prev, hasPreOrder: false, preOrderDate: '' }))}
-                    className="mr-2"
-                  />
-                  No
-                </label>
-              </div>
-              
-              {formData.hasPreOrder && (
-                <div>
-                  <input
-                    type="date"
-                    value={formData.preOrderDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    <strong>Best Practice:</strong> Set pre-order 2-4 weeks before release date for optimal campaign results
-                  </p>
+
+              {/* Pre-Order in same grid */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pre-Order (Optional)</label>
+                <div className="flex items-center space-x-4 mb-3">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="preOrder"
+                      checked={formData.hasPreOrder === true}
+                      onChange={() => setFormData(prev => ({ ...prev, hasPreOrder: true }))}
+                      className="mr-2"
+                    />
+                    Yes
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="preOrder"
+                      checked={formData.hasPreOrder === false}
+                      onChange={() => setFormData(prev => ({ ...prev, hasPreOrder: false, preOrderDate: '' }))}
+                      className="mr-2"
+                    />
+                    No
+                  </label>
                 </div>
-              )}
-            </div>
+                
+                {formData.hasPreOrder && (
+                  <div>
+                    <input
+                      type="date"
+                      value={formData.preOrderDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, preOrderDate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      <strong>Best Practice:</strong> Set pre-order 2-4 weeks before release date for optimal campaign results
+                    </p>
+                  </div>
+                )}
+              </div>
           </div>
 
           {/* Asset Section */}
@@ -385,8 +384,7 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Version</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.assets[0].version}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
@@ -395,8 +393,21 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
                       )
                     }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Original, Remix, etc."
-                  />
+                  >
+                    <option value="">Select version</option>
+                    <option value="Original">Original</option>
+                    <option value="Remix">Remix</option>
+                    <option value="Acoustic">Acoustic</option>
+                    <option value="Instrumental">Instrumental</option>
+                    <option value="Radio Edit">Radio Edit</option>
+                    <option value="Extended Mix">Extended Mix</option>
+                    <option value="Club Mix">Club Mix</option>
+                    <option value="Unplugged">Unplugged</option>
+                    <option value="Live">Live</option>
+                    <option value="Demo">Demo</option>
+                    <option value="Remaster">Remaster</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 
                 <div>
@@ -416,6 +427,81 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
                 </div>
               </div>
               
+              {/* Additional Asset Details */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Song Key</label>
+                  <select
+                    value={formData.assets[0].songKey}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, songKey: e.target.value } : asset
+                      )
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select key</option>
+                    <option value="C">C Major</option>
+                    <option value="C#">C# Major</option>
+                    <option value="D">D Major</option>
+                    <option value="D#">D# Major</option>
+                    <option value="E">E Major</option>
+                    <option value="F">F Major</option>
+                    <option value="F#">F# Major</option>
+                    <option value="G">G Major</option>
+                    <option value="G#">G# Major</option>
+                    <option value="A">A Major</option>
+                    <option value="A#">A# Major</option>
+                    <option value="B">B Major</option>
+                    <option value="Cm">C Minor</option>
+                    <option value="C#m">C# Minor</option>
+                    <option value="Dm">D Minor</option>
+                    <option value="D#m">D# Minor</option>
+                    <option value="Em">E Minor</option>
+                    <option value="Fm">F Minor</option>
+                    <option value="F#m">F# Minor</option>
+                    <option value="Gm">G Minor</option>
+                    <option value="G#m">G# Minor</option>
+                    <option value="Am">A Minor</option>
+                    <option value="A#m">A# Minor</option>
+                    <option value="Bm">B Minor</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mood Description</label>
+                  <input
+                    type="text"
+                    value={formData.assets[0].moodDescription}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, moodDescription: e.target.value } : asset
+                      )
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Upbeat, Emotional, Energetic"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                  <input
+                    type="text"
+                    value={formData.assets[0].tags}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, tags: e.target.value } : asset
+                      )
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="summer, party, love"
+                  />
+                </div>
+              </div>
+
               {/* Language with conditional input */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
@@ -449,6 +535,306 @@ export default function CleanCodeGroupForm({ isOpen, onClose, onSuccess }) {
                       placeholder={formData.assets[0].language === 'Multiple Languages' ? 'Specify multiple languages' : 'Specify other language'}
                     />
                   )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Vocal Type</label>
+                  <select
+                    value={formData.assets[0].vocalType}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, vocalType: e.target.value } : asset
+                      )
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select vocal type</option>
+                    <option value="Lead Vocals">Lead Vocals</option>
+                    <option value="Background Vocals">Background Vocals</option>
+                    <option value="Harmony">Harmony</option>
+                    <option value="Rap">Rap</option>
+                    <option value="Spoken Word">Spoken Word</option>
+                    <option value="Choir">Choir</option>
+                    <option value="Instrumental">Instrumental</option>
+                  </select>
+                </div>
+              </div>
+              
+              {/* Lyrics */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Lyrics</label>
+                <textarea
+                  value={formData.assets[0].lyrics}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    assets: prev.assets.map((asset, i) => 
+                      i === 0 ? { ...asset, lyrics: e.target.value } : asset
+                    )
+                  }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter song lyrics..."
+                />
+              </div>
+
+              {/* Code Group Technical Fields */}
+              <div className="mb-6">
+                <h4 className="text-md font-semibold text-gray-900 mb-4">Technical Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Catalogue No.</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].catalogueNo}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, catalogueNo: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="CAT-001"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                    <select
+                      value={formData.assets[0].format}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, format: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Digital">Digital</option>
+                      <option value="Physical">Physical</option>
+                      <option value="Both">Both</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+                    <select
+                      value={formData.assets[0].productType}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, productType: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Single">Single</option>
+                      <option value="EP">EP</option>
+                      <option value="Album">Album</option>
+                      <option value="Compilation">Compilation</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Barcode</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].barcode}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, barcode: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter barcode"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tunecode</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].tunecode}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, tunecode: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter tunecode"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ICE Work Key</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].iceWorkKey}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, iceWorkKey: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter ICE work key"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ISWC</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].iswc}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, iswc: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter ISWC code"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ISRC</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].isrc}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, isrc: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter ISRC code"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Recording Country</label>
+                    <input
+                      type="text"
+                      value={formData.assets[0].recordingCountry}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, recordingCountry: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter recording country"
+                    />
+                  </div>
+                </div>
+
+                {/* BOWI Previously Released */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">BOWI Previously Released</label>
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="bowiPrevious"
+                        checked={formData.assets[0].bowiPreviouslyReleased === true}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assets: prev.assets.map((asset, i) => 
+                            i === 0 ? { ...asset, bowiPreviouslyReleased: true } : asset
+                          )
+                        }))}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="bowiPrevious"
+                        checked={formData.assets[0].bowiPreviouslyReleased === false}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assets: prev.assets.map((asset, i) => 
+                            i === 0 ? { ...asset, bowiPreviouslyReleased: false, previousReleaseDate: '' } : asset
+                          )
+                        }))}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                  </div>
+                  
+                  {formData.assets[0].bowiPreviouslyReleased && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Previous Release Date</label>
+                      <input
+                        type="date"
+                        value={formData.assets[0].previousReleaseDate}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          assets: prev.assets.map((asset, i) => 
+                            i === 0 ? { ...asset, previousReleaseDate: e.target.value } : asset
+                          )
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Language with conditional input */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                  <select
+                    value={formData.assets[0].language}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, language: e.target.value, customLanguageDetails: '' } : asset
+                      )
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    {LANGUAGES.map(language => (
+                      <option key={language} value={language}>{language}</option>
+                    ))}
+                  </select>
+                  
+                  {(formData.assets[0].language === 'Multiple Languages' || formData.assets[0].language === 'Other') && (
+                    <input
+                      type="text"
+                      value={formData.assets[0].customLanguageDetails}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        assets: prev.assets.map((asset, i) => 
+                          i === 0 ? { ...asset, customLanguageDetails: e.target.value } : asset
+                        )
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-2"
+                      placeholder={formData.assets[0].language === 'Multiple Languages' ? 'Specify multiple languages' : 'Specify other language'}
+                    />
+                  )}
+                </div>
+
+                {/* Lyrics */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Lyrics</label>
+                  <textarea
+                    value={formData.assets[0].lyrics}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: prev.assets.map((asset, i) => 
+                        i === 0 ? { ...asset, lyrics: e.target.value } : asset
+                      )
+                    }))}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter song lyrics..."
+                  />
                 </div>
               </div>
 
