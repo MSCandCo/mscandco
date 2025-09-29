@@ -407,11 +407,6 @@ export const SONG_KEYS = [
   'Cm', 'C#m', 'Dm', 'D#m', 'Ebm', 'Em', 'Fm', 'F#m', 'Gbm', 'Gm', 'G#m', 'Abm', 'Am', 'A#m', 'Bbm', 'Bm'
 ];
 
-// Language Constants
-export const LANGUAGES = [
-  'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Dutch', 
-  'Japanese', 'Korean', 'Chinese', 'Arabic', 'Hindi', 'Russian', 'Other'
-];
 
 // Artist Type Constants
 export const ARTIST_TYPES = [
