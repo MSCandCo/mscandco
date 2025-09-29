@@ -315,12 +315,27 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
   // Auto-save trigger when top section is complete
   useEffect(() => {
+    console.log('🔄 Auto-save check:', {
+      canAutoSave: canAutoSave(),
+      isOpen,
+      releaseTitle: formData.releaseTitle,
+      primaryArtist: formData.primaryArtist,
+      genre: formData.genre,
+      releaseDate: formData.releaseDate,
+      songTitle: formData.assets[0].songTitle
+    });
+    
     if (canAutoSave() && isOpen) {
+      console.log('⏰ Setting auto-save timer for 2 seconds...');
       const autoSaveTimer = setTimeout(() => {
+        console.log('💾 Auto-save timer triggered!');
         autoSave();
-      }, 2000); // Auto-save 2 seconds after completing required fields
+      }, 2000);
 
-      return () => clearTimeout(autoSaveTimer);
+      return () => {
+        console.log('🚫 Clearing auto-save timer');
+        clearTimeout(autoSaveTimer);
+      };
     }
   }, [formData.releaseTitle, formData.primaryArtist, formData.genre, formData.releaseDate, formData.assets[0].songTitle, isOpen]);
 
@@ -371,13 +386,23 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
   // Auto-save functionality
   const autoSave = async () => {
-    if (!canAutoSave()) return;
+    if (!canAutoSave()) {
+      console.log('❌ Cannot auto-save - missing required fields');
+      return;
+    }
     
+    console.log('💾 Starting auto-save...');
     setAutoSaving(true);
     try {
-      await saveToDraft(true); // true indicates auto-save
+      const result = await saveToDraft(true); // true indicates auto-save
       setLastSaved(new Date());
-      console.log('💾 Auto-saved release');
+      console.log('✅ Auto-saved release successfully');
+      
+      // Update editingRelease if this was a new release
+      if (!editingRelease && result?.data?.id) {
+        // Note: We could update the parent component here if needed
+        console.log('🆕 New release auto-saved with ID:', result.data.id);
+      }
     } catch (error) {
       console.error('❌ Auto-save failed:', error);
     } finally {
@@ -1330,40 +1355,32 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           )}
 
           {/* Submit Buttons */}
-          <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              
-              {canAutoSave() && (
-                <button
-                  type="button"
-                  onClick={() => saveToDraft(false)}
-                  disabled={autoSaving}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center space-x-2"
-                >
-                  {autoSaving ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6a1 1 0 10-2 0v5.586l-1.293-1.293z" />
-                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2.586l-.879-.879A3 3 0 0011.414 3H8.586a3 3 0 00-2.707 1.707L5 5.586V4z" />
-                      </svg>
-                      <span>Save to Draft</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await saveToDraft(false);
+                } catch (error) {
+                  console.error('Manual save failed:', error);
+                }
+              }}
+              disabled={!formData.releaseTitle || loading}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6a1 1 0 10-2 0v5.586l-1.293-1.293z" />
+              </svg>
+              <span>Save Draft</span>
+            </button>
             
             <button
               type="submit"
