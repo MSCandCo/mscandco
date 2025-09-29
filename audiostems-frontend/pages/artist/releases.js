@@ -66,6 +66,8 @@ export default function ArtistReleases() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [releaseToDelete, setReleaseToDelete] = useState(null);
 
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
@@ -125,15 +127,24 @@ export default function ArtistReleases() {
   };
 
   // Handle deleting a draft release
-  const handleDeleteDraft = async (releaseId) => {
-    if (!confirm('Are you sure you want to delete this draft release? This action cannot be undone.')) {
-      return;
-    }
+  // Handle deleting a release - open confirmation modal
+  const handleDeleteDraft = (releaseId, releaseTitle = 'this draft release') => {
+    const release = releases.find(r => r.id === releaseId);
+    setReleaseToDelete({ 
+      id: releaseId, 
+      title: release?.title || releaseTitle 
+    });
+    setIsDeleteModalOpen(true);
+  };
+
+  // Actually delete the release after confirmation
+  const confirmDeleteRelease = async () => {
+    if (!releaseToDelete) return;
 
     try {
-      console.log('🗑️ Deleting draft release:', releaseId);
+      console.log('🗑️ Deleting draft release:', releaseToDelete.id);
       
-      const response = await fetch(`/api/releases/delete?id=${releaseId}`, {
+      const response = await fetch(`/api/releases/delete?id=${releaseToDelete.id}`, {
         method: 'DELETE'
       });
 
@@ -162,7 +173,11 @@ export default function ArtistReleases() {
         setTimeout(() => document.body.removeChild(successDiv), 3000);
 
         // Remove the deleted release from local state (no refresh needed!)
-        setReleases(prev => prev.filter(release => release.id !== releaseId));
+        setReleases(prev => prev.filter(release => release.id !== releaseToDelete.id));
+        
+        // Close the modal and reset state
+        setIsDeleteModalOpen(false);
+        setReleaseToDelete(null);
       } else {
         console.error('❌ Failed to delete release:', response.status);
         alert('Failed to delete release. Please try again.');
@@ -769,6 +784,24 @@ export default function ArtistReleases() {
               setSelectedRelease(null);
               // No page refresh needed! ✨
             }}
+            onAutoSave={(newRelease) => {
+              console.log('💾 Auto-save completed - updating releases list:', newRelease);
+              
+              // Add new auto-saved release to the list (don't close modal)
+              setReleases(prev => {
+                // Check if release already exists (to avoid duplicates)
+                const exists = prev.some(release => release.id === newRelease.id);
+                if (exists) {
+                  // Update existing
+                  return prev.map(release => 
+                    release.id === newRelease.id ? { ...release, ...newRelease } : release
+                  );
+                } else {
+                  // Add new
+                  return [newRelease, ...prev];
+                }
+              });
+            }}
             editingRelease={selectedRelease}
           />
         )}
@@ -783,6 +816,46 @@ export default function ArtistReleases() {
             release={selectedRelease}
           />
         )}
+        {/* Branded Delete Confirmation Modal */}
+        {isDeleteModalOpen && releaseToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                  Delete Draft Release
+                </h3>
+                <p className="text-sm text-gray-600 text-center mb-6">
+                  Are you sure you want to delete <strong>"{releaseToDelete.title}"</strong>? This action cannot be undone.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDeleteModalOpen(false);
+                      setReleaseToDelete(null);
+                    }}
+                    className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteRelease}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </Layout>
     </SubscriptionGate>

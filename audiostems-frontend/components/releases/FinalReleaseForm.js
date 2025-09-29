@@ -195,7 +195,7 @@ const ALL_COUNTRIES = [
   { code: 'ZW', name: 'Zimbabwe' }
 ];
 
-export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRelease = null }) {
+export default function FinalReleaseForm({ isOpen, onClose, onSuccess, onAutoSave, editingRelease = null }) {
   const [formData, setFormData] = useState({
     // Basic Release Info
     releaseTitle: '',
@@ -481,8 +481,16 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       
       // Update editingRelease if this was a new release
       if (!editingRelease && result?.data?.id) {
-        // Note: We could update the parent component here if needed
         console.log('🆕 New release auto-saved with ID:', result.data.id);
+        
+        // Notify parent component about the new draft (for releases list update)
+        // Use onAutoSave callback to avoid closing the modal
+        if (onAutoSave) {
+          onAutoSave(result.data);
+        }
+        
+        // Update form to edit mode so future saves update this release
+        // Note: We don't set editingRelease directly here to avoid re-renders during typing
       }
     } catch (error) {
       console.error('❌ Auto-save failed:', error);
@@ -772,12 +780,13 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">
-            {editingRelease ? 'Edit Release' : 'Create New Release'}
-          </h2>
-          
-          {/* Top Action Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-bold text-gray-900">
+              {editingRelease ? 'Edit Release' : 'Create New Release'}
+            </h2>
+            
+            {/* Action Buttons moved to left */}
+            <div className="flex items-center space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -821,7 +830,20 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             >
               {loading ? (editingRelease ? 'Updating...' : 'Creating...') : (editingRelease ? 'Update' : 'Create')}
             </button>
+            </div>
           </div>
+          
+          {/* Close X button on the right */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close modal"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <form id="releaseForm" onSubmit={handleSubmit} className="p-6 space-y-8">
