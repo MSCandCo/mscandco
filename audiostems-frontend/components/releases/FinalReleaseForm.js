@@ -271,6 +271,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
 
   // Populate form when editing existing release
   useEffect(() => {
@@ -310,6 +312,17 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       detectLocation();
     }
   }, [isOpen, editingRelease]);
+
+  // Auto-save trigger when top section is complete
+  useEffect(() => {
+    if (canAutoSave() && isOpen) {
+      const autoSaveTimer = setTimeout(() => {
+        autoSave();
+      }, 2000); // Auto-save 2 seconds after completing required fields
+
+      return () => clearTimeout(autoSaveTimer);
+    }
+  }, [formData.releaseTitle, formData.primaryArtist, formData.genre, formData.releaseDate, formData.assets[0].songTitle, isOpen]);
 
   // Create country list with user's country at top
   const getCountryList = () => {
@@ -354,6 +367,106 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         } : asset
       )
     }));
+  };
+
+  // Auto-save functionality
+  const autoSave = async () => {
+    if (!canAutoSave()) return;
+    
+    setAutoSaving(true);
+    try {
+      await saveToDraft(true); // true indicates auto-save
+      setLastSaved(new Date());
+      console.log('💾 Auto-saved release');
+    } catch (error) {
+      console.error('❌ Auto-save failed:', error);
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  // Check if top section is complete enough for auto-save
+  const canAutoSave = () => {
+    return formData.releaseTitle && 
+           formData.primaryArtist && 
+           formData.genre && 
+           formData.releaseDate &&
+           formData.assets[0].songTitle;
+  };
+
+  // Save to draft function (reusable for auto-save and manual save)
+  const saveToDraft = async (isAutoSave = false) => {
+    try {
+      const transformedAssets = formData.assets.map(asset => ({
+        ...asset,
+        contributors: {
+          ...asset.contributors.reduce((acc, contributor) => {
+            const type = contributor.type;
+            if (!acc[type]) acc[type] = [];
+            acc[type].push({
+              name: contributor.name,
+              role: contributor.type,
+              isni: '',
+              pro: '',
+              caeIpi: ''
+            });
+            return acc;
+          }, {})
+        }
+      }));
+
+      const submitData = {
+        ...formData,
+        label: formData.label || 'MSC & Co',
+        distributionCompany: 'MSC & Co',
+        releaseLabel: 'MSC & Co',
+        status: 'draft',
+        assets: transformedAssets,
+        last_auto_save: new Date().toISOString()
+      };
+
+      const isEditing = editingRelease && editingRelease.id;
+      const apiUrl = isEditing ? `/api/releases/${editingRelease.id}` : '/api/releases/create';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(apiUrl, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submitData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (!isAutoSave) {
+          // Show save notification for manual saves
+          const saveDiv = document.createElement('div');
+          saveDiv.innerHTML = `
+            <div style="
+              position: fixed; 
+              top: 20px; 
+              right: 20px; 
+              background: #f0f9ff; 
+              border-left: 4px solid #0ea5e9; 
+              padding: 16px 24px; 
+              color: #0ea5e9; 
+              border-radius: 8px; 
+              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+              z-index: 1000;
+            ">
+              Release saved to draft!
+            </div>
+          `;
+          document.body.appendChild(saveDiv);
+          setTimeout(() => document.body.removeChild(saveDiv), 2000);
+        }
+        return result;
+      } else {
+        throw new Error(`Save failed: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Save to draft failed:', error);
+      throw error;
+    }
   };
 
   const calculateBusinessDays = (date) => {
@@ -1191,15 +1304,67 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             </div>
           </div>
 
+          {/* Auto-save Status */}
+          {canAutoSave() && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                {autoSaving ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-green-600 border-t-transparent rounded-full"></div>
+                    <span className="text-sm text-green-800">Auto-saving...</span>
+                  </>
+                ) : lastSaved ? (
+                  <>
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-green-800">
+                      Auto-saved at {lastSaved.toLocaleTimeString()}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-green-800">Ready for auto-save</span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              
+              {canAutoSave() && (
+                <button
+                  type="button"
+                  onClick={() => saveToDraft(false)}
+                  disabled={autoSaving}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {autoSaving ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6a1 1 0 10-2 0v5.586l-1.293-1.293z" />
+                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2.586l-.879-.879A3 3 0 0011.414 3H8.586a3 3 0 00-2.707 1.707L5 5.586V4z" />
+                      </svg>
+                      <span>Save to Draft</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            
             <button
               type="submit"
               disabled={loading}
