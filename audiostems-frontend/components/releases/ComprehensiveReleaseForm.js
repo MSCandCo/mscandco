@@ -44,6 +44,21 @@ export default function ComprehensiveReleaseForm({ isOpen, onClose, existingRele
     pLine: '',
     cLine: '',
     
+    // Form State Fields
+    hasPreOrder: false,
+    sellWorldwide: true,
+    territoryRestrictionType: 'exclude',
+    territoryRestrictions: [],
+    socialDetails: [],
+    releaseContributors: [],
+    digitalAssetsFolder: '',
+    metadataApproved: false,
+    initials: '',
+    submittedToStores: false,
+    luminate: '',
+    mediabase: '',
+    notes: '',
+    
     // Assets (individual tracks)
     assets: [{
       // Basic Asset Info
