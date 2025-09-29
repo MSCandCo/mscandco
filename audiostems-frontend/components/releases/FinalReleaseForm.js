@@ -490,6 +490,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
   // Simplified Save to draft function
   const saveToDraft = async (isAutoSave = false) => {
+    console.log('🔥 saveToDraft ENTRY - Component props:', {
+      hasEditingRelease: !!editingRelease,
+      editingReleaseId: editingRelease?.id,
+      isAutoSave,
+      currentFormTitle: formData.releaseTitle
+    });
     console.log('💾 Save to draft called:', { isAutoSave, releaseTitle: formData.releaseTitle });
     
     if (!formData.releaseTitle) {
@@ -548,6 +554,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         hasEditingRelease: !!editingRelease,
         editingReleaseKeys: editingRelease ? Object.keys(editingRelease) : 'none'
       });
+      console.log('🔍 FULL editingRelease object:', editingRelease);
       console.log(`${isEditing ? '✏️ Updating existing' : '🆕 Creating new'} release`, { isEditing, releaseId: editingRelease?.id });
 
       let response;
