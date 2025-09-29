@@ -457,10 +457,17 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
       console.log('📤 Saving draft data:', draftData);
 
-      const response = await fetch('/api/releases/create', {
+      const response = await fetch('/api/admin/releases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draftData)
+        body: JSON.stringify({
+          artistId: '0a060de5-1c94-4060-a1c2-860224fc348d', // Henry's ID
+          title: draftData.releaseTitle,
+          artist: draftData.primaryArtist,
+          releaseDate: draftData.releaseDate,
+          releaseType: draftData.releaseType,
+          isLive: false
+        })
       });
 
       console.log('📥 Save response:', response.status, response.statusText);
@@ -470,8 +477,14 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         console.log('✅ Draft saved successfully:', result);
         
         if (!isAutoSave) {
-          // Show save notification for manual saves
+          // Show save notification and close modal for manual saves
           alert('Release saved to draft!');
+          
+          // Notify parent component and close modal
+          if (onSuccess) {
+            onSuccess(result.data || result);
+          }
+          onClose();
         }
         
         setLastSaved(new Date());
