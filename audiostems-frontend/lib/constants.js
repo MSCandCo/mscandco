@@ -310,30 +310,31 @@ export const LANGUAGES = [
   'Other' // Special - triggers text input
 ];
 
-// Asset Contributor Types
+// Asset Contributor Types (alphabetical with Additional at bottom)
 export const ASSET_CONTRIBUTOR_TYPES = [
-  'Back Ground Vocalists',
-  'Executive Producer',
-  'Producer',
-  'Mixing Engineer',
-  'Mastering Engineer',
-  'Co-Producer',
   'Assistant Producer',
-  'Engineer',
-  'Editing',
-  'Mastering Studio',
-  'Recording Engineer',
-  'Additional Production',
-  'Recording Studio',
-  'Keyboards',
-  'Programming',
+  'Back Ground Vocalists',
   'Bass',
+  'Co-Producer',
   'Drums',
+  'Editing',
+  'Engineer',
+  'Executive Producer',
   'Guitars',
+  'Keyboards',
+  'Mastering Engineer',
+  'Mastering Studio',
+  'Mixing Engineer',
   'Organ',
   'Percussion',
+  'Producer',
+  'Programming',
+  'Recording Engineer',
+  'Recording Studio',
   'Strings',
-  'Additional Instrumentation'
+  // Keep these at the bottom as requested
+  'Additional Instrumentation',
+  'Additional Production'
 ];
 
 // Release Contributor Types
