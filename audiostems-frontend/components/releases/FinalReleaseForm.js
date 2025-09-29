@@ -212,6 +212,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
     // Other Release Details (optional)
     otherReleaseDetails: [],
     
+    // File uploads
+    coverArt: null,
+    
     // Advanced Details
     label: '',
     upc: '',
@@ -258,7 +261,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
       bowiPreviouslyReleased: false,
       previousReleaseDate: '',
       recordingCountry: '',
-      contributors: []
+      contributors: [],
+      audioFile: null
     }]
   });
 
@@ -604,6 +608,36 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
+          {/* Artwork Upload */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Artwork</h3>
+            <div className="border border-gray-200 rounded-lg p-6 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Cover Art *</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setFormData(prev => ({ ...prev, coverArt: file }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Best Practice:</strong> Upload high-resolution artwork (minimum 3000x3000 pixels, square format)
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Accepted formats: JPG, PNG, TIFF. File size should be under 10MB for optimal processing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Complete Asset Section */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Assets (1)</h3>
@@ -765,6 +799,35 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter ISRC code"
                   />
+                  <p className="text-xs text-gray-500 mt-1">If you have one, please enter it above. Otherwise, we will generate one for you.</p>
+                </div>
+              </div>
+
+              {/* Audio File Upload */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Audio File *</label>
+                <input
+                  type="file"
+                  accept=".wav,.flac,.aiff,.mp3"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setFormData(prev => ({
+                        ...prev,
+                        assets: [{ ...prev.assets[0], audioFile: file }]
+                      }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-sm text-purple-800">
+                    <strong>Tip:</strong> Upload high-quality WAV files for best distribution results
+                  </p>
+                  <p className="text-xs text-purple-600 mt-1">
+                    Acceptable formats: WAV (preferred), FLAC, AIFF, MP3. Minimum 16-bit/44.1kHz quality required.
+                  </p>
                 </div>
               </div>
 
