@@ -532,20 +532,41 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         isLive: false
       };
 
-      console.log('📤 Sending to admin API:', apiData);
+      // Determine if we're editing an existing release or creating new one
+      const isEditing = editingRelease && editingRelease.id;
+      console.log(`${isEditing ? '✏️ Updating existing' : '🆕 Creating new'} release`, { isEditing, releaseId: editingRelease?.id });
 
-      const response = await fetch('/api/releases/simple-save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          releaseTitle: draftData.releaseTitle,
-          primaryArtist: draftData.primaryArtist,
-          releaseType: draftData.releaseType,
-          genre: draftData.genre,
-          releaseDate: draftData.releaseDate,
-          songTitle: draftData.assets[0].songTitle
-        })
-      });
+      let response;
+      if (isEditing) {
+        // Update existing release
+        response = await fetch('/api/releases/simple-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingRelease.id,
+            releaseTitle: draftData.releaseTitle,
+            primaryArtist: draftData.primaryArtist,
+            releaseType: draftData.releaseType,
+            genre: draftData.genre,
+            releaseDate: draftData.releaseDate,
+            songTitle: draftData.assets[0].songTitle
+          })
+        });
+      } else {
+        // Create new release
+        response = await fetch('/api/releases/simple-save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            releaseTitle: draftData.releaseTitle,
+            primaryArtist: draftData.primaryArtist,
+            releaseType: draftData.releaseType,
+            genre: draftData.genre,
+            releaseDate: draftData.releaseDate,
+            songTitle: draftData.assets[0].songTitle
+          })
+        });
+      }
 
       console.log('📥 Save response:', response.status, response.statusText);
 
