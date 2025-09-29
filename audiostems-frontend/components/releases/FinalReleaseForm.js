@@ -472,10 +472,17 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
       console.log('📤 Sending to admin API:', apiData);
 
-      const response = await fetch('/api/admin/releases', {
+      const response = await fetch('/api/releases/simple-save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiData)
+        body: JSON.stringify({
+          releaseTitle: draftData.releaseTitle,
+          primaryArtist: draftData.primaryArtist,
+          releaseType: draftData.releaseType,
+          genre: draftData.genre,
+          releaseDate: draftData.releaseDate,
+          songTitle: draftData.assets[0].songTitle
+        })
       });
 
       console.log('📥 Save response:', response.status, response.statusText);
