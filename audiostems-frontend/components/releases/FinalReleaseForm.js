@@ -273,6 +273,34 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
 
+  // Branded success notification function
+  const showSuccessNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #f0fdf4;
+      border-left: 4px solid #065f46;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: #065f46;">
+        <svg style="width: 20px; height: 20px; margin-right: 12px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 3000);
+  };
+
   // Populate form when editing existing release
   useEffect(() => {
     if (editingRelease && isOpen) {
@@ -580,8 +608,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         const result = await response.json();
         console.log('✅ Draft saved successfully:', result);
         
-        // Show save notification and close modal
-        alert('Release saved to draft!');
+        // Show branded success notification instead of browser alert
+        showSuccessNotification('Release saved to draft!');
         
         // Notify parent component and close modal
         console.log('📞 Calling onSuccess with result:', result.data || result);
@@ -706,58 +734,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-bold text-gray-900">
-              {editingRelease ? 'Edit Release' : 'Create New Release'}
-            </h2>
-            
-            {/* Action Buttons moved to left */}
-            <div className="flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            
-            <button
-              type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (saving) {
-                  console.log('⏸️ Save button clicked but save already in progress');
-                  return;
-                }
-                
-                console.log('💾 Save Draft button clicked');
-                try {
-                  await saveToDraft();
-                } catch (error) {
-                  console.error('Manual save failed:', error);
-                }
-              }}
-              disabled={!formData.releaseTitle || loading || saving}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6a1 1 0 10-2 0v5.586l-1.293-1.293z" />
-              </svg>
-              <span>Save Draft</span>
-            </button>
-            
-            <button
-              type="submit"
-              form="releaseForm"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? (editingRelease ? 'Updating...' : 'Creating...') : (editingRelease ? 'Update' : 'Create')}
-            </button>
-            </div>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900">
+            {editingRelease ? 'Edit Release' : 'Create New Release'}
+          </h2>
           
           {/* Close X button on the right */}
           <button
