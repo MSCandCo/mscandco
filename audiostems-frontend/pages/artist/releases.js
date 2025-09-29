@@ -108,8 +108,12 @@ export default function ArtistReleases() {
         document.body.appendChild(successDiv);
         setTimeout(() => document.body.removeChild(successDiv), 3000);
 
-        // Refresh releases to show updated status
-        window.location.reload();
+        // Update the release status in local state (no refresh needed!)
+        setReleases(prev => prev.map(release => 
+          release.id === releaseId 
+            ? { ...release, status: 'submitted', submissionDate: new Date().toISOString() }
+            : release
+        ));
       } else {
         console.error('❌ Failed to submit release:', response.status);
         alert('Failed to submit release. Please try again.');
@@ -157,8 +161,8 @@ export default function ArtistReleases() {
         document.body.appendChild(successDiv);
         setTimeout(() => document.body.removeChild(successDiv), 3000);
 
-        // Refresh releases to remove deleted release
-        window.location.reload();
+        // Remove the deleted release from local state (no refresh needed!)
+        setReleases(prev => prev.filter(release => release.id !== releaseId));
       } else {
         console.error('❌ Failed to delete release:', response.status);
         alert('Failed to delete release. Please try again.');
@@ -749,11 +753,21 @@ export default function ArtistReleases() {
             }}
             onSuccess={(newRelease) => {
               console.log('🎉 Release operation completed:', newRelease);
-              setReleases(prev => [...prev, newRelease]);
+              
+              // Check if we're editing or creating
+              if (selectedRelease) {
+                // Editing: Update existing release in the list
+                setReleases(prev => prev.map(release => 
+                  release.id === selectedRelease.id ? { ...release, ...newRelease } : release
+                ));
+              } else {
+                // Creating: Add new release to the list
+                setReleases(prev => [newRelease, ...prev]);
+              }
+              
               setIsCreateModalOpen(false);
               setSelectedRelease(null);
-              // Refresh the page to show updated releases
-              window.location.reload();
+              // No page refresh needed! ✨
             }}
             editingRelease={selectedRelease}
           />
