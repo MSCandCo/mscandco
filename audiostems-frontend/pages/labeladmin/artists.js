@@ -31,6 +31,8 @@ export default function LabelAdminArtistsRebuilt() {
     message: ''
   });
   const [inviting, setInviting] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   
   // Notification state
   const [notification, setNotification] = useState({ 
@@ -162,6 +164,42 @@ export default function LabelAdminArtistsRebuilt() {
       showNotification('error', 'Connection Error', 'Failed to send invitation');
     } finally {
       setInviting(false);
+    }
+  };
+
+  // Search for existing artists
+  const searchForArtists = async (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearching(true);
+      console.log('🔍 Searching for artists:', searchTerm);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`/api/artists/list?search=${encodeURIComponent(searchTerm)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Search results:', result.users?.length || 0);
+        setSearchResults(result.users || []);
+      } else {
+        console.error('❌ Search failed:', response.status);
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('❌ Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -432,15 +470,55 @@ export default function LabelAdminArtistsRebuilt() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Artist Name *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Artist Name * (Search)</label>
                   <input
                     type="text"
                     value={inviteForm.artistName}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, artistName: e.target.value }))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setInviteForm(prev => ({ ...prev, artistName: value }));
+                      // Trigger search as user types
+                      searchForArtists(value);
+                    }}
                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Artist's stage name or professional name"
+                    placeholder="Type to search for existing artists..."
                   />
+                  {searching && (
+                    <p className="text-sm text-blue-600 mt-1">Searching...</p>
+                  )}
                 </div>
+
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className="border border-slate-200 rounded-lg max-h-48 overflow-y-auto">
+                    <p className="text-sm font-medium text-slate-700 p-3 border-b">Found Artists:</p>
+                    {searchResults.map(artist => (
+                      <div
+                        key={artist.id}
+                        className="p-3 hover:bg-slate-50 border-b last:border-b-0 cursor-pointer"
+                        onClick={() => {
+                          setInviteForm(prev => ({
+                            ...prev,
+                            firstName: artist.name.split(' ')[0] || '',
+                            lastName: artist.name.split(' ').slice(1).join(' ') || '',
+                            artistName: artist.stageName
+                          }));
+                          setSearchResults([]);
+                        }}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-slate-900">{artist.displayName}</p>
+                            <p className="text-sm text-slate-600">{artist.email}</p>
+                          </div>
+                          <button className="text-blue-600 text-sm hover:text-blue-700">
+                            Select
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Personal Message (Optional)</label>
                   <textarea
