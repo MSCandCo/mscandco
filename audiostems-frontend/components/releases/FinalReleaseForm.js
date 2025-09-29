@@ -734,9 +734,39 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">
-            {editingRelease ? 'Edit Release' : 'Create New Release'}
-          </h2>
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-bold text-gray-900">
+              {editingRelease ? 'Edit Release' : 'Create New Release'}
+            </h2>
+            
+            {/* Save Draft button at the top */}
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (saving) {
+                  console.log('⏸️ Save button clicked but save already in progress');
+                  return;
+                }
+                
+                console.log('💾 Save Draft button clicked');
+                try {
+                  await saveToDraft();
+                } catch (error) {
+                  console.error('Save failed:', error);
+                }
+              }}
+              disabled={!formData.releaseTitle || loading || saving}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6a1 1 0 10-2 0v5.586l-1.293-1.293z" />
+              </svg>
+              <span>Save Draft</span>
+            </button>
+          </div>
           
           {/* Close X button on the right */}
           <button
