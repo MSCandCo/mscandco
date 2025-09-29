@@ -88,39 +88,38 @@ export default function LabelAdminArtistsRebuilt() {
         setMyArtists([]);
       }
 
-      // Load affiliation requests sent by this label admin
+      // Load artist invitations sent by this label admin
       try {
+        console.log('🔍 Looking for invitations with label_admin_id:', user.id);
+        
         const { data: requests, error: requestsError } = await supabase
-          .from('affiliation_requests')
+          .from('artist_invitations')
           .select(`
             id,
             artist_id,
-            message,
-            label_percentage,
+            artist_first_name,
+            artist_last_name,
+            artist_search_name,
+            personal_message,
+            label_split_percentage,
+            artist_split_percentage,
             status,
             created_at,
-            artist:user_profiles!affiliation_requests_artist_id_fkey (
-              id,
-              first_name,
-              last_name,
-              artist_name,
-              email
-            )
+            responded_at,
+            response_note
           `)
           .eq('label_admin_id', user.id)
           .order('created_at', { ascending: false });
 
-        console.log('🔍 Looking for requests with label_admin_id:', user.id);
-
         if (requestsError) {
-          console.warn('⚠️ Affiliation requests error:', requestsError.message);
+          console.warn('⚠️ Artist invitations error:', requestsError.message);
           setArtistRequests([]);
         } else {
-          console.log('✅ Affiliation requests loaded:', requests?.length || 0);
+          console.log('✅ Artist invitations loaded:', requests?.length || 0);
           setArtistRequests(requests || []);
         }
       } catch (error) {
-        console.warn('⚠️ Affiliation requests error:', error);
+        console.warn('⚠️ Artist invitations error:', error);
         setArtistRequests([]);
       }
 

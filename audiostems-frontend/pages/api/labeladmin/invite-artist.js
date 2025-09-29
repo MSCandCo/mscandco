@@ -61,12 +61,16 @@ export default async function handler(req, res) {
     console.log('✅ Found label admin:', labelAdmin.id);
 
     const { data: newRequest, error: insertError } = await supabase
-      .from('affiliation_requests')
+      .from('artist_invitations')
       .insert({
         label_admin_id: labelAdmin.id,
         artist_id: targetArtist.id,
-        message: message || `MSC & Co would like to partner with you as your label. We offer ${labelPercentage}% partnership on earnings.`,
-        label_percentage: labelPercentage,
+        artist_first_name: firstName,
+        artist_last_name: lastName,
+        artist_search_name: artistName,
+        personal_message: message || `MSC & Co would like to partner with you as our label with ${labelPercentage}% revenue sharing.`,
+        label_split_percentage: labelPercentage,
+        artist_split_percentage: 100 - labelPercentage,
         status: 'pending'
       })
       .select()
