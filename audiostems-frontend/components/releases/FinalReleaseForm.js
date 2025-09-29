@@ -419,77 +419,71 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
            formData.assets[0].songTitle;
   };
 
-  // Save to draft function (reusable for auto-save and manual save)
+  // Simplified Save to draft function
   const saveToDraft = async (isAutoSave = false) => {
+    console.log('💾 Save to draft called:', { isAutoSave, releaseTitle: formData.releaseTitle });
+    
+    if (!formData.releaseTitle) {
+      console.error('❌ Cannot save - Release Title required');
+      setErrors({ submit: 'Release Title is required to save' });
+      return;
+    }
+    
     try {
-      const transformedAssets = formData.assets.map(asset => ({
-        ...asset,
-        contributors: {
-          ...asset.contributors.reduce((acc, contributor) => {
-            const type = contributor.type;
-            if (!acc[type]) acc[type] = [];
-            acc[type].push({
-              name: contributor.name,
-              role: contributor.type,
-              isni: '',
-              pro: '',
-              caeIpi: ''
-            });
-            return acc;
-          }, {})
-        }
-      }));
-
-      const submitData = {
-        ...formData,
+      // Simplified data structure for draft save
+      const draftData = {
+        releaseTitle: formData.releaseTitle,
+        releaseType: formData.releaseType,
+        primaryArtist: formData.primaryArtist,
+        genre: formData.genre,
+        secondaryGenre: formData.secondaryGenre,
+        releaseDate: formData.releaseDate,
+        hasPreOrder: formData.hasPreOrder,
+        preOrderDate: formData.preOrderDate,
         label: formData.label || 'MSC & Co',
-        distributionCompany: 'MSC & Co',
-        releaseLabel: 'MSC & Co',
         status: 'draft',
-        assets: transformedAssets,
-        last_auto_save: new Date().toISOString()
+        assets: [{
+          songTitle: formData.assets[0].songTitle,
+          anyOtherFeaturingArtists: formData.assets[0].anyOtherFeaturingArtists,
+          duration: formData.assets[0].duration,
+          explicit: formData.assets[0].explicit,
+          version: formData.assets[0].version,
+          bpm: formData.assets[0].bpm,
+          language: formData.assets[0].language,
+          isrc: formData.assets[0].isrc,
+          contributors: formData.assets[0].contributors || []
+        }]
       };
 
-      const isEditing = editingRelease && editingRelease.id;
-      const apiUrl = isEditing ? `/api/releases/${editingRelease.id}` : '/api/releases/create';
-      const method = isEditing ? 'PUT' : 'POST';
+      console.log('📤 Saving draft data:', draftData);
 
-      const response = await fetch(apiUrl, {
-        method: method,
+      const response = await fetch('/api/releases/create', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submitData)
+        body: JSON.stringify(draftData)
       });
+
+      console.log('📥 Save response:', response.status, response.statusText);
 
       if (response.ok) {
         const result = await response.json();
+        console.log('✅ Draft saved successfully:', result);
+        
         if (!isAutoSave) {
           // Show save notification for manual saves
-          const saveDiv = document.createElement('div');
-          saveDiv.innerHTML = `
-            <div style="
-              position: fixed; 
-              top: 20px; 
-              right: 20px; 
-              background: #f0f9ff; 
-              border-left: 4px solid #0ea5e9; 
-              padding: 16px 24px; 
-              color: #0ea5e9; 
-              border-radius: 8px; 
-              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-              z-index: 1000;
-            ">
-              Release saved to draft!
-            </div>
-          `;
-          document.body.appendChild(saveDiv);
-          setTimeout(() => document.body.removeChild(saveDiv), 2000);
+          alert('Release saved to draft!');
         }
+        
+        setLastSaved(new Date());
         return result;
       } else {
-        throw new Error(`Save failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Save failed:', response.status, errorText);
+        throw new Error(`Save failed: ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.error('❌ Save to draft failed:', error);
+      console.error('❌ Save to draft error:', error);
+      setErrors({ submit: `Save failed: ${error.message}` });
       throw error;
     }
   };
