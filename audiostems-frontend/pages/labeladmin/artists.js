@@ -25,8 +25,7 @@ export default function LabelAdminArtistsRebuilt() {
   // Invitation form state
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteForm, setInviteForm] = useState({
-    firstName: '',
-    lastName: '',
+    artistName: '',
     message: ''
   });
   const [inviting, setInviting] = useState(false);
@@ -64,8 +63,6 @@ export default function LabelAdminArtistsRebuilt() {
           .from('user_profiles')
           .select(`
             id,
-            first_name,
-            last_name,
             artist_name,
             email,
             role,
@@ -119,8 +116,8 @@ export default function LabelAdminArtistsRebuilt() {
 
   // Send artist invitation - NEW WORKFLOW
   const sendArtistInvitation = async () => {
-    if (!inviteForm.firstName.trim() || !inviteForm.lastName.trim()) {
-      showNotification('error', 'Validation Error', 'First name and last name are required');
+    if (!inviteForm.artistName.trim()) {
+      showNotification('error', 'Validation Error', 'Artist name is required');
       return;
     }
 
@@ -145,7 +142,7 @@ export default function LabelAdminArtistsRebuilt() {
       if (response.ok && result.success) {
         showNotification('success', 'Invitation Sent!', result.message);
         setShowInviteModal(false);
-        setInviteForm({ firstName: '', lastName: '', message: '' });
+        setInviteForm({ artistName: '', message: '' });
         loadLabelAdminData(); // Refresh data
       } else {
         // Handle specific error types with branded messages
@@ -302,7 +299,7 @@ export default function LabelAdminArtistsRebuilt() {
                         </div>
                         <div>
                           <h4 className="text-lg font-semibold text-slate-900">
-                            {artist.artist_name || `${artist.first_name} ${artist.last_name}`}
+                            {artist.artist_name || 'Unknown Artist'}
                           </h4>
                           <p className="text-slate-600">{artist.email}</p>
                           <div className="flex items-center space-x-4 mt-1">
@@ -370,7 +367,7 @@ export default function LabelAdminArtistsRebuilt() {
                       </div>
                       <div>
                         <h4 className="text-lg font-semibold text-slate-900">
-                          {request.artist_first_name} {request.artist_last_name}
+                          {request.artist_name || request.artist_first_name + ' ' + request.artist_last_name || 'Unknown Artist'}
                         </h4>
                         <p className="text-slate-600">{request.artist_email}</p>
                         <div className="flex items-center space-x-2 mt-1">
@@ -413,23 +410,13 @@ export default function LabelAdminArtistsRebuilt() {
               
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">First Name *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Artist Name *</label>
                   <input
                     type="text"
-                    value={inviteForm.firstName}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    value={inviteForm.artistName}
+                    onChange={(e) => setInviteForm(prev => ({ ...prev, artistName: e.target.value }))}
                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Artist's first name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Last Name *</label>
-                  <input
-                    type="text"
-                    value={inviteForm.lastName}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Artist's last name"
+                    placeholder="Artist's stage name or full name"
                   />
                 </div>
                 <div>
@@ -463,7 +450,7 @@ export default function LabelAdminArtistsRebuilt() {
                   </button>
                   <button
                     onClick={sendArtistInvitation}
-                    disabled={inviting || !inviteForm.firstName.trim() || !inviteForm.lastName.trim()}
+                    disabled={inviting || !inviteForm.artistName.trim()}
                     className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {inviting ? (
