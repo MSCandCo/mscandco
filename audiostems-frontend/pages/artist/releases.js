@@ -180,8 +180,19 @@ export default function ArtistReleases() {
           setProfileData(profile);
         }
         
-        // 🔥 Load releases from centralized database (NO MORE DUPLICATES!)
-        const artistReleases = getReleasesByArtist('msc_co');
+        // 🔥 Load releases from database API
+        console.log('📋 Fetching releases from database...');
+        const releasesResponse = await fetch('/api/artist/releases');
+        if (releasesResponse.ok) {
+          const artistReleases = await releasesResponse.json();
+          console.log(`✅ Loaded ${artistReleases.length} releases from database`);
+          setReleases(artistReleases);
+        } else {
+          console.error('❌ Failed to load releases from database, using fallback');
+          // Fallback to mock data if API fails
+          const artistReleases = getReleasesByArtist('msc_co');
+          setReleases(artistReleases);
+        }
 
         // Simple plan check - One source of truth
         if (user?.sub) {
@@ -189,14 +200,11 @@ export default function ArtistReleases() {
           setUserPlan(hasUpgraded ? 'pro' : 'starter');
           console.log('Simple Plan Check:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
         }
-
-        setReleases(artistReleases);
         setIsLoadingData(false);
       } catch (error) {
         console.error('Error loading data:', error);
-        // Fallback to centralized data
+        // Fallback to mock data on any error
         const artistReleases = getReleasesByArtist('msc_co');
-
         setReleases(artistReleases);
         setIsLoadingData(false);
       }
