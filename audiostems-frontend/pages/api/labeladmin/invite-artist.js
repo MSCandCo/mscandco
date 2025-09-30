@@ -1,5 +1,6 @@
-// SIMPLE Label Admin Artist Search & Request API
+// Label Admin Artist Invitation API - PROPER AUTHENTICATION
 import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -12,9 +13,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { firstName, lastName, artistName } = req.body;
+    // PROPER AUTHENTICATION - Same pattern as working APIs
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ error: 'No authentication token' });
+    }
 
-    console.log('🔍 Label admin searching for artist:', { firstName, lastName, artistName });
+    let userInfo;
+    try {
+      userInfo = jwt.decode(token);
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const currentUserId = userInfo?.sub;
+    const userEmail = userInfo?.email?.toLowerCase() || '';
+
+    if (!currentUserId) {
+      return res.status(401).json({ error: 'Invalid user token' });
+    }
+
+    console.log('🔍 Authenticated label admin:', { currentUserId, userEmail });
+
+    const { firstName, lastName, artistName } = req.body;
+    console.log('🔍 Searching for artist:', { firstName, lastName, artistName });
 
     // 1. SEARCH FOR ARTIST in database
     const { data: artists, error: searchError } = await supabase
@@ -43,27 +65,10 @@ export default async function handler(req, res) {
     // 3. CREATE AFFILIATION REQUEST in database
     const { message, labelPercentage = 15.0 } = req.body; // Default 15% for label
     
-    // Get the actual label admin ID from the database
-    const { data: labelAdmin, error: labelError } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('email', 'labeladmin@mscandco.com')
-      .single();
-
-    if (labelError || !labelAdmin) {
-      console.error('❌ Label admin not found in database:', labelError);
-      return res.status(500).json({ 
-        error: 'Label admin profile not found',
-        details: labelError?.message
-      });
-    }
-
-    console.log('✅ Found label admin:', labelAdmin.id);
-
     const { data: newRequest, error: insertError } = await supabase
       .from('artist_invitations')
       .insert({
-        label_admin_id: labelAdmin.id,
+        label_admin_id: currentUserId,
         artist_id: targetArtist.id,
         artist_first_name: firstName,
         artist_last_name: lastName,
