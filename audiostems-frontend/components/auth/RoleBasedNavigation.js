@@ -59,7 +59,15 @@ export default function RoleBasedNavigation() {
 
   const loadUnreadCount = async () => {
     try {
-      const response = await fetch('/api/notifications/unread-count');
+      // Get session for auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/notifications/unread-count', {
+        headers: session ? {
+          'Authorization': `Bearer ${session.access_token}`
+        } : {}
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setUnreadCount(data.count || 0);
