@@ -10,9 +10,9 @@ export default async function handler(req, res) {
   try {
     console.log('🔍 Debug: Checking affiliation_requests table...');
 
-    // Check what's in the table
+    // Check what's in the new artist_invitations table
     const { data: requests, error } = await supabase
-      .from('affiliation_requests')
+      .from('artist_invitations')
       .select('*');
 
     if (error) {
@@ -42,13 +42,13 @@ export default async function handler(req, res) {
 
     return res.json({
       success: true,
-      affiliation_requests: requests || [],
+      artist_invitations: requests || [],
       label_admins: labelAdmins || [],
       artists: artists || [],
       summary: {
-        total_requests: requests?.length || 0,
-        pending_requests: requests?.filter(r => r.status === 'pending').length || 0,
-        approved_requests: requests?.filter(r => r.status === 'approved').length || 0
+        total_invitations: requests?.length || 0,
+        pending_invitations: requests?.filter(r => r.status === 'pending').length || 0,
+        accepted_invitations: requests?.filter(r => r.status === 'accepted').length || 0
       }
     });
 

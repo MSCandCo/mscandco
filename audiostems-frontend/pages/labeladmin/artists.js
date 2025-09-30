@@ -59,6 +59,9 @@ export default function LabelAdminArtistsRebuilt() {
     try {
       setDataLoading(true);
       console.log('🎵 Loading real label admin data...');
+      console.log('🔍 Current user object:', user);
+      console.log('🔍 Current user.id:', user?.id);
+      console.log('🔍 Expected label_admin_id from database: 12345678-1234-5678-9012-123456789012');
 
       // Load artists under this label admin
       // Simplified query that works with current database structure
