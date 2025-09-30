@@ -91,38 +91,21 @@ export default function LabelAdminArtistsRebuilt() {
         setMyArtists([]);
       }
 
-      // Load artist invitations sent by this label admin
+      // Load artist invitations via API (bypasses RLS issues)
       try {
-        console.log('🔍 Looking for invitations with label_admin_id:', user.id);
+        console.log('🔍 Loading invitations via API...');
         
-        const { data: requests, error: requestsError } = await supabase
-          .from('artist_invitations')
-          .select(`
-            id,
-            artist_id,
-            artist_first_name,
-            artist_last_name,
-            artist_search_name,
-            personal_message,
-            label_split_percentage,
-            artist_split_percentage,
-            status,
-            created_at,
-            responded_at,
-            response_note
-          `)
-          .eq('label_admin_id', '12345678-1234-5678-9012-123456789012')
-          .order('created_at', { ascending: false });
-
-        if (requestsError) {
-          console.warn('⚠️ Artist invitations error:', requestsError.message);
-          setArtistRequests([]);
+        const response = await fetch('/api/labeladmin/invitations');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Artist invitations loaded via API:', data.invitations?.length || 0);
+          setArtistRequests(data.invitations || []);
         } else {
-          console.log('✅ Artist invitations loaded:', requests?.length || 0);
-          setArtistRequests(requests || []);
+          console.warn('⚠️ API request failed:', response.status);
+          setArtistRequests([]);
         }
       } catch (error) {
-        console.warn('⚠️ Artist invitations error:', error);
+        console.warn('⚠️ API error:', error);
         setArtistRequests([]);
       }
 
