@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Splits must equal 100%' });
     }
 
-    const label_admin_id = 'c47cc6e8-8e4a-4b8a-9f1e-2c7d8b9e0f3a'; // Use actual frontend user ID
+    const label_admin_id = '12345678-1234-5678-9012-123456789012';
 
     const { data, error } = await supabase
       .from('artist_invitations')
