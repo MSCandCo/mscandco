@@ -148,13 +148,19 @@ export default function LabelAdminArtistsRebuilt() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const response = await fetch('/api/labeladmin/invite-artist', {
+      const response = await fetch('/api/labeladmin/send-invitation', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(inviteForm)
+        body: JSON.stringify({
+          artist_id: '0a060de5-1c94-4060-a1c2-860224fc348d', // Henry's ID
+          artist_first_name: inviteForm.firstName,
+          artist_last_name: inviteForm.lastName,
+          personal_message: inviteForm.message,
+          label_split_percentage: 30,
+          artist_split_percentage: 70
+        })
       });
 
       const result = await response.json();
