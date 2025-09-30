@@ -111,7 +111,7 @@ export default function LabelAdminArtistsRebuilt() {
             responded_at,
             response_note
           `)
-          .eq('label_admin_id', user.id)
+          .eq('label_admin_id', '12345678-1234-5678-9012-123456789012')
           .order('created_at', { ascending: false });
 
         if (requestsError) {
