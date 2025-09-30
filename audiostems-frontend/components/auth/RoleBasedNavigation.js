@@ -50,9 +50,9 @@ export default function RoleBasedNavigation() {
     }
   }, [user]);
 
-  // Load unread notification count for artists
+  // Load unread notification count for artists and label admins
   useEffect(() => {
-    if (user && getUserRoleSync(user) === 'artist') {
+    if (user && ['artist', 'label_admin'].includes(getUserRoleSync(user))) {
       loadUnreadCount();
     }
   }, [user]);
@@ -870,8 +870,21 @@ export default function RoleBasedNavigation() {
               </div>
             </div>
 
-            {/* Right side - Balance, User menu and Mobile menu button */}
+            {/* Right side - Notifications, Balance, User menu and Mobile menu button */}
             <div className="flex items-center space-x-3">
+              {/* Notification Bell - For label admins */}
+              <Link
+                href="/labeladmin/messages"
+                className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
               {/* Label Admin Balance Display */}
               <div className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
                 <Wallet className="w-4 h-4 text-gray-600" />

@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { invitation_id, action } = req.body; // action: 'accept' or 'decline'
+    const { invitation_id, action, decline_reason } = req.body; // action: 'accept' or 'decline'
     const artist_id = user.id;
 
     if (!invitation_id || !['accept', 'decline'].includes(action)) {
@@ -33,7 +33,8 @@ export default async function handler(req, res) {
       .from('artist_invitations')
       .update({
         status: action === 'accept' ? 'accepted' : 'declined',
-        responded_at: new Date().toISOString()
+        responded_at: new Date().toISOString(),
+        response_note: decline_reason || null
       })
       .eq('id', invitation_id)
       .eq('artist_id', artist_id) // Security: only respond to own invitations
@@ -66,6 +67,26 @@ export default async function handler(req, res) {
 
       console.log('✅ Partnership relationship created:', relationship.id);
     }
+
+    // CREATE NOTIFICATION for label admin
+    await supabase.from('notifications').insert({
+      user_id: invitation.label_admin_id,
+      type: 'invitation_response',
+      title: action === 'accept' ? 'Invitation Accepted' : 'Invitation Declined',
+      message: action === 'accept' 
+        ? `${invitation.artist_first_name} ${invitation.artist_last_name} accepted your partnership invitation`
+        : `${invitation.artist_first_name} ${invitation.artist_last_name} declined your partnership invitation${decline_reason ? ': ' + decline_reason : ''}`,
+      data: {
+        invitation_id: invitation.id,
+        artist_id: invitation.artist_id,
+        action: action,
+        decline_reason: decline_reason
+      },
+      action_required: false,
+      read: false
+    });
+
+    console.log('✅ Notification created for label admin');
 
     return res.json({
       success: true,

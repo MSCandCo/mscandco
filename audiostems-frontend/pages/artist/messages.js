@@ -86,6 +86,39 @@ export default function Messages() {
     }
   };
 
+  const handleDecline = async (notificationId, invitationId) => {
+    const reason = prompt('Optional: Why are you declining this invitation?');
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/artist/respond-invitation', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          invitation_id: invitationId, 
+          action: 'decline',
+          decline_reason: reason 
+        })
+      });
+
+      if (response.ok) {
+        markAsRead(notificationId);
+        alert('Invitation declined');
+        fetchNotifications(); // Refresh to show updated status
+      } else {
+        const error = await response.json();
+        alert('Error: ' + error.error);
+      }
+    } catch (error) {
+      console.error('Error declining invitation:', error);
+      alert('Failed to decline invitation');
+    }
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'invitation': return <Mail className="w-6 h-6 text-blue-600" />;
@@ -198,7 +231,7 @@ export default function Messages() {
                           <span>Accept Partnership</span>
                         </button>
                         <button
-                          onClick={() => handleInvitationResponse(notif.id, notif.data.invitation_id, 'decline')}
+                          onClick={() => handleDecline(notif.id, notif.data.invitation_id)}
                           className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
                         >
                           <XCircle className="w-4 h-4" />

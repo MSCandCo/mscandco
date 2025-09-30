@@ -35,6 +35,7 @@ export default function LabelAdminArtistsRebuilt() {
   const [inviting, setInviting] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [acceptedArtists, setAcceptedArtists] = useState([]);
   
   // Notification state
   const [notification, setNotification] = useState({ 
