@@ -63,6 +63,27 @@ export default async function handler(req, res) {
     }
 
     console.log('Invitation created:', data);
+
+    // CREATE NOTIFICATION for the artist
+    await supabase.from('notifications').insert({
+      user_id: data.artist_id,
+      type: 'invitation',
+      title: 'New Label Invitation',
+      message: `${artist_first_name} ${artist_last_name}, you have a new label partnership invitation`,
+      data: {
+        invitation_id: data.id,
+        label_admin_id: data.label_admin_id,
+        label_split_percentage: data.label_split_percentage,
+        artist_split_percentage: data.artist_split_percentage,
+        personal_message: data.personal_message
+      },
+      action_required: true,
+      action_type: 'accept_decline',
+      action_url: '/artist/messages'
+    });
+
+    console.log('✅ Notification created for artist');
+    
     return res.status(200).json({ success: true, data });
 
   } catch (error) {
