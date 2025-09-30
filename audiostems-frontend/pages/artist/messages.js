@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import { Mail, Bell, CheckCircle, XCircle, Clock, TrendingUp, DollarSign } from 'lucide-react';
 
-const supabase = createClientComponentClient();
-
 export default function Messages() {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // all, invitation, earning, payout
   const [loading, setLoading] = useState(true);
