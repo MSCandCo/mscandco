@@ -28,7 +28,9 @@ export default function LabelAdminArtistsRebuilt() {
     firstName: '',
     lastName: '',
     artistName: '',
-    message: ''
+    message: '',
+    labelSplit: 30,
+    artistSplit: 70
   });
   const [inviting, setInviting] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -150,8 +152,8 @@ export default function LabelAdminArtistsRebuilt() {
           artist_first_name: inviteForm.firstName,
           artist_last_name: inviteForm.lastName,
           personal_message: inviteForm.message,
-          label_split_percentage: 30,
-          artist_split_percentage: 70
+          label_split_percentage: inviteForm.labelSplit,
+          artist_split_percentage: inviteForm.artistSplit
         })
       });
 
@@ -160,7 +162,7 @@ export default function LabelAdminArtistsRebuilt() {
       if (response.ok && result.success) {
         showNotification('success', 'Invitation Sent!', result.message);
         setShowInviteModal(false);
-        setInviteForm({ firstName: '', lastName: '', artistName: '', message: '' });
+        setInviteForm({ firstName: '', lastName: '', artistName: '', message: '', labelSplit: 30, artistSplit: 70 });
         loadLabelAdminData(); // Refresh data
       } else {
         // Handle specific error types with branded messages
@@ -544,6 +546,57 @@ export default function LabelAdminArtistsRebuilt() {
                   />
                 </div>
 
+                {/* Revenue Split Configuration */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-3">Revenue Split</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Your Split (Label)</label>
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={inviteForm.labelSplit}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setInviteForm(prev => ({
+                              ...prev,
+                              labelSplit: val,
+                              artistSplit: 100 - val
+                            }));
+                          }}
+                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <span className="ml-2 text-slate-600">%</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Artist Split</label>
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          value={inviteForm.artistSplit}
+                          readOnly
+                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600"
+                        />
+                        <span className="ml-2 text-slate-600">%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`text-xs mt-2 ${
+                    inviteForm.labelSplit + inviteForm.artistSplit === 100 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    Total: {inviteForm.labelSplit + inviteForm.artistSplit}% 
+                    {inviteForm.labelSplit + inviteForm.artistSplit !== 100 && ' (Must equal 100%)'}
+                  </div>
+                </div>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start">
                     <AlertTriangle className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
@@ -564,7 +617,7 @@ export default function LabelAdminArtistsRebuilt() {
                   </button>
                   <button
                     onClick={sendArtistInvitation}
-                    disabled={inviting || !inviteForm.firstName.trim() || !inviteForm.lastName.trim() || !inviteForm.artistName.trim()}
+                    disabled={inviting || !inviteForm.firstName.trim() || !inviteForm.lastName.trim() || !inviteForm.artistName.trim() || (inviteForm.labelSplit + inviteForm.artistSplit !== 100)}
                     className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {inviting ? (
