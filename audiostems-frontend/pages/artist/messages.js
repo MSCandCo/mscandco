@@ -77,15 +77,15 @@ export default function Messages() {
 
       if (response.ok) {
         markAsRead(notificationId);
-        alert(`Invitation ${action}ed successfully`);
+        showSuccessNotification(`Partnership ${action}ed successfully!`);
         fetchNotifications(); // Refresh to show updated status
       } else {
         const error = await response.json();
-        alert('Error: ' + error.error);
+        showErrorNotification('Error: ' + error.error);
       }
     } catch (error) {
       console.error('Error responding to invitation:', error);
-      alert('Failed to respond to invitation');
+      showErrorNotification('Failed to respond to invitation');
     }
   };
 
@@ -125,11 +125,11 @@ export default function Messages() {
         setPendingDecline(null);
       } else {
         const error = await response.json();
-        alert('Error: ' + error.error);
+        showErrorNotification('Error: ' + error.error);
       }
     } catch (error) {
       console.error('Error declining invitation:', error);
-      alert('Failed to decline invitation');
+      showErrorNotification('Failed to decline invitation');
     }
   };
 
@@ -159,6 +159,34 @@ export default function Messages() {
     `;
     document.body.appendChild(notification);
     setTimeout(() => document.body.removeChild(notification), 3000);
+  };
+
+  // Branded error notification function
+  const showErrorNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #fef2f2;
+      border-left: 4px solid #991b1b;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: #991b1b;">
+        <svg style="width: 20px; height: 20px; margin-right: 12px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293a1 1 0 00-1.414-1.414L9 11.586l-2.293-2.293a1 1 0 00-1.414 1.414L7.586 13l-2.293 2.293a1 1 0 001.414 1.414L9 14.414l2.293 2.293a1 1 0 001.414-1.414L11.414 13l2.293-2.293z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
   const getNotificationIcon = (type) => {
