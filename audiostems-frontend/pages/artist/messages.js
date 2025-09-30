@@ -9,6 +9,9 @@ export default function Messages() {
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // all, invitation, earning, payout
   const [loading, setLoading] = useState(true);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [pendingDecline, setPendingDecline] = useState(null); // {notificationId, invitationId}
 
   useEffect(() => {
     fetchNotifications();
@@ -86,8 +89,13 @@ export default function Messages() {
     }
   };
 
-  const handleDecline = async (notificationId, invitationId) => {
-    const reason = prompt('Optional: Why are you declining this invitation?');
+  const handleDecline = (notificationId, invitationId) => {
+    setPendingDecline({ notificationId, invitationId });
+    setShowDeclineModal(true);
+  };
+
+  const confirmDecline = async () => {
+    if (!pendingDecline) return;
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -99,16 +107,22 @@ export default function Messages() {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
-          invitation_id: invitationId, 
+          invitation_id: pendingDecline.invitationId, 
           action: 'decline',
-          decline_reason: reason 
+          decline_reason: declineReason.trim() || null
         })
       });
 
       if (response.ok) {
-        markAsRead(notificationId);
-        alert('Invitation declined');
+        markAsRead(pendingDecline.notificationId);
+        // Show branded success notification
+        showSuccessNotification('Invitation declined successfully');
         fetchNotifications(); // Refresh to show updated status
+        
+        // Reset modal state
+        setShowDeclineModal(false);
+        setDeclineReason('');
+        setPendingDecline(null);
       } else {
         const error = await response.json();
         alert('Error: ' + error.error);
@@ -117,6 +131,34 @@ export default function Messages() {
       console.error('Error declining invitation:', error);
       alert('Failed to decline invitation');
     }
+  };
+
+  // Branded success notification function
+  const showSuccessNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #f0fdf4;
+      border-left: 4px solid #065f46;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: #065f46;">
+        <svg style="width: 20px; height: 20px; margin-right: 12px; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 3000);
   };
 
   const getNotificationIcon = (type) => {
@@ -252,10 +294,58 @@ export default function Messages() {
                   )}
                 </div>
               </div>
-            ))}
+            )          )}
+        </div>
+      )}
+
+      {/* Branded Decline Modal */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <XCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                Decline Partnership
+              </h3>
+              <p className="text-sm text-gray-600 text-center mb-6">
+                Why are you declining this partnership invitation? (Optional)
+              </p>
+              
+              <textarea
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                rows={3}
+                placeholder="e.g., Already have a label, terms don't suit me, focusing on independent releases..."
+              />
+              
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeclineModal(false);
+                    setDeclineReason('');
+                    setPendingDecline(null);
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDecline}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Decline Partnership
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-    </Layout>
+        </div>
+      )}
+    </div>
+  </Layout>
   );
 }
