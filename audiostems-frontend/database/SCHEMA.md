@@ -162,6 +162,38 @@
 - APIs use service_role key for database operations
 - Eliminates permission errors and auth complexity
 
+### wallet_transactions
+- **Purpose**: Ledger of all wallet activity (earnings added, payouts sent, adjustments)
+- **Columns**:
+  - `id` UUID PRIMARY KEY
+  - `user_id` UUID NOT NULL (artist receiving/sending)
+  - `type` TEXT NOT NULL (earning, payout, adjustment, refund)
+  - `amount` NUMERIC NOT NULL
+  - `currency` TEXT DEFAULT 'GBP'
+  - `description` TEXT NOT NULL
+  - `reference_id` UUID (links to earnings_log or other source)
+  - `reference_type` TEXT (e.g., 'earning', 'payout_request')
+  - `status` TEXT DEFAULT 'completed'
+  - `created_at` TIMESTAMP
+  - `processed_at` TIMESTAMP
+- **RLS Policies**: Users can read their own transactions, service role full access
+
+## Additional Table Details
+
+### releases (ADDITIONAL DETAILS)
+- **Key columns for label integration**:
+  - `label_admin_id` UUID - Links release to managing label admin
+  - `revenue_split` JSONB - Stores split percentages
+  - `platform_stats` JSONB - Manual analytics data storage
+  - `status` TEXT - draft, submitted, approved, live
+
+### user_profiles (ADDITIONAL DETAILS)
+- **Analytics/Earnings columns**:
+  - `analytics_data` JSONB - Manual analytics from admin
+  - `earnings_data` JSONB - Earnings summaries
+  - `label_admin_id` UUID - Current managing label admin
+  - `default_label_admin_id` UUID - Default label relationship
+
 ## Future Considerations
 - Implement proper JWT verification in production
 - Add more granular RLS policies as needed
