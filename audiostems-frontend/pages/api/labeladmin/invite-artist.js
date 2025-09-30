@@ -82,15 +82,15 @@ export default async function handler(req, res) {
       .single();
 
     if (insertError) {
-      console.error('❌ Error creating affiliation request:', insertError);
+      console.error('❌ Error creating artist invitation:', insertError);
       console.error('❌ Detailed error:', JSON.stringify(insertError, null, 2));
       return res.status(500).json({ 
-        error: 'Failed to create affiliation request',
+        error: 'Failed to create artist invitation',
         details: insertError.message
       });
     }
 
-    console.log('✅ Affiliation request created:', newRequest.id);
+    console.log('✅ Artist invitation created:', newRequest.id);
     
     return res.status(200).json({
       success: true,
