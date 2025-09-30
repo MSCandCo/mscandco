@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getUserFromRequest } from '@/lib/auth';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Layout from '../../components/layouts/mainLayout';
 import { Mail, Bell, CheckCircle, XCircle, Clock, TrendingUp, DollarSign } from 'lucide-react';
+
+const supabase = createClientComponentClient();
 
 export default function Messages() {
   const [notifications, setNotifications] = useState([]);
@@ -14,7 +16,21 @@ export default function Messages() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`/api/notifications?type=${filter}`);
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error('No session found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`/api/notifications?type=${filter}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      
       const data = await response.json();
       setNotifications(data.notifications || []);
     } catch (error) {
@@ -26,11 +42,17 @@ export default function Messages() {
 
   const markAsRead = async (notificationId) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       await fetch('/api/notifications/mark-read', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({ notification_id: notificationId })
       });
+      
       fetchNotifications();
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -39,9 +61,14 @@ export default function Messages() {
 
   const handleInvitationResponse = async (notificationId, invitationId, action) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch('/api/artist/respond-invitation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({ invitation_id: invitationId, action })
       });
 
