@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   Edit3,
+  Bell,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -36,6 +37,7 @@ export default function RoleBasedNavigation() {
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   
   // Use shared wallet balance hook
@@ -47,6 +49,25 @@ export default function RoleBasedNavigation() {
       loadDistributionPartnerProfile();
     }
   }, [user]);
+
+  // Load unread notification count for artists
+  useEffect(() => {
+    if (user && getUserRoleSync(user) === 'artist') {
+      loadUnreadCount();
+    }
+  }, [user]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const response = await fetch('/api/notifications/unread-count');
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+    }
+  };
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -1038,8 +1059,23 @@ export default function RoleBasedNavigation() {
             ))}
           </div>
 
-          {/* Right side - Balance, Utility links, User menu and Mobile menu button */}
+          {/* Right side - Notifications, Balance, Utility links, User menu and Mobile menu button */}
           <div className="flex items-center space-x-3">
+            {/* Notification Bell - For artists */}
+            {userRole === 'artist' && (
+              <Link
+                href="/artist/messages"
+                className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* Platform Funds Display - For artists */}
             {userRole === 'artist' && (
               <div 
