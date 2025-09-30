@@ -95,7 +95,15 @@ export default function LabelAdminArtistsRebuilt() {
       try {
         console.log('🔍 Loading invitations via API...');
         
-        const response = await fetch('/api/labeladmin/invitations');
+        // Get auth token for API call
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const response = await fetch('/api/labeladmin/invitations', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           console.log('✅ Artist invitations loaded via API:', data.invitations?.length || 0);
@@ -134,7 +142,8 @@ export default function LabelAdminArtistsRebuilt() {
       const response = await fetch('/api/labeladmin/send-invitation', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           artist_id: '0a060de5-1c94-4060-a1c2-860224fc348d', // Henry's ID

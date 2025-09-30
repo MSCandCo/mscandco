@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getUserFromRequest } from '@/lib/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -11,6 +12,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // PROPER AUTHENTICATION - No hardcoded IDs
+    const { user, error: authError } = await getUserFromRequest(req);
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const label_admin_id = user.id;
+    console.log('🔍 Authenticated label admin:', label_admin_id);
+
     const {
       artist_id,
       artist_first_name,
@@ -30,8 +40,6 @@ export default async function handler(req, res) {
     if (label_split_percentage + artist_split_percentage !== 100) {
       return res.status(400).json({ error: 'Splits must equal 100%' });
     }
-
-    const label_admin_id = '12345678-1234-5678-9012-123456789012';
 
     const { data, error } = await supabase
       .from('artist_invitations')
