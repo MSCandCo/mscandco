@@ -542,6 +542,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         preOrderDate: formData.preOrderDate,
         label: formData.label || 'MSC & Co',
         status: 'draft',
+        // File URLs from uploads
+        artworkUrl: formData.artworkUrl,
+        artworkFilename: formData.artworkFilename,
         assets: [{
           songTitle: formData.assets[0].songTitle,
           anyOtherFeaturingArtists: formData.assets[0].anyOtherFeaturingArtists,
@@ -551,7 +554,11 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           bpm: formData.assets[0].bpm,
           language: formData.assets[0].language,
           isrc: formData.assets[0].isrc,
-          contributors: formData.assets[0].contributors || []
+          contributors: formData.assets[0].contributors || [],
+          audioFileUrl: formData.assets[0].audioFileUrl,
+          audioFilename: formData.assets[0].audioFilename,
+          appleLosslessUrl: formData.assets[0].appleLosslessUrl,
+          appleLosslessFilename: formData.assets[0].appleLosslessFilename
         }]
       };
 
