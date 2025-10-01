@@ -68,49 +68,46 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
         }
       });
 
-      xhr.addEventListener('load', () => {
-        console.log('📨 FileUploader: XHR load event fired, status:', xhr.status);
-        console.log('📨 FileUploader: Response text length:', xhr.responseText?.length);
+      xhr.addEventListener('load', function() {
+        console.log('XHR load event fired, status:', xhr.status);
+        console.log('XHR response text:', xhr.responseText);
         
         if (xhr.status === 200) {
           try {
             const response = JSON.parse(xhr.responseText);
-            console.log('🔍 FileUploader: Upload successful, response:', response);
-            console.log('🔍 FileUploader: Calling onUpload with URL:', response.url);
-            console.log('🔍 FileUploader: onUpload callback exists:', !!onUpload);
+            console.log('Parsed response:', response);
+            console.log('Calling onUpload with URL:', response.url);
             
-            // Show processing phase (90% to 100%)
-            setProgress(95);
+            if (!onUpload) {
+              console.error('ERROR: onUpload callback is not defined!');
+              setError('Upload callback missing');
+              setUploading(false);
+              return;
+            }
             
-            setTimeout(() => {
-              setProgress(100);
-              
-              // Call onUpload immediately with the URL
-              if (onUpload && response.url) {
-                console.log('✅ FileUploader: Calling onUpload callback');
-                onUpload(response.url, response.filename);
-              } else {
-                console.error('❌ FileUploader: Missing onUpload callback or response.url');
-                console.log('  - onUpload exists:', !!onUpload);
-                console.log('  - response.url:', response.url);
-              }
-              
-              setTimeout(() => {
-                setUploading(false);
-                setProgress(0);
-                setError(null);
-                setUploadingFileName('');
-              }, 300); // Brief pause at 100% before cleanup
-            }, 200); // Processing simulation
+            if (!response.url) {
+              console.error('ERROR: No URL in response:', response);
+              setError('No URL returned from server');
+              setUploading(false);
+              return;
+            }
             
-          } catch (parseError) {
-            console.error('❌ FileUploader: Error parsing response:', parseError);
-            setError('Upload response error');
+            // Call the callback
+            onUpload(response.url, response.filename);
+            console.log('onUpload called successfully');
+            
+            setUploading(false);
+            setProgress(0);
+            setError(null);
+            setUploadingFileName('');
+          } catch (err) {
+            console.error('Error parsing response:', err);
+            setError('Failed to process upload response');
             setUploading(false);
             setUploadingFileName('');
           }
         } else {
-          console.error('❌ FileUploader: Upload failed with status:', xhr.status);
+          console.error('Upload failed with status:', xhr.status);
           setError('Upload failed');
           setUploading(false);
           setUploadingFileName('');
