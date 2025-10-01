@@ -362,47 +362,23 @@ export default function LabelAdminArtistsRebuilt() {
             <div className="space-y-3 p-6">
               {acceptedArtists.map(artist => (
                 <div key={artist.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border">
-                
-                return (
-                  <div key={artist.id} className="p-6 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                          <User className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div>
-                          <h4 className="text-lg font-semibold text-slate-900">
-                            {artist.artist_name || 'Unknown Artist'}
-                          </h4>
-                          <p className="text-slate-600">{artist.email}</p>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              activeSubscription 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-slate-100 text-slate-600'
-                            }`}>
-                              {activeSubscription ? activeSubscription.tier.replace('_', ' ').toUpperCase() : 'No Subscription'}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {totalReleases} releases ({liveReleases} live)
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right text-sm">
-                          <div className="text-slate-900 font-medium">{totalReleases} Releases</div>
-                          <div className="text-slate-500">{liveReleases} Live</div>
-                        </div>
-                        <button className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                          <Eye className="w-4 h-4 mr-1" />
-                          Manage
-                        </button>
-                      </div>
-                    </div>
+                  <div>
+                    <p className="font-medium text-slate-900">{artist.artistName}</p>
+                    <p className="text-sm text-slate-600">{artist.artistEmail}</p>
+                    <p className="text-xs text-slate-500">
+                      Revenue split: You {artist.labelSplit}% / Artist {artist.artistSplit}%
+                    </p>
                   </div>
-                );
-              })}
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">
+                      Joined {new Date(artist.joinDate).toLocaleDateString()}
+                    </p>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
