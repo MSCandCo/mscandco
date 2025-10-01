@@ -24,16 +24,29 @@ export default function EditProfile() {
   
   const fetchProfile = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (data) setProfile(data);
-    setLoading(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/artist/profile', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+
+      if (response.ok) {
+        const profileData = await response.json();
+        setProfile(profileData);
+      } else {
+        console.error('Failed to fetch profile:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
   
   const handleEdit = (field, value) => {
@@ -43,21 +56,36 @@ export default function EditProfile() {
   const saveField = async (field) => {
     setSaving(true);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ [field]: editing[field] })
-      .eq('id', user.id);
-    
-    if (!error) {
-      setProfile({ ...profile, [field]: editing[field] });
-      const newEditing = { ...editing };
-      delete newEditing[field];
-      setEditing(newEditing);
-      
-    
-    setSaving(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setSaving(false);
+        return;
+      }
+
+      const response = await fetch('/api/artist/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ [field]: editing[field] })
+      });
+
+      if (response.ok) {
+        setProfile({ ...profile, [field]: editing[field] });
+        const newEditing = { ...editing };
+        delete newEditing[field];
+        setEditing(newEditing);
+      } else {
+        console.error('Failed to save field:', response.status);
+      }
+    } catch (error) {
+      console.error('Error saving field:', error);
+    } finally {
+      setSaving(false);
+    }
   };
   
   const cancelEdit = (field) => {
@@ -101,14 +129,25 @@ export default function EditProfile() {
       .from('profile-pictures')
       .getPublicUrl(fileName);
 
-    // Update user profile
-    const { error: updateError } = await supabase
-      .from('user_profiles')
-      .update({ profile_picture_url: publicUrl })
-      .eq('id', user.id);
+    // Update user profile via API
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch('/api/artist/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ profile_picture_url: publicUrl })
+      });
 
-    if (!updateError) {
-      setProfile({ ...profile, profile_picture_url: publicUrl });
+      if (response.ok) {
+        setProfile({ ...profile, profile_picture_url: publicUrl });
+      } else {
+        console.error('Failed to update profile picture');
+      }
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
     }
   };
   
@@ -118,6 +157,24 @@ export default function EditProfile() {
       <Layout>
         <div className="flex justify-center items-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">Unable to load profile data.</p>
+            <button 
+              onClick={fetchProfile}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </Layout>
     );
