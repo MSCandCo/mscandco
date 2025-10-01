@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { Lock, Edit, Save, X } from 'lucide-react';
+import Layout from '../../../components/layouts/mainLayout';
 
 export default function EditProfile() {
   const [profile, setProfile] = useState(null);
@@ -112,10 +113,19 @@ export default function EditProfile() {
   };
   
   
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
-    <div className="max-w-5xl mx-auto p-8">
+    <Layout>
+      <div className="max-w-5xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Artist Profile</h1>
           <p className="text-gray-600 mt-2">This information will be used across all your releases and platform features</p>
@@ -318,7 +328,8 @@ export default function EditProfile() {
           />
         )}
       </div>
-    );
+    </Layout>
+  );
 }
 
 function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
