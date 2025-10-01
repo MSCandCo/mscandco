@@ -385,14 +385,14 @@ export default function ArtistProfile() {
                 </div>
                 <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                     <input
                       type="text"
                       value={profile.first_name || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                   <div>
@@ -401,7 +401,7 @@ export default function ArtistProfile() {
                       type="text"
                       value={profile.last_name || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                   <div>
@@ -410,7 +410,7 @@ export default function ArtistProfile() {
                       type="date"
                       value={profile.date_of_birth || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                   <div>
@@ -419,7 +419,7 @@ export default function ArtistProfile() {
                       type="text"
                       value={profile.nationality || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                   <div>
@@ -428,7 +428,7 @@ export default function ArtistProfile() {
                       type="text"
                       value={profile.country || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                   <div>
@@ -437,7 +437,7 @@ export default function ArtistProfile() {
                       type="text"
                       value={profile.city || ''}
                       disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
                 </div>
@@ -525,7 +525,7 @@ export default function ArtistProfile() {
                     )}
                   </div>
 
-                  <div>
+                  <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Phone
                       {changedFields.includes('phone') && (
@@ -537,12 +537,12 @@ export default function ArtistProfile() {
                         value={editedProfile.country_code || '+44'}
                         onChange={(e) => handleFieldChange('country_code', e.target.value)}
                         disabled={!editMode}
-                        className={`px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`w-20 px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
                           !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                         } border-gray-300`}
                       >
                         {COUNTRY_CODES.map(({ code, country }) => (
-                          <option key={code} value={code}>{code} ({country})</option>
+                          <option key={code} value={code}>{code}</option>
                         ))}
                       </select>
                       <input
@@ -551,7 +551,7 @@ export default function ArtistProfile() {
                         onChange={(e) => handleFieldChange('phone', e.target.value)}
                         disabled={!editMode}
                         placeholder="Phone number"
-                        className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                           !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                         } border-gray-300`}
                       />
