@@ -7,7 +7,7 @@ import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
-import { Send, Eye, FileText, CheckCircle, Play, Check, X } from 'lucide-react';
+import { Send, Eye, FileText, CheckCircle, Play, Pause, Check, X, Volume2, VolumeX, Music } from 'lucide-react';
 import FinalReleaseForm from '../../components/releases/FinalReleaseForm';
 import ViewReleaseDetailsModal from '../../components/releases/ViewReleaseDetailsModal';
 import { 
@@ -68,9 +68,67 @@ export default function ArtistReleases() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [releaseToDelete, setReleaseToDelete] = useState(null);
+  
+  // Audio player state
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRefs = useRef({});
 
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(audioRefs.current).forEach(audio => {
+        audio.pause();
+      });
+    };
+  }, []);
+
+  // Audio player functions
+  const togglePlay = (releaseId, audioUrl) => {
+    if (!audioUrl) return;
+    
+    const audio = audioRefs.current[releaseId];
+    if (!audio) {
+      // Create new audio element
+      audioRefs.current[releaseId] = new Audio(audioUrl);
+      audioRefs.current[releaseId].muted = isMuted;
+      
+      // Handle audio end
+      audioRefs.current[releaseId].addEventListener('ended', () => {
+        setCurrentlyPlaying(null);
+      });
+    }
+    
+    if (currentlyPlaying === releaseId) {
+      // Pause current
+      audioRefs.current[releaseId].pause();
+      setCurrentlyPlaying(null);
+    } else {
+      // Pause any other playing audio
+      Object.keys(audioRefs.current).forEach(id => {
+        if (id !== releaseId) {
+          audioRefs.current[id].pause();
+        }
+      });
+      
+      // Play this audio
+      audioRefs.current[releaseId].play();
+      setCurrentlyPlaying(releaseId);
+    }
+  };
+
+  const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    
+    // Update all audio elements
+    Object.values(audioRefs.current).forEach(audio => {
+      audio.muted = newMuted;
+    });
+  };
 
   // Handle submitting a release (draft → submitted)
   const handleSubmitRelease = async (releaseId) => {
@@ -357,111 +415,164 @@ export default function ArtistReleases() {
   }, [releases]);
 
   // Render functions
-  const renderReleaseCard = (release) => (
-    <div key={release.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-        {/* Status Badge - Full Width */}
-        <div className="flex justify-end mb-3">
-          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(release.status)}`}>
-            <span>{getStatusLabel(release.status)}</span>
-          </span>
-        </div>
-        
-        {/* Project Info */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-3">{release.projectName}</h3>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-            <span className="bg-white px-2 py-1 rounded-md font-medium">{release.releaseType}</span>
-            <span className="bg-white px-2 py-1 rounded-md">{release.genre}</span>
-            <span className="bg-white px-2 py-1 rounded-md">{release.trackListing?.length || 1} tracks</span>
+  const renderReleaseCard = (release) => {
+    const isPlaying = currentlyPlaying === release.id;
+    const hasAudio = release.audio_file_url || release.audioFileUrl;
+    const hasArtwork = release.artwork_url || release.artworkUrl;
+    
+    return (
+      <div key={release.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+        {/* Main Card Content */}
+        <div className="flex">
+          {/* Artwork Section with Play Controls */}
+          <div className="relative flex-shrink-0">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              {hasArtwork ? (
+                <img 
+                  src={release.artwork_url || release.artworkUrl} 
+                  alt={release.title || release.projectName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Music className="w-8 h-8 text-slate-400" />
+              )}
+              
+              {/* Play Button Overlay */}
+              {hasAudio && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <button
+                    onClick={() => togglePlay(release.id, release.audio_file_url || release.audioFileUrl)}
+                    className="w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-6 h-6 text-white ml-0.5" />
+                    ) : (
+                      <Play className="w-6 h-6 text-white ml-1" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* Status Badge */}
+            <div className="absolute -top-2 -right-2">
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(release.status)}`}>
+                {getStatusLabel(release.status)}
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content Section */}
-      <div className="p-6">
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(release.earnings || 0, selectedCurrency)}</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">Total Earnings</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{(release.streams || 0).toLocaleString()}</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">Total Streams</div>
-          </div>
-        </div>
+          {/* Release Info Section */}
+          <div className="flex-1 p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{release.title || release.projectName}</h3>
+                <p className="text-sm text-gray-600">{release.artist || release.artist_name}</p>
+              </div>
+              
+              {/* Audio Controls */}
+              {hasAudio && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={toggleMute}
+                    className="p-1.5 text-gray-500 hover:text-gray-700 transition-colors"
+                    title={isMuted ? 'Unmute' : 'Mute'}
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-4 h-4" />
+                    ) : (
+                      <Volume2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
 
-        {/* Timeline Info */}
-        <div className="space-y-3 mb-6">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-600">Submitted</span>
-            <span className="text-sm text-gray-900 font-medium">{release.submissionDate || 'Not submitted'}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-600">Expected Release</span>
-                              <span className="text-sm text-gray-900 font-medium">{release.expectedReleaseDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-600">Last Updated</span>
-            <span className="text-sm text-gray-900 font-medium">{release.lastUpdated || 'Unknown'}</span>
-          </div>
-        </div>
+            {/* Release Details */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 mb-4">
+              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.releaseType || release.release_type}</span>
+              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.genre}</span>
+              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.trackListing?.length || 1} tracks</span>
+            </div>
 
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => {
-              setSelectedRelease(release);
-              setIsViewModalOpen(true);
-            }}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 font-medium"
-          >
-            <Eye className="w-4 h-4" />
-            <span>View Details</span>
-          </button>
-          {isStatusEditableByArtist(release.status) && (
-            <>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-600">{formatCurrency(release.earnings || 0, selectedCurrency)}</div>
+                <div className="text-xs text-gray-500">Earnings</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-blue-600">{(release.streams || 0).toLocaleString()}</div>
+                <div className="text-xs text-gray-500">Streams</div>
+              </div>
+            </div>
+
+            {/* Timeline Info */}
+            <div className="space-y-2 mb-4 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Release Date:</span>
+                <span className="text-gray-700">{release.releaseDate || release.release_date || 'TBD'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Last Updated:</span>
+                <span className="text-gray-700">{release.lastUpdated || release.updated_at?.split('T')[0] || 'Unknown'}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
-                  console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
-                  console.log('✏️ Setting selectedRelease to:', { id: release.id, title: release.title });
                   setSelectedRelease(release);
-                  console.log('✏️ Opening create modal for editing...');
-                  setIsCreateModalOpen(true);
+                  setIsViewModalOpen(true);
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center space-x-1 text-sm"
               >
-                <FaEdit className="w-4 h-4" />
-                <span>Edit Release</span>
+                <Eye className="w-3 h-3" />
+                <span>View</span>
               </button>
               
-              {release.status === 'draft' && (
+              {isStatusEditableByArtist(release.status) && (
                 <>
                   <button
-                    onClick={() => handleSubmitRelease(release.id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                    onClick={() => {
+                      console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
+                      setSelectedRelease(release);
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1 text-sm"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Release</span>
+                    <FaEdit className="w-3 h-3" />
+                    <span>Edit</span>
                   </button>
                   
-                  <button
-                    onClick={() => handleDeleteDraft(release.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 font-medium"
-                  >
-                    <FaTimes className="w-4 h-4" />
-                    <span>Delete</span>
-                  </button>
+                  {release.status === 'draft' && (
+                    <>
+                      <button
+                        onClick={() => handleSubmitRelease(release.id)}
+                        className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>Submit</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDeleteDraft(release.id)}
+                        className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <X className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
+                    </>
+                  )}
                 </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (isLoading || isLoadingData) {
     return (
