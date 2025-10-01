@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Lock, Edit, Save, X } from 'lucide-react';
+import Layout from '../../../components/layouts/mainLayout';
 
 const supabase = createClientComponentClient();
 
@@ -13,10 +14,10 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   
   // LOCKED: Core signup fields - require admin approval
-  const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'nationality', 'country', 'city'];
+  const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'country'];
   
   // EDITABLE: Can change directly
-  const EDITABLE_FIELDS = ['artist_name', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 'years_active', 'record_label', 'bio'];
+  const EDITABLE_FIELDS = ['admin_title', 'department', 'phone', 'responsibilities', 'access_level', 'bio'];
   
   useEffect(() => {
     fetchProfile();
@@ -56,6 +57,12 @@ export default function EditProfile() {
       delete newEditing[field];
       setEditing(newEditing);
       
+      // Show success notification
+      showSuccessNotification(`${field.replace('_', ' ')} updated successfully`);
+    } else {
+      console.error('Save error:', error);
+      showErrorNotification('Failed to save changes');
+    }
     
     setSaving(false);
   };
@@ -71,14 +78,77 @@ export default function EditProfile() {
     setShowRequestModal(true);
   };
   
+  // Branded notification functions
+  const showSuccessNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #f0fdf4;
+      border-left: 4px solid #065f46;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: #065f46;">
+        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 4000);
+  };
+
+  const showErrorNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #fef2f2;
+      border-left: 4px solid #991b1b;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: #991b1b;">
+        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 4000);
+  };
   
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
-    <div className="max-w-5xl mx-auto p-8">
+    <Layout>
+      <div className="max-w-5xl mx-auto p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Artist Profile</h1>
-          <p className="text-gray-600 mt-2">This information will be used across all your releases and platform features</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
+          <p className="text-gray-600 mt-2">Manage your administrator information and system access</p>
         </div>
         
         {/* Personal Information - LOCKED */}
@@ -114,67 +184,31 @@ export default function EditProfile() {
           </div>
         </section>
         
-        {/* Artist Information - EDITABLE */}
+        {/* Administrative Information - EDITABLE */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center mb-4">
             <Edit className="w-5 h-5 text-blue-600 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Artist Information</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Administrative Information</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EDITABLE_FIELDS.slice(0, 3).map(field => (
+            {EDITABLE_FIELDS.slice(0, 5).map(field => (
               <div key={field}>
                 <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
                   {field.replace('_', ' ')}
                 </label>
                 <div className="flex gap-2">
                   <input
-                    type="text"
+                    type={field === 'phone' ? 'tel' : 'text'}
                     value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
                     onChange={(e) => handleEdit(field, e.target.value)}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {editing[field] !== undefined && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => saveField(field)}
-                        disabled={saving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => cancelEdit(field)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        
-        {/* Music Information - EDITABLE */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Music Information</h3>
-          <p className="text-sm text-gray-600 mb-6">This information pre-fills your release forms</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EDITABLE_FIELDS.slice(3, 7).map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field === 'record_label' ? 'Label' : field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
-                    onChange={(e) => handleEdit(field, e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={field === 'years_active' ? 'e.g., 5 years' : ''}
+                    placeholder={
+                      field === 'phone' ? '+1 (555) 123-4567' : 
+                      field === 'admin_title' ? 'Platform Administrator' : 
+                      field === 'access_level' ? 'Full System Access' : 
+                      field === 'responsibilities' ? 'Platform oversight, user management, etc.' : ''
+                    }
                   />
                   {editing[field] !== undefined && (
                     <div className="flex gap-2">
@@ -201,15 +235,16 @@ export default function EditProfile() {
         
         {/* Biography */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Biography</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Administrator Biography</h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Artist Bio</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">About Your Role</label>
             <textarea
               value={editing.bio !== undefined ? editing.bio : profile?.bio || ''}
               onChange={(e) => handleEdit('bio', e.target.value)}
               rows={6}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Describe your administrative role, experience, and oversight responsibilities..."
             />
             {editing.bio !== undefined && (
               <div className="flex gap-2 mt-3">
@@ -246,7 +281,8 @@ export default function EditProfile() {
           />
         )}
       </div>
-    );
+    </Layout>
+  );
 }
 
 function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
@@ -275,8 +311,35 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
     setSubmitting(false);
     
     if (!error) {
-      alert('Change request submitted for approval');
+      // Show branded success notification
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f0fdf4;
+        border-left: 4px solid #065f46;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        z-index: 10000;
+        max-width: 400px;
+        font-family: 'Inter', sans-serif;
+      `;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; color: #065f46;">
+          <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <span style="font-weight: 600; font-size: 14px;">Change request submitted for approval</span>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => document.body.removeChild(notification), 4000);
+      
       onSubmit();
+    } else {
+      console.error('Request submission error:', error);
     }
   };
   
@@ -348,5 +411,3 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
     </div>
   );
 }
-
-
