@@ -1,28 +1,26 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Lock, Edit, Save, X, Upload, Check, User, Mail, Phone, Globe, Calendar, MapPin, Music, Award, FileText } from 'lucide-react';
+import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Music, Award, FileText } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
 
 export default function ArtistProfile() {
   const [profile, setProfile] = useState(null);
-  const [editing, setEditing] = useState({});
+  const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [requestField, setRequestField] = useState(null);
-  const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // LOCKED FIELDS - require admin approval
-  const LOCKED_FIELDS = ['first_name', 'last_name', 'date_of_birth', 'nationality', 'country', 'city'];
-  
-  // EDITABLE FIELDS - can be changed directly
-  const EDITABLE_FIELDS = [
-    'artist_name', 'artist_type', 'email', 'phone', 'country_code',
-    'primary_genre', 'secondary_genre', 'years_active', 'record_label',
-    'release_bio', 'full_biography', 'website', 'instagram', 'facebook', 
-    'twitter', 'youtube', 'tiktok', 'spotify', 'apple_music'
+  // LOCKED FIELDS - require admin approval via consolidated modal
+  const LOCKED_FIELDS = [
+    { key: 'first_name', label: 'First Name' },
+    { key: 'last_name', label: 'Last Name' },
+    { key: 'date_of_birth', label: 'Date of Birth' },
+    { key: 'nationality', label: 'Nationality' },
+    { key: 'country', label: 'Country' },
+    { key: 'city', label: 'City' }
   ];
 
   // Dropdown options
@@ -34,9 +32,7 @@ export default function ArtistProfile() {
   ];
   const COUNTRY_CODES = [
     { code: '+1', country: 'US/CA' }, { code: '+44', country: 'UK' }, { code: '+33', country: 'FR' },
-    { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' },
-    { code: '+31', country: 'NL' }, { code: '+46', country: 'SE' }, { code: '+47', country: 'NO' },
-    { code: '+45', country: 'DK' }, { code: '+41', country: 'CH' }, { code: '+43', country: 'AT' }
+    { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
   ];
 
   useEffect(() => {
@@ -59,7 +55,6 @@ export default function ArtistProfile() {
 
       if (response.ok) {
         const profileData = await response.json();
-        console.log('Profile data loaded:', profileData);
         
         // Map API response to expected format
         const mappedProfile = {
@@ -86,10 +81,13 @@ export default function ArtistProfile() {
           twitter: profileData.twitter,
           youtube: profileData.youtube,
           tiktok: profileData.tiktok,
+          spotify: profileData.spotify,
+          apple_music: profileData.apple_music,
           profile_picture_url: profileData.profile_picture_url
         };
         
         setProfile(mappedProfile);
+        setEditedProfile(mappedProfile);
       } else {
         console.error('Failed to fetch profile:', response.status);
       }
@@ -100,37 +98,37 @@ export default function ArtistProfile() {
     }
   };
 
-  const handleEdit = (field, value) => {
-    setEditing({ ...editing, [field]: value });
-    // Clear error when user starts editing
+  const handleFieldChange = (field, value) => {
+    setEditedProfile({ ...editedProfile, [field]: value });
     if (errors[field]) {
       setErrors({ ...errors, [field]: null });
     }
   };
 
-  const validateField = (field, value) => {
+  const validateFields = () => {
+    const newErrors = {};
     const requiredFields = ['artist_name', 'email', 'primary_genre'];
-    if (requiredFields.includes(field) && (!value || value.trim() === '')) {
-      return `${field.replace('_', ' ')} is required`;
+    
+    requiredFields.forEach(field => {
+      if (!editedProfile[field] || editedProfile[field].trim() === '') {
+        newErrors[field] = `${field.replace('_', ' ')} is required`;
+      }
+    });
+
+    if (editedProfile.email && !/\S+@\S+\.\S+/.test(editedProfile.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
-    if (field === 'email' && value && !/\S+@\S+\.\S+/.test(value)) {
-      return 'Please enter a valid email address';
-    }
-    return null;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const saveField = async (field) => {
-    setSaving(true);
-    const value = editing[field];
-    
-    // Validate field
-    const error = validateField(field, value);
-    if (error) {
-      setErrors({ ...errors, [field]: error });
-      setSaving(false);
+  const handleSaveChanges = async () => {
+    if (!validateFields()) {
       return;
     }
 
+    setSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -140,20 +138,32 @@ export default function ArtistProfile() {
       }
 
       // Map field names to API format
-      const fieldMapping = {
-        first_name: 'firstName',
-        last_name: 'lastName',
-        artist_name: 'artistName',
-        date_of_birth: 'dateOfBirth',
-        artist_type: 'artistType',
-        country_code: 'countryCode',
-        primary_genre: 'primaryGenre',
-        secondary_genre: 'secondaryGenre',
-        years_active: 'yearsActive',
-        record_label: 'recordLabel'
+      const apiData = {
+        firstName: editedProfile.first_name,
+        lastName: editedProfile.last_name,
+        artistName: editedProfile.artist_name,
+        dateOfBirth: editedProfile.date_of_birth,
+        nationality: editedProfile.nationality,
+        country: editedProfile.country,
+        city: editedProfile.city,
+        artistType: editedProfile.artist_type,
+        email: editedProfile.email,
+        phone: editedProfile.phone,
+        countryCode: editedProfile.country_code,
+        primaryGenre: editedProfile.primary_genre,
+        secondaryGenre: editedProfile.secondary_genre,
+        yearsActive: editedProfile.years_active,
+        recordLabel: editedProfile.record_label,
+        bio: editedProfile.bio,
+        website: editedProfile.website,
+        instagram: editedProfile.instagram,
+        facebook: editedProfile.facebook,
+        twitter: editedProfile.twitter,
+        youtube: editedProfile.youtube,
+        tiktok: editedProfile.tiktok,
+        spotify: editedProfile.spotify,
+        apple_music: editedProfile.apple_music
       };
-
-      const apiField = fieldMapping[field] || field;
       
       const response = await fetch('/api/artist/profile', {
         method: 'PUT',
@@ -161,37 +171,30 @@ export default function ArtistProfile() {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ [apiField]: value })
+        body: JSON.stringify(apiData)
       });
 
       if (response.ok) {
-        setProfile({ ...profile, [field]: value });
-        const newEditing = { ...editing };
-        delete newEditing[field];
-        setEditing(newEditing);
-        setErrors({ ...errors, [field]: null });
+        setProfile(editedProfile);
+        setEditMode(false);
+        setErrors({});
+        alert('Profile updated successfully!');
       } else {
-        console.error('Failed to save field:', response.status);
-        setErrors({ ...errors, [field]: 'Failed to save changes' });
+        console.error('Failed to save profile:', response.status);
+        alert('Failed to save changes. Please try again.');
       }
     } catch (error) {
-      console.error('Error saving field:', error);
-      setErrors({ ...errors, [field]: 'Failed to save changes' });
+      console.error('Error saving profile:', error);
+      alert('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const cancelEdit = (field) => {
-    const newEditing = { ...editing };
-    delete newEditing[field];
-    setEditing(newEditing);
-    setErrors({ ...errors, [field]: null });
-  };
-
-  const requestChange = (field) => {
-    setRequestField(field);
-    setShowRequestModal(true);
+  const handleCancelEdit = () => {
+    setEditedProfile(profile);
+    setEditMode(false);
+    setErrors({});
   };
 
   const handleProfilePictureUpload = async (e) => {
@@ -223,13 +226,20 @@ export default function ArtistProfile() {
         .from('profile-pictures')
         .getPublicUrl(fileName);
 
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .update({ profile_picture_url: publicUrl })
-        .eq('id', user.id);
+      // Update profile picture via API
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch('/api/artist/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ profile_picture_url: publicUrl })
+      });
 
-      if (!updateError) {
+      if (response.ok) {
         setProfile({ ...profile, profile_picture_url: publicUrl });
+        setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
       }
     } catch (error) {
       console.error('Error uploading picture:', error);
@@ -241,133 +251,31 @@ export default function ArtistProfile() {
 
   const calculateProgress = () => {
     if (!profile) return 0;
-    const totalFields = [...LOCKED_FIELDS, ...EDITABLE_FIELDS];
-    const completedFields = totalFields.filter(field => profile[field] && profile[field].toString().trim() !== '');
-    return Math.round((completedFields.length / totalFields.length) * 100);
+    const allFields = [
+      'first_name', 'last_name', 'email', 'artist_name', 'date_of_birth', 'nationality', 
+      'country', 'city', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 
+      'years_active', 'record_label', 'bio', 'website'
+    ];
+    const completedFields = allFields.filter(field => profile[field] && profile[field].toString().trim() !== '');
+    return Math.round((completedFields.length / allFields.length) * 100);
   };
 
-  const renderField = (field, icon, label, type = 'text', options = null) => {
-    const isLocked = LOCKED_FIELDS.includes(field);
-    const isEditing = editing[field] !== undefined;
-    const value = isEditing ? editing[field] : (profile?.[field] || '');
-    const hasError = errors[field];
-
-    return (
-      <div key={field} className="mb-6">
-        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-          {icon}
-          <span className="ml-2">{label}</span>
-          {['artist_name', 'email', 'primary_genre'].includes(field) && (
-            <span className="text-red-500 ml-1">*</span>
-          )}
-        </label>
-        
-        <div className="flex items-center gap-2">
-          {isLocked ? (
-            <>
-              <input
-                type={type}
-                value={value}
-                disabled
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
-              />
-              <button
-                onClick={() => requestChange(field)}
-                className="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-              >
-                <Lock className="w-4 h-4" />
-                Request Edit
-              </button>
-            </>
-          ) : (
-            <>
-              {options ? (
-                <select
-                  value={value}
-                  onChange={(e) => handleEdit(field, e.target.value)}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    hasError ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select {label}</option>
-                  {options.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              ) : type === 'textarea' ? (
-                <textarea
-                  value={value}
-                  onChange={(e) => handleEdit(field, e.target.value)}
-                  rows={4}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-                    hasError ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-              ) : field === 'phone' ? (
-                <div className="flex flex-1 gap-2">
-                  <select
-                    value={(profile && profile.country_code) || '+44'}
-                    onChange={(e) => handleEdit('country_code', e.target.value)}
-                    className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {COUNTRY_CODES.map(({ code, country }) => (
-                      <option key={code} value={code}>{code} ({country})</option>
-                    ))}
-                  </select>
-                  <input
-                    type="tel"
-                    value={value}
-                    onChange={(e) => handleEdit(field, e.target.value)}
-                    placeholder="Phone number"
-                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      hasError ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                </div>
-              ) : (
-                <input
-                  type={type}
-                  value={value}
-                  onChange={(e) => handleEdit(field, e.target.value)}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    hasError ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-              )}
-              
-              {isEditing && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => saveField(field)}
-                    disabled={saving}
-                    className="px-3 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => cancelEdit(field)}
-                    className="px-3 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        
-        {hasError && (
-          <p className="text-red-500 text-sm mt-1">{hasError}</p>
-        )}
-      </div>
-    );
+  const getChangedFields = () => {
+    if (!profile || !editedProfile) return [];
+    const changed = [];
+    Object.keys(editedProfile).forEach(key => {
+      if (editedProfile[key] !== profile[key]) {
+        changed.push(key);
+      }
+    });
+    return changed;
   };
 
   if (loading) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
     );
@@ -392,6 +300,7 @@ export default function ArtistProfile() {
   }
 
   const progress = calculateProgress();
+  const changedFields = getChangedFields();
 
   return (
     <Layout>
@@ -403,39 +312,117 @@ export default function ArtistProfile() {
               <h1 className="text-3xl font-bold text-gray-900">Artist Profile</h1>
               <p className="text-gray-600 mt-1">Manage your artist information and settings</p>
             </div>
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              {editMode ? 'View Profile' : 'Edit Profile'}
-            </button>
+            <div className="flex gap-3">
+              {!editMode ? (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveChanges}
+                    disabled={saving}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content - 70% */}
             <div className="lg:col-span-2 space-y-8">
               
-              {/* Personal Information */}
+              {/* Personal Information - LOCKED */}
               <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center mb-6">
-                  <User className="w-5 h-5 text-purple-600 mr-3" />
+                <div className="flex items-center mb-4">
+                  <Lock className="w-5 h-5 text-gray-400 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-                  <Lock className="w-4 h-4 text-gray-400 ml-2" />
                 </div>
                 <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {renderField('first_name', <User className="w-4 h-4 text-gray-500" />, 'First Name')}
-                  {renderField('last_name', <User className="w-4 h-4 text-gray-500" />, 'Last Name')}
-                  {renderField('date_of_birth', <Calendar className="w-4 h-4 text-gray-500" />, 'Date of Birth', 'date')}
-                  {renderField('nationality', <Globe className="w-4 h-4 text-gray-500" />, 'Nationality')}
-                  {renderField('country', <MapPin className="w-4 h-4 text-gray-500" />, 'Country')}
-                  {renderField('city', <MapPin className="w-4 h-4 text-gray-500" />, 'City')}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <input
+                      type="text"
+                      value={profile.first_name || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      value={profile.last_name || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={profile.date_of_birth || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
+                    <input
+                      type="text"
+                      value={profile.nationality || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <input
+                      type="text"
+                      value={profile.country || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={profile.city || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                {/* Consolidated Change Request Button */}
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowChangeRequestModal(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Need to update personal information? Request a change
+                  </button>
                 </div>
               </section>
 
-              {/* Artist Information */}
+              {/* Artist Information - EDITABLE */}
               <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center mb-6">
                   <Music className="w-5 h-5 text-blue-600 mr-3" />
@@ -443,14 +430,186 @@ export default function ArtistProfile() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {renderField('artist_name', <Music className="w-4 h-4 text-gray-500" />, 'Artist Name')}
-                  {renderField('artist_type', <Award className="w-4 h-4 text-gray-500" />, 'Artist Type', 'text', ARTIST_TYPES)}
-                  {renderField('email', <Mail className="w-4 h-4 text-gray-500" />, 'Email', 'email')}
-                  {renderField('phone', <Phone className="w-4 h-4 text-gray-500" />, 'Phone')}
-                  {renderField('primary_genre', <Music className="w-4 h-4 text-gray-500" />, 'Primary Genre', 'text', GENRES)}
-                  {renderField('secondary_genre', <Music className="w-4 h-4 text-gray-500" />, 'Secondary Genre', 'text', GENRES)}
-                  {renderField('years_active', <Calendar className="w-4 h-4 text-gray-500" />, 'Years Active')}
-                  {renderField('record_label', <Award className="w-4 h-4 text-gray-500" />, 'Record Label')}
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Artist Name *
+                      {changedFields.includes('artist_name') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.artist_name || ''}
+                      onChange={(e) => handleFieldChange('artist_name', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.artist_name ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {errors.artist_name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.artist_name}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Artist Type
+                      {changedFields.includes('artist_type') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <select
+                      value={editedProfile.artist_type || ''}
+                      onChange={(e) => handleFieldChange('artist_type', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    >
+                      <option value="">Select Artist Type</option>
+                      {ARTIST_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                      {changedFields.includes('email') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="email"
+                      value={editedProfile.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Phone
+                      {changedFields.includes('phone') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editedProfile.country_code || '+44'}
+                        onChange={(e) => handleFieldChange('country_code', e.target.value)}
+                        disabled={!editMode}
+                        className={`px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      >
+                        {COUNTRY_CODES.map(({ code, country }) => (
+                          <option key={code} value={code}>{code} ({country})</option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        value={editedProfile.phone || ''}
+                        onChange={(e) => handleFieldChange('phone', e.target.value)}
+                        disabled={!editMode}
+                        placeholder="Phone number"
+                        className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Primary Genre *
+                      {changedFields.includes('primary_genre') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <select
+                      value={editedProfile.primary_genre || ''}
+                      onChange={(e) => handleFieldChange('primary_genre', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.primary_genre ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                      <option value="">Select Primary Genre</option>
+                      {GENRES.map(genre => (
+                        <option key={genre} value={genre}>{genre}</option>
+                      ))}
+                    </select>
+                    {errors.primary_genre && (
+                      <p className="text-red-500 text-sm mt-1">{errors.primary_genre}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Secondary Genre
+                      {changedFields.includes('secondary_genre') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <select
+                      value={editedProfile.secondary_genre || ''}
+                      onChange={(e) => handleFieldChange('secondary_genre', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    >
+                      <option value="">Select Secondary Genre</option>
+                      {GENRES.map(genre => (
+                        <option key={genre} value={genre}>{genre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Years Active
+                      {changedFields.includes('years_active') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.years_active || ''}
+                      onChange={(e) => handleFieldChange('years_active', e.target.value)}
+                      disabled={!editMode}
+                      placeholder="e.g., 5 years"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Record Label
+                      {changedFields.includes('record_label') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.record_label || ''}
+                      onChange={(e) => handleFieldChange('record_label', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
                 </div>
               </section>
 
@@ -461,9 +620,23 @@ export default function ArtistProfile() {
                   <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
                 </div>
                 
-                <div className="space-y-6">
-                  {renderField('release_bio', <FileText className="w-4 h-4 text-gray-500" />, 'Release Bio', 'textarea')}
-                  {renderField('full_biography', <FileText className="w-4 h-4 text-gray-500" />, 'Full Biography', 'textarea')}
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    Artist Bio
+                    {changedFields.includes('bio') && (
+                      <span className="ml-2 text-green-600">✓</span>
+                    )}
+                  </label>
+                  <textarea
+                    value={editedProfile.bio || ''}
+                    onChange={(e) => handleFieldChange('bio', e.target.value)}
+                    disabled={!editMode}
+                    rows={6}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                      !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                    } border-gray-300`}
+                    placeholder="Tell us about your musical journey..."
+                  />
                 </div>
               </section>
 
@@ -475,14 +648,34 @@ export default function ArtistProfile() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {renderField('website', <Globe className="w-4 h-4 text-gray-500" />, 'Website', 'url')}
-                  {renderField('instagram', <Globe className="w-4 h-4 text-gray-500" />, 'Instagram', 'url')}
-                  {renderField('facebook', <Globe className="w-4 h-4 text-gray-500" />, 'Facebook', 'url')}
-                  {renderField('twitter', <Globe className="w-4 h-4 text-gray-500" />, 'Twitter', 'url')}
-                  {renderField('youtube', <Globe className="w-4 h-4 text-gray-500" />, 'YouTube', 'url')}
-                  {renderField('tiktok', <Globe className="w-4 h-4 text-gray-500" />, 'TikTok', 'url')}
-                  {renderField('spotify', <Globe className="w-4 h-4 text-gray-500" />, 'Spotify', 'url')}
-                  {renderField('apple_music', <Globe className="w-4 h-4 text-gray-500" />, 'Apple Music', 'url')}
+                  {[
+                    { key: 'website', label: 'Website', type: 'url' },
+                    { key: 'instagram', label: 'Instagram', type: 'url' },
+                    { key: 'facebook', label: 'Facebook', type: 'url' },
+                    { key: 'twitter', label: 'Twitter', type: 'url' },
+                    { key: 'youtube', label: 'YouTube', type: 'url' },
+                    { key: 'tiktok', label: 'TikTok', type: 'url' },
+                    { key: 'spotify', label: 'Spotify', type: 'url' },
+                    { key: 'apple_music', label: 'Apple Music', type: 'url' }
+                  ].map(({ key, label, type }) => (
+                    <div key={key}>
+                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        {label}
+                        {changedFields.includes(key) && (
+                          <span className="ml-2 text-green-600">✓</span>
+                        )}
+                      </label>
+                      <input
+                        type={type}
+                        value={editedProfile[key] || ''}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                        disabled={!editMode}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  ))}
                 </div>
               </section>
             </div>
@@ -577,19 +770,13 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        {/* Request Change Modal */}
-        {showRequestModal && (
-          <RequestChangeModal
-            field={requestField}
-            currentValue={profile?.[requestField]}
-            onClose={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
-            onSubmit={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
+        {/* Consolidated Change Request Modal */}
+        {showChangeRequestModal && (
+          <ChangeRequestModal
+            lockedFields={LOCKED_FIELDS}
+            currentProfile={profile}
+            onClose={() => setShowChangeRequestModal(false)}
+            onSubmit={() => setShowChangeRequestModal(false)}
           />
         )}
       </div>
@@ -597,13 +784,24 @@ export default function ArtistProfile() {
   );
 }
 
-function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
+function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit }) {
+  const [selectedField, setSelectedField] = useState('');
   const [newValue, setNewValue] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
+  const handleFieldSelect = (fieldKey) => {
+    setSelectedField(fieldKey);
+    setNewValue('');
+  };
+
+  const getCurrentValue = () => {
+    if (!selectedField || !currentProfile) return '';
+    return currentProfile[selectedField] || 'Not set';
+  };
+
   const handleSubmit = async () => {
-    if (!newValue || !reason) return;
+    if (!selectedField || !newValue || !reason) return;
     
     setSubmitting(true);
     try {
@@ -613,8 +811,8 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
         .from('profile_change_requests')
         .insert({
           user_id: user.id,
-          field_name: field,
-          current_value: currentValue,
+          field_name: selectedField,
+          current_value: getCurrentValue(),
           requested_value: newValue,
           reason: reason,
           status: 'pending'
@@ -642,35 +840,43 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Field</label>
-            <input
-              type="text"
-              value={field?.replace('_', ' ').toUpperCase()}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
-            <input
-              type="text"
-              value={currentValue || 'Not set'}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Value *</label>
-            <input
-              type="text"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Field to Change *</label>
+            <select
+              value={selectedField}
+              onChange={(e) => handleFieldSelect(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Enter the new value"
-            />
+            >
+              <option value="">Select field to change</option>
+              {lockedFields.map(field => (
+                <option key={field.key} value={field.key}>{field.label}</option>
+              ))}
+            </select>
           </div>
+          
+          {selectedField && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
+                <input
+                  type="text"
+                  value={getCurrentValue()}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New Value *</label>
+                <input
+                  type={selectedField === 'date_of_birth' ? 'date' : 'text'}
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter the new value"
+                />
+              </div>
+            </>
+          )}
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change *</label>
@@ -694,7 +900,7 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!newValue || !reason || submitting}
+            disabled={!selectedField || !newValue || !reason || submitting}
             className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Submitting...' : 'Submit Request'}
