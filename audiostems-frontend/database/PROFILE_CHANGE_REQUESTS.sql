@@ -54,7 +54,7 @@ ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS artist_type TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS primary_genre TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS secondary_genre TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS years_active TEXT;
-ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS record_label TEXT;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS label TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS nationality TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS city TEXT;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS phone TEXT;

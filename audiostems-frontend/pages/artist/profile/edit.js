@@ -16,7 +16,7 @@ export default function EditProfile() {
   const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'nationality', 'country', 'city'];
   
   // EDITABLE: Can change directly
-  const EDITABLE_FIELDS = ['artist_name', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 'years_active', 'record_label', 'bio'];
+  const EDITABLE_FIELDS = ['artist_name', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 'years_active', 'label', 'bio'];
   
   useEffect(() => {
     fetchProfile();
@@ -166,7 +166,7 @@ export default function EditProfile() {
             {EDITABLE_FIELDS.slice(3, 7).map(field => (
               <div key={field}>
                 <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field === 'record_label' ? 'Label' : field.replace('_', ' ')}
+                  {field.replace('_', ' ')}
                 </label>
                 <div className="flex gap-2">
                   <input
