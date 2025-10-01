@@ -324,6 +324,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         audio_file_url: editingRelease.audio_file_url,
         apple_lossless_url: editingRelease.apple_lossless_url
       });
+      console.log('🔍 All editingRelease keys:', Object.keys(editingRelease));
+      console.log('🔍 Complete editingRelease object:', editingRelease);
       
       // Reset form to defaults first, then populate with existing data
       // Try to load complete form data from publishing_info if available
@@ -414,6 +416,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       });
       
       console.log('✅ Form populated with existing release data');
+      console.log('🔍 Form artworkUrl set to:', editingRelease.artworkUrl || editingRelease.artwork_url || '');
+      console.log('🔍 Form audioFileUrl set to:', editingRelease.assets?.[0]?.audioFileUrl || editingRelease.audio_file_url || '');
+      console.log('🔍 Form appleLosslessUrl set to:', editingRelease.assets?.[0]?.appleLosslessUrl || editingRelease.apple_lossless_url || '');
     }
   }, [editingRelease, isOpen]);
 
