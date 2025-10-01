@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/components/providers/SupabaseProvider';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Lock, Edit, Save, X } from 'lucide-react';
-import Layout from '../../../components/layouts/mainLayout';
 
-export default function EditProfile() {
+const supabase = createClientComponentClient();
+
+export default function ArtistProfile() {
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState({});
   const [loading, setLoading] = useState(true);
@@ -12,11 +12,8 @@ export default function EditProfile() {
   const [requestField, setRequestField] = useState(null);
   const [saving, setSaving] = useState(false);
   
-  // LOCKED: Core signup fields - require admin approval
   const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'nationality', 'country', 'city'];
-  
-  // EDITABLE: Can change directly
-  const EDITABLE_FIELDS = ['artist_name', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 'years_active', 'label', 'bio'];
+  const EDITABLE_FIELDS = ['artist_name', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 'years_active', 'record_label', 'bio'];
   
   useEffect(() => {
     fetchProfile();
@@ -24,29 +21,16 @@ export default function EditProfile() {
   
   const fetchProfile = async () => {
     setLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('No session found');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('/api/artist/profile', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
-      });
-
-      if (response.ok) {
-        const profileData = await response.json();
-        setProfile(profileData);
-      } else {
-        console.error('Failed to fetch profile:', response.status);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (data) setProfile(data);
+    setLoading(false);
   };
   
   const handleEdit = (field, value) => {
@@ -55,37 +39,21 @@ export default function EditProfile() {
   
   const saveField = async (field) => {
     setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('No session found');
-        setSaving(false);
-        return;
-      }
-
-      const response = await fetch('/api/artist/profile', {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ [field]: editing[field] })
-      });
-
-      if (response.ok) {
-        setProfile({ ...profile, [field]: editing[field] });
-        const newEditing = { ...editing };
-        delete newEditing[field];
-        setEditing(newEditing);
-      } else {
-        console.error('Failed to save field:', response.status);
-      }
-    } catch (error) {
-      console.error('Error saving field:', error);
-    } finally {
-      setSaving(false);
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ [field]: editing[field] })
+      .eq('id', user.id);
+    
+    if (!error) {
+      setProfile({ ...profile, [field]: editing[field] });
+      const newEditing = { ...editing };
+      delete newEditing[field];
+      setEditing(newEditing);
     }
+    
+    setSaving(false);
   };
   
   const cancelEdit = (field) => {
@@ -98,294 +66,86 @@ export default function EditProfile() {
     setRequestField(field);
     setShowRequestModal(true);
   };
-
-  const handleProfilePictureUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File too large. Max 5MB.');
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Upload to Supabase Storage
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    
-    const { data, error: uploadError } = await supabase.storage
-      .from('profile-pictures')
-      .upload(fileName, file);
-
-    if (uploadError) {
-      alert('Upload failed');
-      return;
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('profile-pictures')
-      .getPublicUrl(fileName);
-
-    // Update user profile via API
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch('/api/artist/profile', {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ profile_picture_url: publicUrl })
-      });
-
-      if (response.ok) {
-        setProfile({ ...profile, profile_picture_url: publicUrl });
-      } else {
-        console.error('Failed to update profile picture');
-      }
-    } catch (error) {
-      console.error('Error updating profile picture:', error);
-    }
-  };
   
-  
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-screen">
-          <div className="text-center">
-            <p className="text-gray-600 text-lg">Unable to load profile data.</p>
-            <button 
-              onClick={fetchProfile}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   
   return (
-    <Layout>
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Artist Profile</h1>
-          <p className="text-gray-600 mt-2">This information will be used across all your releases and platform features</p>
+    <div className="max-w-5xl mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Artist Profile</h1>
+      
+      <section className="bg-white rounded-xl shadow p-6 mb-6">
+        <div className="flex items-center mb-4">
+          <Lock className="w-5 h-5 text-gray-400 mr-2" />
+          <h2 className="text-xl font-semibold">Personal Information</h2>
         </div>
+        <p className="text-sm text-gray-600 mb-6">These fields require admin approval</p>
         
-        {/* Profile Picture Upload */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-          
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <img
-                src={profile?.profile_picture_url || '/default-avatar.png'}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
-              />
-            </div>
-            
-            <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleProfilePictureUpload}
-                className="hidden"
-                id="profile-picture-upload"
-              />
-              <label
-                htmlFor="profile-picture-upload"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer inline-block"
-              >
-                Change Picture
+        <div className="grid grid-cols-2 gap-6">
+          {LOCKED_FIELDS.map(field => (
+            <div key={field}>
+              <label className="block text-sm font-medium mb-2 capitalize">
+                {field.replace('_', ' ')}
               </label>
-              <p className="text-sm text-gray-600 mt-2">JPG, PNG, or WebP. Max 5MB.</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={profile?.[field] || ''}
+                  disabled
+                  className="flex-1 px-4 py-2 border rounded-lg bg-gray-50"
+                />
+                <button
+                  onClick={() => requestChange(field)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg"
+                >
+                  Request Edit
+                </button>
+              </div>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
+      
+      <section className="bg-white rounded-xl shadow p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Artist Information</h2>
         
-        {/* Personal Information - LOCKED */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <Lock className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-          </div>
-          <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {LOCKED_FIELDS.map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={profile?.[field] || ''}
-                    disabled
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                  <button
-                    onClick={() => requestChange(field)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                  >
-                    Request Edit
-                  </button>
-                </div>
+        <div className="grid grid-cols-2 gap-6">
+          {EDITABLE_FIELDS.map(field => (
+            <div key={field}>
+              <label className="block text-sm font-medium mb-2 capitalize">
+                {field.replace('_', ' ')}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type={field === 'bio' ? 'textarea' : 'text'}
+                  value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
+                  onChange={(e) => handleEdit(field, e.target.value)}
+                  className="flex-1 px-4 py-2 border rounded-lg"
+                />
+                {editing[field] !== undefined && (
+                  <>
+                    <button onClick={() => saveField(field)} className="px-4 py-2 bg-green-600 text-white rounded-lg">
+                      <Save className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => cancelEdit(field)} className="px-4 py-2 bg-gray-200 rounded-lg">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
               </div>
-            ))}
-          </div>
-        </section>
-        
-        {/* Artist Information - EDITABLE */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <Edit className="w-5 h-5 text-blue-600 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Artist Information</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EDITABLE_FIELDS.slice(0, 3).map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
-                    onChange={(e) => handleEdit(field, e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {editing[field] !== undefined && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => saveField(field)}
-                        disabled={saving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => cancelEdit(field)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        
-        {/* Music Information - EDITABLE */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Music Information</h3>
-          <p className="text-sm text-gray-600 mb-6">This information pre-fills your release forms</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EDITABLE_FIELDS.slice(3, 7).map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
-                    onChange={(e) => handleEdit(field, e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={field === 'years_active' ? 'e.g., 5 years' : ''}
-                  />
-                  {editing[field] !== undefined && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => saveField(field)}
-                        disabled={saving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => cancelEdit(field)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        
-        {/* Biography */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Biography</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Artist Bio</label>
-            <textarea
-              value={editing.bio !== undefined ? editing.bio : profile?.bio || ''}
-              onChange={(e) => handleEdit('bio', e.target.value)}
-              rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            {editing.bio !== undefined && (
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => saveField('bio')}
-                  disabled={saving}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  Save Bio
-                </button>
-                <button
-                  onClick={() => cancelEdit('bio')}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        </section>
-        
-        {showRequestModal && (
-          <RequestChangeModal
-            field={requestField}
-            currentValue={profile?.[requestField]}
-            onClose={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
-            onSubmit={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
-          />
-        )}
-      </div>
-    </Layout>
+            </div>
+          ))}
+        </div>
+      </section>
+      
+      {showRequestModal && (
+        <RequestChangeModal
+          field={requestField}
+          currentValue={profile?.[requestField]}
+          onClose={() => setShowRequestModal(false)}
+          onSubmit={() => setShowRequestModal(false)}
+        />
+      )}
+    </div>
   );
 }
 
@@ -398,96 +158,51 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
     if (!newValue || !reason) return;
     
     setSubmitting(true);
-    
     const { data: { user } } = await supabase.auth.getUser();
     
-    const { error } = await supabase
-      .from('profile_change_requests')
-      .insert({
-        user_id: user.id,
-        field_name: field,
-        current_value: currentValue,
-        requested_value: newValue,
-        reason: reason,
-        status: 'pending'
-      });
+    await supabase.from('profile_change_requests').insert({
+      user_id: user.id,
+      field_name: field,
+      current_value: currentValue,
+      requested_value: newValue,
+      reason: reason,
+      status: 'pending'
+    });
     
     setSubmitting(false);
-    
-    if (!error) {
-      alert('Change request submitted for approval');
-      onSubmit();
-    }
+    alert('Request submitted');
+    onSubmit();
   };
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 max-w-md w-full">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Request Profile Change</h3>
-        
+        <h3 className="text-xl font-bold mb-4">Request Change</h3>
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Field</label>
-            <input
-              type="text"
-              value={field?.replace('_', ' ').toUpperCase()}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
-            <input
-              type="text"
-              value={currentValue || 'Not set'}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Value *</label>
-            <input
-              type="text"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change *</label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Explain why you need to change this information"
-            />
-          </div>
+          <input type="text" value={field} disabled className="w-full p-2 border rounded bg-gray-50" />
+          <input type="text" value={currentValue || ''} disabled className="w-full p-2 border rounded bg-gray-50" />
+          <input 
+            type="text" 
+            placeholder="New value" 
+            value={newValue} 
+            onChange={(e) => setNewValue(e.target.value)} 
+            className="w-full p-2 border rounded" 
+          />
+          <textarea 
+            placeholder="Reason" 
+            value={reason} 
+            onChange={(e) => setReason(e.target.value)} 
+            className="w-full p-2 border rounded" 
+            rows={3}
+          />
         </div>
-        
         <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!newValue || !reason || submitting}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Submitting...' : 'Submit Request'}
+          <button onClick={onClose} className="flex-1 px-4 py-2 border rounded">Cancel</button>
+          <button onClick={handleSubmit} disabled={!newValue || !reason || submitting} className="flex-1 px-4 py-2 bg-purple-600 text-white rounded">
+            Submit
           </button>
         </div>
       </div>
     </div>
   );
-}
-
-
 }
