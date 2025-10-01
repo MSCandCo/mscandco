@@ -28,6 +28,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'File upload failed' });
     }
 
+    console.log('Starting artwork upload for user:', user.id);
     console.log('Files received:', files); // Debug log
 
     // Handle different formidable versions
@@ -46,6 +47,11 @@ export default async function handler(req, res) {
     }
 
     console.log('File object:', file); // Debug log
+    console.log('File details:', {
+      name: file.originalFilename || file.name,
+      size: file.size,
+      type: file.mimetype || file.type
+    });
 
     // Check filepath vs path (formidable v2 vs v3)
     const filePath = file.filepath || file.path;
@@ -66,8 +72,10 @@ export default async function handler(req, res) {
         upsert: false
       });
 
+    console.log('Supabase upload response:', { data, error: uploadError });
+
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      console.error('Full upload error:', JSON.stringify(uploadError, null, 2));
       return res.status(500).json({ error: uploadError.message });
     }
 
