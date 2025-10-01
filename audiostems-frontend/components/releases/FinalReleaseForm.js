@@ -319,13 +319,23 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         release_date: editingRelease.release_date,
         genre: editingRelease.genre
       });
-      console.log('🖼️ File URLs from database:', {
-        artwork_url: editingRelease.artwork_url,
-        audio_file_url: editingRelease.audio_file_url,
-        apple_lossless_url: editingRelease.apple_lossless_url
-      });
+      console.log('🖼️ File URLs from database:');
+      console.log('  - artwork_url:', editingRelease.artwork_url);
+      console.log('  - audio_file_url:', editingRelease.audio_file_url);
+      console.log('  - apple_lossless_url:', editingRelease.apple_lossless_url);
       console.log('🔍 All editingRelease keys:', Object.keys(editingRelease));
-      console.log('🔍 Complete editingRelease object:', editingRelease);
+      console.log('🔍 Publishing info exists:', !!editingRelease.publishing_info);
+      if (editingRelease.publishing_info) {
+        try {
+          const publishingData = JSON.parse(editingRelease.publishing_info);
+          console.log('🔍 Publishing info file URLs:');
+          console.log('  - artworkUrl:', publishingData.artworkUrl);
+          console.log('  - audioFileUrl:', publishingData.audioFileUrl);
+          console.log('  - appleLosslessUrl:', publishingData.appleLosslessUrl);
+        } catch (e) {
+          console.log('🔍 Publishing info parse error:', e);
+        }
+      }
       
       // Reset form to defaults first, then populate with existing data
       // Try to load complete form data from publishing_info if available
@@ -416,9 +426,10 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       });
       
       console.log('✅ Form populated with existing release data');
-      console.log('🔍 Form artworkUrl set to:', editingRelease.artworkUrl || editingRelease.artwork_url || '');
-      console.log('🔍 Form audioFileUrl set to:', editingRelease.assets?.[0]?.audioFileUrl || editingRelease.audio_file_url || '');
-      console.log('🔍 Form appleLosslessUrl set to:', editingRelease.assets?.[0]?.appleLosslessUrl || editingRelease.apple_lossless_url || '');
+      console.log('🔍 Final form values:');
+      console.log('  - artworkUrl:', editingRelease.artworkUrl || editingRelease.artwork_url || '(empty)');
+      console.log('  - audioFileUrl:', editingRelease.assets?.[0]?.audioFileUrl || editingRelease.audio_file_url || '(empty)');
+      console.log('  - appleLosslessUrl:', editingRelease.assets?.[0]?.appleLosslessUrl || editingRelease.apple_lossless_url || '(empty)');
     }
   }, [editingRelease, isOpen]);
 
