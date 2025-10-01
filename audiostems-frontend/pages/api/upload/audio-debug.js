@@ -18,6 +18,20 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   console.log('🧪 DEBUG Audio upload API called (no auth)');
+  
+  // Write to a debug log file for easier viewing
+  const debugLog = (message) => {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    try {
+      fs.appendFileSync('debug-upload.log', logMessage + '\n');
+    } catch (e) {
+      // Ignore file write errors
+    }
+  };
+  
+  debugLog('🧪 DEBUG Audio upload API called (no auth)');
 
   // Skip authentication for debugging
   const user = { id: '0a060de5-1c94-4060-a1c2-860224fc348d' }; // Henry's ID for testing
@@ -27,12 +41,12 @@ export default async function handler(req, res) {
   form.parse(req, async (err, fields, files) => {
     try {
       if (err) {
-        console.error('Form parse error:', err);
+        debugLog('❌ Form parse error: ' + err.message);
         return res.status(400).json({ error: 'File upload failed', details: err.message });
       }
 
-      console.log('Starting debug audio upload for user:', user.id);
-      console.log('Files received:', Object.keys(files));
+      debugLog('Starting debug audio upload for user: ' + user.id);
+      debugLog('Files received: ' + JSON.stringify(Object.keys(files)));
 
       // Handle different formidable versions
       let file;
@@ -44,37 +58,37 @@ export default async function handler(req, res) {
       }
 
       if (!file) {
-        console.error('No file found in request');
+        debugLog('❌ No file found in request');
         return res.status(400).json({ error: 'No file provided' });
       }
 
-      console.log('File object keys:', Object.keys(file));
-      console.log('File details:', {
+      debugLog('File object keys: ' + JSON.stringify(Object.keys(file)));
+      debugLog('File details: ' + JSON.stringify({
         name: file.originalFilename || file.name,
         size: file.size,
         type: file.mimetype || file.type,
         hasFilepath: !!file.filepath,
         hasPath: !!file.path
-      });
+      }));
 
       // Check filepath vs path (formidable v2 vs v3)
       const filePath = file.filepath || file.path;
       if (!filePath) {
-        console.error('No file path found');
+        debugLog('❌ No file path found');
         return res.status(400).json({ error: 'Invalid file object - no path' });
       }
 
-      console.log('File path:', filePath);
+      debugLog('File path: ' + filePath);
 
       // Skip validation for debugging
-      console.log('Skipping file validation for debug...');
+      debugLog('Skipping file validation for debug...');
 
       let fileBuffer;
       try {
         fileBuffer = fs.readFileSync(filePath);
-        console.log('✅ File read successfully, size:', fileBuffer.length, 'bytes');
+        debugLog('✅ File read successfully, size: ' + fileBuffer.length + ' bytes');
       } catch (readError) {
-        console.error('❌ Error reading file:', readError);
+        debugLog('❌ Error reading file: ' + readError.message);
         return res.status(500).json({ error: 'Failed to read uploaded file', details: readError.message });
       }
       
@@ -82,7 +96,7 @@ export default async function handler(req, res) {
       const originalFilename = file.originalFilename || file.name || 'debug-file';
       const fileName = `${user.id}/${timestamp}-${originalFilename}`;
 
-      console.log('Attempting Supabase upload with filename:', fileName);
+      debugLog('Attempting Supabase upload with filename: ' + fileName);
 
       const { data, error: uploadError } = await supabase.storage
         .from('release-audio')
@@ -92,10 +106,10 @@ export default async function handler(req, res) {
           upsert: false
         });
 
-      console.log('Supabase upload response:', { data, error: uploadError });
+      debugLog('Supabase upload response: ' + JSON.stringify({ data, error: uploadError }));
 
       if (uploadError) {
-        console.error('Full upload error:', JSON.stringify(uploadError, null, 2));
+        debugLog('❌ Full upload error: ' + JSON.stringify(uploadError, null, 2));
         return res.status(500).json({ error: 'Supabase upload failed', details: uploadError });
       }
 
@@ -106,12 +120,12 @@ export default async function handler(req, res) {
       // Clean up temp file
       try {
         fs.unlinkSync(filePath);
-        console.log('✅ Temp file cleaned up');
+        debugLog('✅ Temp file cleaned up');
       } catch (cleanupError) {
-        console.warn('⚠️ Failed to cleanup temp file:', cleanupError);
+        debugLog('⚠️ Failed to cleanup temp file: ' + cleanupError.message);
       }
 
-      console.log('✅ Upload completed successfully, returning URL:', publicUrl);
+      debugLog('✅ Upload completed successfully, returning URL: ' + publicUrl);
       return res.json({ 
         url: publicUrl,
         filename: fileName,
@@ -120,7 +134,8 @@ export default async function handler(req, res) {
       });
       
     } catch (unexpectedError) {
-      console.error('❌ Unexpected error in debug audio upload:', unexpectedError);
+      debugLog('❌ Unexpected error in debug audio upload: ' + unexpectedError.message);
+      debugLog('Stack trace: ' + unexpectedError.stack);
       return res.status(500).json({ 
         error: 'Unexpected server error', 
         details: unexpectedError.message,
