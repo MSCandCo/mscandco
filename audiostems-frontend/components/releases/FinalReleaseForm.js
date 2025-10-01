@@ -319,6 +319,11 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         release_date: editingRelease.release_date,
         genre: editingRelease.genre
       });
+      console.log('🖼️ File URLs from database:', {
+        artwork_url: editingRelease.artwork_url,
+        audio_file_url: editingRelease.audio_file_url,
+        apple_lossless_url: editingRelease.apple_lossless_url
+      });
       
       // Reset form to defaults first, then populate with existing data
       // Try to load complete form data from publishing_info if available
@@ -368,8 +373,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         
         // File uploads
         coverArt: null,
-        artworkUrl: editingRelease.artworkUrl || '',
-        artworkFilename: editingRelease.artworkFilename || '',
+        artworkUrl: editingRelease.artworkUrl || editingRelease.artwork_url || '',
+        artworkFilename: editingRelease.artworkFilename || editingRelease.artwork_filename || '',
         
         // Assets
         assets: editingRelease.assets || [{
@@ -399,12 +404,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           recordingCountry: '',
           contributors: [],
           audioFile: null,
-          audioFileUrl: editingRelease.assets?.[0]?.audioFileUrl || '',
-          audioFilename: editingRelease.assets?.[0]?.audioFilename || '',
+          audioFileUrl: editingRelease.assets?.[0]?.audioFileUrl || editingRelease.audio_file_url || '',
+          audioFilename: editingRelease.assets?.[0]?.audioFilename || editingRelease.audio_file_name || '',
           hasAppleLossless: false,
           appleLosslessFile: null,
-          appleLosslessUrl: editingRelease.assets?.[0]?.appleLosslessUrl || '',
-          appleLosslessFilename: editingRelease.assets?.[0]?.appleLosslessFilename || ''
+          appleLosslessUrl: editingRelease.assets?.[0]?.appleLosslessUrl || editingRelease.apple_lossless_url || '',
+          appleLosslessFilename: editingRelease.assets?.[0]?.appleLosslessFilename || editingRelease.apple_lossless_filename || ''
         }]
       });
       

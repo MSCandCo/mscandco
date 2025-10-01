@@ -31,6 +31,15 @@ export default async function handler(req, res) {
       sellWorldwide,
       territoryRestrictionType,
       territoryRestrictions,
+      // File URLs - extract for dedicated columns
+      artworkUrl,
+      artwork_url,
+      audioFileUrl,
+      audio_file_url,
+      audioFileName,
+      audio_file_name,
+      appleLosslessUrl,
+      apple_lossless_url,
       // Store complete form data
       ...formData
     } = req.body;
@@ -40,6 +49,11 @@ export default async function handler(req, res) {
     }
 
     console.log('✏️ Simple update request:', { id, releaseTitle, primaryArtist, releaseType });
+    console.log('🖼️ File URLs being updated:', {
+      artworkUrl: artworkUrl || artwork_url,
+      audioFileUrl: audioFileUrl || audio_file_url,
+      appleLosslessUrl: appleLosslessUrl || apple_lossless_url
+    });
 
     // Update the release in database
     const { data: release, error } = await supabase
@@ -57,6 +71,11 @@ export default async function handler(req, res) {
           restrictionType: territoryRestrictionType,
           countries: territoryRestrictions
         }) : null,
+        // File URLs in dedicated columns
+        artwork_url: artworkUrl || artwork_url || null,
+        audio_file_url: audioFileUrl || audio_file_url || null,
+        audio_file_name: audioFileName || audio_file_name || null,
+        apple_lossless_url: appleLosslessUrl || apple_lossless_url || null,
         // Store complete form data in publishing_info for full persistence
         publishing_info: JSON.stringify(req.body),
         updated_at: new Date().toISOString()
