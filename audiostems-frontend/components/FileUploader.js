@@ -86,8 +86,10 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
         setUploadingFileName('');
       });
 
-      xhr.open('POST', `/api/upload/${type}`);
-      if (session?.access_token) {
+      // Use debug endpoint for audio uploads temporarily
+      const endpoint = type === 'audio' ? '/api/upload/audio-debug' : `/api/upload/${type}`;
+      xhr.open('POST', endpoint);
+      if (session?.access_token && type !== 'audio') {
         xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
       }
       xhr.send(formData);
