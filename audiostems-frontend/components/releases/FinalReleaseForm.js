@@ -385,8 +385,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         
         // File uploads
         coverArt: null,
-        artworkUrl: editingRelease.artworkUrl || editingRelease.artwork_url || '',
-        artworkFilename: editingRelease.artworkFilename || editingRelease.artwork_filename || '',
+        artworkUrl: editingRelease.artwork_url || editingRelease.artworkUrl || savedFormData.artworkUrl || '',
+        artworkFilename: editingRelease.artwork_filename || editingRelease.artworkFilename || savedFormData.artworkFilename || '',
         
         // Assets
         assets: editingRelease.assets || [{
@@ -416,12 +416,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           recordingCountry: '',
           contributors: [],
           audioFile: null,
-          audioFileUrl: editingRelease.assets?.[0]?.audioFileUrl || editingRelease.audio_file_url || '',
-          audioFilename: editingRelease.assets?.[0]?.audioFilename || editingRelease.audio_file_name || '',
-          hasAppleLossless: false,
+          audioFileUrl: editingRelease.audio_file_url || savedFormData.assets?.[0]?.audioFileUrl || '',
+          audioFilename: editingRelease.audio_file_name || savedFormData.assets?.[0]?.audioFilename || '',
+          hasAppleLossless: !!(editingRelease.apple_lossless_url || savedFormData.assets?.[0]?.appleLosslessUrl),
           appleLosslessFile: null,
-          appleLosslessUrl: editingRelease.assets?.[0]?.appleLosslessUrl || editingRelease.apple_lossless_url || '',
-          appleLosslessFilename: editingRelease.assets?.[0]?.appleLosslessFilename || editingRelease.apple_lossless_filename || ''
+          appleLosslessUrl: editingRelease.apple_lossless_url || savedFormData.assets?.[0]?.appleLosslessUrl || '',
+          appleLosslessFilename: editingRelease.apple_lossless_filename || savedFormData.assets?.[0]?.appleLosslessFilename || ''
         }]
       });
       

@@ -44,6 +44,10 @@ export default async function handler(req, res) {
     } = req.body;
 
     console.log('💾 Simple save request:', { releaseTitle, primaryArtist, releaseType });
+    console.log('🔍 FULL REQUEST BODY KEYS:', Object.keys(req.body));
+    console.log('🔍 REQUEST BODY artworkUrl:', req.body.artworkUrl);
+    console.log('🔍 REQUEST BODY audioFileUrl:', req.body.audioFileUrl);
+    console.log('🔍 REQUEST BODY assets[0]:', req.body.assets?.[0]);
     console.log('🖼️ File URLs being saved:', {
       artworkUrl: artworkUrl || artwork_url,
       audioFileUrl: audioFileUrl || audio_file_url,
@@ -67,11 +71,11 @@ export default async function handler(req, res) {
           restrictionType: territoryRestrictionType,
           countries: territoryRestrictions
         }) : null,
-        // File URLs in dedicated columns
-        artwork_url: artworkUrl || artwork_url || null,
-        audio_file_url: audioFileUrl || audio_file_url || null,
-        audio_file_name: audioFileName || audio_file_name || null,
-        apple_lossless_url: appleLosslessUrl || apple_lossless_url || null,
+        // File URLs in dedicated columns - extract from multiple possible locations
+        artwork_url: artworkUrl || artwork_url || req.body.artworkUrl || null,
+        audio_file_url: audioFileUrl || audio_file_url || req.body.audioFileUrl || req.body.assets?.[0]?.audioFileUrl || null,
+        audio_file_name: audioFileName || audio_file_name || req.body.audioFileName || req.body.assets?.[0]?.audioFilename || null,
+        apple_lossless_url: appleLosslessUrl || apple_lossless_url || req.body.appleLosslessUrl || req.body.assets?.[0]?.appleLosslessUrl || null,
         // Store complete form data in publishing_info for full persistence
         publishing_info: JSON.stringify(req.body),
         status: 'draft'
