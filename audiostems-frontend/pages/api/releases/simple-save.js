@@ -67,11 +67,11 @@ export default async function handler(req, res) {
           restrictionType: territoryRestrictionType,
           countries: territoryRestrictions
         }) : null,
-        // File URLs in dedicated columns (commented out until database is updated)
-        // artwork_url: artworkUrl || artwork_url || null,
-        // audio_file_url: audioFileUrl || audio_file_url || null,
-        // audio_file_name: audioFileName || audio_file_name || null,
-        // apple_lossless_url: appleLosslessUrl || apple_lossless_url || null,
+        // File URLs in dedicated columns
+        artwork_url: artworkUrl || artwork_url || null,
+        audio_file_url: audioFileUrl || audio_file_url || null,
+        audio_file_name: audioFileName || audio_file_name || null,
+        apple_lossless_url: appleLosslessUrl || apple_lossless_url || null,
         // Store complete form data in publishing_info for full persistence
         publishing_info: JSON.stringify(req.body),
         status: 'draft'
