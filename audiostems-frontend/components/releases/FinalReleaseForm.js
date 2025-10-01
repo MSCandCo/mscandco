@@ -1247,6 +1247,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                     <label className="block text-sm font-medium text-gray-700 mb-2">Apple Lossless File</label>
                     <FileUploader
                       type="audio"
+                      restrictToALAC={true}
                       required={false}
                       currentFile={formData.assets[0]?.appleLosslessUrl}
                       onUpload={(url, filename) => {

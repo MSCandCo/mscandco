@@ -3,7 +3,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { Upload, Image, Music, CheckCircle, XCircle } from 'lucide-react';
 
-export default function FileUploader({ type, onUpload, currentFile, required = false }) {
+export default function FileUploader({ type, onUpload, currentFile, required = false, restrictToALAC = false }) {
   const { user } = useUser();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -13,22 +13,30 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type including ALAC
-    const validTypes = type === 'artwork' 
-      ? ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
-      : ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-m4a', 'audio/mp4', 'audio/aac'];
+    // Validate file type including ALAC restriction
+    let validTypes, validExtensions;
+    
+    if (type === 'artwork') {
+      validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    } else if (restrictToALAC) {
+      validTypes = ['audio/x-m4a', 'audio/mp4'];
+      validExtensions = ['m4a'];
+    } else {
+      validTypes = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-m4a', 'audio/mp4', 'audio/aac'];
+      validExtensions = ['mp3', 'wav', 'flac', 'm4a', 'mp4'];
+    }
     
     const fileExt = file.name.split('.').pop().toLowerCase();
-    const validExtensions = type === 'artwork'
-      ? ['jpg', 'jpeg', 'png', 'webp']
-      : ['mp3', 'wav', 'flac', 'm4a', 'mp4', 'aac'];
 
     if (!validTypes.includes(file.type) && !validExtensions.includes(fileExt)) {
-      setError(
-        type === 'artwork' 
-          ? 'Invalid image format. Accepted: JPG, PNG, WebP'
-          : 'Invalid audio format. Accepted: MP3, WAV, FLAC, ALAC (M4A)'
-      );
+      const errorMsg = type === 'artwork' 
+        ? 'Invalid image format. Accepted: JPG, PNG, WebP'
+        : restrictToALAC
+          ? 'Only Apple Lossless (M4A/ALAC) files accepted'
+          : 'Invalid audio format. Accepted: MP3, WAV, FLAC, ALAC (M4A)';
+      
+      setError(errorMsg);
       return;
     }
 
@@ -106,9 +114,12 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
           
           <input
             type="file"
-            accept={type === 'artwork' 
-              ? 'image/*,.jpg,.jpeg,.png,.webp' 
-              : 'audio/*,.mp3,.wav,.flac,.m4a,.mp4,.aac'
+            accept={
+              type === 'artwork' 
+                ? 'image/*,.jpg,.jpeg,.png,.webp' 
+                : restrictToALAC 
+                  ? 'audio/x-m4a,.m4a'
+                  : 'audio/mpeg,audio/wav,audio/flac,audio/x-m4a,.m4a,.mp3,.wav,.flac'
             }
             onChange={handleUpload}
             disabled={uploading}
@@ -131,7 +142,9 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
           <p className="text-sm text-gray-500 mt-2">
             {type === 'artwork' 
               ? 'JPG, PNG, WebP up to 10MB. Min 3000x3000px recommended.'
-              : 'MP3, WAV, FLAC, ALAC up to 150MB. WAV recommended for distribution.'
+              : restrictToALAC
+                ? 'Apple Lossless (M4A) format only. Up to 150MB.'
+                : 'MP3, WAV, FLAC, ALAC up to 150MB. WAV recommended for distribution.'
             }
           </p>
           

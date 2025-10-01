@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   form.parse(req, async (err, fields, files) => {
     if (err) return res.status(400).json({ error: 'File upload failed' });
 
-    const file = files.file;
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
     if (!file) return res.status(400).json({ error: 'No file provided' });
 
     const fileBuffer = fs.readFileSync(file.filepath);
