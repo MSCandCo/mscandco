@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function getUserFromRequest(req) {
   // Get auth token from request headers
@@ -10,21 +14,17 @@ export async function getUserFromRequest(req) {
   }
   
   try {
-    // Use JWT decode pattern from working APIs
-    const userInfo = jwt.decode(token);
+    // Use Supabase's built-in user verification
+    const { data: { user }, error } = await supabase.auth.getUser(token);
     
-    if (!userInfo || !userInfo.sub) {
-      return { user: null, error: 'Invalid token' };
+    if (error || !user) {
+      console.error('Auth error:', error);
+      return { user: null, error: error?.message || 'Invalid token' };
     }
-    
-    // Return user object with ID from token
-    const user = {
-      id: userInfo.sub,
-      email: userInfo.email
-    };
     
     return { user, error: null };
   } catch (error) {
-    return { user: null, error: 'Token decode failed' };
+    console.error('Auth exception:', error);
+    return { user: null, error: 'Authentication failed' };
   }
 }

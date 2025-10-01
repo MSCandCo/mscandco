@@ -17,8 +17,15 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  console.log('🔐 Audio upload API called, checking authentication...');
   const { user, error: authError } = await getUserFromRequest(req);
-  if (authError || !user) return res.status(401).json({ error: 'Not authenticated' });
+  
+  if (authError || !user) {
+    console.error('❌ Authentication failed:', authError);
+    return res.status(401).json({ error: 'Not authenticated', details: authError });
+  }
+  
+  console.log('✅ User authenticated:', user.id);
 
   const form = formidable({ maxFileSize: 150 * 1024 * 1024 });
 
