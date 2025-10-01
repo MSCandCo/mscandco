@@ -238,6 +238,34 @@ export default function LabelAdminArtistsRebuilt() {
     }
   };
 
+  const removeArtist = async (relationshipId) => {
+    if (!confirm('Remove this artist from your roster? This will unlink their releases from your label.')) return;
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/labeladmin/remove-artist', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ relationship_id: relationshipId })
+      });
+      
+      if (response.ok) {
+        showNotification('success', 'Artist Removed', 'Artist has been removed from your roster');
+        fetchAcceptedArtists(); // Refresh list
+      } else {
+        const error = await response.json();
+        showNotification('error', 'Remove Failed', error.error);
+      }
+    } catch (error) {
+      console.error('Error removing artist:', error);
+      showNotification('error', 'Network Error', 'Failed to remove artist');
+    }
+  };
+
   const showNotification = (type, title, message) => {
     setNotification({ show: true, type, title, message });
     setTimeout(() => setNotification({ show: false, type: '', title: '', message: '' }), 5000);
@@ -382,13 +410,21 @@ export default function LabelAdminArtistsRebuilt() {
                       <p className="text-lg font-bold text-blue-600">{artist.draftReleases || 0}</p>
                       <p className="text-xs text-slate-500">Drafts</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right space-y-2">
                       <p className="text-xs text-slate-500">
                         Joined {new Date(artist.joinDate).toLocaleDateString()}
                       </p>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        Active
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                          Active
+                        </span>
+                        <button 
+                          onClick={() => removeArtist(artist.id)}
+                          className="text-xs text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

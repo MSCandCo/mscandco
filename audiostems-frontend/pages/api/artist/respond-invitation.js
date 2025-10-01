@@ -80,6 +80,28 @@ export default async function handler(req, res) {
       } else {
         console.log('✅ Partnership relationship already exists:', existingRelationship.id);
       }
+
+      // AUTOMATIC RELEASE LINKING
+      // Get label admin's company name to match against releases
+      const { data: labelProfile } = await supabase
+        .from('user_profiles')
+        .select('company_name')
+        .eq('id', invitation.label_admin_id)
+        .single();
+      
+      if (labelProfile?.company_name) {
+        // Update releases where record_label matches label admin's company name
+        const { data: updatedReleases, error: linkError } = await supabase
+          .from('releases')
+          .update({ label_admin_id: invitation.label_admin_id })
+          .eq('artist_id', invitation.artist_id)
+          .eq('record_label', labelProfile.company_name)
+          .select('id');
+
+        if (!linkError && updatedReleases?.length > 0) {
+          console.log(`✅ Linked ${updatedReleases.length} releases to label admin`);
+        }
+      }
     }
 
     // CREATE NOTIFICATION for label admin
