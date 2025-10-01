@@ -281,13 +281,28 @@ export default function ArtistProfile() {
   };
 
   const calculateProgress = () => {
-    if (!profile) return 0;
+    const currentData = editedProfile || profile;
+    if (!currentData) return 0;
+    
     const allFields = [
       'first_name', 'last_name', 'email', 'artist_name', 'date_of_birth', 'nationality', 
       'country', 'city', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 
-      'years_active', 'record_label', 'bio', 'website'
+      'years_active', 'record_label', 'bio', 'website', 'instagram', 'facebook', 'twitter'
     ];
-    const completedFields = allFields.filter(field => profile[field] && profile[field].toString().trim() !== '');
+    
+    const completedFields = allFields.filter(field => {
+      const value = currentData[field];
+      const isCompleted = value && value.toString().trim() !== '';
+      return isCompleted;
+    });
+    
+    console.log('Profile completion debug:', {
+      totalFields: allFields.length,
+      completedFields: completedFields.length,
+      completed: completedFields,
+      percentage: Math.round((completedFields.length / allFields.length) * 100)
+    });
+    
     return Math.round((completedFields.length / allFields.length) * 100);
   };
 
@@ -301,6 +316,36 @@ export default function ArtistProfile() {
     });
     return changed;
   };
+
+  const getQuickStats = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return { profileViews: 0, releases: 0, followers: 0 };
+
+      // Get releases count
+      const { data: releases } = await supabase
+        .from('releases')
+        .select('id')
+        .eq('artist_id', profile?.id);
+
+      return {
+        profileViews: 0, // Placeholder - would need analytics table
+        releases: releases?.length || 0,
+        followers: 0 // Placeholder - would need followers table
+      };
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      return { profileViews: 0, releases: 0, followers: 0 };
+    }
+  };
+
+  const [quickStats, setQuickStats] = useState({ profileViews: 0, releases: 0, followers: 0 });
+
+  useEffect(() => {
+    if (profile?.id) {
+      getQuickStats().then(setQuickStats);
+    }
+  }, [profile?.id]);
 
   if (loading) {
     return (
@@ -809,15 +854,15 @@ export default function ArtistProfile() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Profile Views</span>
-                    <span className="font-semibold">0</span>
+                    <span className="font-semibold">{quickStats.profileViews}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Releases</span>
-                    <span className="font-semibold">0</span>
+                    <span className="font-semibold">{quickStats.releases}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Followers</span>
-                    <span className="font-semibold">0</span>
+                    <span className="font-semibold">{quickStats.followers}</span>
                   </div>
                 </div>
               </section>
