@@ -309,6 +309,20 @@ export default function RoleBasedNavigation() {
                     >
                       Profile
                     </Link>
+                    <Link
+                      href="/distributionpartner/messages"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Messages
+                    </Link>
+                    <Link
+                      href="/distributionpartner/notifications"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -491,6 +505,20 @@ export default function RoleBasedNavigation() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/admin/messages"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Messages
+                    </Link>
+                    <Link
+                      href="/admin/notifications"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -702,6 +730,20 @@ export default function RoleBasedNavigation() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/companyadmin/messages"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Messages
+                    </Link>
+                    <Link
+                      href="/companyadmin/notifications"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -917,6 +959,25 @@ export default function RoleBasedNavigation() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/labeladmin/messages"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Messages
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      href="/labeladmin/notifications"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
                     </Link>
                     <Link
                       href="/billing"
@@ -1164,6 +1225,23 @@ export default function RoleBasedNavigation() {
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                         <User className="w-4 h-4 mr-2" />
                         Profile
+                      </div>
+                    </Link>
+                    <Link href="/artist/messages">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Bell className="w-4 h-4 mr-2" />
+                        Messages
+                        {unreadCount > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <Link href="/artist/notifications">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Bell className="w-4 h-4 mr-2" />
+                        Notifications
                       </div>
                     </Link>
                     <Link href="/billing">
