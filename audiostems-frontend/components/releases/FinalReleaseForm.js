@@ -515,6 +515,10 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       currentFormTitle: formData.releaseTitle
     });
     console.log('💾 Save to draft called:', { releaseTitle: formData.releaseTitle });
+    console.log('🔍 SAVE DEBUG - Form data file URLs:');
+    console.log('  - formData.artworkUrl:', formData.artworkUrl);
+    console.log('  - formData.assets[0].audioFileUrl:', formData.assets[0]?.audioFileUrl);
+    console.log('  - formData.assets[0].appleLosslessUrl:', formData.assets[0]?.appleLosslessUrl);
     
     if (!formData.releaseTitle) {
       console.error('❌ Cannot save - Release Title required');
@@ -609,10 +613,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         });
       } else {
         // Create new release
-        response = await fetch('/api/releases/simple-save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const savePayload = {
             releaseTitle: draftData.releaseTitle,
             primaryArtist: draftData.primaryArtist,
             releaseType: draftData.releaseType,
@@ -632,7 +633,19 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             territoryRestrictions: draftData.territoryRestrictions,
             // Pass complete form data
             ...draftData
-          })
+        };
+        
+        console.log('🔍 SAVE PAYLOAD DEBUG - Data being sent to API:');
+        console.log('  - artworkUrl:', savePayload.artworkUrl);
+        console.log('  - audioFileUrl:', savePayload.audioFileUrl);
+        console.log('  - appleLosslessUrl:', savePayload.appleLosslessUrl);
+        console.log('  - assets[0].audioFileUrl:', savePayload.assets?.[0]?.audioFileUrl);
+        console.log('  - assets[0].appleLosslessUrl:', savePayload.assets?.[0]?.appleLosslessUrl);
+        
+        response = await fetch('/api/releases/simple-save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(savePayload)
         });
       }
 
