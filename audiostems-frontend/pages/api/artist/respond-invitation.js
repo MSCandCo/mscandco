@@ -48,24 +48,38 @@ export default async function handler(req, res) {
 
     // If accepted, create the partnership relationship
     if (action === 'accept') {
-      const { data: relationship, error: relError } = await supabase
+      // Check if relationship already exists
+      const { data: existingRelationship } = await supabase
         .from('artist_label_relationships')
-        .insert({
-          artist_id: invitation.artist_id,
-          label_admin_id: invitation.label_admin_id,
-          label_split_percentage: invitation.label_split_percentage,
-          artist_split_percentage: invitation.artist_split_percentage,
-          status: 'active'
-        })
-        .select()
+        .select('id')
+        .eq('artist_id', invitation.artist_id)
+        .eq('label_admin_id', invitation.label_admin_id)
+        .eq('status', 'active')
         .single();
 
-      if (relError) {
-        console.error('❌ Error creating relationship:', relError);
-        return res.status(500).json({ error: 'Invitation accepted but failed to create partnership' });
-      }
+      // Only create if doesn't exist
+      if (!existingRelationship) {
+        const { data: relationship, error: relError } = await supabase
+          .from('artist_label_relationships')
+          .insert({
+            artist_id: invitation.artist_id,
+            label_admin_id: invitation.label_admin_id,
+            label_split_percentage: invitation.label_split_percentage,
+            artist_split_percentage: invitation.artist_split_percentage,
+            status: 'active'
+          })
+          .select()
+          .single();
 
-      console.log('✅ Partnership relationship created:', relationship.id);
+        if (relError) {
+          console.error('❌ Error creating relationship:', relError);
+          return res.status(500).json({ error: 'Invitation accepted but failed to create partnership' });
+        }
+
+        console.log('✅ Partnership relationship created:', relationship.id);
+      } else {
+        console.log('✅ Partnership relationship already exists:', existingRelationship.id);
+      }
     }
 
     // CREATE NOTIFICATION for label admin
