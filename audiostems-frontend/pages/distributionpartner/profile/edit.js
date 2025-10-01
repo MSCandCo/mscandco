@@ -77,6 +77,47 @@ export default function EditProfile() {
     setRequestField(field);
     setShowRequestModal(true);
   };
+
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File too large. Max 5MB.');
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Upload to Supabase Storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    
+    const { data, error: uploadError } = await supabase.storage
+      .from('profile-pictures')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert('Upload failed');
+      return;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('profile-pictures')
+      .getPublicUrl(fileName);
+
+    // Update user profile
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({ profile_picture_url: publicUrl })
+      .eq('id', user.id);
+
+    if (!updateError) {
+      setProfile({ ...profile, profile_picture_url: publicUrl });
+    }
+  };
   
   // Branded notification functions
   const showSuccessNotification = (message) => {
@@ -150,6 +191,38 @@ export default function EditProfile() {
           <h1 className="text-3xl font-bold text-gray-900">Distribution Partner Profile</h1>
           <p className="text-gray-600 mt-2">Manage your distribution partnership information</p>
         </div>
+        
+        {/* Profile Picture Upload */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
+          
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <img
+                src={profile?.profile_picture_url || '/default-avatar.png'}
+                alt="Profile"
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+              />
+            </div>
+            
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureUpload}
+                className="hidden"
+                id="profile-picture-upload"
+              />
+              <label
+                htmlFor="profile-picture-upload"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer inline-block"
+              >
+                Change Picture
+              </label>
+              <p className="text-sm text-gray-600 mt-2">JPG, PNG, or WebP. Max 5MB.</p>
+            </div>
+          </div>
+        </section>
         
         {/* Personal Information - LOCKED */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
