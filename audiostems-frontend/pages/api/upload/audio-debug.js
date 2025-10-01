@@ -96,12 +96,30 @@ export default async function handler(req, res) {
       const originalFilename = file.originalFilename || file.name || 'debug-file';
       const fileName = `${user.id}/${timestamp}-${originalFilename}`;
 
+      // Normalize MIME type for Supabase compatibility
+      let contentType = file.mimetype || file.type || 'audio/wav';
+      
+      // Map common non-standard MIME types to standard ones
+      const mimeTypeMap = {
+        'audio/x-wav': 'audio/wav',
+        'audio/x-mp3': 'audio/mpeg',
+        'audio/x-mpeg': 'audio/mpeg',
+        'audio/x-flac': 'audio/flac',
+        'audio/x-m4a': 'audio/mp4'
+      };
+      
+      if (mimeTypeMap[contentType]) {
+        contentType = mimeTypeMap[contentType];
+      }
+      
       debugLog('Attempting Supabase upload with filename: ' + fileName);
+      debugLog('Original MIME type: ' + (file.mimetype || file.type));
+      debugLog('Normalized content type: ' + contentType);
 
       const { data, error: uploadError } = await supabase.storage
         .from('release-audio')
         .upload(fileName, fileBuffer, {
-          contentType: file.mimetype || file.type || 'audio/wav',
+          contentType: contentType,
           cacheControl: '31536000',
           upsert: false
         });
