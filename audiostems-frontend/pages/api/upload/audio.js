@@ -23,10 +23,35 @@ export default async function handler(req, res) {
   const form = formidable({ maxFileSize: 150 * 1024 * 1024 });
 
   form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(400).json({ error: 'File upload failed' });
+    if (err) {
+      console.error('Form parse error:', err);
+      return res.status(400).json({ error: 'File upload failed' });
+    }
 
-    const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    if (!file) return res.status(400).json({ error: 'No file provided' });
+    console.log('Files received:', files); // Debug log
+
+    // Handle different formidable versions
+    let file;
+    if (files.file) {
+      file = Array.isArray(files.file) ? files.file[0] : files.file;
+    } else if (Object.keys(files).length > 0) {
+      // Get first file if 'file' key doesn't exist
+      const firstKey = Object.keys(files)[0];
+      file = Array.isArray(files[firstKey]) ? files[firstKey][0] : files[firstKey];
+    }
+
+    if (!file) {
+      console.error('No file found in request');
+      return res.status(400).json({ error: 'No file provided' });
+    }
+
+    console.log('File object:', file); // Debug log
+
+    // Check filepath vs path (formidable v2 vs v3)
+    const filePath = file.filepath || file.path;
+    if (!filePath) {
+      return res.status(400).json({ error: 'Invalid file object' });
+    }
 
     // Validate audio format including ALAC
     const validMimeTypes = [
@@ -38,23 +63,24 @@ export default async function handler(req, res) {
       'audio/aac'
     ];
     
-    const fileExt = file.originalFilename.split('.').pop().toLowerCase();
+    const originalFilename = file.originalFilename || file.name || 'unknown';
+    const fileExt = originalFilename.split('.').pop().toLowerCase();
     const validExtensions = ['mp3', 'wav', 'flac', 'm4a', 'mp4', 'aac'];
 
-    if (!validMimeTypes.includes(file.mimetype) && !validExtensions.includes(fileExt)) {
+    if (!validMimeTypes.includes(file.mimetype || file.type) && !validExtensions.includes(fileExt)) {
       return res.status(400).json({ 
         error: 'Invalid audio format. Supported: MP3, WAV, FLAC, ALAC (M4A)' 
       });
     }
 
-    const fileBuffer = fs.readFileSync(file.filepath);
+    const fileBuffer = fs.readFileSync(filePath);
     const timestamp = Date.now();
-    const fileName = `${user.id}/${timestamp}-${file.originalFilename}`;
+    const fileName = `${user.id}/${timestamp}-${originalFilename}`;
 
     const { data, error: uploadError } = await supabase.storage
       .from('release-audio')
       .upload(fileName, fileBuffer, {
-        contentType: file.mimetype,
+        contentType: file.mimetype || file.type,
         cacheControl: '31536000',
         upsert: false
       });
@@ -68,7 +94,7 @@ export default async function handler(req, res) {
       .from('release-audio')
       .getPublicUrl(fileName);
 
-    fs.unlinkSync(file.filepath);
+    fs.unlinkSync(filePath);
 
     return res.json({ 
       url: publicUrl,
