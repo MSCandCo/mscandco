@@ -1,6 +1,7 @@
 // Final Code Group Release Form - Complete & Working
 import { useState, useEffect } from 'react';
 import { RELEASE_TYPES, GENRES, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES, OTHER_RELEASE_DETAIL_TYPES } from '../../lib/constants';
+import FileUploader from '../FileUploader';
 
 // Comprehensive country list (alphabetical)
 const ALL_COUNTRIES = [
@@ -992,17 +993,17 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             <div className="border border-gray-200 rounded-lg p-6 mb-8">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Cover Art *</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setFormData(prev => ({ ...prev, coverArt: file }));
-                    }
+                <FileUploader
+                  type="artwork"
+                  required={true}
+                  currentFile={formData.artworkUrl}
+                  onUpload={(url, filename) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      artworkUrl: url,
+                      artworkFilename: filename
+                    }));
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
                 />
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
@@ -1183,21 +1184,21 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
               {/* Audio File Upload */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Audio File (WAV) *</label>
-                <input
-                  type="file"
-                  accept=".wav"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setFormData(prev => ({
-                        ...prev,
-                        assets: [{ ...prev.assets[0], audioFile: file }]
-                      }));
-                    }
+                <label className="block text-sm font-medium text-gray-700 mb-2">Audio File *</label>
+                <FileUploader
+                  type="audio"
+                  required={true}
+                  currentFile={formData.assets[0]?.audioFileUrl}
+                  onUpload={(url, filename) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      assets: [{
+                        ...prev.assets[0],
+                        audioFileUrl: url,
+                        audioFilename: filename
+                      }]
+                    }));
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
                 />
                 <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <p className="text-sm text-purple-800">
@@ -1244,19 +1245,20 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                 {formData.assets[0].hasAppleLossless && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Apple Lossless File</label>
-                    <input
-                      type="file"
-                      accept=".m4a,.alac"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setFormData(prev => ({
-                            ...prev,
-                            assets: [{ ...prev.assets[0], appleLosslessFile: file }]
-                          }));
-                        }
+                    <FileUploader
+                      type="audio"
+                      required={false}
+                      currentFile={formData.assets[0]?.appleLosslessUrl}
+                      onUpload={(url, filename) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          assets: [{
+                            ...prev.assets[0],
+                            appleLosslessUrl: url,
+                            appleLosslessFilename: filename
+                          }]
+                        }));
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Upload Apple Lossless (.m4a) or ALAC format for enhanced quality on Apple Music
