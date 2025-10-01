@@ -70,20 +70,44 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
-          // Show processing phase (90% to 100%)
-          setProgress(95);
-          setTimeout(() => {
+          try {
             const response = JSON.parse(xhr.responseText);
-            setProgress(100);
+            console.log('🔍 FileUploader: Upload successful, response:', response);
+            console.log('🔍 FileUploader: Calling onUpload with URL:', response.url);
+            console.log('🔍 FileUploader: onUpload callback exists:', !!onUpload);
+            
+            // Show processing phase (90% to 100%)
+            setProgress(95);
+            
             setTimeout(() => {
-              onUpload(response.url, response.filename);
-              setUploading(false);
-              setProgress(0);
-              setError(null);
-              setUploadingFileName('');
-            }, 300); // Brief pause at 100% before completion
-          }, 200); // Processing simulation
+              setProgress(100);
+              
+              // Call onUpload immediately with the URL
+              if (onUpload && response.url) {
+                console.log('✅ FileUploader: Calling onUpload callback');
+                onUpload(response.url, response.filename);
+              } else {
+                console.error('❌ FileUploader: Missing onUpload callback or response.url');
+                console.log('  - onUpload exists:', !!onUpload);
+                console.log('  - response.url:', response.url);
+              }
+              
+              setTimeout(() => {
+                setUploading(false);
+                setProgress(0);
+                setError(null);
+                setUploadingFileName('');
+              }, 300); // Brief pause at 100% before cleanup
+            }, 200); // Processing simulation
+            
+          } catch (parseError) {
+            console.error('❌ FileUploader: Error parsing response:', parseError);
+            setError('Upload response error');
+            setUploading(false);
+            setUploadingFileName('');
+          }
         } else {
+          console.error('❌ FileUploader: Upload failed with status:', xhr.status);
           setError('Upload failed');
           setUploading(false);
           setUploadingFileName('');

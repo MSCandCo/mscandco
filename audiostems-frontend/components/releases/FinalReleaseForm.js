@@ -1044,11 +1044,15 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                   required={true}
                   currentFile={formData.artworkUrl}
                   onUpload={(url, filename) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      artworkUrl: url,
-                      artworkFilename: filename
-                    }));
+                    console.log('🎨 Artwork onUpload callback triggered with:', { url, filename });
+                    setFormData(prev => {
+                      console.log('🎨 Setting artworkUrl in form data:', url);
+                      return {
+                        ...prev,
+                        artworkUrl: url,
+                        artworkFilename: filename
+                      };
+                    });
                   }}
                 />
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1236,14 +1240,18 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                   required={true}
                   currentFile={formData.assets[0]?.audioFileUrl}
                   onUpload={(url, filename) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      assets: [{
-                        ...prev.assets[0],
-                        audioFileUrl: url,
-                        audioFilename: filename
-                      }]
-                    }));
+                    console.log('🎵 Audio onUpload callback triggered with:', { url, filename });
+                    setFormData(prev => {
+                      console.log('🎵 Setting audioFileUrl in form data:', url);
+                      return {
+                        ...prev,
+                        assets: [{
+                          ...prev.assets[0],
+                          audioFileUrl: url,
+                          audioFilename: filename
+                        }]
+                      };
+                    });
                   }}
                 />
                 <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
@@ -1297,14 +1305,18 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                       required={false}
                       currentFile={formData.assets[0]?.appleLosslessUrl}
                       onUpload={(url, filename) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          assets: [{
-                            ...prev.assets[0],
-                            appleLosslessUrl: url,
-                            appleLosslessFilename: filename
-                          }]
-                        }));
+                        console.log('🎧 Apple Lossless onUpload callback triggered with:', { url, filename });
+                        setFormData(prev => {
+                          console.log('🎧 Setting appleLosslessUrl in form data:', url);
+                          return {
+                            ...prev,
+                            assets: [{
+                              ...prev.assets[0],
+                              appleLosslessUrl: url,
+                              appleLosslessFilename: filename
+                            }]
+                          };
+                        });
                       }}
                     />
                     <p className="text-xs text-gray-500 mt-1">
