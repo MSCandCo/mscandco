@@ -178,14 +178,14 @@ export default function ArtistProfile() {
         setProfile(editedProfile);
         setEditMode(false);
         setErrors({});
-        alert('Profile updated successfully!');
+        showBrandedNotification('Profile updated successfully!');
       } else {
         console.error('Failed to save profile:', response.status);
-        alert('Failed to save changes. Please try again.');
+        showBrandedNotification('Failed to save changes. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save changes. Please try again.');
+      showBrandedNotification('Failed to save changes. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
@@ -195,6 +195,37 @@ export default function ArtistProfile() {
     setEditedProfile(profile);
     setEditMode(false);
     setErrors({});
+  };
+
+  const showBrandedNotification = (message, type = 'success') => {
+    const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    const borderColor = type === 'success' ? '#065f46' : '#991b1b';
+    const textColor = type === 'success' ? '#065f46' : '#991b1b';
+    
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${bgColor};
+      border-left: 4px solid ${borderColor};
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: ${textColor};">
+        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
   const handleProfilePictureUpload = async (e) => {
@@ -347,7 +378,7 @@ export default function ArtistProfile() {
             <div className="lg:col-span-2 space-y-8">
               
               {/* Personal Information - LOCKED */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-4">
                   <Lock className="w-5 h-5 text-gray-400 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
@@ -423,7 +454,7 @@ export default function ArtistProfile() {
               </section>
 
               {/* Artist Information - EDITABLE */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-6">
                   <Music className="w-5 h-5 text-blue-600 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">Artist Information</h2>
@@ -614,7 +645,7 @@ export default function ArtistProfile() {
               </section>
 
               {/* Biography */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-6">
                   <FileText className="w-5 h-5 text-green-600 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
@@ -641,7 +672,7 @@ export default function ArtistProfile() {
               </section>
 
               {/* Social Media */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-6">
                   <Globe className="w-5 h-5 text-indigo-600 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">Social Media & Links</h2>
@@ -684,7 +715,7 @@ export default function ArtistProfile() {
             <div className="space-y-6">
               
               {/* Profile Picture */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
                 
                 <div className="text-center">
@@ -726,7 +757,7 @@ export default function ArtistProfile() {
               </section>
 
               {/* Profile Completion */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
                 
                 <div className="mb-4">
@@ -748,7 +779,7 @@ export default function ArtistProfile() {
               </section>
 
               {/* Quick Stats */}
-              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
                 
                 <div className="space-y-3">
@@ -819,15 +850,15 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit })
         });
       
       if (!error) {
-        alert('Change request submitted for approval');
+        showBrandedNotification('Change request submitted for approval');
         onSubmit();
       } else {
         console.error('Error submitting request:', error);
-        alert('Failed to submit request');
+        showBrandedNotification('Failed to submit request', 'error');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to submit request');
+      showBrandedNotification('Failed to submit request', 'error');
     } finally {
       setSubmitting(false);
     }
