@@ -246,72 +246,60 @@ export default function ArtistProfile() {
     }
 
     setUploadingPicture(true);
-    console.log('🖼️ Starting profile picture upload...');
+    console.log('🖼️ Starting profile picture upload using API...');
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         showBrandedNotification('Authentication required', 'error');
         return;
       }
-      
-      console.log('📁 User ID:', user.id);
-      
-      // Use correct path format: userId/profile-picture-timestamp.ext
-      const fileExt = file.name.split('.').pop().toLowerCase();
-      const fileName = `${user.id}/profile-picture-${Date.now()}.${fileExt}`;
-      
-      console.log('📤 Uploading to:', fileName);
-      console.log('📊 File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-      
-      const { data, error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true // Allow overwriting existing files
-        });
 
-      if (uploadError) {
-        console.error('❌ Upload error:', uploadError);
-        showBrandedNotification(`Upload failed: ${uploadError.message}`, 'error');
-        return;
-      }
+      const formData = new FormData();
+      formData.append('file', file);
 
-      console.log('✅ Upload successful:', data);
+      console.log('📤 Uploading via /api/upload/profile-picture endpoint...');
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(fileName);
-
-      console.log('🔗 Public URL:', publicUrl);
-
-      // Update profile picture via API
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch('/api/artist/profile', {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+      const response = await fetch('/api/upload/profile-picture', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ profile_picture_url: publicUrl })
+        body: formData
       });
 
-      console.log('💾 API response status:', response.status);
+      console.log('📊 Upload response status:', response.status);
 
       if (response.ok) {
-        console.log('✅ Profile picture updated in database');
-        setProfile({ ...profile, profile_picture_url: publicUrl });
-        setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
-        showBrandedNotification('Profile picture updated successfully!');
+        const result = await response.json();
+        console.log('✅ Upload successful:', result);
+        
+        const publicUrl = result.url;
+        console.log('🔗 Public URL:', publicUrl);
+
+        // Update profile with the new picture URL
+        const updateResponse = await fetch('/api/artist/profile', {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ profile_picture_url: publicUrl })
+        });
+
+        if (updateResponse.ok) {
+          console.log('✅ Profile picture updated in database');
+          setProfile({ ...profile, profile_picture_url: publicUrl });
+          setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
+          showBrandedNotification('Profile picture updated successfully!');
+        } else {
+          console.error('❌ Failed to update profile:', updateResponse.status);
+          showBrandedNotification('Failed to save profile picture', 'error');
+        }
       } else {
         const errorData = await response.text();
-        console.error('❌ API update failed:', response.status, errorData);
-        showBrandedNotification('Failed to save profile picture to database', 'error');
+        console.error('❌ Upload failed:', response.status, errorData);
+        showBrandedNotification('Upload failed. Please try again.', 'error');
       }
     } catch (error) {
       console.error('❌ Unexpected error:', error);
