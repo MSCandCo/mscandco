@@ -53,7 +53,8 @@ export default async function handler(req, res) {
         facebook: profile.facebook || '',
         twitter: profile.twitter || '',
         youtube: profile.youtube || '',
-        tiktok: profile.tiktok || ''
+        tiktok: profile.tiktok || '',
+        profile_picture_url: profile.profile_picture_url || null
       });
     }
 
@@ -83,6 +84,7 @@ export default async function handler(req, res) {
         twitter: req.body.twitter,
         youtube: req.body.youtube,
         tiktok: req.body.tiktok,
+        profile_picture_url: req.body.profile_picture_url,
         updated_at: new Date().toISOString()
       };
 
