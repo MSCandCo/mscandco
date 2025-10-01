@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { supabase } from '@/lib/supabase';
 import { Lock, Edit, Save, X } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
-
-const supabase = createClientComponentClient();
 
 export default function EditProfile() {
   const [profile, setProfile] = useState(null);
