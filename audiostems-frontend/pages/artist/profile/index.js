@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { Lock, Edit, Save, X } from 'lucide-react';
-
-const supabase = createClientComponentClient();
 
 export default function ArtistProfile() {
   const [profile, setProfile] = useState(null);
