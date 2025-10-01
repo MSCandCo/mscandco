@@ -249,7 +249,8 @@ export default function ArtistProfile() {
         .upload(fileName, file);
 
       if (uploadError) {
-        alert('Upload failed');
+        console.error('Upload error:', uploadError);
+        alert('Upload failed: ' + uploadError.message);
         return;
       }
 
@@ -271,10 +272,14 @@ export default function ArtistProfile() {
       if (response.ok) {
         setProfile({ ...profile, profile_picture_url: publicUrl });
         setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
+        showBrandedNotification('Profile picture updated successfully!');
+      } else {
+        console.error('Failed to update profile picture via API:', response.status);
+        showBrandedNotification('Failed to update profile picture', 'error');
       }
     } catch (error) {
       console.error('Error uploading picture:', error);
-      alert('Upload failed');
+      showBrandedNotification('Upload failed: ' + error.message, 'error');
     } finally {
       setUploadingPicture(false);
     }
@@ -317,35 +322,6 @@ export default function ArtistProfile() {
     return changed;
   };
 
-  const getQuickStats = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return { profileViews: 0, releases: 0, followers: 0 };
-
-      // Get releases count
-      const { data: releases } = await supabase
-        .from('releases')
-        .select('id')
-        .eq('artist_id', profile?.id);
-
-      return {
-        profileViews: 0, // Placeholder - would need analytics table
-        releases: releases?.length || 0,
-        followers: 0 // Placeholder - would need followers table
-      };
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      return { profileViews: 0, releases: 0, followers: 0 };
-    }
-  };
-
-  const [quickStats, setQuickStats] = useState({ profileViews: 0, releases: 0, followers: 0 });
-
-  useEffect(() => {
-    if (profile?.id) {
-      getQuickStats().then(setQuickStats);
-    }
-  }, [profile?.id]);
 
   if (loading) {
     return (
@@ -847,25 +823,6 @@ export default function ArtistProfile() {
                 </p>
               </section>
 
-              {/* Quick Stats */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Profile Views</span>
-                    <span className="font-semibold">{quickStats.profileViews}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Releases</span>
-                    <span className="font-semibold">{quickStats.releases}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Followers</span>
-                    <span className="font-semibold">{quickStats.followers}</span>
-                  </div>
-                </div>
-              </section>
             </div>
           </div>
         </div>
