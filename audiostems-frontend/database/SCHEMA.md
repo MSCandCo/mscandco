@@ -1,25 +1,43 @@
-# Database Schema
+# Database Schema - Complete Structure
 
-## Tables Created
+## Core Tables
 
 ### user_profiles
-- **Purpose**: Core user information for all user types (artist, label_admin, company_admin, etc.)
+- **Purpose**: Core user information for all user types
 - **Columns**:
   - `id` UUID PRIMARY KEY
-  - `email` TEXT UNIQUE
-  - `role` TEXT (artist, label_admin, company_admin, super_admin, distribution_partner)
+  - `email` TEXT UNIQUE NOT NULL
+  - `role` TEXT NOT NULL (artist, label_admin, company_admin, super_admin, distribution_partner)
   - `first_name` TEXT
   - `last_name` TEXT
   - `artist_name` TEXT (stage/professional name)
+  - `display_name` TEXT
+  - `custom_admin_title` TEXT
   - `company_name` TEXT
   - `phone` TEXT
+  - `country_code` TEXT DEFAULT '+44'
   - `country` TEXT
+  - `city` TEXT
+  - `nationality` TEXT
+  - `artist_type` TEXT
+  - `primary_genre` TEXT
+  - `secondary_genre` TEXT
+  - `years_active` TEXT
+  - `record_label` TEXT
   - `bio` TEXT
-  - `profile_completed` BOOLEAN
-  - `created_at` TIMESTAMP
-  - `updated_at` TIMESTAMP
+  - `subscription_tier` TEXT
+  - `subscription_status` TEXT DEFAULT 'inactive'
+  - `subscription_expires_at` TIMESTAMP
+  - `analytics_data` JSONB (manual analytics from admin)
+  - `earnings_data` JSONB (earnings summaries)
+  - `label_admin_id` UUID (current managing label)
+  - `company_admin_id` UUID
+  - `default_label_admin_id` UUID
+  - `created_at` TIMESTAMP DEFAULT NOW()
+  - `updated_at` TIMESTAMP DEFAULT NOW()
+  - `last_active_at` TIMESTAMP DEFAULT NOW()
 - **RLS Policies**:
-  - `allow_authenticated_read`: Users can read profiles
+  - `allow_authenticated_read`: All authenticated users can read profiles
   - `users_update_own_profile`: Users can update their own profile
   - `service_role_all_access`: Service role has full access
 
