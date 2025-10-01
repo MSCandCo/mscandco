@@ -86,10 +86,8 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
         setUploadingFileName('');
       });
 
-      // Use debug endpoint for audio uploads temporarily
-      const endpoint = type === 'audio' ? '/api/upload/audio-debug' : `/api/upload/${type}`;
-      xhr.open('POST', endpoint);
-      if (session?.access_token && type !== 'audio') {
+      xhr.open('POST', `/api/upload/${type}`);
+      if (session?.access_token) {
         xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
       }
       xhr.send(formData);
@@ -206,11 +204,55 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
           )}
 
           {type === 'audio' && currentFile && (
-            <div className="mt-3">
-              <audio controls className="w-full">
-                <source src={currentFile} />
-                Your browser does not support audio playback.
-              </audio>
+            <div className="mt-4 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                    <Music className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {currentFile.split('/').pop().split('-').slice(1).join('-') || 'Audio Preview'}
+                  </p>
+                  <p className="text-xs text-slate-500">Ready for distribution</p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center space-x-1 text-xs text-emerald-600 font-medium">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span>Live</span>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <audio 
+                  controls 
+                  className="w-full h-12 rounded-lg shadow-inner"
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '8px'
+                  }}
+                >
+                  <source src={currentFile} />
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-4">
+                  <span className="flex items-center text-slate-600">
+                    <span className="mr-1">🎵</span>
+                    Professional Quality
+                  </span>
+                  <span className="flex items-center text-slate-600">
+                    <span className="mr-1">🎧</span>
+                    Distribution Ready
+                  </span>
+                </div>
+                <div className="flex items-center text-emerald-600 font-medium">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Uploaded
+                </div>
+              </div>
             </div>
           )}
         </div>
