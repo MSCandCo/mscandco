@@ -69,6 +69,9 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       });
 
       xhr.addEventListener('load', () => {
+        console.log('📨 FileUploader: XHR load event fired, status:', xhr.status);
+        console.log('📨 FileUploader: Response text length:', xhr.responseText?.length);
+        
         if (xhr.status === 200) {
           try {
             const response = JSON.parse(xhr.responseText);
@@ -124,6 +127,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       if (session?.access_token) {
         xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
       }
+      console.log('🚀 FileUploader: Starting XHR request to:', `/api/upload/${type}`);
       xhr.send(formData);
 
     } catch (err) {
