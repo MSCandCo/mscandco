@@ -60,6 +60,25 @@ export default function LabelAdminMessages() {
     }
   };
 
+  const deleteNotification = async (notificationId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      await fetch('/api/notifications/delete', {
+        method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ notification_id: notificationId })
+      });
+      
+      fetchNotifications(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'invitation_response': return <Users className="w-6 h-6 text-blue-600" />;
@@ -145,15 +164,23 @@ export default function LabelAdminMessages() {
                     {new Date(notif.created_at).toLocaleDateString()} at {new Date(notif.created_at).toLocaleTimeString()}
                   </div>
 
-                  {!notif.read && (
+                  <div className="flex items-center space-x-2">
+                    {!notif.read && (
+                      <button
+                        onClick={() => markAsRead(notif.id)}
+                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center space-x-1"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Mark as read</span>
+                      </button>
+                    )}
                     <button
-                      onClick={() => markAsRead(notif.id)}
-                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center space-x-1"
+                      onClick={() => deleteNotification(notif.id)}
+                      className="text-sm text-red-600 hover:text-red-700"
                     >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Mark as read</span>
+                      Delete
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}

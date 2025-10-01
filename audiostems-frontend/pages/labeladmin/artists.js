@@ -51,11 +51,29 @@ export default function LabelAdminArtistsRebuilt() {
         return;
       }
       loadLabelAdminData();
+      fetchAcceptedArtists();
       setLoading(false);
     } else if (!isLoading && !user) {
       router.push('/login');
     }
   }, [isLoading, user, router]);
+
+  const fetchAcceptedArtists = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/labeladmin/accepted-artists', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      
+      const data = await response.json();
+      console.log('✅ Accepted artists loaded:', data.artists?.length || 0);
+      setAcceptedArtists(data.artists || []);
+    } catch (error) {
+      console.error('Error loading accepted artists:', error);
+      setAcceptedArtists([]);
+    }
+  };
 
   // Load real data for label admin
   const loadLabelAdminData = async () => {
@@ -255,7 +273,7 @@ export default function LabelAdminArtistsRebuilt() {
                 <h1 className="text-3xl font-bold">My Artists</h1>
               </div>
               <p className="text-green-100 text-lg">
-                Manage your roster - {myArtists.length} artists, {artistRequests.filter(r => r.status === 'pending').length} pending requests
+                Manage your roster - {acceptedArtists.length} artists, {artistRequests.filter(r => r.status === 'pending').length} pending requests
               </p>
             </div>
             <button
@@ -274,9 +292,9 @@ export default function LabelAdminArtistsRebuilt() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">My Artists</p>
-                <p className="text-3xl font-bold text-slate-900">{myArtists.length}</p>
+                <p className="text-3xl font-bold text-slate-900">{acceptedArtists.length}</p>
                 <p className="text-xs text-green-600">
-                  {myArtists.filter(a => a.subscriptions?.some(s => s.status === 'active')).length} with subscriptions
+                  {acceptedArtists.length} active partnerships
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -323,11 +341,11 @@ export default function LabelAdminArtistsRebuilt() {
         {/* My Artists List */}
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 mb-8">
           <div className="px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900">My Artists ({myArtists.length})</h3>
+            <h3 className="text-lg font-semibold text-slate-900">My Artists ({acceptedArtists.length})</h3>
             <p className="text-sm text-slate-600">Artists who have accepted your label invitation</p>
           </div>
 
-          {myArtists.length === 0 ? (
+          {acceptedArtists.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500 text-lg">No artists in your roster yet</p>
@@ -341,11 +359,9 @@ export default function LabelAdminArtistsRebuilt() {
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-slate-200">
-              {myArtists.map((artist) => {
-                const activeSubscription = artist.subscriptions?.find(s => s.status === 'active');
-                const totalReleases = artist.releases?.length || 0;
-                const liveReleases = artist.releases?.filter(r => r.status === 'live').length || 0;
+            <div className="space-y-3 p-6">
+              {acceptedArtists.map(artist => (
+                <div key={artist.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border">
                 
                 return (
                   <div key={artist.id} className="p-6 hover:bg-slate-50 transition-colors">
