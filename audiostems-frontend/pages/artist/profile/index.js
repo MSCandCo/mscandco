@@ -252,7 +252,7 @@ export default function ArtistProfile() {
               ) : field === 'phone' ? (
                 <div className="flex flex-1 gap-2">
                   <select
-                    value={profile?.country_code || '+44'}
+                    value={(profile && profile.country_code) || '+44'}
                     onChange={(e) => handleEdit('country_code', e.target.value)}
                     className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
