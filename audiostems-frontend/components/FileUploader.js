@@ -62,21 +62,31 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
-          setProgress(Math.round((e.loaded / e.total) * 100));
+          // Cap progress at 90% during upload, save 10% for server processing
+          const uploadProgress = Math.round((e.loaded / e.total) * 90);
+          setProgress(uploadProgress);
         }
       });
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          onUpload(response.url, response.filename);
-          setUploading(false);
-          setProgress(0);
-          setError(null);
-          setUploadingFileName('');
+          // Show processing phase (90% to 100%)
+          setProgress(95);
+          setTimeout(() => {
+            const response = JSON.parse(xhr.responseText);
+            setProgress(100);
+            setTimeout(() => {
+              onUpload(response.url, response.filename);
+              setUploading(false);
+              setProgress(0);
+              setError(null);
+              setUploadingFileName('');
+            }, 300); // Brief pause at 100% before completion
+          }, 200); // Processing simulation
         } else {
           setError('Upload failed');
           setUploading(false);
+          setUploadingFileName('');
         }
       });
 
@@ -162,7 +172,11 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       {uploading && (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Uploading {uploadingFileName || 'file'}...</span>
+            <span>
+              {progress < 90 ? `Uploading ${uploadingFileName || 'file'}...` : 
+               progress < 100 ? 'Processing...' : 
+               'Finalizing...'}
+            </span>
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
