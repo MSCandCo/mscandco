@@ -779,6 +779,7 @@ export default function ArtistProfile() {
                       )}
                     </div>
                     
+                    {/* File Upload Input */}
                     <input
                       type="file"
                       accept="image/*"
@@ -787,15 +788,39 @@ export default function ArtistProfile() {
                       id="profile-picture-upload"
                       disabled={uploadingPicture}
                     />
-                    <label
-                      htmlFor="profile-picture-upload"
-                      className={`cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                        uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploadingPicture ? 'Uploading...' : 'Change Picture'}
-                    </label>
+                    
+                    {/* Camera Input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleProfilePictureUpload}
+                      className="hidden"
+                      id="profile-picture-camera"
+                      disabled={uploadingPicture}
+                    />
+                    
+                    <div className="flex gap-2 justify-center">
+                      <label
+                        htmlFor="profile-picture-upload"
+                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm ${
+                          uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        {uploadingPicture ? 'Uploading...' : 'Choose File'}
+                      </label>
+                      
+                      <label
+                        htmlFor="profile-picture-camera"
+                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm ${
+                          uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        📷
+                        <span className="ml-1">Take Photo</span>
+                      </label>
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">JPG, PNG, or WebP. Max 5MB.</p>
                 </div>
