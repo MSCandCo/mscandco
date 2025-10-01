@@ -871,7 +871,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit })
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Field to Change *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Change* to Personal Information</label>
             <select
               value={selectedField}
               onChange={(e) => handleFieldSelect(e.target.value)}
@@ -886,18 +886,14 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit })
           
           {selectedField && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
-                <input
-                  type="text"
-                  value={getCurrentValue()}
-                  disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                />
+              <div className="mb-2">
+                <p className="text-sm text-gray-600">
+                  Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
+                </p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">New Value *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change *</label>
                 <input
                   type={selectedField === 'date_of_birth' ? 'date' : 'text'}
                   value={newValue}
