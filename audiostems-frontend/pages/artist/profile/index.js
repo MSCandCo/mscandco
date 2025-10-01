@@ -232,31 +232,63 @@ export default function ArtistProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
-      alert('File too large. Max 5MB.');
+      showBrandedNotification('File too large. Max 5MB.', 'error');
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      showBrandedNotification('Invalid file type. Please use JPG, PNG, or WebP.', 'error');
       return;
     }
 
     setUploadingPicture(true);
+    console.log('🖼️ Starting profile picture upload...');
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        showBrandedNotification('Authentication required', 'error');
+        return;
+      }
       
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      console.log('📁 User ID:', user.id);
+      
+      // Use correct path format: userId/profile-picture-timestamp.ext
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      const fileName = `${user.id}/profile-picture-${Date.now()}.${fileExt}`;
+      
+      console.log('📤 Uploading to:', fileName);
+      console.log('📊 File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
       
       const { data, error: uploadError } = await supabase.storage
         .from('profile-pictures')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true // Allow overwriting existing files
+        });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
-        alert('Upload failed: ' + uploadError.message);
+        console.error('❌ Upload error:', uploadError);
+        showBrandedNotification(`Upload failed: ${uploadError.message}`, 'error');
         return;
       }
 
+      console.log('✅ Upload successful:', data);
+
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(fileName);
+
+      console.log('🔗 Public URL:', publicUrl);
 
       // Update profile picture via API
       const { data: { session } } = await supabase.auth.getSession();
@@ -269,17 +301,21 @@ export default function ArtistProfile() {
         body: JSON.stringify({ profile_picture_url: publicUrl })
       });
 
+      console.log('💾 API response status:', response.status);
+
       if (response.ok) {
+        console.log('✅ Profile picture updated in database');
         setProfile({ ...profile, profile_picture_url: publicUrl });
         setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
         showBrandedNotification('Profile picture updated successfully!');
       } else {
-        console.error('Failed to update profile picture via API:', response.status);
-        showBrandedNotification('Failed to update profile picture', 'error');
+        const errorData = await response.text();
+        console.error('❌ API update failed:', response.status, errorData);
+        showBrandedNotification('Failed to save profile picture to database', 'error');
       }
     } catch (error) {
-      console.error('Error uploading picture:', error);
-      showBrandedNotification('Upload failed: ' + error.message, 'error');
+      console.error('❌ Unexpected error:', error);
+      showBrandedNotification(`Upload failed: ${error.message}`, 'error');
     } finally {
       setUploadingPicture(false);
     }
@@ -813,7 +849,7 @@ export default function ArtistProfile() {
                       
                       <label
                         htmlFor="profile-picture-camera"
-                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm ${
+                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm ${
                           uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
