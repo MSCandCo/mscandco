@@ -38,17 +38,36 @@ export default async function handler(req, res) {
 
     console.log(`✅ Found ${data.length} accepted artists`);
 
-    // Format the response
-    const formattedArtists = data.map(relationship => ({
-      id: relationship.id,
-      artistId: relationship.artist.id,
-      artistName: relationship.artist.artist_name || `${relationship.artist.first_name} ${relationship.artist.last_name}`,
-      artistEmail: relationship.artist.email,
-      labelSplit: relationship.label_split_percentage,
-      artistSplit: relationship.artist_split_percentage,
-      joinDate: relationship.created_at,
-      status: relationship.status
-    }));
+    // Get release counts for each artist and format response
+    const formattedArtists = await Promise.all(
+      data.map(async (relationship) => {
+        // Get releases for this artist
+        const { data: releases, error: releasesError } = await supabase
+          .from('releases')
+          .select('id, status')
+          .eq('artist_id', relationship.artist.id);
+
+        const totalReleases = releases?.length || 0;
+        const liveReleases = releases?.filter(r => r.status === 'live').length || 0;
+        const draftReleases = releases?.filter(r => r.status === 'draft').length || 0;
+        const submittedReleases = releases?.filter(r => r.status === 'submitted').length || 0;
+
+        return {
+          id: relationship.id,
+          artistId: relationship.artist.id,
+          artistName: relationship.artist.artist_name || `${relationship.artist.first_name} ${relationship.artist.last_name}`,
+          artistEmail: relationship.artist.email,
+          labelSplit: relationship.label_split_percentage,
+          artistSplit: relationship.artist_split_percentage,
+          joinDate: relationship.created_at,
+          status: relationship.status,
+          totalReleases,
+          liveReleases,
+          draftReleases,
+          submittedReleases
+        };
+      })
+    );
 
     return res.json({ 
       success: true,

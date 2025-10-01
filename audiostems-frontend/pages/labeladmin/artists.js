@@ -308,10 +308,10 @@ export default function LabelAdminArtistsRebuilt() {
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">Total Releases</p>
                 <p className="text-3xl font-bold text-slate-900">
-                  {myArtists.reduce((sum, artist) => sum + (artist.releases?.length || 0), 0)}
+                  {acceptedArtists.reduce((sum, artist) => sum + (artist.totalReleases || 0), 0)}
                 </p>
                 <p className="text-xs text-blue-600">
-                  {myArtists.reduce((sum, artist) => sum + (artist.releases?.filter(r => r.status === 'live').length || 0), 0)} live
+                  {acceptedArtists.reduce((sum, artist) => sum + (artist.liveReleases || 0), 0)} live
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -362,20 +362,34 @@ export default function LabelAdminArtistsRebuilt() {
             <div className="space-y-3 p-6">
               {acceptedArtists.map(artist => (
                 <div key={artist.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border">
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium text-slate-900">{artist.artistName}</p>
                     <p className="text-sm text-slate-600">{artist.artistEmail}</p>
                     <p className="text-xs text-slate-500">
                       Revenue split: You {artist.labelSplit}% / Artist {artist.artistSplit}%
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500">
-                      Joined {new Date(artist.joinDate).toLocaleDateString()}
-                    </p>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                      Active
-                    </span>
+                  <div className="flex items-center space-x-6">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-slate-900">{artist.totalReleases || 0}</p>
+                      <p className="text-xs text-slate-500">Total Releases</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-green-600">{artist.liveReleases || 0}</p>
+                      <p className="text-xs text-slate-500">Live</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-blue-600">{artist.draftReleases || 0}</p>
+                      <p className="text-xs text-slate-500">Drafts</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">
+                        Joined {new Date(artist.joinDate).toLocaleDateString()}
+                      </p>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
