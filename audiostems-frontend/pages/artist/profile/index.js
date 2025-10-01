@@ -460,8 +460,8 @@ export default function ArtistProfile() {
                   <h2 className="text-xl font-semibold text-gray-900">Artist Information</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Artist Name *
                       {changedFields.includes('artist_name') && (
@@ -473,7 +473,7 @@ export default function ArtistProfile() {
                       value={editedProfile.artist_name || ''}
                       onChange={(e) => handleFieldChange('artist_name', e.target.value)}
                       disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                       } ${errors.artist_name ? 'border-red-500' : 'border-gray-300'}`}
                     />
@@ -482,7 +482,7 @@ export default function ArtistProfile() {
                     )}
                   </div>
 
-                  <div>
+                  <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Artist Type
                       {changedFields.includes('artist_type') && (
@@ -493,7 +493,7 @@ export default function ArtistProfile() {
                       value={editedProfile.artist_type || ''}
                       onChange={(e) => handleFieldChange('artist_type', e.target.value)}
                       disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                       } border-gray-300`}
                     >
@@ -678,18 +678,16 @@ export default function ArtistProfile() {
                   <h2 className="text-xl font-semibold text-gray-900">Social Media & Links</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
                     { key: 'website', label: 'Website', type: 'url' },
                     { key: 'instagram', label: 'Instagram', type: 'url' },
                     { key: 'facebook', label: 'Facebook', type: 'url' },
                     { key: 'twitter', label: 'Twitter', type: 'url' },
                     { key: 'youtube', label: 'YouTube', type: 'url' },
-                    { key: 'tiktok', label: 'TikTok', type: 'url' },
-                    { key: 'spotify', label: 'Spotify', type: 'url' },
-                    { key: 'apple_music', label: 'Apple Music', type: 'url' }
+                    { key: 'tiktok', label: 'TikTok', type: 'url' }
                   ].map(({ key, label, type }) => (
-                    <div key={key}>
+                    <div key={key} className="mb-4">
                       <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                         {label}
                         {changedFields.includes(key) && (
@@ -701,7 +699,33 @@ export default function ArtistProfile() {
                         value={editedProfile[key] || ''}
                         onChange={(e) => handleFieldChange(key, e.target.value)}
                         disabled={!editMode}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Additional platforms in a separate row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {[
+                    { key: 'spotify', label: 'Spotify', type: 'url' },
+                    { key: 'apple_music', label: 'Apple Music', type: 'url' }
+                  ].map(({ key, label, type }) => (
+                    <div key={key} className="mb-4">
+                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        {label}
+                        {changedFields.includes(key) && (
+                          <span className="ml-2 text-green-600">✓</span>
+                        )}
+                      </label>
+                      <input
+                        type={type}
+                        value={editedProfile[key] || ''}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                        disabled={!editMode}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                           !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                         } border-gray-300`}
                       />
