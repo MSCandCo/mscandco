@@ -8,6 +8,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
+  const [uploadingFileName, setUploadingFileName] = useState('');
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -49,6 +50,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
     setUploading(true);
     setError(null);
     setProgress(0);
+    setUploadingFileName(file.name);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -71,6 +73,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
           setUploading(false);
           setProgress(0);
           setError(null);
+          setUploadingFileName('');
         } else {
           setError('Upload failed');
           setUploading(false);
@@ -80,6 +83,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       xhr.addEventListener('error', () => {
         setError('Upload failed');
         setUploading(false);
+        setUploadingFileName('');
       });
 
       xhr.open('POST', `/api/upload/${type}`);
@@ -91,6 +95,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
     } catch (err) {
       setError(err.message);
       setUploading(false);
+      setUploadingFileName('');
     }
   };
 
@@ -157,7 +162,7 @@ export default function FileUploader({ type, onUpload, currentFile, required = f
       {uploading && (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Uploading {file?.name || 'file'}...</span>
+            <span>Uploading {uploadingFileName || 'file'}...</span>
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
