@@ -1,6 +1,6 @@
 // ARTIST RELEASES - CLEAN & OPTIMIZED
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
