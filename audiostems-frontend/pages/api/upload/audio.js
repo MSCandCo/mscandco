@@ -23,13 +23,14 @@ export default async function handler(req, res) {
   const form = formidable({ maxFileSize: 150 * 1024 * 1024 });
 
   form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error('Form parse error:', err);
-      return res.status(400).json({ error: 'File upload failed' });
-    }
+    try {
+      if (err) {
+        console.error('Form parse error:', err);
+        return res.status(400).json({ error: 'File upload failed' });
+      }
 
-    console.log('Starting audio upload for user:', user.id);
-    console.log('Files received:', files); // Debug log
+      console.log('Starting audio upload for user:', user.id);
+      console.log('Files received:', files); // Debug log
 
     // Handle different formidable versions
     let file;
@@ -79,7 +80,15 @@ export default async function handler(req, res) {
       });
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
+    let fileBuffer;
+    try {
+      fileBuffer = fs.readFileSync(filePath);
+      console.log('✅ File read successfully, size:', fileBuffer.length, 'bytes');
+    } catch (readError) {
+      console.error('❌ Error reading file:', readError);
+      return res.status(500).json({ error: 'Failed to read uploaded file' });
+    }
+    
     const timestamp = Date.now();
     const fileName = `${user.id}/${timestamp}-${originalFilename}`;
 
@@ -102,12 +111,28 @@ export default async function handler(req, res) {
       .from('release-audio')
       .getPublicUrl(fileName);
 
-    fs.unlinkSync(filePath);
+    // Clean up temp file
+    try {
+      fs.unlinkSync(filePath);
+      console.log('✅ Temp file cleaned up');
+    } catch (cleanupError) {
+      console.warn('⚠️ Failed to cleanup temp file:', cleanupError);
+      // Don't fail the request for cleanup issues
+    }
 
+    console.log('✅ Upload completed successfully, returning URL:', publicUrl);
     return res.json({ 
       url: publicUrl,
       filename: fileName,
       size: file.size
     });
+    
+    } catch (unexpectedError) {
+      console.error('❌ Unexpected error in audio upload:', unexpectedError);
+      return res.status(500).json({ 
+        error: 'Unexpected server error', 
+        details: unexpectedError.message 
+      });
+    }
   });
 }

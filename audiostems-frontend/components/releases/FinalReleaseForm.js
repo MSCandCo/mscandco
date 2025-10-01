@@ -215,6 +215,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     
     // File uploads
     coverArt: null,
+    artworkUrl: '',
+    artworkFilename: '',
     
     // Advanced Details
     label: '',
@@ -264,8 +266,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       recordingCountry: '',
       contributors: [],
       audioFile: null,
+      audioFileUrl: '',
+      audioFilename: '',
       hasAppleLossless: false,
-      appleLosslessFile: null
+      appleLosslessFile: null,
+      appleLosslessUrl: '',
+      appleLosslessFilename: ''
     }]
   });
 
@@ -362,6 +368,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         
         // File uploads
         coverArt: null,
+        artworkUrl: editingRelease.artworkUrl || '',
+        artworkFilename: editingRelease.artworkFilename || '',
         
         // Assets
         assets: editingRelease.assets || [{
@@ -391,8 +399,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           recordingCountry: '',
           contributors: [],
           audioFile: null,
+          audioFileUrl: editingRelease.assets?.[0]?.audioFileUrl || '',
+          audioFilename: editingRelease.assets?.[0]?.audioFilename || '',
           hasAppleLossless: false,
-          appleLosslessFile: null
+          appleLosslessFile: null,
+          appleLosslessUrl: editingRelease.assets?.[0]?.appleLosslessUrl || '',
+          appleLosslessFilename: editingRelease.assets?.[0]?.appleLosslessFilename || ''
         }]
       });
       
