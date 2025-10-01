@@ -46,26 +46,55 @@ export default function ArtistProfile() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No user found');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (data) {
-        setProfile(data);
-      } else if (error) {
-        console.error('Error fetching profile:', error);
+      const response = await fetch('/api/artist/profile', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+
+      if (response.ok) {
+        const profileData = await response.json();
+        console.log('Profile data loaded:', profileData);
+        
+        // Map API response to expected format
+        const mappedProfile = {
+          id: profileData.id,
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          email: profileData.email,
+          artist_name: profileData.artistName,
+          date_of_birth: profileData.dateOfBirth,
+          nationality: profileData.nationality,
+          country: profileData.country,
+          city: profileData.city,
+          artist_type: profileData.artistType,
+          phone: profileData.phone,
+          country_code: profileData.countryCode,
+          primary_genre: profileData.primaryGenre,
+          secondary_genre: profileData.secondaryGenre,
+          years_active: profileData.yearsActive,
+          record_label: profileData.recordLabel,
+          bio: profileData.bio,
+          website: profileData.website,
+          instagram: profileData.instagram,
+          facebook: profileData.facebook,
+          twitter: profileData.twitter,
+          youtube: profileData.youtube,
+          tiktok: profileData.tiktok,
+          profile_picture_url: profileData.profile_picture_url
+        };
+        
+        setProfile(mappedProfile);
+      } else {
+        console.error('Failed to fetch profile:', response.status);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }
@@ -103,21 +132,46 @@ export default function ArtistProfile() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setSaving(false);
+        return;
+      }
+
+      // Map field names to API format
+      const fieldMapping = {
+        first_name: 'firstName',
+        last_name: 'lastName',
+        artist_name: 'artistName',
+        date_of_birth: 'dateOfBirth',
+        artist_type: 'artistType',
+        country_code: 'countryCode',
+        primary_genre: 'primaryGenre',
+        secondary_genre: 'secondaryGenre',
+        years_active: 'yearsActive',
+        record_label: 'recordLabel'
+      };
+
+      const apiField = fieldMapping[field] || field;
       
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .update({ [field]: value })
-        .eq('id', user.id);
-      
-      if (!updateError) {
+      const response = await fetch('/api/artist/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ [apiField]: value })
+      });
+
+      if (response.ok) {
         setProfile({ ...profile, [field]: value });
         const newEditing = { ...editing };
         delete newEditing[field];
         setEditing(newEditing);
         setErrors({ ...errors, [field]: null });
       } else {
-        console.error('Save error:', updateError);
+        console.error('Failed to save field:', response.status);
         setErrors({ ...errors, [field]: 'Failed to save changes' });
       }
     } catch (error) {
