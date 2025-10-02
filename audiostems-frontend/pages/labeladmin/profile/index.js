@@ -322,6 +322,25 @@ export default function LabelAdminProfile() {
             </div>
           </div>
 
+          {/* Mobile Profile Picture - Show first on mobile */}
+          <div className="lg:hidden mb-8">
+            <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
+              
+              <ProfilePictureUpload
+                currentImage={profile.profile_picture_url}
+                onUploadSuccess={(url) => {
+                  setProfile({ ...profile, profile_picture_url: url });
+                  setEditedProfile({ ...editedProfile, profile_picture_url: url });
+                  showBrandedNotification('Profile picture updated successfully!');
+                }}
+                onUploadError={(error) => {
+                  showBrandedNotification(error, 'error');
+                }}
+              />
+            </section>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content - 70% */}
             <div className="lg:col-span-2 space-y-8">
@@ -537,8 +556,8 @@ export default function LabelAdminProfile() {
             {/* Right Sidebar - 30% */}
             <div className="space-y-6">
               
-              {/* Profile Picture */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+              {/* Profile Picture - Desktop only */}
+              <section className="hidden lg:block bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
                 
                 <ProfilePictureUpload
