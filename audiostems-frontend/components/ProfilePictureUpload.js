@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { supabase } from '@/lib/supabase';
@@ -44,6 +44,22 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
     setErrorModalData({ message, instructions });
     setShowErrorModal(true);
   };
+
+  // Global error handler for browser-level camera errors
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      if (event.message && event.message.includes('AVVideoCapture')) {
+        event.preventDefault();
+        showBrandedErrorModal(
+          'Camera Access Blocked', 
+          'To enable camera access:\n\n1. Check if another app is using your camera (Zoom, FaceTime, etc.) and close it\n2. On Mac: Open System Settings → Privacy & Security → Camera → Enable for your browser\n3. Refresh this page and try again\n\nOr use "Choose File" to upload a photo instead.'
+        );
+      }
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    return () => window.removeEventListener('error', handleGlobalError);
+  }, []);
 
   function onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
@@ -106,7 +122,12 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
         if (videoRef.current && stream) {
           console.log('📹 Setting up video element');
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(e => console.log('Video play error:', e));
+          videoRef.current.play().catch(e => {
+            console.log('Video play error:', e);
+            // If video fails to play, show our branded error
+            showBrandedErrorModal('Camera Setup Failed', 'The camera opened but video preview failed to start. This might be a browser compatibility issue.\n\nPlease try:\n1. Refresh the page and try again\n2. Use "Choose File" to upload a photo instead');
+            setShowCameraModal(false);
+          });
         }
       }, 100);
 
