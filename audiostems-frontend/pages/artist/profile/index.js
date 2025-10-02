@@ -135,6 +135,17 @@ export default function ArtistProfile() {
         return;
       }
 
+      // Calculate what changed for audit trail
+      const changes = {};
+      Object.keys(editedProfile).forEach(key => {
+        if (editedProfile[key] !== profile[key]) {
+          changes[key] = {
+            old: profile[key],
+            new: editedProfile[key]
+          };
+        }
+      });
+
       // Map field names to API format
       const apiData = {
         firstName: editedProfile.first_name,
@@ -160,7 +171,11 @@ export default function ArtistProfile() {
         youtube: editedProfile.youtube,
         tiktok: editedProfile.tiktok,
         spotify: editedProfile.spotify,
-        apple_music: editedProfile.apple_music
+        apple_music: editedProfile.apple_music,
+        _audit: {
+          changes: changes,
+          timestamp: new Date().toISOString()
+        }
       };
       
       const response = await fetch('/api/artist/profile', {
@@ -173,6 +188,15 @@ export default function ArtistProfile() {
       });
 
       if (response.ok) {
+        // Trigger cache refresh for all artist's releases
+        await fetch('/api/artist/releases/refresh-cache', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
         setProfile(editedProfile);
         setEditMode(false);
         setErrors({});
