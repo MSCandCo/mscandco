@@ -4,7 +4,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import { getUserRole } from '../../lib/user-utils';
 import Layout from '../../components/layouts/mainLayout';
-import ComprehensiveReleaseForm from '../../components/releases/ComprehensiveReleaseForm';
+import FinalReleaseForm from '../../components/releases/FinalReleaseForm';
 import { CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function CreateRelease() {
@@ -294,7 +294,7 @@ export default function CreateRelease() {
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <ComprehensiveReleaseForm
+          <FinalReleaseForm
             release={currentRelease}
             onSave={handleSave}
             onSubmit={handleSubmit}
