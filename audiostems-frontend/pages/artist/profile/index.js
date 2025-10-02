@@ -20,7 +20,9 @@ export default function ArtistProfile() {
     { key: 'date_of_birth', label: 'Date of Birth' },
     { key: 'nationality', label: 'Nationality' },
     { key: 'country', label: 'Country' },
-    { key: 'city', label: 'City' }
+    { key: 'city', label: 'City' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' }
   ];
 
   // Dropdown options
@@ -107,17 +109,13 @@ export default function ArtistProfile() {
 
   const validateFields = () => {
     const newErrors = {};
-    const requiredFields = ['artist_name', 'email', 'primary_genre'];
+    const requiredFields = ['artist_name', 'primary_genre'];
     
     requiredFields.forEach(field => {
       if (!editedProfile[field] || editedProfile[field].trim() === '') {
         newErrors[field] = `${field.replace('_', ' ')} is required`;
       }
     });
-
-    if (editedProfile.email && !/\S+@\S+\.\S+/.test(editedProfile.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -410,6 +408,24 @@ export default function ArtistProfile() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={profile.email || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={`${profile.country_code || '+44'} ${profile.phone || ''}`}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
                 </div>
 
                 {/* Consolidated Change Request Button */}
@@ -474,59 +490,6 @@ export default function ArtistProfile() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                      Email *
-                      {changedFields.includes('email') && (
-                        <span className="ml-2 text-green-600">✓</span>
-                      )}
-                    </label>
-                    <input
-                      type="email"
-                      value={editedProfile.email || ''}
-                      onChange={(e) => handleFieldChange('email', e.target.value)}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                      } ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                    />
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                    )}
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                      Phone
-                      {changedFields.includes('phone') && (
-                        <span className="ml-2 text-green-600">✓</span>
-                      )}
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={editedProfile.country_code || '+44'}
-                        onChange={(e) => handleFieldChange('country_code', e.target.value)}
-                        disabled={!editMode}
-                        className={`w-20 px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                        } border-gray-300`}
-                      >
-                        {COUNTRY_CODES.map(({ code, country }) => (
-                          <option key={code} value={code}>{code}</option>
-                        ))}
-                      </select>
-                      <input
-                        type="tel"
-                        value={editedProfile.phone || ''}
-                        onChange={(e) => handleFieldChange('phone', e.target.value)}
-                        disabled={!editMode}
-                        placeholder="Phone number"
-                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                        } border-gray-300`}
-                      />
-                    </div>
-                  </div>
 
                   <div>
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
