@@ -76,7 +76,8 @@ export default function LabelAdminProfile() {
 
   const validateFields = () => {
     const newErrors = {};
-    const requiredFields = ['label_name', 'company_name', 'email'];
+    // Only validate editable fields (bio, social media are optional)
+    const requiredFields = []; // No required fields for Label Admin since locked fields can't be edited
     
     requiredFields.forEach(field => {
       if (!editedProfile[field] || editedProfile[field].trim() === '') {
@@ -84,16 +85,17 @@ export default function LabelAdminProfile() {
       }
     });
 
-    if (editedProfile.email && !/\S+@\S+\.\S+/.test(editedProfile.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
+    console.log('✅ Validation passed - no required editable fields');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveChanges = async () => {
+    console.log('🔄 Starting save process...');
+    console.log('📊 Current editedProfile:', editedProfile);
+    
     if (!validateFields()) {
+      console.log('❌ Validation failed');
       return;
     }
 
@@ -117,6 +119,8 @@ export default function LabelAdminProfile() {
         }
       });
 
+      console.log('📝 Changes detected:', changes);
+
       // Send direct field data with audit trail
       const apiData = {
         ...editedProfile,
@@ -125,6 +129,8 @@ export default function LabelAdminProfile() {
           timestamp: new Date().toISOString()
         }
       };
+
+      console.log('📤 Sending to API:', apiData);
       
       const response = await fetch('/api/labeladmin/profile', {
         method: 'PUT',
@@ -136,21 +142,30 @@ export default function LabelAdminProfile() {
       });
 
       if (response.ok) {
+        console.log('✅ API call successful');
+        
         // Trigger cache refresh for all label's artists and their releases
-        await fetch('/api/labeladmin/releases/refresh-cache', {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        try {
+          await fetch('/api/labeladmin/releases/refresh-cache', {
+            method: 'POST',
+            headers: { 
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          console.log('🔄 Cache refresh triggered');
+        } catch (cacheError) {
+          console.error('Cache refresh failed:', cacheError);
+        }
         
         setProfile(editedProfile);
         setEditMode(false);
         setErrors({});
         showBrandedNotification('Profile updated successfully!');
+        console.log('✅ Save process completed successfully');
       } else {
-        console.error('Failed to save profile:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Failed to save profile:', response.status, errorText);
         showBrandedNotification('Failed to save changes. Please try again.', 'error');
       }
     } catch (error) {

@@ -31,7 +31,10 @@ export default async function handler(req, res) {
     // Update label admin profile
     const updates = req.body;
     
-    // Remove locked fields that shouldn't be directly updated
+    console.log('👤 Label Admin profile API - Updating profile for:', user.email);
+    console.log('📋 Updates received:', updates);
+    
+    // Remove locked fields that shouldn't be directly updated (keep only personal info locked)
     delete updates.first_name;
     delete updates.last_name;
     delete updates.email;
@@ -39,8 +42,12 @@ export default async function handler(req, res) {
     delete updates.nationality;
     delete updates.country;
     delete updates.city;
-    delete updates.label_name;
-    delete updates.company_name;
+    delete updates.phone;
+    
+    // Remove audit data - don't save to database
+    delete updates._audit;
+    
+    console.log('📝 Final updates after filtering:', updates);
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -49,15 +56,23 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('❌ Database update error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log('✅ Profile updated successfully in database');
 
     // SINGLE SOURCE OF TRUTH: Mark all label's releases for cache refresh
-    await supabase
-      .from('releases')
-      .update({ cache_updated_at: null })
-      .eq('label_admin_id', user.id);
-
-    console.log('🔄 Label Admin releases marked for cache refresh');
+    try {
+      await supabase
+        .from('releases')
+        .update({ cache_updated_at: null })
+        .eq('label_admin_id', user.id);
+      console.log('🔄 Label Admin releases marked for cache refresh');
+    } catch (cacheError) {
+      console.error('Cache refresh error:', cacheError);
+    }
     
     return res.status(200).json(data);
   }
