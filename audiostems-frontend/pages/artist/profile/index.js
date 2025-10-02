@@ -346,10 +346,12 @@ export default function ArtistProfile() {
               <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-4">
                   <Lock className="w-5 h-5 text-gray-400 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-                  <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                    LOCKED
-                  </span>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Personal Information
+                    <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1">
+                      LOCKED
+                    </span>
+                  </h2>
                 </div>
                 <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
                 
