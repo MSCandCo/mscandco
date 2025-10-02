@@ -348,7 +348,7 @@ export default function ArtistProfile() {
                   <Lock className="w-5 h-5 text-gray-400 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900">
                     Personal Information
-                    <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-50 origin-left">
+                    <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-75 origin-left">
                       LOCKED
                     </span>
                   </h2>
