@@ -74,6 +74,9 @@ export default function CompanyAdminProfile() {
       if (response.ok) {
         const profileData = await response.json();
         
+        // Auto-populate email from login session
+        profileData.email = session.user.email;
+        
         setProfile(profileData);
         setEditedProfile(profileData);
       } else {
@@ -118,8 +121,30 @@ export default function CompanyAdminProfile() {
       if (!session) {
         console.error('No session found');
         setSaving(false);
-      return;
-    }
+        return;
+      }
+
+      // Calculate what changed for audit trail
+      const changes = {};
+      Object.keys(editedProfile).forEach(key => {
+        if (editedProfile[key] !== profile[key]) {
+          changes[key] = {
+            old: profile[key],
+            new: editedProfile[key]
+          };
+        }
+      });
+
+      console.log('📝 Changes detected:', changes);
+
+      // Add audit to request body
+      const apiDataWithAudit = {
+        ...editedProfile,
+        _audit: {
+          changes: changes,
+          timestamp: new Date().toISOString()
+        }
+      };
 
       const response = await fetch('/api/companyadmin/profile', {
         method: 'PUT',
@@ -127,7 +152,7 @@ export default function CompanyAdminProfile() {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editedProfile)
+        body: JSON.stringify(apiDataWithAudit)
       });
 
       if (response.ok) {

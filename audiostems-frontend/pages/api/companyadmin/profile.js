@@ -38,6 +38,9 @@ export default async function handler(req, res) {
     
     // Email field is locked (must match login email) - remove from updates
     delete updates.email;
+    
+    // Remove audit data - don't save to database
+    delete updates._audit;
 
     const { data, error } = await supabase
       .from('user_profiles')
