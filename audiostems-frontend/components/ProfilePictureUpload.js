@@ -107,18 +107,29 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
       console.error('❌ Camera error:', error);
       
       let message;
+      let instructions = '';
+      
       if (error.message === 'UNSUPPORTED') {
-        message = 'Your browser does not support camera access. Please use "Choose File" instead.';
+        message = 'Camera Not Supported';
+        instructions = 'Your browser does not support camera access. Please use the "Choose File" button to upload a photo from your device.';
       } else if (error.name === 'NotAllowedError') {
-        message = 'Camera permission denied. Please allow camera access in your browser settings and try again.';
+        message = 'Camera Access Blocked';
+        instructions = 'To enable camera access:\n\n1. Check if another app is using your camera (Zoom, FaceTime, etc.) and close it\n2. On Mac: Open System Settings → Privacy & Security → Camera → Enable for your browser\n3. Refresh this page and try again\n\nOr use "Choose File" to upload a photo instead.';
       } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        message = 'No camera found on your device. Please use "Choose File" to upload a photo.';
+        message = 'No Camera Found';
+        instructions = 'No camera device was detected on your computer. Please use the "Choose File" button to upload a photo from your device.';
       } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-        message = 'Camera is in use by another application. Please close other apps using the camera and try again.';
+        message = 'Camera In Use';
+        instructions = 'Your camera is currently being used by another application. Please:\n\n1. Close apps like Zoom, FaceTime, Skype, or Photo Booth\n2. Try the "Take Photo" button again\n\nOr use "Choose File" to upload a photo instead.';
       } else {
-        message = 'Camera not available. Please use "Choose File" to upload a photo instead.';
+        message = 'Camera Unavailable';
+        instructions = 'Unable to access your camera. This might be because:\n\n• Camera permissions are blocked in your browser or system settings\n• Another application is using the camera\n• Your device does not have a camera\n\nPlease use "Choose File" to upload a photo instead.';
       }
       
+      // Show detailed error with instructions
+      alert(`${message}\n\n${instructions}`);
+      
+      // Also call the error callback
       onUploadError?.(message);
     }
   };
