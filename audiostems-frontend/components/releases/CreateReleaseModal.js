@@ -54,42 +54,71 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   // Auto-save functionality for artist and label admin
   const [hasStartedEditing, setHasStartedEditing] = useState(false);
 
-  // Load label admin profile for pre-filling
+  // Load profile for pre-filling (all user types)
   useEffect(() => {
-    const loadLabelProfile = async () => {
-      if (userRole !== 'label_admin' || existingRelease) return;
+    const loadUserProfile = async () => {
+      if (existingRelease) return; // Don't pre-fill when editing
       
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const response = await fetch('/api/labeladmin/profile', {
+        let apiEndpoint = '';
+        switch (userRole) {
+          case 'label_admin':
+            apiEndpoint = '/api/labeladmin/profile';
+            break;
+          case 'company_admin':
+            apiEndpoint = '/api/companyadmin/profile';
+            break;
+          case 'distribution_partner':
+            apiEndpoint = '/api/distributionpartner/profile';
+            break;
+          case 'custom_admin':
+            apiEndpoint = '/api/customadmin/profile';
+            break;
+          default:
+            return; // No profile pre-filling for other roles
+        }
+
+        const response = await fetch(apiEndpoint, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
 
         if (response.ok) {
           const profileData = await response.json();
-          setLabelProfile(profileData);
           
-          // Pre-fill form with label profile data
+          // Pre-fill form with role-specific profile data
+          let artistName = '';
+          switch (userRole) {
+            case 'label_admin':
+              artistName = profileData.label_name || profileData.company_name || 'MSC & Co';
+              break;
+            case 'company_admin':
+            case 'distribution_partner':
+            case 'custom_admin':
+              artistName = profileData.company_name || 'MSC & Co';
+              break;
+          }
+          
           setFormData(prev => ({
             ...prev,
-            // Use label name as default for releases
-            artist: profileData.label_name || profileData.company_name || prev.artist
+            artist: artistName
           }));
           
-          console.log('📋 Pre-filled release form with label profile data:', {
-            labelName: profileData.label_name,
-            companyName: profileData.company_name
+          console.log('📋 Pre-filled release form with profile data:', {
+            userRole,
+            artistName,
+            profileData: profileData
           });
         }
       } catch (error) {
-        console.error('Error loading label profile for pre-fill:', error);
+        console.error('Error loading profile for pre-fill:', error);
       }
     };
 
     if (isOpen) {
-      loadLabelProfile();
+      loadUserProfile();
     }
   }, [isOpen, userRole, existingRelease]);
   const [lastSaved, setLastSaved] = useState(null);
