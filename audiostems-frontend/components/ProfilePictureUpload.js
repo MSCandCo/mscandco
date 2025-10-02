@@ -66,22 +66,52 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
 
   const startCamera = async () => {
     try {
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported in this browser');
+      }
+
+      // Request camera permissions with proper constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: 'user', // Front camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user' // Front-facing camera
+        },
+        audio: false // We don't need audio for photos
       });
+
       setCameraStream(stream);
       setShowCameraModal(true);
       
+      // Set up video stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Ensure video plays
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play().catch(console.error);
+        };
       }
     } catch (error) {
       console.error('Camera access error:', error);
-      onUploadError?.('Camera access denied or not available. Please use "Choose File" instead.');
+      
+      let errorMessage = 'Unable to access camera. ';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage += 'Camera permission was denied. Please allow camera access in your browser settings and try again.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DeviceNotFoundError') {
+        errorMessage += 'No camera device found. Please connect a camera and try again.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage += 'Camera is not supported in this browser.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Camera is already in use by another application.';
+      } else {
+        errorMessage += 'Please check browser permissions and try again.';
+      }
+      
+      errorMessage += ' You can use "Choose File" to upload a photo instead.';
+      
+      onUploadError?.(errorMessage);
     }
   };
 
@@ -95,29 +125,55 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   };
 
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    try {
+      if (!videoRef.current || !canvasRef.current) {
+        onUploadError?.('Camera not ready. Please try again.');
+        return;
+      }
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Check if video is ready
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        onUploadError?.('Camera not ready. Please wait a moment and try again.');
+        return;
+      }
 
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      setCapturedImage(url);
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       
-      // Create a file reader to get data URL for cropper
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImgSrc(reader.result?.toString() || '');
-        stopCamera();
-        setShowCropModal(true);
-      };
-      reader.readAsDataURL(blob);
-    }, 'image/jpeg', 0.8);
+      // Draw the current video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          onUploadError?.('Failed to capture photo. Please try again.');
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        setCapturedImage(url);
+        
+        // Create a file reader to get data URL for cropper
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImgSrc(reader.result?.toString() || '');
+          stopCamera();
+          setShowCropModal(true);
+        };
+        reader.onerror = () => {
+          onUploadError?.('Failed to process captured photo. Please try again.');
+        };
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.9); // Higher quality for better results
+    } catch (error) {
+      console.error('Photo capture error:', error);
+      onUploadError?.('Failed to capture photo. Please try again.');
+    }
   };
 
   function onImageLoad(e) {
@@ -275,6 +331,16 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
               className="hidden"
               id="profile-picture-upload"
             />
+            
+            {/* Hidden camera input for mobile fallback */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="user"
+              onChange={onSelectFile}
+              className="hidden"
+              id="camera-capture-fallback"
+            />
             <label
               htmlFor="profile-picture-upload"
               className="cursor-pointer inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -284,7 +350,15 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
             </label>
             
             <button
-              onClick={startCamera}
+              onClick={async () => {
+                // Check if getUserMedia is supported, otherwise use mobile fallback
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                  await startCamera();
+                } else {
+                  // Fallback to mobile camera input
+                  document.getElementById('camera-capture-fallback')?.click();
+                }
+              }}
               className="cursor-pointer inline-flex items-center px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
             >
               <Camera className="w-4 h-4 mr-1" />
