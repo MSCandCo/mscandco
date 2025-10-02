@@ -559,7 +559,7 @@ export default function ArtistProfile() {
 
                   <div>
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                      Record Label
+                      Label Name
                       {changedFields.includes('record_label') && (
                         <span className="ml-2 text-green-600">✓</span>
                       )}
