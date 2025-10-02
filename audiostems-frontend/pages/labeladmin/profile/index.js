@@ -23,7 +23,8 @@ export default function LabelAdminProfile() {
     { key: 'label_name', label: 'Label Name' },
     { key: 'nationality', label: 'Nationality' },
     { key: 'country', label: 'Country' },
-    { key: 'city', label: 'City' }
+    { key: 'city', label: 'City' },
+    { key: 'phone', label: 'Phone' }
   ];
 
   // Dropdown options
@@ -100,7 +101,7 @@ export default function LabelAdminProfile() {
 
   const validateFields = () => {
     const newErrors = {};
-    const requiredFields = ['label_name', 'email'];
+    const requiredFields = ['label_name', 'company_name', 'email'];
     
     requiredFields.forEach(field => {
       if (!editedProfile[field] || editedProfile[field].trim() === '') {
@@ -130,6 +131,17 @@ export default function LabelAdminProfile() {
         return;
       }
 
+      // Calculate what changed for audit trail
+      const changes = {};
+      Object.keys(editedProfile).forEach(key => {
+        if (editedProfile[key] !== profile[key]) {
+          changes[key] = {
+            old: profile[key],
+            new: editedProfile[key]
+          };
+        }
+      });
+
       // Map field names to API format
       const apiData = {
         firstName: editedProfile.first_name,
@@ -151,7 +163,11 @@ export default function LabelAdminProfile() {
         youtube: editedProfile.youtube,
         tiktok: editedProfile.tiktok,
         spotify: editedProfile.spotify,
-        apple_music: editedProfile.apple_music
+        apple_music: editedProfile.apple_music,
+        _audit: {
+          changes: changes,
+          timestamp: new Date().toISOString()
+        }
       };
       
       const response = await fetch('/api/labeladmin/profile', {
@@ -164,6 +180,15 @@ export default function LabelAdminProfile() {
       });
 
       if (response.ok) {
+        // Trigger cache refresh for all label's artists and their releases
+        await fetch('/api/labeladmin/releases/refresh-cache', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
         setProfile(editedProfile);
         setEditMode(false);
         setErrors({});
@@ -421,6 +446,15 @@ export default function LabelAdminProfile() {
                     <input
                       type="text"
                       value={profile.city || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={`${profile.country_code || '+44'} ${profile.phone || ''}`}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
