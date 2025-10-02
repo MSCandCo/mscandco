@@ -36,7 +36,8 @@ export default async function handler(req, res) {
     
     console.log('💾 Updating Company Admin profile:', updates);
     
-    // All fields are editable for Company Admin (no locked fields)
+    // Email field is locked (must match login email) - remove from updates
+    delete updates.email;
 
     const { data, error } = await supabase
       .from('user_profiles')

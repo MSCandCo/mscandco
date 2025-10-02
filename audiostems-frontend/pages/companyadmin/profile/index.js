@@ -189,7 +189,7 @@ export default function CompanyAdminProfile() {
     if (!currentData) return 0;
     
     const allFields = [
-      'first_name', 'last_name', 'email', 'phone', 'company_name', 'department', 'position'
+      'first_name', 'last_name', 'phone', 'company_name', 'department', 'position'
     ];
     
     const completedFields = allFields.filter(field => {
@@ -341,20 +341,15 @@ export default function CompanyAdminProfile() {
 
                   <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                      Email
-                      {changedFields.includes('email') && (
-                        <span className="ml-2 text-green-600">✓</span>
-                      )}
-                </label>
-                  <input
+                      Email (Login Email)
+                    </label>
+                    <input
                       type="email"
-                      value={editedProfile.email || ''}
-                      onChange={(e) => handleFieldChange('email', e.target.value)}
-                      disabled={!editMode}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                      } border-gray-300`}
+                      value={profile.email || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                     />
+                    <p className="text-xs text-gray-500 mt-1">This matches your login email and cannot be changed</p>
                   </div>
 
                   <div className="mb-4">
