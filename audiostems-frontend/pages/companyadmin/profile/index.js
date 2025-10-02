@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Building, Award, FileText } from 'lucide-react';
+import { Edit, Save, X, Building } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
-import ProfilePictureUpload from '../../../components/ProfilePictureUpload';
 
 export default function CompanyAdminProfile() {
   const [profile, setProfile] = useState(null);
@@ -10,20 +9,9 @@ export default function CompanyAdminProfile() {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // LOCKED FIELDS - require admin approval via consolidated modal
-  const LOCKED_FIELDS = [
-    { key: 'first_name', label: 'First Name' },
-    { key: 'last_name', label: 'Last Name' },
-    { key: 'date_of_birth', label: 'Date of Birth' },
-    { key: 'nationality', label: 'Nationality' },
-    { key: 'country', label: 'Country' },
-    { key: 'city', label: 'City' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' }
-  ];
+  // No locked fields - all Company Information is editable
 
   // Dropdown options
   const COUNTRY_CODES = [
@@ -169,8 +157,7 @@ export default function CompanyAdminProfile() {
     if (!currentData) return 0;
     
     const allFields = [
-      'first_name', 'last_name', 'email', 'company_name', 'department', 'position', 'date_of_birth', 'nationality', 
-      'country', 'city', 'phone', 'bio', 'website', 'linkedin'
+      'first_name', 'last_name', 'email', 'phone', 'company_name', 'department', 'position', 'employee_id'
     ];
     
     const completedFields = allFields.filter(field => {
@@ -275,104 +262,6 @@ export default function CompanyAdminProfile() {
             {/* Main Content - 70% */}
             <div className="lg:col-span-2 space-y-8">
               
-              {/* Personal Information - LOCKED */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-                <div className="flex items-center mb-4">
-                  <Lock className="w-5 h-5 text-gray-400 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Personal Information
-                    <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-75 origin-left">
-                      LOCKED
-                    </span>
-                  </h2>
-                </div>
-                <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                    <input
-                      type="text"
-                      value={profile.first_name || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      value={profile.last_name || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input
-                      type="date"
-                      value={profile.date_of_birth || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
-                    <input
-                      type="text"
-                      value={profile.nationality || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                    <input
-                      type="text"
-                      value={profile.country || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                    <input
-                      type="text"
-                      value={profile.city || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input
-                      type="email"
-                      value={profile.email || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                    <input
-                      type="tel"
-                      value={`${profile.country_code || '+44'} ${profile.phone || ''}`}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Consolidated Change Request Button */}
-                <div className="pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setShowChangeRequestModal(true)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    Need to update personal information? Request a change
-                  </button>
-                </div>
-              </section>
 
               {/* Company Information - EDITABLE */}
               <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
@@ -382,6 +271,93 @@ export default function CompanyAdminProfile() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      First Name
+                      {changedFields.includes('first_name') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.first_name || ''}
+                      onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Last Name
+                      {changedFields.includes('last_name') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.last_name || ''}
+                      onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Email
+                      {changedFields.includes('email') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="email"
+                      value={editedProfile.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Phone
+                      {changedFields.includes('phone') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editedProfile.country_code || '+44'}
+                        onChange={(e) => handleFieldChange('country_code', e.target.value)}
+                        disabled={!editMode}
+                        className={`w-20 px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      >
+                        {COUNTRY_CODES.map(({ code, country }) => (
+                          <option key={code} value={code}>{code}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        value={editedProfile.phone || ''}
+                        onChange={(e) => handleFieldChange('phone', e.target.value)}
+                        disabled={!editMode}
+                        placeholder="Phone number"
+                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  </div>
+
                   <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Company Name *
@@ -465,88 +441,11 @@ export default function CompanyAdminProfile() {
                   </div>
                 </div>
               </section>
-
-              {/* Biography */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-                <div className="flex items-center mb-6">
-                  <FileText className="w-5 h-5 text-green-600 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
-                </div>
-                
-                <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                    Professional Bio
-                    {changedFields.includes('bio') && (
-                      <span className="ml-2 text-green-600">✓</span>
-                    )}
-                  </label>
-                  <textarea
-                    value={editedProfile.bio || ''}
-                    onChange={(e) => handleFieldChange('bio', e.target.value)}
-                    disabled={!editMode}
-                    rows={6}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-                      !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                    } border-gray-300`}
-                    placeholder="Tell us about your professional background and role..."
-                  />
-                </div>
-              </section>
-
-              {/* Social Media */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-                <div className="flex items-center mb-6">
-                  <Globe className="w-5 h-5 text-indigo-600 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">Professional Links</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { key: 'website', label: 'Company Website', type: 'url' },
-                    { key: 'linkedin', label: 'LinkedIn Profile', type: 'url' }
-                  ].map(({ key, label, type }) => (
-                    <div key={key} className="mb-4">
-                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                        {label}
-                        {changedFields.includes(key) && (
-                          <span className="ml-2 text-green-600">✓</span>
-                        )}
-                      </label>
-                      <input
-                        type={type}
-                        value={editedProfile[key] || ''}
-                        onChange={(e) => handleFieldChange(key, e.target.value)}
-                        disabled={!editMode}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                        } border-gray-300`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
             </div>
 
             {/* Right Sidebar - 30% */}
             <div className="space-y-6">
               
-              {/* Profile Picture */}
-              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-                
-                <ProfilePictureUpload
-                  currentImage={profile.profile_picture_url}
-                  onUploadSuccess={(url) => {
-                    setProfile({ ...profile, profile_picture_url: url });
-                    setEditedProfile({ ...editedProfile, profile_picture_url: url });
-                    showBrandedNotification('Profile picture updated successfully!');
-                  }}
-                  onUploadError={(error) => {
-                    showBrandedNotification(error, 'error');
-                  }}
-                />
-              </section>
-
               {/* Profile Completion */}
               <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
@@ -573,170 +472,7 @@ export default function CompanyAdminProfile() {
           </div>
         </div>
 
-        {/* Consolidated Change Request Modal */}
-        {showChangeRequestModal && (
-          <ChangeRequestModal
-            lockedFields={LOCKED_FIELDS}
-            currentProfile={profile}
-            onClose={() => setShowChangeRequestModal(false)}
-            onSubmit={() => setShowChangeRequestModal(false)}
-          />
-        )}
       </div>
     </Layout>
-  );
-}
-
-function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit }) {
-  const [selectedField, setSelectedField] = useState('');
-  const [newValue, setNewValue] = useState('');
-  const [reason, setReason] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleFieldSelect = (fieldKey) => {
-    setSelectedField(fieldKey);
-    setNewValue('');
-  };
-
-  const getCurrentValue = () => {
-    if (!selectedField || !currentProfile) return '';
-    return currentProfile[selectedField] || 'Not set';
-  };
-
-  const showBrandedNotification = (message, type = 'success') => {
-    const notification = document.createElement('div');
-    const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
-    const borderColor = type === 'success' ? '#065f46' : '#991b1b';
-    const textColor = type === 'success' ? '#065f46' : '#991b1b';
-    
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${bgColor};
-      border-left: 4px solid ${borderColor};
-      padding: 16px 20px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      z-index: 10000;
-      max-width: 400px;
-      font-family: 'Inter', sans-serif;
-    `;
-    notification.innerHTML = `
-      <div style="display: flex; align-items: center; color: ${textColor};">
-        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
-        <span style="font-weight: 600; font-size: 14px;">${message}</span>
-      </div>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => document.body.removeChild(notification), 4000);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedField || !newValue || !reason) return;
-    
-    setSubmitting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('profile_change_requests')
-        .insert({
-          user_id: user.id,
-          field_name: selectedField,
-          current_value: getCurrentValue(),
-          requested_value: newValue,
-          reason: reason,
-          status: 'pending'
-        });
-      
-      if (!error) {
-        showBrandedNotification('Change request submitted for approval');
-        onSubmit();
-      } else {
-        console.error('Error submitting request:', error);
-        showBrandedNotification('Failed to submit request', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showBrandedNotification('Failed to submit request', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Request Profile Change</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Personal Information to Change*</label>
-            <select
-              value={selectedField}
-              onChange={(e) => handleFieldSelect(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Select field to change</option>
-              {lockedFields.map(field => (
-                <option key={field.key} value={field.key}>{field.label}</option>
-              ))}
-            </select>
-          </div>
-          
-          {selectedField && (
-            <>
-              <div className="mb-2">
-                <p className="text-sm text-gray-600">
-                  Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change*</label>
-                <input
-                  type={selectedField === 'date_of_birth' ? 'date' : 'text'}
-                  value={newValue}
-                  onChange={(e) => setNewValue(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Enter the new value"
-                />
-              </div>
-            </>
-          )}
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change*</label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Explain why you need to change this information"
-            />
-          </div>
-        </div>
-        
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!selectedField || !newValue || !reason || submitting}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Submitting...' : 'Submit Request'}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
