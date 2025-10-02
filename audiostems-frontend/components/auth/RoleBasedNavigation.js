@@ -500,13 +500,6 @@ export default function RoleBasedNavigation() {
                       Dashboard
                     </Link>
                     <Link
-                      href="/admin/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
-                    <Link
                       href="/admin/messages"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
@@ -604,13 +597,6 @@ export default function RoleBasedNavigation() {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Dashboard
-                    </Link>
-                    <Link
-                      href="/admin/profile"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Profile
                     </Link>
                     <button
                       onClick={() => {
