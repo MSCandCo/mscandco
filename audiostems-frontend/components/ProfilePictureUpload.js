@@ -632,7 +632,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
               </div>
               <div className="ml-3 flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{errorModalData.message}</h3>
-                <div className="text-sm text-gray-600 whitespace-pre-line">
+                <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
                   {errorModalData.instructions}
                 </div>
               </div>
