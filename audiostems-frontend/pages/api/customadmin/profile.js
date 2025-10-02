@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
 
   if (req.method === 'GET') {
-    // Fetch company admin profile
+    // Fetch custom admin profile
     const { data: profile, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    // Update company admin profile
+    // Update custom admin profile
     const updates = req.body;
     
     // Remove locked fields that shouldn't be directly updated
@@ -50,13 +50,13 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // SINGLE SOURCE OF TRUTH: Mark all company's content for cache refresh
+    // SINGLE SOURCE OF TRUTH: Mark all admin's managed content for cache refresh
     await supabase
       .from('releases')
       .update({ cache_updated_at: null })
-      .eq('company_admin_id', user.id);
+      .eq('custom_admin_id', user.id);
 
-    console.log('🔄 Company Admin content marked for cache refresh');
+    console.log('🔄 Custom Admin content marked for cache refresh');
     
     return res.status(200).json(data);
   }

@@ -1,22 +1,38 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
-import { Lock, Edit, Save, X } from 'lucide-react';
+import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Shield, Award, FileText } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
+import ProfilePictureUpload from '../../../components/ProfilePictureUpload';
 
-export default function EditProfile() {
+export default function CustomAdminProfile() {
   const [profile, setProfile] = useState(null);
-  const [editing, setEditing] = useState({});
+  const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [requestField, setRequestField] = useState(null);
+  const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  
-  // LOCKED: Core signup fields - require admin approval
-  const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'country'];
-  
-  // EDITABLE: Can change directly
-  const EDITABLE_FIELDS = ['admin_title', 'department', 'phone', 'responsibilities', 'access_level', 'bio'];
+  const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // LOCKED FIELDS - require admin approval via consolidated modal
+  const LOCKED_FIELDS = [
+    { key: 'first_name', label: 'First Name' },
+    { key: 'last_name', label: 'Last Name' },
+    { key: 'date_of_birth', label: 'Date of Birth' },
+    { key: 'nationality', label: 'Nationality' },
+    { key: 'country', label: 'Country' },
+    { key: 'city', label: 'City' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' }
+  ];
+
+  // Dropdown options
+  const COUNTRY_CODES = [
+    { code: '+1', country: 'US/CA' }, { code: '+44', country: 'UK' }, { code: '+33', country: 'FR' },
+    { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
+  ];
+
+  const ADMIN_LEVELS = ['Level 1', 'Level 2', 'Level 3', 'Senior Admin', 'Super Admin'];
+  const PERMISSIONS = ['User Management', 'Content Management', 'Financial Access', 'System Administration'];
   
   useEffect(() => {
     fetchProfile();
@@ -24,109 +40,112 @@ export default function EditProfile() {
   
   const fetchProfile = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (data) setProfile(data);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/customadmin/profile', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+
+      if (response.ok) {
+        const profileData = await response.json();
+        
+        setProfile(profileData);
+        setEditedProfile(profileData);
+      } else {
+        console.error('Failed to fetch profile:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
     setLoading(false);
+    }
   };
-  
-  const handleEdit = (field, value) => {
-    setEditing({ ...editing, [field]: value });
+
+  const handleFieldChange = (field, value) => {
+    setEditedProfile({ ...editedProfile, [field]: value });
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: null });
+    }
   };
-  
-  const saveField = async (field) => {
+
+  const validateFields = () => {
+    const newErrors = {};
+    const requiredFields = ['admin_level', 'permissions'];
+    
+    requiredFields.forEach(field => {
+      if (!editedProfile[field] || editedProfile[field].trim() === '') {
+        newErrors[field] = `${field.replace('_', ' ')} is required`;
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSaveChanges = async () => {
+    if (!validateFields()) {
+      return;
+    }
+
     setSaving(true);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ [field]: editing[field] })
-      .eq('id', user.id);
-    
-    if (!error) {
-      setProfile({ ...profile, [field]: editing[field] });
-      const newEditing = { ...editing };
-      delete newEditing[field];
-      setEditing(newEditing);
-      
-      // Show success notification
-      showSuccessNotification(`${field.replace('_', ' ')} updated successfully`);
-    } else {
-      console.error('Save error:', error);
-      showErrorNotification('Failed to save changes');
-    }
-    
-    setSaving(false);
-  };
-  
-  const cancelEdit = (field) => {
-    const newEditing = { ...editing };
-    delete newEditing[field];
-    setEditing(newEditing);
-  };
-  
-  const requestChange = (field) => {
-    setRequestField(field);
-    setShowRequestModal(true);
-  };
-
-  const handleProfilePictureUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File too large. Max 5MB.');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setSaving(false);
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Upload to Supabase Storage
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    
-    const { data, error: uploadError } = await supabase.storage
-      .from('profile-pictures')
-      .upload(fileName, file);
+      const response = await fetch('/api/customadmin/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editedProfile)
+      });
 
-    if (uploadError) {
-      alert('Upload failed');
-      return;
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('profile-pictures')
-      .getPublicUrl(fileName);
-
-    // Update user profile
-    const { error: updateError } = await supabase
-      .from('user_profiles')
-      .update({ profile_picture_url: publicUrl })
-      .eq('id', user.id);
-
-    if (!updateError) {
-      setProfile({ ...profile, profile_picture_url: publicUrl });
+      if (response.ok) {
+        setProfile(editedProfile);
+        setEditMode(false);
+        setErrors({});
+        showBrandedNotification('Profile updated successfully!');
+      } else {
+        console.error('Failed to save profile:', response.status);
+        showBrandedNotification('Failed to save changes. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showBrandedNotification('Failed to save changes. Please try again.', 'error');
+    } finally {
+      setSaving(false);
     }
   };
-  
-  // Branded notification functions
-  const showSuccessNotification = (message) => {
+
+  const handleCancelEdit = () => {
+    setEditedProfile(profile);
+    setEditMode(false);
+    setErrors({});
+  };
+
+  const showBrandedNotification = (message, type = 'success') => {
     const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    const borderColor = type === 'success' ? '#065f46' : '#991b1b';
+    const textColor = type === 'success' ? '#065f46' : '#991b1b';
+    
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #f0fdf4;
-      border-left: 4px solid #065f46;
+      background: ${bgColor};
+      border-left: 4px solid ${borderColor};
       padding: 16px 20px;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -135,7 +154,7 @@ export default function EditProfile() {
       font-family: 'Inter', sans-serif;
     `;
     notification.innerHTML = `
-      <div style="display: flex; align-items: center; color: #065f46;">
+      <div style="display: flex; align-items: center; color: ${textColor};">
         <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
         </svg>
@@ -146,210 +165,419 @@ export default function EditProfile() {
     setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
-  const showErrorNotification = (message) => {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #fef2f2;
-      border-left: 4px solid #991b1b;
-      padding: 16px 20px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      z-index: 10000;
-      max-width: 400px;
-      font-family: 'Inter', sans-serif;
-    `;
-    notification.innerHTML = `
-      <div style="display: flex; align-items: center; color: #991b1b;">
-        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-        </svg>
-        <span style="font-weight: 600; font-size: 14px;">${message}</span>
-      </div>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => document.body.removeChild(notification), 4000);
+  const calculateProgress = () => {
+    const currentData = editedProfile || profile;
+    if (!currentData) return 0;
+    
+    const allFields = [
+      'first_name', 'last_name', 'email', 'admin_level', 'permissions', 'department', 'date_of_birth', 'nationality', 
+      'country', 'city', 'phone', 'bio', 'website', 'linkedin'
+    ];
+    
+    const completedFields = allFields.filter(field => {
+      const value = currentData[field];
+      const isCompleted = value && value.toString().trim() !== '';
+      return isCompleted;
+    });
+    
+    return Math.round((completedFields.length / allFields.length) * 100);
+  };
+
+  const getChangedFields = () => {
+    if (!profile || !editedProfile) return [];
+    const changed = [];
+    Object.keys(editedProfile).forEach(key => {
+      if (editedProfile[key] !== profile[key]) {
+        changed.push(key);
+      }
+    });
+    return changed;
   };
   
   if (loading) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
     );
   }
   
+  if (!profile) {
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your administrator information and system access</p>
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">Unable to load profile data.</p>
+            <button 
+              onClick={fetchProfile}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
-        
-        {/* Profile Picture Upload */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-          
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <img
-                src={profile?.profile_picture_url || '/default-avatar.png'}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
-              />
-            </div>
-            
+      </Layout>
+    );
+  }
+
+  const progress = calculateProgress();
+  const changedFields = getChangedFields();
+
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleProfilePictureUpload}
-                className="hidden"
-                id="profile-picture-upload"
-              />
-              <label
-                htmlFor="profile-picture-upload"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer inline-block"
-              >
-                Change Picture
-              </label>
-              <p className="text-sm text-gray-600 mt-2">JPG, PNG, or WebP. Max 5MB.</p>
+              <h1 className="text-3xl font-bold text-gray-900">Custom Admin Profile</h1>
+              <p className="text-gray-600 mt-1">Manage your admin profile and permissions</p>
+            </div>
+            <div className="flex gap-3">
+              {!editMode ? (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveChanges}
+                    disabled={saving}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
-        </section>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content - 70% */}
+            <div className="lg:col-span-2 space-y-8">
         
         {/* Personal Information - LOCKED */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
           <div className="flex items-center mb-4">
-            <Lock className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+                  <Lock className="w-5 h-5 text-gray-400 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Personal Information
+                    <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-75 origin-left">
+                      LOCKED
+                    </span>
+                  </h2>
           </div>
           <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {LOCKED_FIELDS.map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <input
+                      type="text"
+                      value={profile.first_name || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      value={profile.last_name || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={profile.date_of_birth || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
+                    <input
+                      type="text"
+                      value={profile.nationality || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <input
+                      type="text"
+                      value={profile.country || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
                   <input
                     type="text"
-                    value={profile?.[field] || ''}
+                      value={profile.city || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={profile.email || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={`${profile.country_code || '+44'} ${profile.phone || ''}`}
                     disabled
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
                   />
+                  </div>
+                </div>
+
+                {/* Consolidated Change Request Button */}
+                <div className="pt-4 border-t border-gray-200">
                   <button
-                    onClick={() => requestChange(field)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                    onClick={() => setShowChangeRequestModal(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                   >
-                    Request Edit
+                    Need to update personal information? Request a change
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        
-        {/* Administrative Information - EDITABLE */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <Edit className="w-5 h-5 text-blue-600 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Administrative Information</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EDITABLE_FIELDS.slice(0, 5).map(field => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {field.replace('_', ' ')}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type={field === 'phone' ? 'tel' : 'text'}
-                    value={editing[field] !== undefined ? editing[field] : profile?.[field] || ''}
-                    onChange={(e) => handleEdit(field, e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={
-                      field === 'phone' ? '+1 (555) 123-4567' : 
-                      field === 'admin_title' ? 'Platform Administrator' : 
-                      field === 'access_level' ? 'Full System Access' : 
-                      field === 'responsibilities' ? 'Platform oversight, user management, etc.' : ''
-                    }
-                  />
-                  {editing[field] !== undefined && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => saveField(field)}
-                        disabled={saving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => cancelEdit(field)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+              </section>
+
+              {/* Admin Information - EDITABLE */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <Shield className="w-5 h-5 text-blue-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Admin Information</h2>
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Admin Level *
+                      {changedFields.includes('admin_level') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <select
+                      value={editedProfile.admin_level || ''}
+                      onChange={(e) => handleFieldChange('admin_level', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.admin_level ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                      <option value="">Select Admin Level</option>
+                      {ADMIN_LEVELS.map(level => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </select>
+                    {errors.admin_level && (
+                      <p className="text-red-500 text-sm mt-1">{errors.admin_level}</p>
+                    )}
+              </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Permissions *
+                      {changedFields.includes('permissions') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <select
+                      value={editedProfile.permissions || ''}
+                      onChange={(e) => handleFieldChange('permissions', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.permissions ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                      <option value="">Select Permissions</option>
+                      {PERMISSIONS.map(perm => (
+                        <option key={perm} value={perm}>{perm}</option>
+                      ))}
+                    </select>
+                    {errors.permissions && (
+                      <p className="text-red-500 text-sm mt-1">{errors.permissions}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Department
+                      {changedFields.includes('department') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.department || ''}
+                      onChange={(e) => handleFieldChange('department', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Access Level
+                      {changedFields.includes('access_level') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.access_level || ''}
+                      onChange={(e) => handleFieldChange('access_level', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+          </div>
+        </section>
+        
+              {/* Biography */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <FileText className="w-5 h-5 text-green-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
+          </div>
+          
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    Admin Bio
+                    {changedFields.includes('bio') && (
+                      <span className="ml-2 text-green-600">✓</span>
+                    )}
+                </label>
+                  <textarea
+                    value={editedProfile.bio || ''}
+                    onChange={(e) => handleFieldChange('bio', e.target.value)}
+                    disabled={!editMode}
+                    rows={6}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                      !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                    } border-gray-300`}
+                    placeholder="Tell us about your administrative experience and background..."
+                  />
+                    </div>
+              </section>
+
+              {/* Professional Links */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <Globe className="w-5 h-5 text-indigo-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Professional Links</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'website', label: 'Website', type: 'url' },
+                    { key: 'linkedin', label: 'LinkedIn Profile', type: 'url' }
+                  ].map(({ key, label, type }) => (
+                    <div key={key} className="mb-4">
+                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        {label}
+                        {changedFields.includes(key) && (
+                          <span className="ml-2 text-green-600">✓</span>
+                        )}
+                      </label>
+                      <input
+                        type={type}
+                        value={editedProfile[key] || ''}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                        disabled={!editMode}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
               </div>
             ))}
           </div>
         </section>
-        
-        {/* Biography */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Administrator Biography</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">About Your Role</label>
-            <textarea
-              value={editing.bio !== undefined ? editing.bio : profile?.bio || ''}
-              onChange={(e) => handleEdit('bio', e.target.value)}
-              rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Describe your administrative role, experience, and oversight responsibilities..."
-            />
-            {editing.bio !== undefined && (
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => saveField('bio')}
-                  disabled={saving}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  Save Bio
-                </button>
-                <button
-                  onClick={() => cancelEdit('bio')}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
+            </div>
+
+            {/* Right Sidebar - 30% */}
+            <div className="space-y-6">
+              
+              {/* Profile Picture */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
+                
+                <ProfilePictureUpload
+                  currentImage={profile.profile_picture_url}
+                  onUploadSuccess={(url) => {
+                    setProfile({ ...profile, profile_picture_url: url });
+                    setEditedProfile({ ...editedProfile, profile_picture_url: url });
+                    showBrandedNotification('Profile picture updated successfully!');
+                  }}
+                  onUploadError={(error) => {
+                    showBrandedNotification(error, 'error');
+                  }}
+                />
+              </section>
+
+              {/* Profile Completion */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
+                
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600">
+                  Complete your profile to access all admin features.
+                </p>
+              </section>
+
               </div>
-            )}
           </div>
-        </section>
-        
-        {showRequestModal && (
-          <RequestChangeModal
-            field={requestField}
-            currentValue={profile?.[requestField]}
-            onClose={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
-            onSubmit={() => {
-              setShowRequestModal(false);
-              setRequestField(null);
-            }}
+        </div>
+
+        {/* Consolidated Change Request Modal */}
+        {showChangeRequestModal && (
+          <ChangeRequestModal
+            lockedFields={LOCKED_FIELDS}
+            currentProfile={profile}
+            onClose={() => setShowChangeRequestModal(false)}
+            onSubmit={() => setShowChangeRequestModal(false)}
           />
         )}
       </div>
@@ -357,40 +585,34 @@ export default function EditProfile() {
   );
 }
 
-function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
+function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit }) {
+  const [selectedField, setSelectedField] = useState('');
   const [newValue, setNewValue] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
-  const handleSubmit = async () => {
-    if (!newValue || !reason) return;
+  const handleFieldSelect = (fieldKey) => {
+    setSelectedField(fieldKey);
+    setNewValue('');
+  };
+
+  const getCurrentValue = () => {
+    if (!selectedField || !currentProfile) return '';
+    return currentProfile[selectedField] || 'Not set';
+  };
+
+  const showBrandedNotification = (message, type = 'success') => {
+    const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    const borderColor = type === 'success' ? '#065f46' : '#991b1b';
+    const textColor = type === 'success' ? '#065f46' : '#991b1b';
     
-    setSubmitting(true);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
-      .from('profile_change_requests')
-      .insert({
-        user_id: user.id,
-        field_name: field,
-        current_value: currentValue,
-        requested_value: newValue,
-        reason: reason,
-        status: 'pending'
-      });
-    
-    setSubmitting(false);
-    
-    if (!error) {
-      // Show branded success notification
-      const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #f0fdf4;
-        border-left: 4px solid #065f46;
+      background: ${bgColor};
+      border-left: 4px solid ${borderColor};
         padding: 16px 20px;
         border-radius: 8px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -399,19 +621,47 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
         font-family: 'Inter', sans-serif;
       `;
       notification.innerHTML = `
-        <div style="display: flex; align-items: center; color: #065f46;">
+      <div style="display: flex; align-items: center; color: ${textColor};">
           <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
           </svg>
-          <span style="font-weight: 600; font-size: 14px;">Change request submitted for approval</span>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
         </div>
       `;
       document.body.appendChild(notification);
       setTimeout(() => document.body.removeChild(notification), 4000);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedField || !newValue || !reason) return;
+    
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
       
+      const { error } = await supabase
+        .from('profile_change_requests')
+        .insert({
+          user_id: user.id,
+          field_name: selectedField,
+          current_value: getCurrentValue(),
+          requested_value: newValue,
+          reason: reason,
+          status: 'pending'
+        });
+      
+      if (!error) {
+        showBrandedNotification('Change request submitted for approval');
       onSubmit();
     } else {
-      console.error('Request submission error:', error);
+        console.error('Error submitting request:', error);
+        showBrandedNotification('Failed to submit request', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showBrandedNotification('Failed to submit request', 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
   
@@ -422,37 +672,42 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Field</label>
-            <input
-              type="text"
-              value={field?.replace('_', ' ').toUpperCase()}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Personal Information to Change*</label>
+            <select
+              value={selectedField}
+              onChange={(e) => handleFieldSelect(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="">Select field to change</option>
+              {lockedFields.map(field => (
+                <option key={field.key} value={field.key}>{field.label}</option>
+              ))}
+            </select>
+          </div>
+          
+          {selectedField && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-gray-600">
+                  Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
+                </p>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change*</label>
             <input
-              type="text"
-              value={currentValue || 'Not set'}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Value *</label>
-            <input
-              type="text"
+                  type={selectedField === 'date_of_birth' ? 'date' : 'text'}
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter the new value"
             />
           </div>
+            </>
+          )}
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change*</label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -473,7 +728,7 @@ function RequestChangeModal({ field, currentValue, onClose, onSubmit }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!newValue || !reason || submitting}
+            disabled={!selectedField || !newValue || !reason || submitting}
             className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Submitting...' : 'Submit Request'}
