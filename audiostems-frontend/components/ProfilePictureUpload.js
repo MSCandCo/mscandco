@@ -48,18 +48,48 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   // Global error handler for browser-level camera errors
   useEffect(() => {
     const handleGlobalError = (event) => {
-      if (event.message && event.message.includes('AVVideoCapture')) {
+      // Suppress ALL camera-related errors from showing in browser UI
+      if (event.message && (
+        event.message.includes('AVVideoCapture') ||
+        event.message.includes('getUserMedia') ||
+        event.message.includes('NotAllowedError')
+      )) {
         event.preventDefault();
-        showBrandedErrorModal(
-          'Camera Access Blocked', 
-          'To enable camera access:\n\n1. Check if another app is using your camera (Zoom, FaceTime, etc.) and close it\n2. On Mac: Open System Settings → Privacy & Security → Camera → Enable for your browser\n3. Refresh this page and try again\n\nOr use "Choose File" to upload a photo instead.'
-        );
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        
+        // Only show our branded modal if it's not already showing
+        if (!showErrorModal) {
+          showBrandedErrorModal(
+            'Camera Access Blocked', 
+            'To enable camera access:\n\n1. Check if another app is using your camera (Zoom, FaceTime, etc.) and close it\n2. On Mac: Open System Settings → Privacy & Security → Camera → Enable for your browser\n3. Refresh this page and try again\n\nOr use "Choose File" to upload a photo instead.'
+          );
+        }
+        
+        return false; // Prevent default error display
       }
     };
 
-    window.addEventListener('error', handleGlobalError);
-    return () => window.removeEventListener('error', handleGlobalError);
-  }, []);
+    const handleUnhandledRejection = (event) => {
+      // Suppress unhandled promise rejections related to camera
+      if (event.reason && (
+        event.reason.toString().includes('AVVideoCapture') ||
+        event.reason.toString().includes('getUserMedia') ||
+        event.reason.toString().includes('NotAllowedError')
+      )) {
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    window.addEventListener('error', handleGlobalError, true);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError, true);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [showErrorModal]);
 
   function onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
