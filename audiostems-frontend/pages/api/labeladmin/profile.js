@@ -1,100 +1,100 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { supabase } from '@/lib/supabase';
 
 export default async function handler(req, res) {
-  try {
-    // Use the working approach - direct email-based function call
-    const labelAdminEmail = 'labeladmin@mscandco.com';
+  if (req.method === 'GET') {
+    try {
+      // Get the user from the request headers
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ error: 'No authorization header' });
+      }
 
-    if (req.method === 'GET') {
-      // Get label admin profile directly
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      console.log('👤 Label Admin profile API (bypass auth) for', user.email);
+
+      // Use service role to bypass RLS
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('email', labelAdminEmail)
+        .eq('id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Database error:', error);
+      if (error) {
+        console.error('Profile fetch error:', error);
         return res.status(500).json({ error: 'Failed to fetch profile' });
       }
 
       if (!profile) {
-        return res.status(200).json({
-          email: labelAdminEmail,
-          firstName: '',
-          lastName: '',
-          labelName: '',
-          companyName: '',
-          phone: '',
-          countryCode: '+44',
-          country: '',
-          website: '',
-          instagram: '',
-          facebook: '',
-          twitter: '',
-          youtube: '',
-          tiktok: '',
-          bio: '',
-          shortBio: '',
-          isBasicInfoSet: false,
-          profileCompleted: false,
-          lockedFields: {},
-          profileLockStatus: 'unlocked'
-        });
+        return res.status(404).json({ error: 'Profile not found' });
       }
 
-      return res.status(200).json({
-        id: profile.id,
-        email: profile.email,
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
-        labelName: profile.artist_name || '',
-        companyName: profile.artist_name || '',
-        phone: profile.phone || '',
-        countryCode: profile.country_code || '+44',
-        country: profile.country || '',
-        website: profile.website || '',
-        instagram: profile.instagram || '',
-        facebook: profile.facebook || '',
-        twitter: profile.twitter || '',
-        youtube: profile.youtube || '',
-        tiktok: profile.tiktok || '',
-        bio: profile.bio || '',
-        shortBio: profile.short_bio || '',
-        isBasicInfoSet: profile.is_basic_info_set || false,
-        profileCompleted: profile.profile_completed || false,
-        lockedFields: profile.locked_fields || {},
-        profileLockStatus: profile.profile_lock_status || 'unlocked',
-        createdAt: profile.created_at,
-        updatedAt: profile.updated_at
-      });
-    }
+      console.log('✅ Label Admin profile loaded from database');
+      return res.status(200).json(profile);
 
-    if (req.method === 'PUT') {
-      // Update using the working enterprise function
-      const { data: result, error } = await supabase.rpc('update_user_profile', {
-        p_email: labelAdminEmail,
-        p_profile_data: req.body
+    } catch (error) {
+      console.error('Label Admin profile API error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    try {
+      // Get the user from the request headers
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ error: 'No authorization header' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      console.log('💾 Updating Label Admin profile for:', user.email);
+
+      const updates = req.body;
+      
+      // Only allow updating editable fields
+      const allowedFields = ['label_name', 'company_name', 'phone', 'website', 'instagram', 'facebook', 'twitter', 'youtube', 'tiktok', 'bio', 'profile_picture_url'];
+      const filteredUpdates = {};
+      
+      Object.keys(updates).forEach(key => {
+        if (allowedFields.includes(key)) {
+          filteredUpdates[key] = updates[key];
+        }
       });
+
+      console.log('💾 Updating Label Admin profile directly:', filteredUpdates);
+
+      // Use service role to bypass RLS
+      const { data: updatedProfile, error } = await supabase
+        .from('user_profiles')
+        .update(filteredUpdates)
+        .eq('id', user.id)
+        .select()
+        .single();
 
       if (error) {
-        console.error('Error updating label admin profile:', error);
-        return res.status(500).json({ error: 'Failed to update profile: ' + error.message });
+        console.error('Profile update error:', error);
+        return res.status(500).json({ error: 'Failed to update profile' });
       }
 
-      return res.status(200).json(result);
+      console.log('✅ Label Admin profile updated successfully');
+      return res.status(200).json(updatedProfile);
+
+    } catch (error) {
+      console.error('Label Admin profile update API error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-
-    return res.status(405).json({ error: 'Method not allowed' });
-
-  } catch (error) {
-    console.error('Label admin profile API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }
