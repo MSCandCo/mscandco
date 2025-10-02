@@ -68,17 +68,33 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
     try {
       console.log('🎥 Starting camera...');
       
-      // Simple camera request - just video, no fancy constraints
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true,
-        audio: false
-      });
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('UNSUPPORTED');
+      }
+
+      // Request camera with fallback constraints
+      let stream;
+      try {
+        // Try with ideal constraints first
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user' },
+          audio: false
+        });
+      } catch (e) {
+        // Fallback: try with basic constraints
+        console.log('Trying basic camera constraints...');
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true,
+          audio: false
+        });
+      }
 
       console.log('✅ Camera stream obtained');
       setCameraStream(stream);
       setShowCameraModal(true);
       
-      // Wait a bit then set up video
+      // Set up video element
       setTimeout(() => {
         if (videoRef.current && stream) {
           console.log('📹 Setting up video element');
@@ -90,10 +106,18 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
     } catch (error) {
       console.error('❌ Camera error:', error);
       
-      // Simple error message
-      const message = error.name === 'NotAllowedError' 
-        ? 'Camera permission denied. Please allow camera access and try again.'
-        : 'Camera not available. Please use "Choose File" to upload a photo instead.';
+      let message;
+      if (error.message === 'UNSUPPORTED') {
+        message = 'Your browser does not support camera access. Please use "Choose File" instead.';
+      } else if (error.name === 'NotAllowedError') {
+        message = 'Camera permission denied. Please allow camera access in your browser settings and try again.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        message = 'No camera found on your device. Please use "Choose File" to upload a photo.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        message = 'Camera is in use by another application. Please close other apps using the camera and try again.';
+      } else {
+        message = 'Camera not available. Please use "Choose File" to upload a photo instead.';
+      }
       
       onUploadError?.(message);
     }
