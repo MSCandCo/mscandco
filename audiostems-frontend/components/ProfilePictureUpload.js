@@ -9,7 +9,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
     makeAspectCrop(
       {
         unit: '%',
-        width: 50, // Smaller initial crop to show more of the image
+        width: 70, // Good size for circular crop - not too big, not too small
       },
       aspect,
       mediaWidth,
@@ -123,15 +123,8 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   function onImageLoad(e) {
     const { width, height } = e.currentTarget;
     
-    // Calculate zoom to fit entire image in container
-    const containerMaxWidth = 400; // Max width of crop container
-    const containerMaxHeight = 300; // Max height of crop container
-    
-    const scaleToFitWidth = containerMaxWidth / width;
-    const scaleToFitHeight = containerMaxHeight / height;
-    const scaleToFit = Math.min(scaleToFitWidth, scaleToFitHeight, 1); // Don't scale up
-    
-    setZoom(scaleToFit);
+    // Set reasonable default zoom (not too zoomed out, not too zoomed in)
+    setZoom(0.8);
     setCrop(centerAspectCrop(width, height, 1)); // 1:1 aspect ratio for profile pictures
   }
 
@@ -433,7 +426,6 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
                   minWidth={50}
                   minHeight={50}
                   circularCrop
-                  style={{ maxWidth: '100%', maxHeight: '100%' }}
                 >
                   <img
                     ref={imgRef}
@@ -441,9 +433,10 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
                     src={imgSrc}
                     style={{ 
                       transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      maxWidth: 'none',
-                      maxHeight: 'none',
-                      display: 'block'
+                      transformOrigin: 'center',
+                      display: 'block',
+                      maxWidth: '100%',
+                      height: 'auto'
                     }}
                     onLoad={onImageLoad}
                   />
