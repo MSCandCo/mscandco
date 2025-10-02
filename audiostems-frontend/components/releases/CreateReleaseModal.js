@@ -68,17 +68,8 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
           case 'label_admin':
             apiEndpoint = '/api/labeladmin/profile';
             break;
-          case 'company_admin':
-            apiEndpoint = '/api/companyadmin/profile';
-            break;
-          case 'distribution_partner':
-            apiEndpoint = '/api/distributionpartner/profile';
-            break;
-          case 'custom_admin':
-            apiEndpoint = '/api/customadmin/profile';
-            break;
           default:
-            return; // No profile pre-filling for other roles
+            return; // Only label admins need profile pre-filling for releases
         }
 
         const response = await fetch(apiEndpoint, {
@@ -88,28 +79,18 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
         if (response.ok) {
           const profileData = await response.json();
           
-          // Pre-fill form with role-specific profile data
-          let artistName = '';
-          switch (userRole) {
-            case 'label_admin':
-              artistName = profileData.label_name || profileData.company_name || 'MSC & Co';
-              break;
-            case 'company_admin':
-            case 'distribution_partner':
-            case 'custom_admin':
-              artistName = profileData.company_name || 'MSC & Co';
-              break;
-          }
+          // Pre-fill form with label profile data
+          const artistName = profileData.label_name || profileData.company_name || 'MSC & Co';
           
           setFormData(prev => ({
             ...prev,
             artist: artistName
           }));
           
-          console.log('📋 Pre-filled release form with profile data:', {
-            userRole,
-            artistName,
-            profileData: profileData
+          console.log('📋 Pre-filled release form with label profile data:', {
+            labelName: profileData.label_name,
+            companyName: profileData.company_name,
+            artistName
           });
         }
       } catch (error) {

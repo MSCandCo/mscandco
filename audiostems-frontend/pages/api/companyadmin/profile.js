@@ -14,6 +14,8 @@ export default async function handler(req, res) {
   
   if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
 
+  console.log('👤 Company Admin profile API for:', user.email);
+
   if (req.method === 'GET') {
     // Fetch company admin profile
     const { data: profile, error } = await supabase
@@ -24,12 +26,15 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
     
+    console.log('✅ Company Admin profile loaded from database');
     return res.status(200).json(profile);
   }
 
   if (req.method === 'PUT') {
     // Update company admin profile
     const updates = req.body;
+    
+    console.log('💾 Updating Company Admin profile:', updates);
     
     // Remove locked fields that shouldn't be directly updated
     delete updates.first_name;
@@ -50,13 +55,8 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // SINGLE SOURCE OF TRUTH: Mark all company's content for cache refresh
-    await supabase
-      .from('releases')
-      .update({ cache_updated_at: null })
-      .eq('company_admin_id', user.id);
-
-    console.log('🔄 Company Admin content marked for cache refresh');
+    // Company Admin profiles don't manage releases directly
+    console.log('✅ Company Admin profile updated');
     
     return res.status(200).json(data);
   }

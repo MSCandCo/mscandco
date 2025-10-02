@@ -50,13 +50,8 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // SINGLE SOURCE OF TRUTH: Mark all admin's managed content for cache refresh
-    await supabase
-      .from('releases')
-      .update({ cache_updated_at: null })
-      .eq('custom_admin_id', user.id);
-
-    console.log('🔄 Custom Admin content marked for cache refresh');
+    // Custom Admin profiles don't manage releases directly
+    console.log('✅ Custom Admin profile updated');
     
     return res.status(200).json(data);
   }

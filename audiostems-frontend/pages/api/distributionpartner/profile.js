@@ -1,85 +1,60 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Service role client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
-  try {
-    const partnerEmail = 'codegroup@mscandco.com';
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'Not authenticated' });
 
-    if (req.method === 'GET') {
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('email', partnerEmail)
-        .single();
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
 
-      if (error && error.code !== 'PGRST116') {
-        return res.status(500).json({ error: 'Failed to fetch profile' });
-      }
+  if (req.method === 'GET') {
+    // Fetch distribution partner profile
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-      if (!profile) {
-        return res.status(200).json({
-          profile: {
-            email: partnerEmail,
-            firstName: '',
-            lastName: '',
-            companyName: '',
-            businessType: 'distribution',
-            phone: '',
-            countryCode: '+44',
-            country: '',
-            website: '',
-            bio: '',
-            isCompanyNameSet: false,
-            registrationDate: null
-          }
-        });
-      }
-
-      return res.status(200).json({
-        profile: {
-          id: profile.id,
-          email: profile.email,
-          firstName: profile.first_name || '',
-          lastName: profile.last_name || '',
-          companyName: profile.company_name || profile.artist_name || '',
-          businessType: profile.business_type || 'distribution',
-          phone: profile.phone || '',
-          countryCode: profile.country_code || '+44',
-          country: profile.country || '',
-          website: profile.website || '',
-          bio: profile.bio || '',
-          shortBio: profile.short_bio || '',
-          isCompanyNameSet: !!(profile.company_name || profile.artist_name),
-          registrationDate: profile.created_at,
-          createdAt: profile.created_at,
-          updatedAt: profile.updated_at
-        }
-      });
-    }
-
-    if (req.method === 'PUT' || req.method === 'POST') {
-      const { data: result, error } = await supabase.rpc('update_user_profile', {
-        p_email: partnerEmail,
-        p_profile_data: req.body
-      });
-
-      if (error) {
-        console.error('Error updating distribution partner profile:', error);
-        return res.status(500).json({ error: 'Failed to update profile: ' + error.message });
-      }
-
-      return res.status(200).json(result);
-    }
-
-    return res.status(405).json({ error: 'Method not allowed' });
-
-  } catch (error) {
-    console.error('Distribution partner profile API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    if (error) return res.status(500).json({ error: error.message });
+    
+    return res.status(200).json(profile);
   }
+
+  if (req.method === 'PUT') {
+    // Update distribution partner profile
+    const updates = req.body;
+    
+    // Remove locked fields that shouldn't be directly updated
+    delete updates.first_name;
+    delete updates.last_name;
+    delete updates.email;
+    delete updates.date_of_birth;
+    delete updates.nationality;
+    delete updates.country;
+    delete updates.city;
+    delete updates.phone;
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    // Distribution Partner profiles don't manage releases directly
+    console.log('✅ Distribution Partner profile updated');
+    
+    return res.status(200).json(data);
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }
