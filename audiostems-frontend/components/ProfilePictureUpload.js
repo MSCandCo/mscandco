@@ -174,11 +174,20 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
       throw new Error('No 2d context');
     }
 
-    // Set canvas size to desired output size (square for profile picture)
-    const outputSize = 400; // 400x400 output
-    canvas.width = outputSize;
-    canvas.height = outputSize;
-
+    // High resolution output for crisp images
+    const outputSize = 800; // 800x800 high resolution output
+    const pixelRatio = window.devicePixelRatio || 1;
+    
+    canvas.width = outputSize * pixelRatio;
+    canvas.height = outputSize * pixelRatio;
+    
+    // Scale the canvas back down using CSS for crisp rendering
+    canvas.style.width = outputSize + 'px';
+    canvas.style.height = outputSize + 'px';
+    
+    // Scale the drawing context to match device pixel ratio
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
     // Calculate the actual crop coordinates considering zoom and rotation
@@ -192,7 +201,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
     ctx.translate(outputSize / 2, outputSize / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     
-    // Draw the cropped portion
+    // Draw the cropped portion at high resolution
     ctx.drawImage(
       image,
       crop.x * scaleX,
@@ -217,7 +226,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
           resolve(blob);
         },
         'image/jpeg',
-        0.9,
+        0.95, // Higher quality for crisp results
       );
     });
   }, [zoom, rotation]);
