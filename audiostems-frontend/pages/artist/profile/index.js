@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Music, Award, FileText } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
+import ProfilePictureUpload from '../../../components/ProfilePictureUpload';
 
 export default function ArtistProfile() {
   const [profile, setProfile] = useState(null);
@@ -10,7 +11,6 @@ export default function ArtistProfile() {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
-  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [errors, setErrors] = useState({});
 
   // LOCKED FIELDS - require admin approval via consolidated modal
@@ -228,86 +228,6 @@ export default function ArtistProfile() {
     setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
-  const handleProfilePictureUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size
-    if (file.size > 5 * 1024 * 1024) {
-      showBrandedNotification('File too large. Max 5MB.', 'error');
-      return;
-    }
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      showBrandedNotification('Invalid file type. Please use JPG, PNG, or WebP.', 'error');
-      return;
-    }
-
-    setUploadingPicture(true);
-    console.log('🖼️ Starting profile picture upload using API...');
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        showBrandedNotification('Authentication required', 'error');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      console.log('📤 Uploading via /api/upload/profile-picture endpoint...');
-
-      const response = await fetch('/api/upload/profile-picture', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: formData
-      });
-
-      console.log('📊 Upload response status:', response.status);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Upload successful:', result);
-        
-        const publicUrl = result.url;
-        console.log('🔗 Public URL:', publicUrl);
-
-        // Update profile with the new picture URL
-        const updateResponse = await fetch('/api/artist/profile', {
-          method: 'PUT',
-          headers: { 
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ profile_picture_url: publicUrl })
-        });
-
-        if (updateResponse.ok) {
-          console.log('✅ Profile picture updated in database');
-          setProfile({ ...profile, profile_picture_url: publicUrl });
-          setEditedProfile({ ...editedProfile, profile_picture_url: publicUrl });
-          showBrandedNotification('Profile picture updated successfully!');
-        } else {
-          console.error('❌ Failed to update profile:', updateResponse.status);
-          showBrandedNotification('Failed to save profile picture', 'error');
-        }
-      } else {
-        const errorData = await response.text();
-        console.error('❌ Upload failed:', response.status, errorData);
-        showBrandedNotification('Upload failed. Please try again.', 'error');
-      }
-    } catch (error) {
-      console.error('❌ Unexpected error:', error);
-      showBrandedNotification(`Upload failed: ${error.message}`, 'error');
-    } finally {
-      setUploadingPicture(false);
-    }
-  };
 
   const calculateProgress = () => {
     const currentData = editedProfile || profile;
@@ -787,67 +707,17 @@ export default function ArtistProfile() {
               <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
                 
-                <div className="text-center">
-                  <div className="relative inline-block">
-                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 mx-auto mb-4">
-                      {profile.profile_picture_url ? (
-                        <img
-                          src={profile.profile_picture_url}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <User className="w-16 h-16 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* File Upload Input */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                      id="profile-picture-upload"
-                      disabled={uploadingPicture}
-                    />
-                    
-                    {/* Camera Input */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="user"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                      id="profile-picture-camera"
-                      disabled={uploadingPicture}
-                    />
-                    
-                    <div className="flex gap-2 justify-center">
-                      <label
-                        htmlFor="profile-picture-upload"
-                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm ${
-                          uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <Upload className="w-4 h-4 mr-1" />
-                        {uploadingPicture ? 'Uploading...' : 'Choose File'}
-                      </label>
-                      
-                      <label
-                        htmlFor="profile-picture-camera"
-                        className={`cursor-pointer inline-flex items-center px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm ${
-                          uploadingPicture ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        📷
-                        <span className="ml-1">Take Photo</span>
-                      </label>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">JPG, PNG, or WebP. Max 5MB.</p>
-                </div>
+                <ProfilePictureUpload
+                  currentImage={profile.profile_picture_url}
+                  onUploadSuccess={(url) => {
+                    setProfile({ ...profile, profile_picture_url: url });
+                    setEditedProfile({ ...editedProfile, profile_picture_url: url });
+                    showBrandedNotification('Profile picture updated successfully!');
+                  }}
+                  onUploadError={(error) => {
+                    showBrandedNotification(error, 'error');
+                  }}
+                />
               </section>
 
               {/* Profile Completion */}
