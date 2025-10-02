@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';
 import React from 'react'; // Added missing import
 import { GENRES, RELEASE_TYPES, RELEASE_STATUSES, isStatusEditableByArtist, isStatusEditableByLabelAdmin } from '../../lib/constants';
@@ -21,6 +22,9 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   };
 
   const approvedArtists = getApprovedArtists();
+
+  // Label admin profile for pre-filling
+  const [labelProfile, setLabelProfile] = useState(null);
 
   const [formData, setFormData] = useState({
     projectName: 'New Release Project',
@@ -49,6 +53,45 @@ export default function CreateReleaseModal({ isOpen, onClose, existingRelease = 
   
   // Auto-save functionality for artist and label admin
   const [hasStartedEditing, setHasStartedEditing] = useState(false);
+
+  // Load label admin profile for pre-filling
+  useEffect(() => {
+    const loadLabelProfile = async () => {
+      if (userRole !== 'label_admin' || existingRelease) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch('/api/labeladmin/profile', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+
+        if (response.ok) {
+          const profileData = await response.json();
+          setLabelProfile(profileData);
+          
+          // Pre-fill form with label profile data
+          setFormData(prev => ({
+            ...prev,
+            // Use label name as default for releases
+            artist: profileData.label_name || profileData.company_name || prev.artist
+          }));
+          
+          console.log('📋 Pre-filled release form with label profile data:', {
+            labelName: profileData.label_name,
+            companyName: profileData.company_name
+          });
+        }
+      } catch (error) {
+        console.error('Error loading label profile for pre-fill:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadLabelProfile();
+    }
+  }, [isOpen, userRole, existingRelease]);
   const [lastSaved, setLastSaved] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const autoSaveTimeoutRef = useRef(null);

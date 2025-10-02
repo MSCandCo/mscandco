@@ -51,8 +51,13 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // SINGLE SOURCE OF TRUTH: When profile updates, mark related releases for cache refresh
-    // This will be used later when we implement cached_label_data in releases table
+    // SINGLE SOURCE OF TRUTH: Mark all label's releases for cache refresh
+    await supabase
+      .from('releases')
+      .update({ cache_updated_at: null })
+      .eq('label_admin_id', user.id);
+
+    console.log('🔄 Label Admin releases marked for cache refresh');
     
     return res.status(200).json(data);
   }
