@@ -1,39 +1,60 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
-import { Lock, Edit, Save, X, User, Building, Globe, Phone, Mail, MapPin, Calendar, Flag } from 'lucide-react';
+import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Building, Award, FileText } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
 import ProfilePictureUpload from '../../../components/ProfilePictureUpload';
 
 export default function LabelProfile() {
   const [profile, setProfile] = useState(null);
-  const [editedProfile, setEditedProfile] = useState(null);
+  const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showChangeRequestModal, setShowChangeRequestModal] = useState(false);
-  const [selectedField, setSelectedField] = useState('');
-  const [requestedChange, setRequestedChange] = useState('');
-  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // LOCKED: Core signup fields - require admin approval
-  const LOCKED_FIELDS = ['first_name', 'last_name', 'email', 'date_of_birth', 'nationality', 'country', 'city'];
-  
-  // EDITABLE: Can change directly
-  const EDITABLE_FIELDS = ['label_name', 'company_name', 'phone', 'website', 'instagram', 'facebook', 'twitter', 'youtube', 'tiktok', 'bio'];
+  // LOCKED FIELDS - require admin approval via consolidated modal
+  const LOCKED_FIELDS = [
+    { key: 'first_name', label: 'First Name' },
+    { key: 'last_name', label: 'Last Name' },
+    { key: 'date_of_birth', label: 'Date of Birth' },
+    { key: 'nationality', label: 'Nationality' },
+    { key: 'country', label: 'Country' },
+    { key: 'city', label: 'City' }
+  ];
+
+  // Dropdown options
+  const COUNTRY_CODES = [
+    { code: '+1', country: 'US/CA' }, { code: '+44', country: 'UK' }, { code: '+33', country: 'FR' },
+    { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
+  ];
 
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch('/api/labeladmin/profile');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/labeladmin/profile', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+
       if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-        setEditedProfile(data);
+        const profileData = await response.json();
+        
+        // Use the profile data directly (no mapping needed for label admin)
+        setProfile(profileData);
+        setEditedProfile(profileData);
+      } else {
+        console.error('Failed to fetch profile:', response.status);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -96,70 +117,89 @@ export default function LabelProfile() {
       ...prev,
       [field]: value
     }));
+    
+    // Clear any existing error for this field
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
   };
 
-  const handleSaveChanges = async () => {
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      setSaving(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No session found');
+      }
+
+      // Only send editable fields
+      const editableFields = [
+        'label_name', 'company_name', 'phone', 'country_code', 'website', 'instagram', 
+        'facebook', 'twitter', 'youtube', 'tiktok', 'bio'
+      ];
       
-      // Only save editable fields
-      const editableChanges = {};
-      EDITABLE_FIELDS.forEach(field => {
-        if (editedProfile[field] !== profile[field]) {
-          editableChanges[field] = editedProfile[field];
+      const updateData = {};
+      editableFields.forEach(field => {
+        if (editedProfile.hasOwnProperty(field)) {
+          updateData[field] = editedProfile[field];
         }
       });
 
-      if (Object.keys(editableChanges).length === 0) {
-        showBrandedNotification('No changes to save', 'error');
-        return;
-      }
-
       const response = await fetch('/api/labeladmin/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editableChanges)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(updateData)
       });
 
       if (response.ok) {
         const updatedProfile = await response.json();
         setProfile(updatedProfile);
         setEditedProfile(updatedProfile);
-        setIsEditing(false);
+        setEditMode(false);
         showBrandedNotification('Profile updated successfully!');
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      showBrandedNotification('Failed to save changes. Please try again.', 'error');
+      console.error('Error updating profile:', error);
+      showBrandedNotification('Failed to update profile. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancelEdit = () => {
+  const handleCancel = () => {
     setEditedProfile(profile);
-    setIsEditing(false);
+    setEditMode(false);
+    setErrors({});
   };
 
-  const handleChangeRequest = async () => {
-    if (!selectedField || !requestedChange.trim()) {
+  const handleChangeRequest = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const fieldToChange = formData.get('fieldToChange');
+    const requestedChange = formData.get('requestedChange');
+
+    if (!fieldToChange || !requestedChange.trim()) {
       showBrandedNotification('Please select a field and enter your requested change', 'error');
       return;
     }
 
     try {
-      setSubmittingRequest(true);
-      
       const { data: { user } } = await supabase.auth.getUser();
-      const currentValue = profile[selectedField] || '';
+      const currentValue = profile[fieldToChange] || '';
       
       const { error } = await supabase
         .from('profile_change_requests')
         .insert({
           user_id: user.id,
-          field_name: selectedField,
+          field_name: fieldToChange,
           current_value: currentValue,
           requested_value: requestedChange,
           status: 'pending'
@@ -169,13 +209,10 @@ export default function LabelProfile() {
 
       showBrandedNotification('Change request submitted successfully! An admin will review it shortly.');
       setShowChangeRequestModal(false);
-      setSelectedField('');
-      setRequestedChange('');
+      e.target.reset();
     } catch (error) {
       console.error('Error submitting change request:', error);
       showBrandedNotification('Failed to submit request. Please try again.', 'error');
-    } finally {
-      setSubmittingRequest(false);
     }
   };
 
@@ -209,7 +246,7 @@ export default function LabelProfile() {
     );
   }
 
-  const currentData = editedProfile || profile;
+  const currentData = editedProfile;
   const progress = calculateProgress();
 
   return (
@@ -222,9 +259,9 @@ export default function LabelProfile() {
               <p className="text-gray-600 mt-1">Manage your label information and settings</p>
             </div>
             
-            {!isEditing ? (
+            {!editMode ? (
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => setEditMode(true)}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -233,14 +270,14 @@ export default function LabelProfile() {
             ) : (
               <div className="flex gap-3">
                 <button
-                  onClick={handleCancelEdit}
+                  onClick={handleCancel}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Cancel
                 </button>
                 <button
-                  onClick={handleSaveChanges}
+                  onClick={handleSave}
                   disabled={saving}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
@@ -386,9 +423,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.label_name || ''}
                     onChange={(e) => handleInputChange('label_name', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="Enter your label name"
                   />
@@ -400,9 +437,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.company_name || ''}
                     onChange={(e) => handleInputChange('company_name', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="Enter your company name"
                   />
@@ -422,23 +459,26 @@ export default function LabelProfile() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                   <div className="flex">
                     <select 
-                      disabled={!isEditing}
+                      value={currentData.country_code || '+44'}
+                      onChange={(e) => handleInputChange('country_code', e.target.value)}
+                      disabled={!editMode}
                       className={`px-3 py-2 border border-gray-300 rounded-l-lg ${
-                        isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                        editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      <option value="+44">🇬🇧 +44</option>
-                      <option value="+1">🇺🇸 +1</option>
-                      <option value="+33">🇫🇷 +33</option>
-                      <option value="+49">🇩🇪 +49</option>
+                      {COUNTRY_CODES.map(({ code, country }) => (
+                        <option key={code} value={code}>
+                          {code} {country}
+                        </option>
+                      ))}
                     </select>
                     <input
                       type="tel"
                       value={currentData.phone || ''}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!editMode}
                       className={`flex-1 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg ${
-                        isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                        editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                       }`}
                       placeholder="Phone number"
                     />
@@ -461,9 +501,9 @@ export default function LabelProfile() {
                     type="url"
                     value={currentData.website || ''}
                     onChange={(e) => handleInputChange('website', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="https://your-label.com"
                   />
@@ -475,9 +515,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.instagram || ''}
                     onChange={(e) => handleInputChange('instagram', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="@labelname"
                   />
@@ -489,9 +529,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.facebook || ''}
                     onChange={(e) => handleInputChange('facebook', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="Facebook page URL"
                   />
@@ -503,9 +543,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.twitter || ''}
                     onChange={(e) => handleInputChange('twitter', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="@labelname"
                   />
@@ -517,9 +557,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.youtube || ''}
                     onChange={(e) => handleInputChange('youtube', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="Channel URL"
                   />
@@ -531,9 +571,9 @@ export default function LabelProfile() {
                     type="text"
                     value={currentData.tiktok || ''}
                     onChange={(e) => handleInputChange('tiktok', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!editMode}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                     }`}
                     placeholder="@labelname"
                   />
@@ -544,7 +584,7 @@ export default function LabelProfile() {
             {/* Label Description */}
             <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
               <div className="flex items-center mb-6">
-                <User className="w-5 h-5 text-gray-400 mr-3" />
+                <FileText className="w-5 h-5 text-gray-400 mr-3" />
                 <h2 className="text-xl font-semibold text-gray-900">Label Description</h2>
               </div>
               
@@ -553,10 +593,10 @@ export default function LabelProfile() {
                 <textarea
                   value={currentData.bio || ''}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
-                  disabled={!isEditing}
+                  disabled={!editMode}
                   rows={4}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                    isEditing ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                    editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
                   }`}
                   placeholder="Tell us about your label, its history, and what makes it unique..."
                 />
@@ -579,38 +619,29 @@ export default function LabelProfile() {
                 </button>
               </div>
               
-              <div className="space-y-4">
+              <form onSubmit={handleChangeRequest} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Personal Information to Change*</label>
                   <select
-                    value={selectedField}
-                    onChange={(e) => setSelectedField(e.target.value)}
+                    name="fieldToChange"
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select field to change</option>
                     {LOCKED_FIELDS.map(field => (
-                      <option key={field} value={field}>
-                        {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      <option key={field.key} value={field.key}>
+                        {field.label}
                       </option>
                     ))}
                   </select>
                 </div>
                 
-                {selectedField && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600">
-                      {profile[selectedField] || 'Not set'}
-                    </div>
-                  </div>
-                )}
-                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change*</label>
                   <input
                     type="text"
-                    value={requestedChange}
-                    onChange={(e) => setRequestedChange(e.target.value)}
+                    name="requestedChange"
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter the new value you want"
                   />
@@ -618,20 +649,20 @@ export default function LabelProfile() {
                 
                 <div className="flex gap-3 pt-4">
                   <button
+                    type="button"
                     onClick={() => setShowChangeRequestModal(false)}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleChangeRequest}
-                    disabled={submittingRequest}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
-                    {submittingRequest ? 'Submitting...' : 'Submit Request'}
+                    Submit Request
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}
