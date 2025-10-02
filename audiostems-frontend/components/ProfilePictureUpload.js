@@ -9,7 +9,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
     makeAspectCrop(
       {
         unit: '%',
-        width: 70, // Good size for circular crop - not too big, not too small
+        width: 40, // Smaller crop to ensure all corners are visible
       },
       aspect,
       mediaWidth,
@@ -153,13 +153,16 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   function onImageLoad(e) {
     const { width, height } = e.currentTarget;
     
-    // Calculate appropriate zoom to show full image
-    const containerWidth = 400;
-    const containerHeight = 300;
-    const scaleToFit = Math.min(containerWidth / width, containerHeight / height, 1);
+    // Calculate zoom to ensure entire image fits in container with padding
+    const containerWidth = 350; // Matches maxWidth in CSS
+    const containerHeight = 250; // Matches maxHeight in CSS
     
-    // Set zoom to show full image, minimum 0.5
-    setZoom(Math.max(scaleToFit, 0.5));
+    const scaleX = containerWidth / width;
+    const scaleY = containerHeight / height;
+    const scaleToFit = Math.min(scaleX, scaleY, 1); // Never scale up
+    
+    // Set initial zoom to show entire image with some padding
+    setZoom(Math.max(scaleToFit * 0.9, 0.3)); // 90% of fit with minimum 30%
     setCrop(centerAspectCrop(width, height, 1)); // 1:1 aspect ratio for profile pictures
   }
 
@@ -465,30 +468,35 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
                 </div>
               </div>
 
-              <div className="w-full h-96 border border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-                <ReactCrop
-                  crop={crop}
-                  onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  onComplete={(c) => setCompletedCrop(c)}
-                  aspect={1} // 1:1 ratio for circle
-                  minWidth={50}
-                  minHeight={50}
-                  circularCrop
-                >
-                  <img
-                    ref={imgRef}
-                    alt="Crop me"
-                    src={imgSrc}
-                    style={{ 
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      transformOrigin: 'center',
-                      display: 'block',
-                      maxWidth: '100%',
-                      height: 'auto'
-                    }}
-                    onLoad={onImageLoad}
-                  />
-                </ReactCrop>
+              <div className="w-full h-96 border border-gray-300 rounded-lg overflow-auto bg-gray-50 flex items-center justify-center p-4">
+                <div style={{ 
+                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                  transformOrigin: 'center'
+                }}>
+                  <ReactCrop
+                    crop={crop}
+                    onChange={(_, percentCrop) => setCrop(percentCrop)}
+                    onComplete={(c) => setCompletedCrop(c)}
+                    aspect={1} // 1:1 ratio for circle
+                    minWidth={50}
+                    minHeight={50}
+                    circularCrop
+                  >
+                    <img
+                      ref={imgRef}
+                      alt="Crop me"
+                      src={imgSrc}
+                      style={{ 
+                        display: 'block',
+                        maxWidth: '350px',
+                        maxHeight: '250px',
+                        width: 'auto',
+                        height: 'auto'
+                      }}
+                      onLoad={onImageLoad}
+                    />
+                  </ReactCrop>
+                </div>
               </div>
               
               {/* Add CSS for slider handle */}
