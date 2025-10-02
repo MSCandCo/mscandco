@@ -153,8 +153,13 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   function onImageLoad(e) {
     const { width, height } = e.currentTarget;
     
-    // Set reasonable default zoom (not too zoomed out, not too zoomed in)
-    setZoom(0.8);
+    // Calculate appropriate zoom to show full image
+    const containerWidth = 400;
+    const containerHeight = 300;
+    const scaleToFit = Math.min(containerWidth / width, containerHeight / height, 1);
+    
+    // Set zoom to show full image, minimum 0.5
+    setZoom(Math.max(scaleToFit, 0.5));
     setCrop(centerAspectCrop(width, height, 1)); // 1:1 aspect ratio for profile pictures
   }
 

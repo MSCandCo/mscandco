@@ -54,34 +54,9 @@ export default function LabelAdminProfile() {
       if (response.ok) {
         const profileData = await response.json();
         
-        // Map API response to expected format
-        const mappedProfile = {
-          id: profileData.id,
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          email: profileData.email,
-          label_name: profileData.labelName,
-          company_name: profileData.companyName,
-          date_of_birth: profileData.dateOfBirth,
-          nationality: profileData.nationality,
-          country: profileData.country,
-          city: profileData.city,
-          phone: profileData.phone,
-          country_code: profileData.countryCode,
-          bio: profileData.bio,
-          website: profileData.website,
-          instagram: profileData.instagram,
-          facebook: profileData.facebook,
-          twitter: profileData.twitter,
-          youtube: profileData.youtube,
-          tiktok: profileData.tiktok,
-          spotify: profileData.spotify,
-          apple_music: profileData.apple_music,
-          profile_picture_url: profileData.profile_picture_url
-        };
-        
-        setProfile(mappedProfile);
-        setEditedProfile(mappedProfile);
+        // Use direct database field names (snake_case)
+        setProfile(profileData);
+        setEditedProfile(profileData);
       } else {
         console.error('Failed to fetch profile:', response.status);
       }
@@ -142,28 +117,9 @@ export default function LabelAdminProfile() {
         }
       });
 
-      // Map field names to API format
+      // Send direct field data with audit trail
       const apiData = {
-        firstName: editedProfile.first_name,
-        lastName: editedProfile.last_name,
-        labelName: editedProfile.label_name,
-        companyName: editedProfile.company_name,
-        dateOfBirth: editedProfile.date_of_birth,
-        nationality: editedProfile.nationality,
-        country: editedProfile.country,
-        city: editedProfile.city,
-        email: editedProfile.email,
-        phone: editedProfile.phone,
-        countryCode: editedProfile.country_code,
-        bio: editedProfile.bio,
-        website: editedProfile.website,
-        instagram: editedProfile.instagram,
-        facebook: editedProfile.facebook,
-        twitter: editedProfile.twitter,
-        youtube: editedProfile.youtube,
-        tiktok: editedProfile.tiktok,
-        spotify: editedProfile.spotify,
-        apple_music: editedProfile.apple_music,
+        ...editedProfile,
         _audit: {
           changes: changes,
           timestamp: new Date().toISOString()
