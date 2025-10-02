@@ -19,12 +19,44 @@ export default function CompanyAdminProfile() {
     { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
   ];
 
-  const DEPARTMENTS = ['Business Operations', 'Marketing', 'Finance', 'Legal', 'Technology', 'Human Resources'];
+  const DEPARTMENTS = [
+    'Accounting & Finance', 'Administration', 'Analytics & Data', 'Artist Relations', 'Business Development',
+    'Business Operations', 'Communications', 'Compliance & Legal', 'Content Management', 'Creative Services',
+    'Customer Success', 'Digital Marketing', 'Distribution', 'Engineering & Technology', 'Executive Leadership',
+    'Finance & Accounting', 'Human Resources', 'Information Technology', 'Legal Affairs', 'Marketing & PR',
+    'Operations Management', 'Product Management', 'Project Management', 'Quality Assurance', 'Revenue Operations',
+    'Sales & Business Development', 'Strategic Planning', 'Supply Chain', 'Talent Acquisition', 'User Experience'
+  ];
 
+  const [departmentSearch, setDepartmentSearch] = useState('');
+  const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
+  const [showCustomDepartment, setShowCustomDepartment] = useState(false);
+  const [customDepartmentValue, setCustomDepartmentValue] = useState('');
+  
   useEffect(() => {
     fetchProfile();
   }, []);
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.department-dropdown')) {
+        setShowDepartmentDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCustomDepartmentSave = () => {
+    if (customDepartmentValue.trim()) {
+      handleFieldChange('department', customDepartmentValue.trim());
+      setCustomDepartmentValue('');
+      setShowCustomDepartment(false);
+    }
+  };
+  
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -50,7 +82,7 @@ export default function CompanyAdminProfile() {
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -86,9 +118,9 @@ export default function CompanyAdminProfile() {
       if (!session) {
         console.error('No session found');
         setSaving(false);
-        return;
-      }
-      
+      return;
+    }
+
       const response = await fetch('/api/companyadmin/profile', {
         method: 'PUT',
         headers: { 
@@ -157,7 +189,7 @@ export default function CompanyAdminProfile() {
     if (!currentData) return 0;
     
     const allFields = [
-      'first_name', 'last_name', 'email', 'phone', 'company_name', 'department', 'position', 'employee_id'
+      'first_name', 'last_name', 'email', 'phone', 'company_name', 'department', 'position'
     ];
     
     const completedFields = allFields.filter(field => {
@@ -186,7 +218,7 @@ export default function CompanyAdminProfile() {
     });
     return changed;
   };
-
+  
   if (loading) {
     return (
       <Layout>
@@ -196,10 +228,10 @@ export default function CompanyAdminProfile() {
       </Layout>
     );
   }
-
+  
   if (!profile) {
-    return (
-      <Layout>
+  return (
+    <Layout>
         <div className="flex justify-center items-center h-screen">
           <div className="text-center">
             <p className="text-gray-600 text-lg">Unable to load profile data.</p>
@@ -255,21 +287,21 @@ export default function CompanyAdminProfile() {
                   </button>
                 </>
               )}
-            </div>
+              </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content - 70% */}
             <div className="lg:col-span-2 space-y-8">
               
-
-              {/* Company Information - EDITABLE */}
+        
+        {/* Company Information - EDITABLE */}
               <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
                 <div className="flex items-center mb-6">
                   <Building className="w-5 h-5 text-blue-600 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">Company Information</h2>
-                </div>
-                
+            <h2 className="text-xl font-semibold text-gray-900">Company Information</h2>
+          </div>
+          
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="mb-4">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -313,8 +345,8 @@ export default function CompanyAdminProfile() {
                       {changedFields.includes('email') && (
                         <span className="ml-2 text-green-600">✓</span>
                       )}
-                    </label>
-                    <input
+                </label>
+                  <input
                       type="email"
                       value={editedProfile.email || ''}
                       onChange={(e) => handleFieldChange('email', e.target.value)}
@@ -376,35 +408,71 @@ export default function CompanyAdminProfile() {
                     />
                     {errors.company_name && (
                       <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
-                    )}
-                  </div>
+                  )}
+                </div>
 
-                  <div className="mb-4">
+                  <div className="mb-4 relative">
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Department *
                       {changedFields.includes('department') && (
                         <span className="ml-2 text-green-600">✓</span>
                       )}
                     </label>
-                    <select
-                      value={editedProfile.department || ''}
-                      onChange={(e) => handleFieldChange('department', e.target.value)}
+                    <input
+                      type="text"
+                      value={departmentSearch || editedProfile.department || ''}
+                      onChange={(e) => {
+                        setDepartmentSearch(e.target.value);
+                        setShowDepartmentDropdown(true);
+                      }}
+                      onFocus={() => setShowDepartmentDropdown(true)}
                       disabled={!editMode}
+                      placeholder="Start typing department name..."
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                       } ${errors.department ? 'border-red-500' : 'border-gray-300'}`}
-                    >
-                      <option value="">Select Department</option>
-                      {DEPARTMENTS.map(dept => (
-                        <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
+                    />
+                    
+                    {/* Searchable Dropdown */}
+                    {showDepartmentDropdown && editMode && (
+                      <div className="department-dropdown absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {DEPARTMENTS.filter(dept => 
+                          dept.toLowerCase().includes(departmentSearch.toLowerCase())
+                        ).map(dept => (
+                          <div
+                            key={dept}
+                            onClick={() => {
+                              handleFieldChange('department', dept);
+                              setDepartmentSearch('');
+                              setShowDepartmentDropdown(false);
+                            }}
+                            className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                          >
+                            {dept}
+              </div>
+            ))}
+                        
+                        {/* Not in list option */}
+                        <div className="border-t border-gray-200">
+                          <div
+                            onClick={() => {
+                              setShowCustomDepartment(true);
+                              setShowDepartmentDropdown(false);
+                            }}
+                            className="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm text-blue-600 font-medium"
+                          >
+                            + Not in list? Add custom department
+                          </div>
+                        </div>
+          </div>
+                    )}
+                    
                     {errors.department && (
                       <p className="text-red-500 text-sm mt-1">{errors.department}</p>
                     )}
                   </div>
-
-                  <div>
+          
+          <div>
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       Position
                       {changedFields.includes('position') && (
@@ -420,28 +488,10 @@ export default function CompanyAdminProfile() {
                         !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                       } border-gray-300`}
                     />
-                  </div>
-
-                  <div>
-                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                      Employee ID
-                      {changedFields.includes('employee_id') && (
-                        <span className="ml-2 text-green-600">✓</span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      value={editedProfile.employee_id || ''}
-                      onChange={(e) => handleFieldChange('employee_id', e.target.value)}
-                      disabled={!editMode}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
-                      } border-gray-300`}
-                    />
-                  </div>
-                </div>
-              </section>
-            </div>
+              </div>
+          </div>
+        </section>
+      </div>
 
             {/* Right Sidebar - 30% */}
             <div className="space-y-6">
@@ -471,6 +521,48 @@ export default function CompanyAdminProfile() {
             </div>
           </div>
         </div>
+
+        {/* Custom Department Modal */}
+        {showCustomDepartment && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Add Custom Department</h3>
+        
+        <div className="space-y-4">
+          <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department Name *</label>
+            <input
+              type="text"
+                    value={customDepartmentValue}
+                    onChange={(e) => setCustomDepartmentValue(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter department name"
+                    autoFocus
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-3 mt-6">
+          <button
+                  onClick={() => {
+                    setShowCustomDepartment(false);
+                    setCustomDepartmentValue('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+                  onClick={handleCustomDepartmentSave}
+                  disabled={!customDepartmentValue.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Add Department
+          </button>
+        </div>
+      </div>
+    </div>
+        )}
 
       </div>
     </Layout>
