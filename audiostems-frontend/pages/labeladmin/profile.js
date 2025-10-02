@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import Layout from '../../components/layouts/mainLayout';
 import { CountryDropdown, CountryCodeDropdown } from '../../components/shared/IntelligentDropdowns';
 
@@ -18,36 +17,7 @@ export default function LabelAdminProfile() {
   const loadProfile = async () => {
     try {
       console.log('Loading label admin profile...');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('No session found');
-        // Set default label admin profile
-        const defaultProfile = {
-          firstName: 'Label',
-          lastName: 'Admin',
-          email: 'labeladmin@mscandco.com',
-          labelName: 'MSC & Co',
-          companyName: 'MSC & Co',
-          country: 'United Kingdom',
-          bio: 'Music distribution and publishing company',
-          shortBio: 'MSC & Co Label',
-          isBasicInfoSet: true,
-          profileCompleted: true,
-          lockedFields: {
-            firstName: true,
-            lastName: true,
-            email: true
-          },
-          profileLockStatus: 'locked'
-        };
-        setProfile(defaultProfile);
-        setFormData(defaultProfile);
-        return;
-      }
-
-      const response = await fetch('/api/labeladmin/profile', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
-      });
+      const response = await fetch('/api/labeladmin/profile');
       
       if (response.ok) {
         const data = await response.json();
