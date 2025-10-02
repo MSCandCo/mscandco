@@ -50,7 +50,6 @@ export default function LabelProfile() {
       if (response.ok) {
         const profileData = await response.json();
         
-        // Use the profile data directly (no mapping needed for label admin)
         setProfile(profileData);
         setEditedProfile(profileData);
       } else {
@@ -61,6 +60,77 @@ export default function LabelProfile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditedProfile({ ...editedProfile, [field]: value });
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: null });
+    }
+  };
+
+  const validateFields = () => {
+    const newErrors = {};
+    const requiredFields = ['label_name', 'email'];
+    
+    requiredFields.forEach(field => {
+      if (!editedProfile[field] || editedProfile[field].trim() === '') {
+        newErrors[field] = `${field.replace('_', ' ')} is required`;
+      }
+    });
+
+    if (editedProfile.email && !/\S+@\S+\.\S+/.test(editedProfile.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSaveChanges = async () => {
+    if (!validateFields()) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No session found');
+        setSaving(false);
+        return;
+      }
+      
+      const response = await fetch('/api/labeladmin/profile', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editedProfile)
+      });
+
+      if (response.ok) {
+        setProfile(editedProfile);
+        setEditMode(false);
+        setErrors({});
+        showBrandedNotification('Profile updated successfully!');
+      } else {
+        console.error('Failed to save profile:', response.status);
+        showBrandedNotification('Failed to save changes. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showBrandedNotification('Failed to save changes. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedProfile(profile);
+    setEditMode(false);
+    setErrors({});
   };
 
   const showBrandedNotification = (message, type = 'success') => {
@@ -94,6 +164,7 @@ export default function LabelProfile() {
     setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
+
   const calculateProgress = () => {
     const currentData = editedProfile || profile;
     if (!currentData) return 0;
@@ -109,128 +180,33 @@ export default function LabelProfile() {
       return isCompleted;
     });
     
+    console.log('Profile completion debug:', {
+      totalFields: allFields.length,
+      completedFields: completedFields.length,
+      completed: completedFields,
+      percentage: Math.round((completedFields.length / allFields.length) * 100)
+    });
+    
     return Math.round((completedFields.length / allFields.length) * 100);
   };
 
-  const handleInputChange = (field, value) => {
-    setEditedProfile(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear any existing error for this field
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: null
-      }));
-    }
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No session found');
+  const getChangedFields = () => {
+    if (!profile || !editedProfile) return [];
+    const changed = [];
+    Object.keys(editedProfile).forEach(key => {
+      if (editedProfile[key] !== profile[key]) {
+        changed.push(key);
       }
-
-      // Only send editable fields
-      const editableFields = [
-        'label_name', 'company_name', 'phone', 'country_code', 'website', 'instagram', 
-        'facebook', 'twitter', 'youtube', 'tiktok', 'bio'
-      ];
-      
-      const updateData = {};
-      editableFields.forEach(field => {
-        if (editedProfile.hasOwnProperty(field)) {
-          updateData[field] = editedProfile[field];
-        }
-      });
-
-      const response = await fetch('/api/labeladmin/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      if (response.ok) {
-        const updatedProfile = await response.json();
-        setProfile(updatedProfile);
-        setEditedProfile(updatedProfile);
-        setEditMode(false);
-        showBrandedNotification('Profile updated successfully!');
-      } else {
-        throw new Error('Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      showBrandedNotification('Failed to update profile. Please try again.', 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
+    return changed;
   };
 
-  const handleCancel = () => {
-    setEditedProfile(profile);
-    setEditMode(false);
-    setErrors({});
-  };
-
-  const handleChangeRequest = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const fieldToChange = formData.get('fieldToChange');
-    const requestedChange = formData.get('requestedChange');
-
-    if (!fieldToChange || !requestedChange.trim()) {
-      showBrandedNotification('Please select a field and enter your requested change', 'error');
-      return;
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const currentValue = profile[fieldToChange] || '';
-      
-      const { error } = await supabase
-        .from('profile_change_requests')
-        .insert({
-          user_id: user.id,
-          field_name: fieldToChange,
-          current_value: currentValue,
-          requested_value: requestedChange,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      showBrandedNotification('Change request submitted successfully! An admin will review it shortly.');
-      setShowChangeRequestModal(false);
-      e.target.reset();
-    } catch (error) {
-      console.error('Error submitting change request:', error);
-      showBrandedNotification('Failed to submit request. Please try again.', 'error');
-    }
-  };
-
-  const handleProfilePictureSuccess = (url) => {
-    setProfile(prev => ({ ...prev, profile_picture_url: url }));
-    setEditedProfile(prev => ({ ...prev, profile_picture_url: url }));
-    showBrandedNotification('Profile picture updated successfully!');
-  };
-
-  const handleProfilePictureError = (error) => {
-    showBrandedNotification(error, 'error');
-  };
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-lg">Loading...</div>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
     );
@@ -239,434 +215,527 @@ export default function LabelProfile() {
   if (!profile) {
     return (
       <Layout>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-lg text-red-600">Failed to load profile</div>
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">Unable to load profile data.</p>
+            <button 
+              onClick={fetchProfile}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </Layout>
     );
   }
 
-  const currentData = editedProfile;
   const progress = calculateProgress();
+  const changedFields = getChangedFields();
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Label Profile</h1>
               <p className="text-gray-600 mt-1">Manage your label information and settings</p>
             </div>
-            
-            {!editMode ? (
-              <button
-                onClick={() => setEditMode(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </button>
-            ) : (
-              <div className="flex gap-3">
+            <div className="flex gap-3">
+              {!editMode ? (
                 <button
-                  onClick={handleCancel}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => setEditMode(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar - 30% */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Profile Picture */}
-            <div className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-              <ProfilePictureUpload
-                currentImage={currentData.profile_picture_url}
-                onUploadSuccess={handleProfilePictureSuccess}
-                onUploadError={handleProfilePictureError}
-              />
-            </div>
-
-            {/* Profile Completion */}
-            <div className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
-              <div className="mb-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-semibold text-gray-900">{progress}%</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-600">
-                Complete your profile to improve your visibility and connect with more opportunities.
-              </p>
-            </div>
-          </div>
-
-          {/* Main Content - 70% */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Personal Information - LOCKED */}
-            <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <div className="flex items-center mb-4">
-                <Lock className="w-5 h-5 text-gray-400 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Personal Information
-                  <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-75 origin-left">
-                    LOCKED
-                  </span>
-                </h2>
-              </div>
-              <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                  <input
-                    type="text"
-                    value={currentData.first_name || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                  <input
-                    type="text"
-                    value={currentData.last_name || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                  <input
-                    type="text"
-                    value={currentData.date_of_birth || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
-                  <input
-                    type="text"
-                    value={currentData.nationality || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                  <input
-                    type="text"
-                    value={currentData.country || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                  <input
-                    type="text"
-                    value={currentData.city || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setShowChangeRequestModal(true)}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                Need to update personal information? Request a change
-              </button>
-            </section>
-
-            {/* Label Information */}
-            <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <div className="flex items-center mb-6">
-                <Building className="w-5 h-5 text-gray-400 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Label Information</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Label Name *</label>
-                  <input
-                    type="text"
-                    value={currentData.label_name || ''}
-                    onChange={(e) => handleInputChange('label_name', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="Enter your label name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                  <input
-                    type="text"
-                    value={currentData.company_name || ''}
-                    onChange={(e) => handleInputChange('company_name', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="Enter your company name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                  <input
-                    type="email"
-                    value={currentData.email || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                  <div className="flex">
-                    <select 
-                      value={currentData.country_code || '+44'}
-                      onChange={(e) => handleInputChange('country_code', e.target.value)}
-                      disabled={!editMode}
-                      className={`px-3 py-2 border border-gray-300 rounded-l-lg ${
-                        editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {COUNTRY_CODES.map(({ code, country }) => (
-                        <option key={code} value={code}>
-                          {code} {country}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="tel"
-                      value={currentData.phone || ''}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      disabled={!editMode}
-                      className={`flex-1 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg ${
-                        editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                      }`}
-                      placeholder="Phone number"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Social Media & Online Presence */}
-            <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <div className="flex items-center mb-6">
-                <Globe className="w-5 h-5 text-gray-400 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Social Media & Online Presence</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
-                  <input
-                    type="url"
-                    value={currentData.website || ''}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="https://your-label.com"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
-                  <input
-                    type="text"
-                    value={currentData.instagram || ''}
-                    onChange={(e) => handleInputChange('instagram', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="@labelname"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
-                  <input
-                    type="text"
-                    value={currentData.facebook || ''}
-                    onChange={(e) => handleInputChange('facebook', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="Facebook page URL"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Twitter</label>
-                  <input
-                    type="text"
-                    value={currentData.twitter || ''}
-                    onChange={(e) => handleInputChange('twitter', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="@labelname"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">YouTube</label>
-                  <input
-                    type="text"
-                    value={currentData.youtube || ''}
-                    onChange={(e) => handleInputChange('youtube', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="Channel URL"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">TikTok</label>
-                  <input
-                    type="text"
-                    value={currentData.tiktok || ''}
-                    onChange={(e) => handleInputChange('tiktok', e.target.value)}
-                    disabled={!editMode}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                      editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                    }`}
-                    placeholder="@labelname"
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Label Description */}
-            <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
-              <div className="flex items-center mb-6">
-                <FileText className="w-5 h-5 text-gray-400 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Label Description</h2>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                <textarea
-                  value={currentData.bio || ''}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  disabled={!editMode}
-                  rows={4}
-                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg ${
-                    editMode ? 'bg-white' : 'bg-gray-50 text-gray-500 cursor-not-allowed'
-                  }`}
-                  placeholder="Tell us about your label, its history, and what makes it unique..."
-                />
-              </div>
-            </section>
-          </div>
-        </div>
-
-        {/* Change Request Modal */}
-        {showChangeRequestModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Request Profile Change</h3>
-                <button
-                  onClick={() => setShowChangeRequestModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <form onSubmit={handleChangeRequest} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Personal Information to Change*</label>
-                  <select
-                    name="fieldToChange"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select field to change</option>
-                    {LOCKED_FIELDS.map(field => (
-                      <option key={field.key} value={field.key}>
-                        {field.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change*</label>
-                  <input
-                    type="text"
-                    name="requestedChange"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter the new value you want"
-                  />
-                </div>
-                
-                <div className="flex gap-3 pt-4">
+              ) : (
+                <>
                   <button
-                    type="button"
-                    onClick={() => setShowChangeRequestModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    onClick={handleCancelEdit}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    onClick={handleSaveChanges}
+                    disabled={saving}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                   >
-                    Submit Request
+                    <Save className="w-4 h-4" />
+                    {saving ? 'Saving...' : 'Save Changes'}
                   </button>
-                </div>
-              </form>
+                </>
+              )}
             </div>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content - 70% */}
+            <div className="lg:col-span-2 space-y-8">
+              
+              {/* Personal Information - LOCKED */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-4">
+                  <Lock className="w-5 h-5 text-gray-400 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Personal Information
+                    <span className="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 relative -top-1 scale-75 origin-left">
+                      LOCKED
+                    </span>
+                  </h2>
+                </div>
+                <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <input
+                      type="text"
+                      value={profile.first_name || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      value={profile.last_name || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={profile.date_of_birth || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
+                    <input
+                      type="text"
+                      value={profile.nationality || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <input
+                      type="text"
+                      value={profile.country || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={profile.city || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Consolidated Change Request Button */}
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowChangeRequestModal(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Need to update personal information? Request a change
+                  </button>
+                </div>
+              </section>
+
+              {/* Label Information - EDITABLE */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <Building className="w-5 h-5 text-blue-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Label Information</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Label Name *
+                      {changedFields.includes('label_name') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.label_name || ''}
+                      onChange={(e) => handleFieldChange('label_name', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.label_name ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {errors.label_name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.label_name}</p>
+                    )}
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Company Name
+                      {changedFields.includes('company_name') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.company_name || ''}
+                      onChange={(e) => handleFieldChange('company_name', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } border-gray-300`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                      {changedFields.includes('email') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <input
+                      type="email"
+                      value={editedProfile.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      disabled={!editMode}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                      } ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      Phone
+                      {changedFields.includes('phone') && (
+                        <span className="ml-2 text-green-600">✓</span>
+                      )}
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editedProfile.country_code || '+44'}
+                        onChange={(e) => handleFieldChange('country_code', e.target.value)}
+                        disabled={!editMode}
+                        className={`w-20 px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      >
+                        {COUNTRY_CODES.map(({ code, country }) => (
+                          <option key={code} value={code}>{code}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        value={editedProfile.phone || ''}
+                        onChange={(e) => handleFieldChange('phone', e.target.value)}
+                        disabled={!editMode}
+                        placeholder="Phone number"
+                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Biography */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <FileText className="w-5 h-5 text-green-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
+                </div>
+                
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    Label Bio
+                    {changedFields.includes('bio') && (
+                      <span className="ml-2 text-green-600">✓</span>
+                    )}
+                  </label>
+                  <textarea
+                    value={editedProfile.bio || ''}
+                    onChange={(e) => handleFieldChange('bio', e.target.value)}
+                    disabled={!editMode}
+                    rows={6}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                      !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                    } border-gray-300`}
+                    placeholder="Tell us about your label's history and what makes it unique..."
+                  />
+                </div>
+              </section>
+
+              {/* Social Media */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <div className="flex items-center mb-6">
+                  <Globe className="w-5 h-5 text-indigo-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">Social Media & Links</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'website', label: 'Website', type: 'url' },
+                    { key: 'instagram', label: 'Instagram', type: 'url' },
+                    { key: 'facebook', label: 'Facebook', type: 'url' },
+                    { key: 'twitter', label: 'Twitter', type: 'url' },
+                    { key: 'youtube', label: 'YouTube', type: 'url' },
+                    { key: 'tiktok', label: 'TikTok', type: 'url' }
+                  ].map(({ key, label, type }) => (
+                    <div key={key} className="mb-4">
+                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        {label}
+                        {changedFields.includes(key) && (
+                          <span className="ml-2 text-green-600">✓</span>
+                        )}
+                      </label>
+                      <input
+                        type={type}
+                        value={editedProfile[key] || ''}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                        disabled={!editMode}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !editMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
+                        } border-gray-300`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* Right Sidebar - 30% */}
+            <div className="space-y-6">
+              
+              {/* Profile Picture */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
+                
+                <ProfilePictureUpload
+                  currentImage={profile.profile_picture_url}
+                  onUploadSuccess={(url) => {
+                    setProfile({ ...profile, profile_picture_url: url });
+                    setEditedProfile({ ...editedProfile, profile_picture_url: url });
+                    showBrandedNotification('Profile picture updated successfully!');
+                  }}
+                  onUploadError={(error) => {
+                    showBrandedNotification(error, 'error');
+                  }}
+                />
+              </section>
+
+              {/* Profile Completion */}
+              <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
+                
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600">
+                  Complete your profile to improve your visibility and connect with more opportunities.
+                </p>
+              </section>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Consolidated Change Request Modal */}
+        {showChangeRequestModal && (
+          <ChangeRequestModal
+            lockedFields={LOCKED_FIELDS}
+            currentProfile={profile}
+            onClose={() => setShowChangeRequestModal(false)}
+            onSubmit={() => setShowChangeRequestModal(false)}
+          />
         )}
       </div>
     </Layout>
+  );
+}
+
+function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit }) {
+  const [selectedField, setSelectedField] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleFieldSelect = (fieldKey) => {
+    setSelectedField(fieldKey);
+    setNewValue('');
+  };
+
+  const getCurrentValue = () => {
+    if (!selectedField || !currentProfile) return '';
+    return currentProfile[selectedField] || 'Not set';
+  };
+
+  const showBrandedNotification = (message, type = 'success') => {
+    const notification = document.createElement('div');
+    const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    const borderColor = type === 'success' ? '#065f46' : '#991b1b';
+    const textColor = type === 'success' ? '#065f46' : '#991b1b';
+    
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${bgColor};
+      border-left: 4px solid ${borderColor};
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; color: ${textColor};">
+        <svg style="width: 20px; height: 20px; margin-right: 12px;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span style="font-weight: 600; font-size: 14px;">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => document.body.removeChild(notification), 4000);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedField || !newValue || !reason) return;
+    
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('profile_change_requests')
+        .insert({
+          user_id: user.id,
+          field_name: selectedField,
+          current_value: getCurrentValue(),
+          requested_value: newValue,
+          reason: reason,
+          status: 'pending'
+        });
+      
+      if (!error) {
+        showBrandedNotification('Change request submitted for approval');
+        onSubmit();
+      } else {
+        console.error('Error submitting request:', error);
+        showBrandedNotification('Failed to submit request', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showBrandedNotification('Failed to submit request', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Request Profile Change</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Personal Information to Change*</label>
+            <select
+              value={selectedField}
+              onChange={(e) => handleFieldSelect(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="">Select field to change</option>
+              {lockedFields.map(field => (
+                <option key={field.key} value={field.key}>{field.label}</option>
+              ))}
+            </select>
+          </div>
+          
+          {selectedField && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-gray-600">
+                  Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change*</label>
+                <input
+                  type={selectedField === 'date_of_birth' ? 'date' : 'text'}
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter the new value"
+                />
+              </div>
+            </>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change*</label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Explain why you need to change this information"
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedField || !newValue || !reason || submitting}
+            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? 'Submitting...' : 'Submit Request'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
