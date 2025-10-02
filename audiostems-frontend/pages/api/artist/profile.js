@@ -106,6 +106,14 @@ export default async function handler(req, res) {
 
       console.log('✅ Henry\'s profile updated successfully');
 
+      // STEP 1: Mark all artist's releases for cache refresh
+      await supabase
+        .from('releases')
+        .update({ cache_updated_at: null })
+        .eq('artist_id', userId);
+
+      console.log('🔄 Artist releases marked for cache refresh');
+
       return res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
