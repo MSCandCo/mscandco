@@ -1,5 +1,6 @@
 // Final Code Group Release Form - Complete & Working
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { RELEASE_TYPES, GENRES, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES, OTHER_RELEASE_DETAIL_TYPES } from '../../lib/constants';
 import FileUploader from '../FileUploader';
 
@@ -197,6 +198,9 @@ const ALL_COUNTRIES = [
 ];
 
 export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRelease = null }) {
+  // Artist profile for pre-filling
+  const [artistProfile, setArtistProfile] = useState(null);
+
   const [formData, setFormData] = useState({
     // Basic Release Info
     releaseTitle: '',
@@ -279,6 +283,48 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
+
+  // STEP 2: Load artist profile for pre-filling
+  useEffect(() => {
+    const loadArtistProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch('/api/artist/profile', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+
+        if (response.ok) {
+          const profileData = await response.json();
+          setArtistProfile(profileData);
+          
+          // Pre-fill form with profile data (only if not editing existing release)
+          if (!editingRelease) {
+            setFormData(prev => ({
+              ...prev,
+              primaryArtist: profileData.artistName || prev.primaryArtist,
+              label: profileData.recordLabel || prev.label,
+              genre: profileData.primaryGenre || prev.genre,
+              secondaryGenre: profileData.secondaryGenre || prev.secondaryGenre
+            }));
+            console.log('📋 Pre-filled release form with profile data:', {
+              primaryArtist: profileData.artistName,
+              label: profileData.recordLabel,
+              genre: profileData.primaryGenre,
+              secondaryGenre: profileData.secondaryGenre
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading artist profile for pre-fill:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadArtistProfile();
+    }
+  }, [isOpen, editingRelease]);
 
   // Branded success notification function
   const showSuccessNotification = (message) => {
