@@ -266,8 +266,21 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
         const result = await response.json();
         const publicUrl = result.url;
 
-        // Update profile with the new picture URL
-        const updateResponse = await fetch('/api/artist/profile', {
+        // Update profile with the new picture URL - detect role from URL
+        const currentPath = window.location.pathname;
+        let profileApi = '/api/artist/profile'; // default
+        
+        if (currentPath.includes('/labeladmin/')) {
+          profileApi = '/api/labeladmin/profile';
+        } else if (currentPath.includes('/companyadmin/')) {
+          profileApi = '/api/companyadmin/profile';
+        } else if (currentPath.includes('/distributionpartner/')) {
+          profileApi = '/api/distributionpartner/profile';
+        }
+
+        console.log('📸 Updating profile picture via:', profileApi);
+
+        const updateResponse = await fetch(profileApi, {
           method: 'PUT',
           headers: { 
             'Authorization': `Bearer ${session.access_token}`,
