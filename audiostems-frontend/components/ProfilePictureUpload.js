@@ -31,12 +31,19 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   const [capturedImage, setCapturedImage] = useState('');
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalData, setErrorModalData] = useState({ message: '', instructions: '' });
   
   const imgRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const hiddenAnchorRef = useRef(null);
   const blobUrlRef = useRef('');
+
+  const showBrandedErrorModal = (message, instructions) => {
+    setErrorModalData({ message, instructions });
+    setShowErrorModal(true);
+  };
 
   function onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
@@ -126,8 +133,8 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
         instructions = 'Unable to access your camera. This might be because:\n\n• Camera permissions are blocked in your browser or system settings\n• Another application is using the camera\n• Your device does not have a camera\n\nPlease use "Choose File" to upload a photo instead.';
       }
       
-      // Show detailed error with instructions
-      alert(`${message}\n\n${instructions}`);
+      // Show detailed error with branded notification
+      showBrandedErrorModal(message, instructions);
       
       // Also call the error callback
       onUploadError?.(message);
@@ -608,6 +615,36 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full border-l-4 border-red-500">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{errorModalData.message}</h3>
+                <div className="text-sm text-gray-600 whitespace-pre-line">
+                  {errorModalData.instructions}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Got it
+              </button>
             </div>
           </div>
         </div>
