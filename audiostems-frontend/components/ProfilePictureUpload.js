@@ -9,7 +9,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
     makeAspectCrop(
       {
         unit: '%',
-        width: 90,
+        width: 50, // Smaller initial crop to show more of the image
       },
       aspect,
       mediaWidth,
@@ -29,6 +29,8 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   const [uploading, setUploading] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
   const [capturedImage, setCapturedImage] = useState('');
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   
   const imgRef = useRef(null);
   const videoRef = useRef(null);
@@ -120,6 +122,16 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
 
   function onImageLoad(e) {
     const { width, height } = e.currentTarget;
+    
+    // Calculate zoom to fit entire image in container
+    const containerMaxWidth = 400; // Max width of crop container
+    const containerMaxHeight = 300; // Max height of crop container
+    
+    const scaleToFitWidth = containerMaxWidth / width;
+    const scaleToFitHeight = containerMaxHeight / height;
+    const scaleToFit = Math.min(scaleToFitWidth, scaleToFitHeight, 1); // Don't scale up
+    
+    setZoom(scaleToFit);
     setCrop(centerAspectCrop(width, height, 1)); // 1:1 aspect ratio for profile pictures
   }
 
@@ -131,27 +143,38 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
       throw new Error('No 2d context');
     }
 
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    const pixelRatio = window.devicePixelRatio;
+    // Set canvas size to desired output size (square for profile picture)
+    const outputSize = 400; // 400x400 output
+    canvas.width = outputSize;
+    canvas.height = outputSize;
 
-    canvas.width = crop.width * pixelRatio * scaleX;
-    canvas.height = crop.height * pixelRatio * scaleY;
-
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     ctx.imageSmoothingQuality = 'high';
 
+    // Calculate the actual crop coordinates considering zoom and rotation
+    const scaleX = image.naturalWidth / (image.width * zoom);
+    const scaleY = image.naturalHeight / (image.height * zoom);
+
+    // Save context for rotation
+    ctx.save();
+    
+    // Move to center of canvas for rotation
+    ctx.translate(outputSize / 2, outputSize / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    
+    // Draw the cropped portion
     ctx.drawImage(
       image,
       crop.x * scaleX,
       crop.y * scaleY,
       crop.width * scaleX,
       crop.height * scaleY,
-      0,
-      0,
-      crop.width * scaleX,
-      crop.height * scaleY,
+      -outputSize / 2,
+      -outputSize / 2,
+      outputSize,
+      outputSize,
     );
+
+    ctx.restore();
 
     return new Promise((resolve, reject) => {
       canvas.toBlob(
@@ -166,7 +189,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
         0.9,
       );
     });
-  }, []);
+  }, [zoom, rotation]);
 
   const handleCropComplete = async () => {
     if (!completedCrop || !imgRef.current) {
@@ -361,25 +384,95 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
                 Adjust the crop area to frame your face properly. The image will be circular.
               </p>
               
-              <div className="max-h-96 overflow-hidden">
+              {/* Zoom and Rotation Controls */}
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Zoom: {Math.round(zoom * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="3"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer slider"
+                    style={{
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((zoom - 0.5) / 2.5) * 100}%, #e5e7eb ${((zoom - 0.5) / 2.5) * 100}%, #e5e7eb 100%)`
+                    }}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">Rotation:</label>
+                  <button
+                    onClick={() => setRotation(rotation - 90)}
+                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    type="button"
+                  >
+                    <RotateCw className="w-4 h-4 transform rotate-180" />
+                  </button>
+                  <span className="text-sm text-gray-600">{rotation}°</span>
+                  <button
+                    onClick={() => setRotation(rotation + 90)}
+                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    type="button"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="w-full h-96 border border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
                 <ReactCrop
                   crop={crop}
                   onChange={(_, percentCrop) => setCrop(percentCrop)}
                   onComplete={(c) => setCompletedCrop(c)}
                   aspect={1} // 1:1 ratio for circle
-                  minWidth={100}
-                  minHeight={100}
+                  minWidth={50}
+                  minHeight={50}
                   circularCrop
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
                 >
                   <img
                     ref={imgRef}
                     alt="Crop me"
                     src={imgSrc}
-                    style={{ transform: 'scale(1) rotate(0deg)' }}
+                    style={{ 
+                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                      maxWidth: 'none',
+                      maxHeight: 'none',
+                      display: 'block'
+                    }}
                     onLoad={onImageLoad}
                   />
                 </ReactCrop>
               </div>
+              
+              {/* Add CSS for slider handle */}
+              <style jsx>{`
+                .slider::-webkit-slider-thumb {
+                  appearance: none;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  border: 2px solid #ffffff;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                }
+                
+                .slider::-moz-range-thumb {
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  border: 2px solid #ffffff;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                }
+              `}</style>
               
               <div className="flex gap-3">
                 <button
