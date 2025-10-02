@@ -709,14 +709,16 @@ export default function RoleBasedNavigation() {
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
                       href="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>
                     <Link
                       href="/companyadmin/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
+                      <User className="w-4 h-4 mr-2" />
                       Profile
                     </Link>
                     <Link
@@ -728,8 +730,9 @@ export default function RoleBasedNavigation() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
+                      <LogOut className="w-4 h-4 mr-2" />
                       Logout
                     </button>
                   </div>
