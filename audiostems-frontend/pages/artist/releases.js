@@ -266,7 +266,9 @@ export default function ArtistReleases() {
         
         // 🔥 Load releases from database API
         console.log('📋 Fetching releases from database...');
-        const releasesResponse = await fetch('/api/artist/releases');
+        const releasesResponse = await fetch('/api/artist/releases', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         if (releasesResponse.ok) {
           const artistReleases = await releasesResponse.json();
           console.log(`✅ Loaded ${artistReleases.length} releases from database`);
@@ -428,153 +430,157 @@ export default function ArtistReleases() {
     const hasArtwork = release.artwork_url || release.artworkUrl;
     
     return (
-      <div key={release.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-        {/* Main Card Content */}
-        <div className="flex">
-          {/* Artwork Section with Play Controls */}
-          <div className="relative flex-shrink-0">
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-              {hasArtwork ? (
-                <img 
-                  src={release.artwork_url || release.artworkUrl} 
-                  alt={release.title || release.projectName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Music className="w-8 h-8 text-slate-400" />
-              )}
-              
-              {/* Play Button Overlay */}
-              {hasAudio && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button
-                    onClick={() => togglePlay(release.id, release.audio_file_url || release.audioFileUrl)}
-                    className="w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-6 h-6 text-white ml-0.5" />
-                    ) : (
-                      <Play className="w-6 h-6 text-white ml-1" />
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
+      <div key={release.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+        {/* Portrait Card with 10:16 aspect ratio */}
+        <div className="relative" style={{ aspectRatio: '10/16' }}>
+          
+          {/* Artwork Section - Top 60% */}
+          <div className="relative h-3/5 overflow-hidden">
+            {hasArtwork ? (
+              <img 
+                src={release.artwork_url || release.artworkUrl} 
+                alt={release.title || release.projectName}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 flex items-center justify-center">
+                <Music className="w-12 h-12 text-slate-500" />
+              </div>
+            )}
             
-            {/* Status Badge */}
-            <div className="absolute -top-2 -right-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(release.status)}`}>
+            {/* Status Badge - Top Right */}
+            <div className="absolute top-3 right-3">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${getStatusColor(release.status)}`}>
                 {getStatusLabel(release.status)}
               </span>
             </div>
+            
+            {/* Faint Play Button Overlay - Only when audio exists */}
+            {hasAudio && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={() => togglePlay(release.id, release.audio_file_url || release.audioFileUrl)}
+                  className="w-16 h-16 bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm opacity-80 hover:opacity-100 transform hover:scale-110"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 text-white ml-0" />
+                  ) : (
+                    <Play className="w-8 h-8 text-white ml-1" />
+                  )}
+                </button>
+              </div>
+            )}
+            
+            {/* Gradient Overlay for better text readability */}
+            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>
 
-          {/* Release Info Section */}
-          <div className="flex-1 p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{release.title || release.projectName}</h3>
-                <p className="text-sm text-gray-600">{release.artist || release.artist_name}</p>
-              </div>
-              
-              {/* Audio Controls */}
-              {hasAudio && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={toggleMute}
-                    className="p-1.5 text-gray-500 hover:text-gray-700 transition-colors"
-                    title={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="w-4 h-4" />
-                    ) : (
-                      <Volume2 className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              )}
+          {/* Information Section - Bottom 40% */}
+          <div className="h-2/5 p-4 flex flex-col justify-between">
+            
+            {/* Title and Artist */}
+            <div className="mb-3">
+              <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2 leading-tight">
+                {release.title || release.projectName}
+              </h3>
+              <p className="text-sm text-gray-600 font-medium">
+                {release.artist || release.artist_name}
+              </p>
             </div>
 
-            {/* Release Details */}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 mb-4">
-              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.releaseType || release.release_type}</span>
-              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.genre}</span>
-              <span className="bg-gray-100 px-2 py-1 rounded-md">{release.trackListing?.length || 1} tracks</span>
+            {/* Release Details Tags */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-medium">
+                {release.releaseType || release.release_type || 'single'}
+              </span>
+              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium">
+                {release.genre || 'African'}
+              </span>
+              <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-xs font-medium">
+                {release.trackListing?.length || 1} tracks
+              </span>
             </div>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">{formatCurrency(release.earnings || 0, selectedCurrency)}</div>
-                <div className="text-xs text-gray-500">Earnings</div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="text-center bg-green-50 rounded-lg py-2">
+                <div className="text-lg font-bold text-green-600">
+                  {formatCurrency(release.earnings || 0, selectedCurrency)}
+                </div>
+                <div className="text-xs text-green-700 font-medium">Earnings</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-blue-600">{(release.streams || 0).toLocaleString()}</div>
-                <div className="text-xs text-gray-500">Streams</div>
+              <div className="text-center bg-blue-50 rounded-lg py-2">
+                <div className="text-lg font-bold text-blue-600">
+                  {(release.streams || 0).toLocaleString()}
+                </div>
+                <div className="text-xs text-blue-700 font-medium">Streams</div>
               </div>
             </div>
 
             {/* Timeline Info */}
-            <div className="space-y-2 mb-4 text-xs">
+            <div className="space-y-1 mb-4 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Release Date:</span>
-                <span className="text-gray-700">{release.releaseDate || release.release_date || 'TBD'}</span>
+                <span className="text-gray-700 font-medium">
+                  {release.releaseDate || release.release_date || '2025-12-01'}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Last Updated:</span>
-                <span className="text-gray-700">{release.lastUpdated || release.updated_at?.split('T')[0] || 'Unknown'}</span>
+                <span className="text-gray-700 font-medium">
+                  {release.lastUpdated || release.updated_at?.split('T')[0] || '2025-10-03'}
+                </span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <button
                 onClick={() => {
                   setSelectedRelease(release);
                   setIsViewModalOpen(true);
                 }}
-                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center space-x-1 text-sm"
+                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
               >
-                <Eye className="w-3 h-3" />
+                <Eye className="w-4 h-4" />
                 <span>View</span>
               </button>
               
               {isStatusEditableByArtist(release.status) && (
-                <>
-                  <button
-                    onClick={() => {
-                      console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
-                      setSelectedRelease(release);
-                      setIsCreateModalOpen(true);
-                    }}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1 text-sm"
-                  >
-                    <FaEdit className="w-3 h-3" />
-                    <span>Edit</span>
-                  </button>
-                  
-                  {release.status === 'draft' && (
-                    <>
-                      <button
-                        onClick={() => handleSubmitRelease(release.id)}
-                        className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center space-x-1 text-sm"
-                      >
-                        <Send className="w-3 h-3" />
-                        <span>Submit</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => handleDeleteDraft(release.id)}
-                        className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-1 text-sm"
-                      >
-                        <X className="w-3 h-3" />
-                        <span>Delete</span>
-                      </button>
-                    </>
-                  )}
-                </>
+                <button
+                  onClick={() => {
+                    console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
+                    setSelectedRelease(release);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                >
+                  <FaEdit className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
               )}
             </div>
+
+            {/* Additional Actions for Drafts */}
+            {release.status === 'draft' && isStatusEditableByArtist(release.status) && (
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => handleSubmitRelease(release.id)}
+                  className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Submit</span>
+                </button>
+                
+                <button
+                  onClick={() => handleDeleteDraft(release.id)}
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center text-sm font-medium"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -870,7 +876,7 @@ export default function ArtistReleases() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
               {filteredReleases.map(renderReleaseCard)}
             </div>
           )}
