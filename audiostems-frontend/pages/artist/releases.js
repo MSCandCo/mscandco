@@ -476,71 +476,89 @@ export default function ArtistReleases() {
           </div>
 
           {/* Information Section - Bottom 40% */}
-          <div className="h-2/5 p-4 flex flex-col justify-between">
+          <div className="h-2/5 p-5 flex flex-col">
             
             {/* Title and Artist */}
-            <div className="mb-3">
-              <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2 leading-tight">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-tight">
                 {release.title || release.projectName}
               </h3>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-base text-gray-600 font-medium">
                 {release.artist || release.artist_name}
               </p>
             </div>
 
             {/* Release Details Tags */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-medium">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium">
                 {release.releaseType || release.release_type || 'single'}
               </span>
-              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium">
+              <span className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium">
                 {release.genre || 'African'}
               </span>
-              <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-xs font-medium">
+              <span className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium">
                 {release.trackListing?.length || 1} tracks
               </span>
             </div>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="text-center bg-green-50 rounded-lg py-2">
-                <div className="text-lg font-bold text-green-600">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="text-center bg-green-50 rounded-xl py-3 px-2">
+                <div className="text-xl font-bold text-green-600">
                   {formatCurrency(release.earnings || 0, selectedCurrency)}
                 </div>
-                <div className="text-xs text-green-700 font-medium">Earnings</div>
+                <div className="text-sm text-green-700 font-medium">Earnings</div>
               </div>
-              <div className="text-center bg-blue-50 rounded-lg py-2">
-                <div className="text-lg font-bold text-blue-600">
+              <div className="text-center bg-blue-50 rounded-xl py-3 px-2">
+                <div className="text-xl font-bold text-blue-600">
                   {(release.streams || 0).toLocaleString()}
                 </div>
-                <div className="text-xs text-blue-700 font-medium">Streams</div>
+                <div className="text-sm text-blue-700 font-medium">Streams</div>
               </div>
             </div>
 
             {/* Timeline Info */}
-            <div className="space-y-1 mb-4 text-xs">
+            <div className="space-y-2 mb-4 text-sm bg-gray-50 rounded-lg p-3">
               <div className="flex justify-between">
-                <span className="text-gray-500">Release Date:</span>
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-600 font-medium">Release Date:</span>
+                <span className="text-gray-800 font-semibold">
                   {release.releaseDate || release.release_date || '2025-12-01'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Last Updated:</span>
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-600 font-medium">Last Updated:</span>
+                <span className="text-gray-800 font-semibold">
                   {release.lastUpdated || release.updated_at?.split('T')[0] || '2025-10-03'}
                 </span>
               </div>
             </div>
 
+            {/* Audio Controls */}
+            {hasAudio && (
+              <div className="flex items-center justify-center space-x-3 mb-4 bg-slate-50 rounded-lg py-2">
+                <button
+                  onClick={toggleMute}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-white"
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-5 h-5" />
+                  ) : (
+                    <Volume2 className="w-5 h-5" />
+                  )}
+                </button>
+                <span className="text-sm text-gray-600 font-medium">Audio Available</span>
+              </div>
+            )}
+
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-auto">
               <button
                 onClick={() => {
                   setSelectedRelease(release);
                   setIsViewModalOpen(true);
                 }}
-                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 text-sm font-medium"
               >
                 <Eye className="w-4 h-4" />
                 <span>View</span>
@@ -553,7 +571,7 @@ export default function ArtistReleases() {
                     setSelectedRelease(release);
                     setIsCreateModalOpen(true);
                   }}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium"
                 >
                   <FaEdit className="w-4 h-4" />
                   <span>Edit</span>
@@ -563,10 +581,10 @@ export default function ArtistReleases() {
 
             {/* Additional Actions for Drafts */}
             {release.status === 'draft' && isStatusEditableByArtist(release.status) && (
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => handleSubmitRelease(release.id)}
-                  className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium"
                 >
                   <Send className="w-4 h-4" />
                   <span>Submit</span>
@@ -574,7 +592,7 @@ export default function ArtistReleases() {
                 
                 <button
                   onClick={() => handleDeleteDraft(release.id)}
-                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center text-sm font-medium"
+                  className="px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center text-sm font-medium"
                 >
                   <X className="w-4 h-4" />
                   <span>Delete</span>
@@ -876,7 +894,7 @@ export default function ArtistReleases() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {filteredReleases.map(renderReleaseCard)}
             </div>
           )}
