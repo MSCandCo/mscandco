@@ -1,13 +1,14 @@
 // ARTIST AFFILIATION REQUESTS API
 // Shows incoming requests from label admins
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     return getAffiliationRequests(req, res);
   } else if (req.method === 'PUT') {
@@ -20,7 +21,8 @@ export default async function handler(req, res) {
 // GET: Fetch affiliation requests for the artist
 async function getAffiliationRequests(req, res) {
   try {
-    const artistId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry's ID for now
+    // req.user and req.userRole are automatically attached by middleware
+    const artistId = req.user.id;
 
     console.log('📬 Fetching affiliation requests for artist:', artistId);
 
@@ -84,8 +86,9 @@ async function getAffiliationRequests(req, res) {
 // PUT: Respond to affiliation request (approve/deny)
 async function respondToRequest(req, res) {
   try {
+    // req.user and req.userRole are automatically attached by middleware
     const { requestId, response, responseMessage } = req.body; // response: 'approved' or 'denied'
-    const artistId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry's ID for now
+    const artistId = req.user.id;
 
     if (!requestId || !['approved', 'denied'].includes(response)) {
       return res.status(400).json({ error: 'Invalid request data' });
@@ -136,7 +139,7 @@ async function respondToRequest(req, res) {
 
     return res.json({
       success: true,
-      message: response === 'approved' 
+      message: response === 'approved'
         ? 'Affiliation request approved! You are now partnered with this label.'
         : 'Affiliation request declined.',
       request: updatedRequest
@@ -147,3 +150,5 @@ async function respondToRequest(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth(handler);

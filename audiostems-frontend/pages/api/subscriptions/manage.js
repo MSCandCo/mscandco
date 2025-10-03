@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     return handleGetSubscription(req, res);
   } else if (req.method === 'POST') {
@@ -18,15 +19,8 @@ export default async function handler(req, res) {
 // Get user's current subscription
 async function handleGetSubscription(req, res) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
     // Get user's subscription
     const { data: subscription, error } = await supabase
@@ -138,15 +132,8 @@ async function handleGetSubscription(req, res) {
 // Update subscription (switch between Starter ↔ Pro)
 async function handleUpdateSubscription(req, res) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
     const { newPlan, paymentMethod } = req.body;
 
@@ -282,3 +269,5 @@ async function handleUpdateSubscription(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth()(handler);

@@ -251,10 +251,17 @@ export default function ArtistReleases() {
     const loadData = async () => {
       try {
         // Load profile data (pre-fill release info)
-        const profileResponse = await fetch('/api/artist/profile');
-        if (profileResponse.ok) {
-          const profile = await profileResponse.json();
-          setProfileData(profile);
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (token) {
+          const profileResponse = await fetch('/api/artist/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (profileResponse.ok) {
+            const profile = await profileResponse.json();
+            setProfileData(profile);
+          }
         }
         
         // 🔥 Load releases from database API

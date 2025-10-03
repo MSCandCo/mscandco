@@ -1,35 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
+import { requireAuth } from '@/lib/rbac/middleware'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    // Decode JWT token (skip verification for now)
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userId = userInfo?.sub
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Invalid user ID' })
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
+    const userId = user.id;
 
     const { page = 1, limit = 10 } = req.query
 
@@ -105,3 +91,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requireAuth()(handler);

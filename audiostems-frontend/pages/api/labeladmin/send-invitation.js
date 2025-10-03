@@ -1,24 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // PROPER AUTHENTICATION - No hardcoded IDs
-    const { user, error: authError } = await getUserFromRequest(req);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
-    const label_admin_id = user.id;
+    const label_admin_id = req.user.id;
     console.log('🔍 Authenticated label admin:', label_admin_id);
 
     const {
@@ -91,3 +87,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
+
+export default requirePermission('artist:invite')(handler);

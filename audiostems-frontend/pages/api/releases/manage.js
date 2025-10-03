@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 import chartmetric, { getTrackInsights } from '@/lib/chartmetric';
 // AcceberAI mock removed - ready for real AI integration
 
@@ -7,7 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     return handleGetReleases(req, res);
   } else if (req.method === 'POST') {
@@ -22,24 +23,11 @@ export default async function handler(req, res) {
 // Get releases for user
 async function handleGetReleases(req, res) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user is automatically attached by middleware
 
     const { status, include_analytics } = req.query;
 
-    // Get user's role
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
+    // User role is available from middleware
 
     let query = supabase
       .from('releases')
@@ -58,11 +46,11 @@ async function handleGetReleases(req, res) {
       `);
 
     // Filter based on user role
-    if (roleData?.role_name === 'artist') {
-      query = query.eq('artist_user_id', user.id);
-    } else if (roleData?.role_name === 'label_admin') {
-      query = query.eq('label_admin_user_id', user.id);
-    } else if (['company_admin', 'super_admin', 'distribution_partner'].includes(roleData?.role_name)) {
+    if (req.userRole === 'artist') {
+      query = query.eq('artist_user_id', req.user.id);
+    } else if (req.userRole === 'label_admin') {
+      query = query.eq('label_admin_user_id', req.user.id);
+    } else if (['company_admin', 'super_admin', 'distribution_partner'].includes(req.userRole)) {
       // Admins and distribution partners can see all releases
     } else {
       return res.status(403).json({ error: 'Access denied' });
@@ -106,39 +94,20 @@ async function handleGetReleases(req, res) {
 // Create new release
 async function handleCreateRelease(req, res) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is artist or label admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || !['artist', 'label_admin'].includes(roleData.role_name)) {
-      return res.status(403).json({ error: 'Only artists and label admins can create releases' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     // Check subscription limits for artists
-    if (roleData.role_name === 'artist') {
+    if (req.userRole === 'artist') {
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('max_releases')
-        .eq('user_id', user.id)
+        .eq('user_id', req.user.id)
         .single();
 
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('releases_count')
-        .eq('id', user.id)
+        .eq('id', req.user.id)
         .single();
 
       const currentReleases = profile?.releases_count || 0;
@@ -162,8 +131,8 @@ async function handleCreateRelease(req, res) {
     const { data: newRelease, error: releaseError } = await supabase
       .from('releases')
       .insert({
-        artist_user_id: user.id,
-        label_admin_user_id: roleData.role_name === 'label_admin' ? user.id : null,
+        artist_user_id: req.user.id,
+        label_admin_user_id: req.userRole === 'label_admin' ? req.user.id : null,
         release_title: releaseTitle,
         asset_type: assetType,
         genre: genre,
@@ -199,7 +168,7 @@ async function handleCreateRelease(req, res) {
     const artistProfile = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', req.user.id)
       .single();
 
     if (artistProfile.data) {
@@ -228,15 +197,7 @@ async function handleCreateRelease(req, res) {
 // Update release (including status progression)
 async function handleUpdateRelease(req, res) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     const { releaseId, action, releaseData, newStatus } = req.body;
 
@@ -338,3 +299,6 @@ async function handleUpdateRelease(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with release edit permissions (OR logic)
+export default requirePermission(['release:edit:own', 'release:edit:label'])(handler);

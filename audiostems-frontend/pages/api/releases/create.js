@@ -1,5 +1,7 @@
 // API endpoint for creating releases and auto-populating roster
-export default async function handler(req, res) {
+import { requirePermission } from '@/lib/rbac/middleware';
+
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -91,3 +93,6 @@ function mapContributorTypeToRosterType(contributorType) {
 
   return mapping[contributorType] || 'other';
 }
+
+// Protect with release:create permission
+export default requirePermission('release:create')(handler);

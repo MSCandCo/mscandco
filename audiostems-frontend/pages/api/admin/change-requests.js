@@ -1,47 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   try {
-    const authHeader = req.headers.authorization;
-    
-    let userSupabase;
-    let user;
-    
-    if (authHeader) {
-      userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      
-      const { data: { user: authUser }, error } = await userSupabase.auth.getUser();
-      if (error || !authUser) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      user = authUser;
-    } else {
-      return res.status(401).json({ error: 'Authorization required' });
-    }
-
-    // Check if user is admin
-    const { data: userRole } = await userSupabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!userRole || !['company_admin', 'super_admin'].includes(userRole.role_name)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'GET') {
       // Get all pending change requests with user information
-      const { data: requests, error } = await userSupabase
+      const { data: requests, error } = await supabase
         .from('profile_change_requests')
         .select(`
           *,
@@ -72,9 +43,9 @@ export default async function handler(req, res) {
 
       if (action === 'approve') {
         // Approve the change request using the database function
-        const { data, error } = await userSupabase.rpc('approve_change_request', {
+        const { data, error } = await supabase.rpc('approve_change_request', {
           p_request_id: requestId,
-          p_admin_id: user.id,
+          p_admin_id: req.user.id,
           p_admin_notes: adminNotes
         });
 
@@ -91,12 +62,12 @@ export default async function handler(req, res) {
 
       if (action === 'reject') {
         // Reject the change request
-        const { error } = await userSupabase
+        const { error } = await supabase
           .from('profile_change_requests')
           .update({
             status: 'rejected',
             reviewed_at: new Date().toISOString(),
-            reviewed_by: user.id,
+            reviewed_by: req.user.id,
             admin_notes: adminNotes,
             updated_at: new Date().toISOString()
           })
@@ -122,3 +93,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with change_request:approve permission
+export default requirePermission('change_request:approve')(handler);

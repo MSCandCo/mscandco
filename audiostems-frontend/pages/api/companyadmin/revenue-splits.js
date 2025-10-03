@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     return handleGetRevenueSplits(req, res);
   } else if (req.method === 'POST') {
@@ -18,27 +19,7 @@ export default async function handler(req, res) {
 // Get current revenue split configuration
 async function handleGetRevenueSplits(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is company admin or super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || !['company_admin', 'super_admin'].includes(roleData.role_name)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     // Get revenue split configuration
     const { data: config, error } = await supabase
@@ -92,32 +73,12 @@ async function handleGetRevenueSplits(req, res) {
 // Save revenue split configuration
 async function handleSaveRevenueSplits(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is company admin or super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || !['company_admin', 'super_admin'].includes(roleData.role_name)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    const { 
-      revenueSplit, 
-      individualLabelAdminPercentages, 
-      individualArtistPercentages 
+    const {
+      revenueSplit,
+      individualLabelAdminPercentages,
+      individualArtistPercentages
     } = req.body;
 
     // Validate percentages
@@ -139,8 +100,8 @@ async function handleSaveRevenueSplits(req, res) {
         distribution_partner_name: revenueSplit.distributionPartnerName,
         individual_label_admin_percentages: individualLabelAdminPercentages || {},
         individual_artist_percentages: individualArtistPercentages || {},
-        updated_by_user_id: user.id,
-        updated_by_email: user.email,
+        updated_by_user_id: req.user.id,
+        updated_by_email: req.user.email,
         updated_at: new Date().toISOString()
       })
       .select();
@@ -161,3 +122,5 @@ async function handleSaveRevenueSplits(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('earnings:edit:any')(handler);

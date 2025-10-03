@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requireRole } from '@/lib/rbac/middleware'
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -7,67 +7,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify authentication and Company Admin role
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userId = userInfo?.sub
-    const userEmail = userInfo?.email?.toLowerCase() || ''
-    
-    // Use the same role detection logic as frontend
-    let userRole = userInfo?.user_metadata?.role || userInfo?.app_metadata?.role
-    
-    // Email-based role detection for known users (same as frontend)
-    if (!userRole) {
-      if (userEmail === 'companyadmin@mscandco.com') {
-        userRole = 'company_admin'
-      } else if (userEmail.includes('companyadmin') || userEmail.includes('admin@')) {
-        userRole = 'company_admin'
-      } else if (userEmail === 'superadmin@mscandco.com') {
-        userRole = 'super_admin'
-      } else if (userEmail.includes('super') || userEmail.includes('superadmin')) {
-        userRole = 'super_admin'
-      } else if (userEmail === 'labeladmin@mscandco.com') {
-        userRole = 'label_admin'
-      } else if (userEmail === 'codegroup@mscandco.com') {
-        userRole = 'distribution_partner'
-      } else if (userEmail.includes('codegroup') || userEmail.includes('code-group')) {
-        userRole = 'distribution_partner'
-      } else {
-        userRole = 'artist' // default
-      }
-    }
-    
-    console.log('🔍 Company Admin API - User role detection:', {
-      userId,
-      userEmail,
-      detectedRole: userRole,
-      user_metadata_role: userInfo?.user_metadata?.role,
-      app_metadata_role: userInfo?.app_metadata?.role
-    })
-    
-    if (userRole !== 'company_admin') {
-      console.log('❌ Access denied - expected company_admin, got:', userRole)
-      return res.status(403).json({ 
-        error: 'Company Admin access required',
-        details: `Your role is '${userRole}', but 'company_admin' is required`
-      })
-    }
 
     // Query all company-related data in parallel
     const [
@@ -396,3 +342,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requireRole('company_admin')(handler)

@@ -1,19 +1,21 @@
 // LABEL ADMIN EARNINGS API
 // Shows earnings from affiliated artists
 import { createClient } from '@supabase/supabase-js';
+import { requireRole } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const labelAdminId = 'c1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6'; // Fixed for now
+    // req.user and req.userRole are automatically attached by middleware
+    const labelAdminId = req.user.id;
 
     console.log('💰 Fetching label admin earnings:', labelAdminId);
 
@@ -106,3 +108,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireRole('label_admin')(handler);

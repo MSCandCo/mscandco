@@ -1,22 +1,19 @@
 // Simple analytics save using existing accessible tables
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Simplified auth check - for now, allow the operation if we have an artist ID
-    // TODO: Implement proper JWT validation once auth flow is working
-    console.log('🔓 Simplified auth check - allowing admin operation');
-
+    // req.user and req.userRole are automatically attached by middleware
     const { artistId, releaseData, milestonesData, advancedData, sectionVisibility, lastUpdated, type } = req.body;
 
     console.log('💾 Simple save request:', { artistId, type, releaseData, milestonesData, advancedData, sectionVisibility, lastUpdated });
@@ -91,3 +88,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
+// Protect with analytics:edit:any permission (admin write access)
+export default requirePermission('analytics:edit:any')(handler);

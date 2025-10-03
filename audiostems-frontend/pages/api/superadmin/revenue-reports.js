@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireRole } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method === 'GET') {
     return handleGetReports(req, res);
   } else if (req.method === 'POST') {
@@ -18,27 +20,6 @@ export default async function handler(req, res) {
 // Get revenue reports (pending, approved, etc.)
 async function handleGetReports(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || roleData.role_name !== 'super_admin') {
-      return res.status(403).json({ error: 'Super admin access required' });
-    }
 
     const { status } = req.query;
 
@@ -88,27 +69,7 @@ async function handleGetReports(req, res) {
 // Process revenue report (approve/reject)
 async function handleProcessReport(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || roleData.role_name !== 'super_admin') {
-      return res.status(403).json({ error: 'Super admin access required' });
-    }
+    // Use req.user from middleware (already authenticated and authorized)
 
     const { reportId, action, notes } = req.body;
 
@@ -127,8 +88,8 @@ async function handleProcessReport(req, res) {
       .update({
         status: action === 'approve' ? 'approved' : 'rejected',
         processed_at: new Date().toISOString(),
-        processed_by_user_id: user.id,
-        processed_by_email: user.email,
+        processed_by_user_id: req.user.id,
+        processed_by_email: req.user.email,
         notes: notes || null,
         updated_at: new Date().toISOString()
       })
@@ -156,3 +117,5 @@ async function handleProcessReport(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireRole('super_admin')(handler);

@@ -1,33 +1,13 @@
 import { supabase } from '@/lib/supabase';
+import { requireRole } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    // Get user from Supabase session
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    const userId = user.id;
-
-    // Verify super admin role
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', userId)
-      .single();
-
-    if (!roleData || roleData.role_name !== 'super_admin') {
-      return res.status(403).json({ error: 'Super admin access required' });
-    }
 
     // Get all subscriptions with user details
     const { data: subscriptions, error } = await supabase
@@ -73,8 +53,10 @@ function getPlanLimits(tier) {
   const limits = {
     'artist_starter': '5 releases max',
     'artist_pro': 'Unlimited releases',
-    'label_admin_starter': '4 artists, 8 releases max', 
+    'label_admin_starter': '4 artists, 8 releases max',
     'label_admin_pro': 'Unlimited artists and releases'
   };
   return limits[tier] || 'Unknown plan';
 }
+
+export default requireRole('super_admin')(handler);

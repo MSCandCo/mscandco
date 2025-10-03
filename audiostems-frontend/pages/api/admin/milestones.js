@@ -1,19 +1,16 @@
 // Admin routes for milestones management
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   try {
-    // Simplified auth for testing
-    const isAdmin = true; // TODO: Implement proper admin check
-    
-    if (!isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'GET') {
       // Get milestones for artist
@@ -137,3 +134,5 @@ function calculateRelativeDate(dateString) {
   const years = Math.floor(diffDays / 365);
   return years === 1 ? '1 year ago' : `${years} years ago`;
 }
+
+export default requirePermission('analytics:view:any')(handler);

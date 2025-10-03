@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -24,35 +25,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Amount must be greater than 0' });
     }
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'Authorization token required' });
-    }
-
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (jwtError) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const reporterId = userInfo?.sub;
-    const reporterEmail = userInfo?.email?.toLowerCase() || '';
-
-    if (!reporterId) {
-      return res.status(401).json({ error: 'Invalid user token' });
-    }
-
-    const isDistributionPartner = reporterEmail.includes('@codegroup.') || 
-                                  reporterEmail.includes('@distributionpartner.') ||
-                                  userInfo?.user_metadata?.role === 'distribution_partner' ||
-                                  userInfo?.app_metadata?.role === 'distribution_partner';
-
-    if (!isDistributionPartner) {
-      return res.status(403).json({ 
-        error: 'Access denied. Only distribution partners can report revenue.' 
-      });
-    }
+    const reporterId = req.user.id;
+    const reporterEmail = req.user.email?.toLowerCase() || '';
 
     const { data: artistUser, error: artistError } = await supabase
       .from('auth.users')
@@ -121,3 +95,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default requireAuth(handler)

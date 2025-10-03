@@ -1,14 +1,17 @@
 // Get milestones for artist
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   try {
     const { artistId, type } = req.query;
+    const userId = req.user.id;
+    const userRole = req.userRole;
 
     if (!artistId) {
       return res.status(400).json({ error: 'Artist ID required' });
@@ -16,6 +19,8 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       console.log('🏆 Fetching milestones for artist:', artistId, 'type:', type);
+
+    // RBAC middleware handles permission checking
 
       let query = supabase
         .from('milestones')
@@ -78,3 +83,5 @@ function calculateRelativeDate(dateString) {
   const years = Math.floor(diffDays / 365);
   return years === 1 ? '1 year ago' : `${years} years ago`;
 }
+
+export default requirePermission(['analytics:view:own', 'analytics:view:any'])(handler);

@@ -1,28 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // req.user and req.userRole are automatically attached by middleware
+
     const {
-      artist_id,
       amount,
       payout_method = 'bank_transfer',
       bank_details = {},
       notes
     } = req.body;
 
+    const artist_id = req.user.id;
+
     // Validation
-    if (!artist_id || !amount) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: artist_id, amount' 
+    if (!amount) {
+      return res.status(400).json({
+        error: 'Missing required fields: amount'
       });
     }
 
@@ -139,9 +143,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error in payout request API:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
-      details: error.message 
+      details: error.message
     });
   }
 }
+
+export default requireAuth(handler);

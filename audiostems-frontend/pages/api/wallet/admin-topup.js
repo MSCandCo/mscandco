@@ -1,33 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
+import { requirePermission } from '@/lib/rbac/middleware'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify authentication
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
-
-    // Get user from token
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-    if (userError || !user) {
-      return res.status(401).json({ error: 'Invalid or expired token' })
-    }
-
-    // Check if user is Super Admin or Company Admin
-    const adminRole = user.user_metadata?.role
-    if (!['super_admin', 'company_admin'].includes(adminRole)) {
-      return res.status(403).json({ error: 'Admin access required' })
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     const { 
       targetUserId, 
@@ -204,3 +189,6 @@ export default async function handler(req, res) {
     })
   }
 }
+
+// Protect with wallet:topup:any permission
+export default requirePermission('wallet:topup:any')(handler);

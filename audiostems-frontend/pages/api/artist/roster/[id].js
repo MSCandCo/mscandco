@@ -1,6 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 // Disable body parsing, we'll handle it with formidable
 export const config = {
@@ -52,7 +53,8 @@ let mockRoster = [
   }
 ];
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   const { id } = req.query;
 
   if (req.method === 'GET') {
@@ -138,4 +140,6 @@ export default async function handler(req, res) {
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
-} 
+}
+
+export default requireAuth(handler)

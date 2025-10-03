@@ -1,17 +1,16 @@
 // COMBINED ANALYTICS FOR ALL LABEL ARTISTS
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405);
-  
-  const { user, error: authError } = await getUserFromRequest(req);
-  if (authError || !user) return res.status(401).json({ error: 'Not authenticated' });
+
+  // req.user and req.userRole are automatically attached by middleware
 
   try {
     // Get all accepted artists for this label admin
@@ -26,7 +25,7 @@ export default async function handler(req, res) {
           artist_name
         )
       `)
-      .eq('label_admin_id', user.id)
+      .eq('label_admin_id', req.user.id)
       .eq('status', 'active');
 
     if (error) {
@@ -101,3 +100,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with analytics:view:label permission (label admin read access)
+export default requirePermission('analytics:view:label')(handler);

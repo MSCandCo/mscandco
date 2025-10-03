@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 // Service role client for all operations
 const supabase = createClient(
@@ -6,49 +7,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// User mapping for development - maps user types to actual users
-const USER_MAPPING = {
-  artist: { email: 'info@htay.co.uk' },
-  labeladmin: { email: 'labeladmin@mscandco.com' },
-  distributionpartner: { email: 'codegroup@mscandco.com' },
-  companyadmin: { email: 'companyadmin@mscandco.com' },
-  superadmin: { email: 'superadmin@mscandco.com' }
-};
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
 
-export default async function handler(req, res) {
   try {
-    // Determine user type and get user
-    const userType = req.query.type || req.headers['x-user-type'] || 'artist';
-    const authHeader = req.headers.authorization;
-    let user;
-    
-    if (authHeader) {
-      // Production: Use auth header
-      const userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      
-      const { data: { user: authUser }, error } = await userSupabase.auth.getUser();
-      if (error || !authUser) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      user = authUser;
-    } else {
-      // Development: Get user by type
-      const mapping = USER_MAPPING[userType];
-      if (!mapping) {
-        return res.status(400).json({ error: `Invalid user type: ${userType}` });
-      }
-
-      // Get user from database by email
-      const { data: dbUser, error: dbError } = await supabase.auth.admin.getUserByEmail(mapping.email);
-      if (dbError || !dbUser.user) {
-        return res.status(404).json({ error: `${userType} user not found: ${mapping.email}` });
-      }
-      user = dbUser.user;
-    }
+    const user = req.user;
 
     if (req.method === 'GET') {
       // Get profile for any user type
@@ -63,14 +26,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to fetch profile' });
       }
 
-      // Get user role for locked fields
-      const { data: roleData } = await supabase
-        .from('user_role_assignments')
-        .select('role_name')
-        .eq('user_id', user.id)
-        .single();
-
-      const userRole = roleData?.role_name || 'artist';
+      // Use role from middleware
+      const userRole = req.userRole;
 
       if (!profile) {
         // Return default profile structure based on role
@@ -266,3 +223,6 @@ function mapProfileFromDatabase(profile, role) {
       return baseMapping;
   }
 }
+
+// Protect with profile:view:own or profile:edit:own (GET uses view, PUT uses edit)
+export default requirePermission(['profile:view:own', 'profile:edit:own'])(handler);

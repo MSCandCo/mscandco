@@ -2,10 +2,15 @@
 import { getUserFromRequest } from '@/lib/auth';
 
 export default async function handler(req, res) {
+  // SECURITY: Disable test endpoint in production
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   console.log('🧪 Test upload endpoint called');
   console.log('Method:', req.method);
   console.log('Headers:', req.headers);
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

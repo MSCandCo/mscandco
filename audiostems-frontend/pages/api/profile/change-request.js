@@ -1,38 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // req.user and req.userRole are automatically attached by middleware
+
   try {
-    const authHeader = req.headers.authorization;
-    
-    let userSupabase;
-    let user;
-    
-    if (authHeader) {
-      userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      
-      const { data: { user: authUser }, error } = await userSupabase.auth.getUser();
-      if (error || !authUser) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      user = authUser;
-    } else {
-      // Fallback for development
-      user = { id: 'info_at_htay_dot_co.uk', email: 'info@htay.co.uk' };
-      userSupabase = supabase;
-    }
+    const user = req.user;
+
+    const userSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
 
     const { requestType, reason, currentData, fieldName, currentValue, requestedValue } = req.body;
 
@@ -97,3 +84,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with profile:edit:own permission (creating change requests for own profile)
+export default requirePermission('profile:edit:own')(handler);

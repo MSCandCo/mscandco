@@ -1,26 +1,21 @@
 // ARTIST RESPOND TO INVITATION API
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // PROPER AUTHENTICATION - No hardcoded IDs
-    const { user, error: authError } = await getUserFromRequest(req);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
+    // req.user and req.userRole are automatically attached by middleware
     const { invitation_id, action, decline_reason } = req.body; // action: 'accept' or 'decline'
-    const artist_id = user.id;
+    const artist_id = req.user.id;
 
     if (!invitation_id || !['accept', 'decline'].includes(action)) {
       return res.status(400).json({ error: 'Invalid request data' });
@@ -137,3 +132,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth()(handler);

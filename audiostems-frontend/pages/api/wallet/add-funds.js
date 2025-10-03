@@ -1,5 +1,6 @@
 // Wallet Add Funds - COMPLETE REBUILD - REAL DATA ONLY
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -7,22 +8,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    // Get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid authorization token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     const { amount, currency = 'GBP' } = req.body;
 
@@ -110,3 +102,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Protect with wallet:topup:own permission
+export default requirePermission('wallet:topup:own')(handler);

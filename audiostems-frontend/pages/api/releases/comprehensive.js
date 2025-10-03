@@ -1,30 +1,19 @@
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'PUT') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Get user from session
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // Get user's role and permissions
+    // req.user and req.userRole are automatically attached by middleware
+    
+    // Get user's profile for routing data
     const { data: userProfile } = await supabase
       .from('user_profiles')
-      .select('role, label_admin_id, company_admin_id, default_label_admin_id')
-      .eq('id', user.id)
+      .select('label_admin_id, company_admin_id, default_label_admin_id')
+      .eq('id', req.user.id)
       .single();
 
     if (!userProfile) {
@@ -361,7 +350,7 @@ export default async function handler(req, res) {
       ...routingData,
       
       // Audit fields
-      artist_id: user.id,
+      artist_id: req.user.id,
       last_auto_save: new Date().toISOString(),
       auto_save_enabled: true,
       updated_at: new Date().toISOString()
@@ -406,11 +395,11 @@ export default async function handler(req, res) {
 
       // Permission check
       const canEdit = (
-        existingRelease.artist_id === user.id && existingRelease.artist_can_edit
+        existingRelease.artist_id === req.user.id && existingRelease.artist_can_edit
       ) || (
-        userProfile.role === 'distribution_partner'
+        req.userRole === 'distribution_partner'
       ) || (
-        userProfile.role === 'company_admin' || userProfile.role === 'super_admin'
+        req.userRole === 'company_admin' || req.userRole === 'super_admin'
       );
 
       if (!canEdit) {
@@ -443,3 +432,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Protect with release:view:own permission
+export default requirePermission('release:view:own')(handler);

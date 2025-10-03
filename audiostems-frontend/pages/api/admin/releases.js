@@ -1,24 +1,16 @@
 // Admin routes for releases management
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Admin authentication middleware
-function checkAdminAuth(userRole) {
-  return ['super_admin', 'company_admin'].includes(userRole);
-}
-
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   try {
-    // Simplified auth for testing
-    const isAdmin = true; // TODO: Implement proper admin check
-    
-    if (!isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'GET') {
       // Get latest release for artist
@@ -129,3 +121,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
+export default requirePermission('release:view:any')(handler);

@@ -1,4 +1,25 @@
 import { supabase } from '@/lib/supabase';
+import { validateWebhookSignature } from '@/lib/revolut-payment';
+
+// Disable body parsing so we can verify raw body signature
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+async function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      resolve(data);
+    });
+    req.on('error', reject);
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,9 +27,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    const event = req.body;
-    
-    console.log('Mock Revolut Webhook received:', event.type, event.data);
+    // Get raw body for signature verification
+    const rawBody = await getRawBody(req);
+
+    // SECURITY: Verify webhook signature
+    const signature = req.headers['revolut-signature'];
+    const webhookSecret = process.env.REVOLUT_WEBHOOK_SECRET;
+
+    if (!signature) {
+      console.error('❌ Missing Revolut signature header');
+      return res.status(401).json({ error: 'Missing signature' });
+    }
+
+    if (!webhookSecret) {
+      console.error('❌ Webhook secret not configured');
+      return res.status(500).json({ error: 'Webhook configuration error' });
+    }
+
+    const isValidSignature = validateWebhookSignature(rawBody, signature, webhookSecret);
+
+    if (!isValidSignature) {
+      console.error('❌ Invalid webhook signature');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    console.log('✅ Webhook signature verified');
+
+    // Parse the body after signature verification
+    const event = JSON.parse(rawBody);
+
+    console.log('🔔 Revolut Webhook received:', event.type, event.data);
 
     switch (event.type) {
       case 'subscription.created':

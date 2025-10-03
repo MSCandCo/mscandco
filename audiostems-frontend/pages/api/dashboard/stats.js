@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requireAuth } from '@/lib/rbac/middleware'
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -7,33 +7,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY // This stays on server!
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify user authentication
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    // For now, we'll skip JWT verification since we don't have SUPABASE_JWT_SECRET set up
-    // In production, you'd verify the JWT token properly:
-    // const userInfo = jwt.verify(token, process.env.SUPABASE_JWT_SECRET)
-    
-    // For now, we'll get user info from the token directly (Supabase JWT format)
-    let userInfo
-    try {
-      // Decode without verification for now (not recommended for production)
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userId = userInfo?.sub
-    const userRole = userInfo?.user_metadata?.role || 'artist'
+    const userId = req.user.id
+    const userRole = req.userRole
 
     // Role-based data fetching
     let stats = {}
@@ -245,3 +227,5 @@ function getTopArtists(releases) {
       ...stats
     }))
 }
+
+export default requireAuth(handler)

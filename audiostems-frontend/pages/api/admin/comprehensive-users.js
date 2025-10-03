@@ -1,26 +1,16 @@
 // Comprehensive Users API - Real Database Integration
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get requesting user info
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user: requestingUser }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !requestingUser) {
-      return res.status(401).json({ error: 'Invalid authorization token' });
-    }
-
-    console.log('👥 Comprehensive users API called by:', requestingUser.email);
+    // req.user and req.userRole are automatically attached by middleware
+    console.log('👥 Comprehensive users API called by:', req.user.email);
 
     // Get all user profiles with subscription data
     const { data: users, error: usersError } = await supabase
@@ -152,3 +142,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('user:view:any')(handler);

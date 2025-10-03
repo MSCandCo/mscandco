@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requireAuth } from '@/lib/rbac/middleware';
 import formidable from 'formidable';
 import fs from 'fs';
 
@@ -14,17 +14,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  console.log('🔐 Audio upload API called, checking authentication...');
-  const { user, error: authError } = await getUserFromRequest(req);
-  
-  if (authError || !user) {
-    console.error('❌ Authentication failed:', authError);
-    return res.status(401).json({ error: 'Not authenticated', details: authError });
-  }
-  
+  console.log('🔐 Audio upload API called');
+  const user = req.user;
   console.log('✅ User authenticated:', user.id);
 
   const form = formidable({ maxFileSize: 150 * 1024 * 1024 });
@@ -159,3 +154,5 @@ export default async function handler(req, res) {
     }
   });
 }
+
+export default requireAuth()(handler);

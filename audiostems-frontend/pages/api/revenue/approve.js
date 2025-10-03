@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -26,37 +27,8 @@ export default async function handler(req, res) {
       });
     }
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'Authorization token required' });
-    }
-
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (jwtError) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const approverId = userInfo?.sub;
-    const approverEmail = userInfo?.email?.toLowerCase() || '';
-
-    if (!approverId) {
-      return res.status(401).json({ error: 'Invalid user token' });
-    }
-
-    const isCompanyAdmin = approverEmail.includes('@mscandco.com') || 
-                          approverEmail === 'info@htay.co.uk' ||
-                          userInfo?.user_metadata?.role === 'company_admin' ||
-                          userInfo?.app_metadata?.role === 'company_admin' ||
-                          userInfo?.user_metadata?.role === 'super_admin' ||
-                          userInfo?.app_metadata?.role === 'super_admin';
-
-    if (!isCompanyAdmin) {
-      return res.status(403).json({ 
-        error: 'Access denied. Only Company Admin or Super Admin can approve revenue reports.' 
-      });
-    }
+    const approverId = req.user.id;
+    const approverEmail = req.user.email?.toLowerCase() || '';
 
     const { data: report, error: reportError } = await supabase
       .from('revenue_reports')
@@ -191,3 +163,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default requirePermission('earnings:edit:any')(handler)

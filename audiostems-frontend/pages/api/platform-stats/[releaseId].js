@@ -1,18 +1,23 @@
 // Platform stats API for specific release
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   try {
     const { releaseId } = req.query;
+    const userId = req.user.id;
+    const userRole = req.userRole;
 
     if (!releaseId) {
       return res.status(400).json({ error: 'Release ID required' });
     }
+
+    // RBAC middleware handles permission checking
 
     if (req.method === 'GET') {
       // Get platform stats for release
@@ -77,3 +82,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
+export default requirePermission(['release:view:own', 'release:edit:own', 'release:view:any'])(handler);

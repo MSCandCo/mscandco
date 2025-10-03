@@ -1,37 +1,22 @@
-// Label Admin Artist Invitation API - PROPER AUTHENTICATION
+// Label Admin Artist Invitation API
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // req.user and req.userRole are automatically attached by middleware
+
   try {
-    // PROPER AUTHENTICATION - Same pattern as working APIs
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' });
-    }
-
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const currentUserId = userInfo?.sub;
-    const userEmail = userInfo?.email?.toLowerCase() || '';
-
-    if (!currentUserId) {
-      return res.status(401).json({ error: 'Invalid user token' });
-    }
+    const currentUserId = req.user.id;
+    const userEmail = req.user.email?.toLowerCase() || '';
 
     console.log('🔍 Authenticated label admin:', { currentUserId, userEmail });
 
@@ -109,3 +94,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with artist:invite permission (label admin inviting artists)
+export default requirePermission('artist:invite')(handler);

@@ -1,24 +1,15 @@
 // Check User Permissions API - Real Database Integration
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get user from auth token
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid authorization token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
     console.log('🔐 Checking permissions for user:', user.email);
 
@@ -134,3 +125,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth()(handler);

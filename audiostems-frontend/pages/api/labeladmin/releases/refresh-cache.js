@@ -1,25 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Not authenticated' });
-
-  const token = authHeader.replace('Bearer ', '');
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  
-  if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
-
   try {
-    console.log('🔄 Refreshing cache for label admin releases:', user.email);
+    console.log('🔄 Refreshing cache for label admin releases:', req.user.email);
 
     // Mark all label's releases for cache refresh
     const { data, error } = await supabase
@@ -28,7 +22,7 @@ export default async function handler(req, res) {
         cache_updated_at: null,
         updated_at: new Date().toISOString()
       })
-      .eq('label_admin_id', user.id)
+      .eq('label_admin_id', req.user.id)
       .select('id, release_title');
 
     if (error) {
@@ -49,3 +43,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth(handler)

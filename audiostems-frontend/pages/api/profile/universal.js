@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 // Service role client for all operations
 const supabase = createClient(
@@ -6,41 +7,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
+
   try {
-    // Get user from session or use fallback for development
-    const authHeader = req.headers.authorization;
-    let user;
-    
-    if (authHeader) {
-      // Production: Use auth header
-      const userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      
-      const { data: { user: authUser }, error } = await userSupabase.auth.getUser();
-      if (error || !authUser) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      user = authUser;
-    } else {
-      // Development: Determine user type from query parameter or default to artist
-      const userType = req.query.type || 'artist';
-      
-      if (userType === 'labeladmin') {
-        // Get label admin user from database
-        const { data: dbUser, error: dbError } = await supabase.auth.admin.getUserByEmail('labeladmin@mscandco.com');
-        if (dbError || !dbUser.user) {
-          return res.status(404).json({ error: 'Label admin user not found' });
-        }
-        user = dbUser.user;
-      } else {
-        // Default to existing artist user for development
-        user = { id: '8a060dc5-1c94-4060-a1c3-a60224fc348d', email: 'info@htay.co.uk' };
-      }
-    }
+    const user = req.user;
 
     if (req.method === 'GET') {
       // Get user profile
@@ -151,3 +122,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with profile:view:own or profile:edit:own (GET uses view, PUT uses edit)
+export default requirePermission(['profile:view:own', 'profile:edit:own'])(handler);

@@ -1,5 +1,6 @@
 // Bypass Users API - Uses Service Role Key to Bypass RLS
 import { createClient } from '@supabase/supabase-js';
+import { requireRole } from '@/lib/rbac/middleware';
 
 // Server-side Supabase client with service role key (bypasses RLS)
 const supabase = createClient(
@@ -7,7 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -121,3 +122,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Protect with super_admin role requirement
+export default requireRole('super_admin')(handler);

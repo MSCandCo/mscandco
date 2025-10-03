@@ -1,31 +1,13 @@
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET' && req.method !== 'PUT') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Get user from session
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // Get user's role
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'POST') {
       // Create new change request
@@ -56,9 +38,9 @@ export default async function handler(req, res) {
       }
 
       const canCreateRequest = (
-        release.artist_id === user.id ||
-        release.label_admin_id === user.id ||
-        ['company_admin', 'super_admin'].includes(userProfile.role)
+        release.artist_id === req.user.id ||
+        release.label_admin_id === req.user.id ||
+        ['company_admin', 'super_admin'].includes(req.userRole)
       );
 
       if (!canCreateRequest) {
@@ -72,7 +54,7 @@ export default async function handler(req, res) {
 
       const changeRequestData = {
         release_id: releaseId,
-        requested_by: user.id,
+        requested_by: req.user.id,
         request_type: requestType,
         field_name: fieldName,
         current_value: currentValue,
@@ -131,9 +113,9 @@ export default async function handler(req, res) {
       }
 
       // Filter based on user role and permissions
-      if (!['company_admin', 'super_admin', 'distribution_partner'].includes(userProfile.role)) {
+      if (!['company_admin', 'super_admin', 'distribution_partner'].includes(req.userRole)) {
         // Artists and label admins can only see their own requests
-        query = query.eq('requested_by', user.id);
+        query = query.eq('requested_by', req.user.id);
       }
 
       const { data: changeRequests, error: fetchError } = await query;
@@ -153,7 +135,7 @@ export default async function handler(req, res) {
       }
 
       // Check if user can review change requests
-      if (!['distribution_partner', 'company_admin', 'super_admin'].includes(userProfile.role)) {
+      if (!['distribution_partner', 'company_admin', 'super_admin'].includes(req.userRole)) {
         return res.status(403).json({ error: 'Not authorized to review change requests' });
       }
 
@@ -174,7 +156,7 @@ export default async function handler(req, res) {
 
       const updateData = {
         status: status,
-        reviewed_by: user.id,
+        reviewed_by: req.user.id,
         reviewed_at: new Date().toISOString(),
         review_notes: reviewNotes,
         updated_at: new Date().toISOString()
@@ -214,9 +196,12 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error in change requests API:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
-      message: error.message 
+      message: error.message
     });
   }
 }
+
+// Protect with change_request:create:own permission
+export default requirePermission('change_request:create:own')(handler);

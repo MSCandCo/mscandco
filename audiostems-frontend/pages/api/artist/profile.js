@@ -1,21 +1,23 @@
-// Artist Profile API - BYPASS AUTH FOR TESTING - REAL DATA ONLY
+// Artist Profile API
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-// Use service role to bypass all auth issues
+// Use service role to bypass RLS
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
+
   try {
-    // For testing, use Henry Taylor's ID directly
-    const userId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry Taylor
-    
-    console.log('👤 Artist profile API (bypass auth) for Henry Taylor');
+    const userId = req.user.id;
+
+    console.log('👤 Artist profile API for:', userId);
 
     if (req.method === 'GET') {
-      // Load Henry's profile from rebuilt database
+      // Load artist profile from database
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -23,11 +25,11 @@ export default async function handler(req, res) {
         .single();
 
       if (error) {
-        console.error('❌ Error loading Henry\'s profile:', error);
+        console.error('❌ Error loading profile:', error);
         return res.status(500).json({ error: 'Failed to load profile' });
       }
 
-      console.log('✅ Henry\'s profile loaded from database');
+      console.log('✅ Profile loaded from database');
 
       // Return real profile data in expected format
       return res.status(200).json({
@@ -59,7 +61,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      console.log('💾 Updating Henry\'s profile directly:', req.body);
+      console.log('💾 Updating artist profile:', req.body);
 
       // Map frontend fields to database fields
       const updateData = {
@@ -88,7 +90,7 @@ export default async function handler(req, res) {
         updated_at: new Date().toISOString()
       };
 
-      // Direct database update for Henry Taylor
+      // Update artist profile in database
       const { data: updatedProfile, error } = await supabase
         .from('user_profiles')
         .update(updateData)
@@ -97,14 +99,14 @@ export default async function handler(req, res) {
         .single();
 
       if (error) {
-        console.error('❌ Error updating Henry\'s profile:', error);
-        return res.status(500).json({ 
-          error: 'Failed to update profile', 
-          details: error.message 
+        console.error('❌ Error updating profile:', error);
+        return res.status(500).json({
+          error: 'Failed to update profile',
+          details: error.message
         });
       }
 
-      console.log('✅ Henry\'s profile updated successfully');
+      console.log('✅ Profile updated successfully');
 
       // STEP 1: Mark all artist's releases for cache refresh
       await supabase
@@ -148,10 +150,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
 
   } catch (error) {
-    console.error('❌ Artist profile bypass API error:', error);
-    return res.status(500).json({ 
+    console.error('❌ Artist profile API error:', error);
+    return res.status(500).json({
       error: 'Internal server error',
-      details: error.message 
+      details: error.message
     });
   }
 }
+
+// Protect with profile:view:own or profile:edit:own (GET uses view, PUT uses edit)
+export default requirePermission(['profile:view:own', 'profile:edit:own'])(handler);

@@ -157,14 +157,29 @@ export default function RoleBasedNavigation() {
 
   // Fetch profile data to get first and last name
   useEffect(() => {
-    if (user && user) {
-      fetch('/api/artist/profile')
-        .then(res => res.json())
-        .then(data => {
-          setProfileData(data);
-        })
-        .catch(err => console.error('Error fetching profile:', err));
-    }
+    const fetchProfile = async () => {
+      if (user && user) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          
+          if (!token) return;
+          
+          const response = await fetch('/api/artist/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setProfileData(data);
+          }
+        } catch (err) {
+          console.error('Error fetching profile:', err);
+        }
+      }
+    };
+    
+    fetchProfile();
   }, [user, user]);
 
   if (!user || !user) {
@@ -446,34 +461,34 @@ export default function RoleBasedNavigation() {
                   Content
                 </Link>
                 <Link
-                  href="/superadmin/analytics"
-                  className={getNavLinkClasses('/superadmin/analytics')}
-                >
-                  Analytics
-                </Link>
-                <Link
-                  href="/superadmin/earnings"
-                  className={getNavLinkClasses('/superadmin/earnings')}
-                >
-                  Earnings
-                </Link>
-                <Link
                   href="/superadmin/subscriptions"
                   className={getNavLinkClasses('/superadmin/subscriptions')}
                 >
                   Subscriptions
                 </Link>
                 <Link
-                  href="/distribution/workflow"
-                  className={getNavLinkClasses('/distribution/workflow')}
+                  href="/superadmin/wallet-management"
+                  className={getNavLinkClasses('/superadmin/wallet-management')}
+                >
+                  Wallet
+                </Link>
+                <Link
+                  href="/superadmin/distribution"
+                  className={getNavLinkClasses('/superadmin/distribution')}
                 >
                   Distribution
                 </Link>
                 <Link
-                  href="/superadmin/artist-requests"
-                  className={getNavLinkClasses('/superadmin/artist-requests')}
+                  href="/superadmin/approvals"
+                  className={getNavLinkClasses('/superadmin/approvals')}
                 >
-                  Requests
+                  Approvals
+                </Link>
+                <Link
+                  href="/superadmin/settings"
+                  className={getNavLinkClasses('/superadmin/settings')}
+                >
+                  Settings
                 </Link>
               </div>
             </div>
@@ -498,6 +513,13 @@ export default function RoleBasedNavigation() {
                     >
                       <LayoutDashboard className="w-4 h-4 mr-2" />
                       Dashboard
+                    </Link>
+                    <Link
+                      href="/superadmin/profile"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
                     </Link>
                     <Link
                       href="/admin/messages"
@@ -552,20 +574,6 @@ export default function RoleBasedNavigation() {
                   Content
                 </Link>
                 <Link
-                  href="/superadmin/analytics"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Analytics
-                </Link>
-                <Link
-                  href="/superadmin/earnings"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Earnings
-                </Link>
-                <Link
                   href="/superadmin/subscriptions"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -573,18 +581,32 @@ export default function RoleBasedNavigation() {
                   Subscriptions
                 </Link>
                 <Link
-                  href="/distribution/workflow"
+                  href="/superadmin/wallet-management"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Wallet
+                </Link>
+                <Link
+                  href="/superadmin/distribution"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Distribution
                 </Link>
                 <Link
-                  href="/superadmin/artist-requests"
+                  href="/superadmin/approvals"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Artist Requests
+                  Approvals
+                </Link>
+                <Link
+                  href="/superadmin/settings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Settings
                 </Link>
                 <div className="border-t border-gray-200 pt-4 pb-3">
                   <div className="px-3 py-2">
@@ -597,6 +619,13 @@ export default function RoleBasedNavigation() {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Dashboard
+                    </Link>
+                    <Link
+                      href="/superadmin/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
                     </Link>
                     <button
                       onClick={() => {

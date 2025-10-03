@@ -7,6 +7,11 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // SECURITY: Disable debug endpoint in production
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   try {
     // Get a user profile to see available columns
     const { data: profiles, error } = await supabase

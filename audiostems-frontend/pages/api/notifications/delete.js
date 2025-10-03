@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'DELETE') return res.status(405);
-  
-  const { user, error } = await getUserFromRequest(req);
-  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+
+  // req.user and req.userRole are automatically attached by middleware
+  const user = req.user;
 
   const { notification_id } = req.body;
 
@@ -24,3 +24,5 @@ export default async function handler(req, res) {
 
   return res.json({ success: true });
 }
+
+export default requireAuth()(handler);

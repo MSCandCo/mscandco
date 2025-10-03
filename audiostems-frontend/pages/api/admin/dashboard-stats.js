@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requireRole } from '@/lib/rbac/middleware';
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -7,30 +7,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify authentication and Super Admin role
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    // Decode JWT to get user info
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userRole = userInfo?.user_metadata?.role
-    if (userRole !== 'super_admin') {
-      return res.status(403).json({ error: 'Super Admin access required' })
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     // Query all required data in parallel for performance
     const [
@@ -214,3 +198,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requireRole(['company_admin', 'super_admin'])(handler);

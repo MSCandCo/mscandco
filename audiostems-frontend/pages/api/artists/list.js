@@ -1,28 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/rbac/middleware'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify authentication
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
-
-    // Get user from token
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-    if (userError || !user) {
-      return res.status(401).json({ error: 'Invalid or expired token' })
-    }
-
     // Get search query parameter
     const { search } = req.query
 
@@ -74,3 +64,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requireAuth(handler)

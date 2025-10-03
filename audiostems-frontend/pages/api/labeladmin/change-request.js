@@ -1,23 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get label admin user
-    const { data: dbUser, error: dbError } = await supabase.auth.admin.getUserByEmail('labeladmin@mscandco.com');
-    if (dbError || !dbUser.user) {
-      return res.status(404).json({ error: 'Label admin user not found' });
-    }
-    
-    const user = dbUser.user;
+    // req.user and req.userRole are automatically attached by middleware
+
     const { fieldName, currentValue, requestedValue, reason } = req.body;
 
     if (!fieldName || !requestedValue) {
@@ -26,7 +22,7 @@ export default async function handler(req, res) {
 
     // Create change request using the database function
     const { data, error } = await supabase.rpc('create_change_request', {
-      p_user_id: user.id,
+      p_user_id: req.user.id,
       p_field_name: fieldName,
       p_current_value: currentValue || '',
       p_requested_value: requestedValue,
@@ -49,3 +45,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth(handler);

@@ -2,6 +2,7 @@
 // No external payments, just deducts from user's wallet
 
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -40,27 +41,14 @@ const SUBSCRIPTION_PLANS = {
   }
 };
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    // Get user
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
     const { plan_id, billing_cycle = 'monthly', currency = 'GBP' } = req.body;
 
@@ -219,7 +207,9 @@ export default async function handler(req, res) {
     console.error('Subscription error:', error);
     res.status(500).json({ 
       error: 'Failed to process subscription',
-      details: error.message 
+      details: error.message
     });
   }
 }
+
+export default requireAuth()(handler);

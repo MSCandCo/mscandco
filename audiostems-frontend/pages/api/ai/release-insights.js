@@ -1,31 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
     // Check user's subscription for AI access level
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('tier, status')
-      .eq('user_id', user.id)
+      .eq('user_id', req.user.id)
       .single();
 
     const aiAccessLevel = subscription?.tier?.includes('pro') ? 'premium' : 'basic';
@@ -61,7 +53,7 @@ export default async function handler(req, res) {
       insights,
       access_level: aiAccessLevel,
       generated_at: new Date().toISOString(),
-      user_id: user.id,
+      user_id: req.user.id,
       message: "AI insights are not yet configured. This endpoint is ready for real AI service integration."
     });
 
@@ -70,3 +62,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth(handler)

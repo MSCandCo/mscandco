@@ -32,19 +32,36 @@ async function getUserAndRole(req) {
       return { user: null, role: null, error: authError?.message || 'Invalid token' };
     }
 
-    // Get user's role from database
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
+    // Use email-based role detection (same as other APIs)
+    const userEmail = user.email?.toLowerCase() || '';
+    let userRole = user.user_metadata?.role || user.app_metadata?.role;
+    
+    // Email-based role detection for known users
+    if (!userRole) {
+      if (userEmail === 'superadmin@mscandco.com') {
+        userRole = 'super_admin';
+      } else if (userEmail === 'companyadmin@mscandco.com') {
+        userRole = 'company_admin';
+      } else if (userEmail === 'labeladmin@mscandco.com') {
+        userRole = 'label_admin';
+      } else if (userEmail === 'codegroup@mscandco.com') {
+        userRole = 'distribution_partner';
+      } else if (userEmail.includes('codegroup') || userEmail.includes('code-group')) {
+        userRole = 'distribution_partner';
+      } else if (userEmail.includes('super') || userEmail.includes('superadmin')) {
+        userRole = 'super_admin';
+      } else if (userEmail.includes('companyadmin') || userEmail.includes('admin@')) {
+        userRole = 'company_admin';
+      } else {
+        userRole = 'artist'; // default
+      }
+    }
 
-    if (roleError || !roleData) {
-      console.error('Role fetch error:', roleError);
+    if (!userRole) {
       return { user, role: null, error: 'User role not found' };
     }
 
-    return { user, role: roleData.role_name, error: null };
+    return { user, role: userRole, error: null };
   } catch (error) {
     console.error('Auth exception:', error);
     return { user: null, role: null, error: 'Authentication failed' };

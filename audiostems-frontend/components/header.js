@@ -8,6 +8,12 @@ import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
 import { getUserRoleSync, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 function Header({ largeLogo = false }) {
   const { user, isLoading } = useUser();
@@ -20,15 +26,30 @@ function Header({ largeLogo = false }) {
 
   // Fetch profile data to get first and last name
   useEffect(() => {
-    if (user) {
-      fetch('/api/artist/profile')
-        .then(res => res.json())
-        .then(data => {
-          console.log('Header profile data loaded:', data);
-          setProfileData(data);
-        })
-        .catch(err => console.error('Error fetching profile:', err));
-    }
+    const fetchProfile = async () => {
+      if (user) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          
+          if (!token) return;
+          
+          const response = await fetch('/api/artist/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Header profile data loaded:', data);
+            setProfileData(data);
+          }
+        } catch (err) {
+          console.error('Error fetching profile:', err);
+        }
+      }
+    };
+    
+    fetchProfile();
   }, [user]);
 
   // Close dropdown when clicking outside

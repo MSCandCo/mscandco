@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requirePermission } from '@/lib/rbac/middleware'
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -7,26 +7,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   try {
-    // Verify authentication and Company Admin role
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userId = userInfo?.sub
-    const userRole = userInfo?.user_metadata?.role
-    if (userRole !== 'company_admin') {
-      return res.status(403).json({ error: 'Company Admin access required' })
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'GET') {
       // Get all users with their profiles and subscription information
@@ -357,3 +340,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requirePermission('user:view:any')(handler);

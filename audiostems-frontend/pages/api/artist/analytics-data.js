@@ -1,22 +1,20 @@
 // Analytics Data API - Fetches from user_profiles analytics_data field
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Simplified for testing - use Henry Taylor's ID
-    const userId = '0a060de5-1c94-4060-a1c2-860224fc348d';
-    console.log('Test mode - loading data for Henry Taylor');
-
+    // req.user and req.userRole are automatically attached by middleware
+    const userId = req.user.id;
     console.log('Fetching analytics data for user:', userId);
 
     // Fetch analytics data from user_profiles (using analytics_data column)
@@ -106,3 +104,6 @@ function calculateRelativeDate(dateString) {
     return years === 1 ? '1 year ago' : `${years} years ago`;
   }
 }
+
+// Protect with analytics:view:own permission
+export default requirePermission('analytics:view:own')(handler);

@@ -1,21 +1,23 @@
 // Artist releases API - fetch releases for authenticated artist
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // req.user and req.userRole are automatically attached by middleware
     const { artistId } = req.query;
-    
-    // Default to Henry's ID if not provided
-    const targetArtistId = artistId || '0a060de5-1c94-4060-a1c2-860224fc348d';
+
+    // Use authenticated user's ID or query parameter
+    const targetArtistId = artistId || req.user.id;
     
     console.log('📋 Fetching releases for artist:', targetArtistId);
 
@@ -62,7 +64,9 @@ export default async function handler(req, res) {
     console.error('❌ API Error:', error);
     return res.status(500).json({ 
       error: 'Internal server error', 
-      details: error.message 
+      details: error.message
     });
   }
 }
+
+export default requirePermission('release:view:own')(handler);

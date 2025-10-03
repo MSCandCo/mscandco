@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 import formidable from 'formidable';
 import fs from 'fs';
-import jwt from 'jsonwebtoken';
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -15,34 +15,15 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.error('❌ No authorization header');
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    let user;
-    
-    try {
-      const decoded = jwt.decode(token);
-      user = { id: decoded?.sub };
-      console.log('✅ User authenticated:', user.id);
-    } catch (err) {
-      console.error('❌ Token decode error:', err);
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    if (!user?.id) {
-      return res.status(401).json({ error: 'User ID not found' });
-    }
+    const user = req.user;
+    console.log('✅ User authenticated:', user.id);
 
     const form = formidable({
       maxFileSize: 5 * 1024 * 1024, // 5MB
@@ -158,4 +139,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth()(handler);
 

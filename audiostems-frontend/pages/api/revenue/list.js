@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -14,36 +15,12 @@ export default async function handler(req, res) {
   try {
     const { status, limit = 50 } = req.query;
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'Authorization token required' });
-    }
+    const userId = req.user.id;
+    const userEmail = req.user.email?.toLowerCase() || '';
+    const userRole = req.userRole;
 
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (jwtError) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const userId = userInfo?.sub;
-    const userEmail = userInfo?.email?.toLowerCase() || '';
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Invalid user token' });
-    }
-
-    const isCompanyAdmin = userEmail.includes('@mscandco.com') || 
-                          userEmail === 'info@htay.co.uk' ||
-                          userInfo?.user_metadata?.role === 'company_admin' ||
-                          userInfo?.app_metadata?.role === 'company_admin' ||
-                          userInfo?.user_metadata?.role === 'super_admin' ||
-                          userInfo?.app_metadata?.role === 'super_admin';
-
-    const isDistributionPartner = userEmail.includes('@codegroup.') || 
-                                  userEmail.includes('@distributionpartner.') ||
-                                  userInfo?.user_metadata?.role === 'distribution_partner' ||
-                                  userInfo?.app_metadata?.role === 'distribution_partner';
+    const isCompanyAdmin = ['company_admin', 'super_admin'].includes(userRole);
+    const isDistributionPartner = userRole === 'distribution_partner';
 
     let query = supabase
       .from('revenue_reports')
@@ -116,3 +93,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default requireAuth(handler)

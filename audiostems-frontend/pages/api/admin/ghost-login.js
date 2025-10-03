@@ -1,38 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requirePermission } from '@/lib/rbac/middleware'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify admin permissions
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    // Decode JWT token to get admin user info
-    let adminUserInfo
-    try {
-      adminUserInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const adminRole = adminUserInfo?.user_metadata?.role || 'artist'
-
-    // Only super_admin can use ghost login
-    if (adminRole !== 'super_admin') {
-      return res.status(403).json({ error: 'Ghost login requires Super Admin privileges' })
-    }
-
+    // req.user and req.userRole are automatically attached by middleware
     const { targetUserId } = req.body
 
     if (!targetUserId) {
@@ -59,8 +39,8 @@ export default async function handler(req, res) {
     // Create ghost session data
     const ghostSession = {
       isGhostMode: true,
-      adminUserId: adminUserInfo.sub,
-      adminEmail: adminUserInfo.email,
+      adminUserId: req.user.id,
+      adminEmail: req.user.email,
       targetUserId: targetUserId,
       targetEmail: targetAuthUser.user.email,
       targetRole: targetAuthUser.user.user_metadata?.role || 'artist',
@@ -70,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     // Log ghost login attempt for audit trail
-    console.log(`Ghost Login: Admin ${adminUserInfo.email} accessing user ${targetAuthUser.user.email} at ${new Date().toISOString()}`)
+    console.log(`Ghost Login: Admin ${req.user.email} (${req.userRole}) accessing user ${targetAuthUser.user.email} at ${new Date().toISOString()}`)
 
     // Return ghost session data (to be stored in sessionStorage on frontend)
     res.status(200).json({
@@ -88,9 +68,12 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Ghost login error:', error)
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Ghost login failed'
     })
   }
 }
+
+// Protect with user:impersonate permission (super_admin only)
+export default requirePermission('user:impersonate')(handler)

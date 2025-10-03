@@ -1,37 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireRole } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role_name')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || roleData.role_name !== 'super_admin') {
-      return res.status(403).json({ error: 'Super admin access required' });
-    }
 
     const {
       email,
@@ -60,6 +41,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid role specified' });
     }
 
+    // Use req.user from middleware (already authenticated and authorized)
     // Create user in Supabase Auth
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: email,
@@ -192,3 +174,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireRole('super_admin')(handler);

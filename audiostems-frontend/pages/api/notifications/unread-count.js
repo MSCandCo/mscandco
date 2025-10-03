@@ -1,28 +1,27 @@
 // GET UNREAD NOTIFICATION COUNT API
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // For development, use Henry's ID directly
-    // In production, use proper auth: const { user } = await getUserFromRequest(req);
-    const userId = '0a060de5-1c94-4060-a1c2-860224fc348d'; // Henry's ID
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
-    console.log('🔔 Getting unread count for user:', userId);
+    console.log('🔔 Getting unread count for user:', user.id);
 
     const { data, error } = await supabase
       .from('notifications')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('read', false);
 
     if (error) {
@@ -40,3 +39,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('notification:view:own')(handler);

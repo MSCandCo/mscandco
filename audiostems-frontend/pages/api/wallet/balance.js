@@ -1,35 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'Authorization token required' });
-    }
-
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (jwtError) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const userId = userInfo?.sub;
-    const userEmail = userInfo?.email?.toLowerCase() || '';
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Invalid user token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const userId = req.user.id;
 
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
@@ -86,3 +70,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Protect with wallet:view:own permission
+export default requirePermission('wallet:view:own')(handler);

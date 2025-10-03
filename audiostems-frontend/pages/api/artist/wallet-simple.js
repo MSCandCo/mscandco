@@ -1,16 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // For now, hardcode Henry Taylor's ID for testing
-    const artist_id = '0a060de5-1c94-4060-a1c2-860224fc348d';
+    // req.user and req.userRole are automatically attached by middleware
+    const artist_id = req.user.id;
 
     console.log('Loading wallet data for artist:', artist_id);
 
@@ -74,3 +75,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
+
+export default requireAuth(handler);

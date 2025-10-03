@@ -1,37 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is a label admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || roleData.role !== 'label_admin') {
-      return res.status(403).json({ error: 'Label admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     const { firstName, lastName, stageName, labelRoyaltyPercent } = req.body;
 
@@ -50,7 +31,7 @@ export default async function handler(req, res) {
     const { data: profileData } = await supabase
       .from('user_profiles')
       .select('company_name, email')
-      .eq('id', user.id)
+      .eq('id', req.user.id)
       .single();
 
     // Create the artist request
@@ -58,8 +39,8 @@ export default async function handler(req, res) {
       .from('artist_requests')
       .insert([
         {
-          requested_by_user_id: user.id,
-          requested_by_email: user.email,
+          requested_by_user_id: req.user.id,
+          requested_by_email: req.user.email,
           label_name: profileData?.company_name || 'Unknown Label',
           artist_first_name: firstName.trim(),
           artist_last_name: lastName.trim(),
@@ -88,3 +69,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requireAuth(handler);

@@ -540,10 +540,10 @@ export default function AdminDashboard() {
               Global Approvals
             </button>
             <button 
-              onClick={() => router.push('/superadmin/earnings')}
+              onClick={() => router.push('/superadmin/wallet-management')}
               className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
             >
-              Revenue Management
+              Wallet Management
             </button>
             <button 
               onClick={() => setShowGhostModal(true)}
@@ -551,10 +551,16 @@ export default function AdminDashboard() {
             >
               Ghost Login
             </button>
-            <button className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium">
+            <button 
+              onClick={() => alert('Platform Logs feature coming soon!')}
+              className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
+            >
               Platform Logs
             </button>
-            <button className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium">
+            <button 
+              onClick={() => alert('Backup & Restore feature coming soon!')}
+              className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
+            >
               Backup & Restore
             </button>
           </div>

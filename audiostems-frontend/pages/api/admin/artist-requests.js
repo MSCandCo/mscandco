@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method === 'GET') {
     return handleGetRequests(req, res);
   } else if (req.method === 'POST') {
@@ -18,27 +20,7 @@ export default async function handler(req, res) {
 // Get all artist requests (for company admin and super admin)
 async function handleGetRequests(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is company admin or super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || !['company_admin', 'super_admin'].includes(roleData.role)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     // Get all artist requests with optional status filter
     const { status } = req.query;
@@ -86,27 +68,7 @@ async function handleGetRequests(req, res) {
 // Process artist request (approve/reject)
 async function handleProcessRequest(req, res) {
   try {
-    // Get the user from the session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Verify user is company admin or super admin
-    const { data: roleData } = await supabase
-      .from('user_role_assignments')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || !['company_admin', 'super_admin'].includes(roleData.role)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
 
     const { requestId, action, rejectionReason, notes } = req.body;
 
@@ -147,3 +109,5 @@ async function handleProcessRequest(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('artist:view:any')(handler);

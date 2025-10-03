@@ -1,5 +1,6 @@
-// Debug version of audio upload API without authentication
+// Debug version of audio upload API with authentication
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
 import formidable from 'formidable';
 import fs from 'fs';
 
@@ -14,11 +15,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  console.log('🧪 DEBUG Audio upload API called (no auth)');
-  
+  console.log('🧪 DEBUG Audio upload API called');
+
   // Write to a debug log file for easier viewing
   const debugLog = (message) => {
     const timestamp = new Date().toISOString();
@@ -30,11 +32,10 @@ export default async function handler(req, res) {
       // Ignore file write errors
     }
   };
-  
-  debugLog('🧪 DEBUG Audio upload API called (no auth)');
 
-  // Skip authentication for debugging
-  const user = { id: '0a060de5-1c94-4060-a1c2-860224fc348d' }; // Henry's ID for testing
+  debugLog('🧪 DEBUG Audio upload API called with authenticated user');
+
+  const user = req.user;
 
   const form = formidable({ maxFileSize: 150 * 1024 * 1024 });
 
@@ -162,3 +163,5 @@ export default async function handler(req, res) {
     }
   });
 }
+
+export default requireAuth()(handler);

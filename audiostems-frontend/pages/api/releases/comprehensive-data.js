@@ -1,38 +1,15 @@
 // Comprehensive Releases API - Real Database Integration
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get requesting user info
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user: requestingUser }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !requestingUser) {
-      return res.status(401).json({ error: 'Invalid authorization token' });
-    }
-
-    // Get user role
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', requestingUser.id)
-      .single();
-
-    if (profileError) {
-      return res.status(500).json({ error: 'Failed to get user profile' });
-    }
-
-    const userRole = userProfile.role;
-    console.log('🎵 Comprehensive releases API called by:', requestingUser.email, 'Role:', userRole);
+    // req.user and req.userRole are automatically attached by middleware
+    console.log('🎵 Comprehensive releases API called by:', req.user.email, 'Role:', req.userRole);
 
     // Build query based on user role
     let query = supabase
@@ -57,12 +34,12 @@ export default async function handler(req, res) {
       `);
 
     // Filter based on user role
-    switch (userRole) {
+    switch (req.userRole) {
       case 'artist':
-        query = query.eq('artist_id', requestingUser.id);
+        query = query.eq('artist_id', req.user.id);
         break;
       case 'label_admin':
-        query = query.eq('label_admin_id', requestingUser.id);
+        query = query.eq('label_admin_id', req.user.id);
         break;
       case 'company_admin':
       case 'super_admin':
@@ -165,7 +142,7 @@ export default async function handler(req, res) {
       success: true,
       releases: enhancedReleases,
       stats,
-      userRole,
+      userRole: req.userRole,
       message: `Loaded ${enhancedReleases.length} releases with real database data`
     });
 
@@ -174,3 +151,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with release:view:own permission
+export default requirePermission('release:view:own')(handler);

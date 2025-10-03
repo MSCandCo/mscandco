@@ -1,17 +1,16 @@
 // REMOVE ARTIST FROM LABEL ROSTER
 import { createClient } from '@supabase/supabase-js';
-import { getUserFromRequest } from '@/lib/auth';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405);
-  
-  const { user, error: authError } = await getUserFromRequest(req);
-  if (authError || !user) return res.status(401).json({ error: 'Not authenticated' });
+
+  // req.user and req.userRole are automatically attached by middleware
 
   const { relationship_id } = req.body;
 
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
       .from('artist_label_relationships')
       .select('artist_id')
       .eq('id', relationship_id)
-      .eq('label_admin_id', user.id) // Security: only remove own relationships
+      .eq('label_admin_id', req.user.id) // Security: only remove own relationships
       .single();
 
     if (fetchError || !relationship) {
@@ -39,7 +38,7 @@ export default async function handler(req, res) {
       .from('artist_label_relationships')
       .update({ status: 'inactive' })
       .eq('id', relationship_id)
-      .eq('label_admin_id', user.id);
+      .eq('label_admin_id', req.user.id);
 
     if (updateError) {
       console.error('❌ Error updating relationship:', updateError);
@@ -51,7 +50,7 @@ export default async function handler(req, res) {
       .from('releases')
       .update({ label_admin_id: null })
       .eq('artist_id', relationship.artist_id)
-      .eq('label_admin_id', user.id)
+      .eq('label_admin_id', req.user.id)
       .select('id');
 
     if (!releaseError && updatedReleases?.length > 0) {
@@ -70,3 +69,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('artist:remove:label')(handler);

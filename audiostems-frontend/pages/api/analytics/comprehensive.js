@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 import chartmetric, { getArtistInsights, getTrackInsights } from '@/lib/chartmetric';
 // AcceberAI mock removed - ready for real AI integration
 
@@ -7,43 +9,31 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const { 
-      user_id, 
-      date_start, 
-      date_end, 
+    // req.user and req.userRole are automatically attached by middleware
+    const {
+      user_id,
+      date_start,
+      date_end,
       include_chartmetric = 'true',
-      include_ai_insights = 'true' 
+      include_ai_insights = 'true'
     } = req.query;
 
     // Determine target user (for admins checking other users)
-    const targetUserId = user_id || user.id;
+    const targetUserId = user_id || req.user.id;
 
-    // Verify access permissions
-    if (targetUserId !== user.id) {
-      const { data: roleData } = await supabase
-        .from('user_role_assignments')
-        .select('role_name')
-        .eq('user_id', user.id)
-        .single();
+    // Verify access permissions for viewing other users' analytics
+    if (targetUserId !== req.user.id) {
+      const canViewOthers = hasPermission(req.userRole, 'analytics:view:label') ||
+                           hasPermission(req.userRole, 'analytics:view:any');
 
-      if (!roleData || !['company_admin', 'super_admin', 'label_admin'].includes(roleData.role_name)) {
-        return res.status(403).json({ error: 'Access denied' });
+      if (!canViewOthers) {
+        return res.status(403).json({ error: 'Access denied - cannot view other users analytics' });
       }
     }
 
@@ -193,3 +183,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Protect with analytics permissions (own, label, or any)
+export default requirePermission(['analytics:view:own', 'analytics:view:label', 'analytics:view:any'])(handler);

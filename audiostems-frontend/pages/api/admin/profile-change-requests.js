@@ -1,35 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+// req.user and req.userRole are automatically attached by middleware
+async function handler(req, res) {
   try {
-    // Extract user ID from JWT token
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' });
-    }
-
-    let userInfo;
-    try {
-      userInfo = jwt.decode(token);
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    const adminUserId = userInfo?.sub;
-    const adminRole = userInfo?.user_metadata?.role;
-
-    // Check if user is admin
-    if (!['company_admin', 'super_admin'].includes(adminRole)) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    console.log('📋 Admin viewing profile change requests:', { adminUserId, adminRole });
+    // req.user and req.userRole are automatically attached by middleware
+    console.log('📋 Admin viewing profile change requests:', { adminUserId: req.user.id, adminRole: req.userRole });
 
     if (req.method === 'GET') {
       // Get all profile change requests with user information
@@ -74,7 +55,7 @@ export default async function handler(req, res) {
         .from('profile_change_requests')
         .update({
           status: status,
-          reviewed_by: adminUserId,
+          reviewed_by: req.user.id,
           reviewed_at: new Date().toISOString(),
           admin_notes: adminNotes
         })
@@ -103,3 +84,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default requirePermission('profile:edit:any')(handler);

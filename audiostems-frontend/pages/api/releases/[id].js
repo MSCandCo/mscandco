@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method !== 'GET' && req.method !== 'PUT' && req.method !== 'DELETE') {
@@ -8,26 +9,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get user from session
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // Get user's role and permissions
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('role, label_admin_id, company_admin_id')
-      .eq('id', user.id)
-      .single();
+    // req.user and req.userRole are automatically attached by middleware
 
     if (req.method === 'GET') {
       // Get release with full details
@@ -192,3 +174,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Protect with multiple release edit permissions (OR logic)
+export default requirePermission(['release:edit:own', 'release:edit:label', 'release:edit:any'])(handler);

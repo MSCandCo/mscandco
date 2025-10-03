@@ -1,12 +1,13 @@
 // Simple release save API that works with existing database structure
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -101,9 +102,12 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API Error:', error);
-    return res.status(500).json({ 
-      error: 'Internal server error', 
-      details: error.message 
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
     });
   }
 }
+
+// Protect with release edit permissions (OR logic)
+export default requirePermission(['release:edit:own', 'release:edit:label'])(handler);

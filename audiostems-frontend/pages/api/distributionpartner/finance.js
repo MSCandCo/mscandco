@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requireRole } from '@/lib/rbac/middleware'
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -7,30 +7,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Verify authentication and Distribution Partner role
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userId = userInfo?.sub
-    const userRole = userInfo?.user_metadata?.role
-    if (userRole !== 'distribution_partner') {
-      return res.status(403).json({ error: 'Distribution Partner access required' })
-    }
+    const userId = req.user.id
 
     // Get query parameters for filtering
     const { startDate, endDate, currency = 'GBP' } = req.query
@@ -310,9 +294,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Distribution Partner finance error:', error)
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Failed to fetch financial data'
     })
   }
 }
+
+export default requireRole('distribution_partner')(handler);

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import revolutAPI from '@/lib/revolut-real';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 // Use service role for database operations
 const supabaseAdmin = createClient(
@@ -7,27 +8,14 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    // Get user from Supabase session using regular client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // req.user and req.userRole are automatically attached by middleware
+    const user = req.user;
 
     const { amount, currency = 'GBP' } = req.body;
 
@@ -143,7 +131,9 @@ export default async function handler(req, res) {
     console.error('Add wallet funds error:', error);
     res.status(500).json({ 
       error: 'Failed to add funds to wallet',
-      details: error.message 
+      details: error.message
     });
   }
 }
+
+export default requireAuth()(handler);

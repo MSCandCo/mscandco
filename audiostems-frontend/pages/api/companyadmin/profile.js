@@ -1,18 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Not authenticated' });
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  
-  if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
+  const user = req.user;
 
   console.log('👤 Company Admin profile API for:', user.email);
 
@@ -59,3 +56,6 @@ export default async function handler(req, res) {
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+// Protect with profile:view:own or profile:edit:own (GET uses view, PUT uses edit)
+export default requirePermission(['profile:view:own', 'profile:edit:own'])(handler);

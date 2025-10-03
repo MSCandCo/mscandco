@@ -1,33 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
+import { requirePermission } from '@/lib/rbac/middleware'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
   try {
-    // Verify admin permissions
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) {
-      return res.status(401).json({ error: 'No authentication token' })
-    }
-
-    // Decode JWT token (skip verification for now since we don't have JWT secret set up)
-    let userInfo
-    try {
-      userInfo = jwt.decode(token)
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
-
-    const userRole = userInfo?.user_metadata?.role || 'artist'
-
-    // Only company_admin and super_admin can access user management
-    if (!['company_admin', 'super_admin'].includes(userRole)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
-    }
 
     if (req.method === 'GET') {
       // Get all users with pagination
@@ -312,3 +293,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default requirePermission('user:view:any')(handler)

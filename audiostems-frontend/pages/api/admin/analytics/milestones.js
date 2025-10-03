@@ -1,6 +1,6 @@
 // Admin API for managing artist milestones
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -8,26 +8,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   try {
-    // Get user from JWT token
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No authorization token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.decode(token);
-    const userId = decoded?.sub;
-    const userRole = decoded?.user_metadata?.role;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Check admin permissions from user metadata (correct source)
-    const isAdmin = ['super_admin', 'company_admin'].includes(userRole);
-    console.log('🔐 Milestones admin check:', { userId, userRole, isAdmin });
+    // req.user and req.userRole are automatically attached by middleware
+    console.log('🔐 Milestones admin access:', { userId: req.user.id, userRole: req.userRole });
 
     if (req.method === 'GET') {
       // Get milestones for specific artist
@@ -217,3 +201,6 @@ function calculateRelativeDate(dateString) {
     return years === 1 ? '1 year ago' : `${years} years ago`;
   }
 }
+
+// Protect with analytics:view:any permission (admin read access)
+export default requirePermission('analytics:view:any')(handler);
