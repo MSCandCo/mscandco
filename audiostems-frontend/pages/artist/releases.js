@@ -551,25 +551,28 @@ export default function ArtistReleases() {
           </div>
         </div>
 
-        {/* Paddle-style Action Buttons - Sticking out from sides */}
-        <div className="absolute inset-y-0 left-0 right-0 pointer-events-none">
+        {/* Paddle-style Action Tabs - Sticking out from card sides */}
+        <div className="absolute inset-0 pointer-events-none">
           
-          {/* Left Side Buttons */}
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-3 space-y-2 pointer-events-auto">
+          {/* Left Side Tabs */}
+          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2 space-y-1 pointer-events-auto">
             
-            {/* View Button - Always present */}
+            {/* View Tab - Always present */}
             <button
               onClick={() => {
                 setSelectedRelease(release);
                 setIsViewModalOpen(true);
               }}
-              className="w-10 h-10 bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-110 hover:-translate-x-1"
+              className="w-12 h-8 bg-gray-600 hover:bg-gray-700 text-white rounded-r-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-105 hover:-translate-x-1 group"
               title="View Release"
             >
               <Eye className="w-4 h-4" />
+              <span className="absolute left-full ml-2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                View
+              </span>
             </button>
             
-            {/* Edit Button - For editable releases */}
+            {/* Edit Tab - For editable releases */}
             {isStatusEditableByArtist(release.status) && (
               <button
                 onClick={() => {
@@ -577,36 +580,45 @@ export default function ArtistReleases() {
                   setSelectedRelease(release);
                   setIsCreateModalOpen(true);
                 }}
-                className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-110 hover:-translate-x-1"
+                className="w-12 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-105 hover:-translate-x-1 group"
                 title="Edit Release"
               >
                 <FaEdit className="w-4 h-4" />
+                <span className="absolute left-full ml-2 bg-blue-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Edit
+                </span>
               </button>
             )}
           </div>
 
-          {/* Right Side Buttons */}
-          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-3 space-y-2 pointer-events-auto">
+          {/* Right Side Tabs */}
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2 space-y-1 pointer-events-auto">
             
-            {/* Submit Button - For drafts */}
+            {/* Submit Tab - For drafts */}
             {release.status === 'draft' && isStatusEditableByArtist(release.status) && (
               <button
                 onClick={() => handleSubmitRelease(release.id)}
-                className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-110 hover:translate-x-1"
+                className="w-12 h-8 bg-green-600 hover:bg-green-700 text-white rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-105 hover:translate-x-1 group"
                 title="Submit Release"
               >
                 <Send className="w-4 h-4" />
+                <span className="absolute right-full mr-2 bg-green-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Submit
+                </span>
               </button>
             )}
             
-            {/* Delete Button - For drafts */}
+            {/* Delete Tab - For drafts */}
             {release.status === 'draft' && isStatusEditableByArtist(release.status) && (
               <button
                 onClick={() => handleDeleteDraft(release.id)}
-                className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-110 hover:translate-x-1"
+                className="w-12 h-8 bg-red-600 hover:bg-red-700 text-white rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:scale-105 hover:translate-x-1 group"
                 title="Delete Release"
               >
                 <X className="w-4 h-4" />
+                <span className="absolute right-full mr-2 bg-red-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Delete
+                </span>
               </button>
             )}
           </div>
