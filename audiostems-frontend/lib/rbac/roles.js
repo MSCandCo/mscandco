@@ -35,6 +35,10 @@ export const PERMISSIONS = {
   'release:approve': [ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN],
   'release:publish': [ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN],
 
+  // Dashboard permissions
+  'dashboard:view:own': [ROLES.ARTIST, ROLES.LABEL_ADMIN, ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN, ROLES.DISTRIBUTION_PARTNER],
+  'dashboard:view:any': [ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN],
+
   // Analytics permissions
   'analytics:view:own': [ROLES.ARTIST, ROLES.LABEL_ADMIN, ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN],
   'analytics:view:label': [ROLES.LABEL_ADMIN, ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN],
