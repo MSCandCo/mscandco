@@ -8,7 +8,7 @@ import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Sett
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { DashboardRenewalNotification } from '@/components/notifications/RenewalNotification';
-import MainLayout from '@/components/layouts/mainLayout';
+// MainLayout removed - navigation handled by _app.js
 import SEO from '@/components/seo';
 
 // Simple loading component
@@ -399,11 +399,7 @@ export default function RoleBasedDashboard() {
   };
 
   if (isLoading || loading) {
-    return (
-      <MainLayout>
-        <LoadingState message="Loading your dashboard..." />
-      </MainLayout>
-    );
+    return <LoadingState message="Loading your dashboard..." />;
   }
 
   if (!user) {
@@ -474,19 +470,17 @@ export default function RoleBasedDashboard() {
 
   if (!dashboardContent) {
     return (
-      <MainLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard not available</h2>
-            <p className="text-gray-600">Your user role does not have a dashboard configured.</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard not available</h2>
+          <p className="text-gray-600">Your user role does not have a dashboard configured.</p>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <SEO 
         title={`${dashboardContent.subtitle} - MSC & Co`}
         description={dashboardContent.description}
@@ -573,6 +567,6 @@ export default function RoleBasedDashboard() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }
