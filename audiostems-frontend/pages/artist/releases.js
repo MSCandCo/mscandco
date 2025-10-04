@@ -150,57 +150,155 @@ export default function ArtistReleases() {
     });
   };
 
+  // Branded notification system
+  const showNotification = (message, type = 'success') => {
+    const colors = {
+      success: { bg: '#f0fdf4', border: '#065f46', text: '#065f46' },
+      error: { bg: '#fef2f2', border: '#dc2626', text: '#dc2626' },
+      info: { bg: '#eff6ff', border: '#2563eb', text: '#2563eb' }
+    };
+
+    const color = colors[type] || colors.info;
+
+    const notificationDiv = document.createElement('div');
+    notificationDiv.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${color.bg};
+        border-left: 4px solid ${color.border};
+        padding: 16px 24px;
+        color: ${color.text};
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        min-width: 300px;
+        animation: slideIn 0.3s ease-out;
+      ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-weight: 600;">${message}</div>
+        </div>
+      </div>
+    `;
+
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(notificationDiv);
+    setTimeout(() => {
+      notificationDiv.style.transition = 'opacity 0.3s ease-out';
+      notificationDiv.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(notificationDiv);
+        document.head.removeChild(style);
+      }, 300);
+    }, 3000);
+  };
+
   // Handle submitting a release (draft → submitted)
   const handleSubmitRelease = async (releaseId) => {
     try {
       console.log('📤 Submitting release:', releaseId);
-      
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        showNotification('Authentication error. Please log in again.', 'error');
+        return;
+      }
+
       const response = await fetch(`/api/releases/${releaseId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
           status: 'submitted',
           submitted_at: new Date().toISOString()
         })
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         console.log('✅ Release submitted successfully');
-        
-        // Show success notification
-        const successDiv = document.createElement('div');
-        successDiv.innerHTML = `
-          <div style="
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            background: #f0fdf4; 
-            border-left: 4px solid #065f46; 
-            padding: 16px 24px; 
-            color: #065f46; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-          ">
-            Release submitted for review!
-          </div>
-        `;
-        document.body.appendChild(successDiv);
-        setTimeout(() => document.body.removeChild(successDiv), 3000);
+        showNotification('Release submitted for review!', 'success');
 
-        // Update the release status in local state (no refresh needed!)
-        setReleases(prev => prev.map(release => 
-          release.id === releaseId 
-            ? { ...release, status: 'submitted', submissionDate: new Date().toISOString() }
+        // Update local state
+        setReleases(prev => prev.map(release =>
+          release.id === releaseId
+            ? { ...release, status: 'submitted', submitted_at: new Date().toISOString() }
             : release
         ));
       } else {
-        console.error('❌ Failed to submit release:', response.status);
-        alert('Failed to submit release. Please try again.');
+        console.error('❌ Failed to submit:', result);
+        showNotification(result.error || 'Failed to submit release', 'error');
       }
     } catch (error) {
       console.error('❌ Error submitting release:', error);
-      alert('Error submitting release. Please try again.');
+      showNotification('Network error. Please try again.', 'error');
+    }
+  };
+
+  // Handle update request for releases
+  const handleUpdateRequest = async (release) => {
+    // For draft and submitted releases, allow direct editing
+    if (release.status === 'draft' || release.status === 'submitted') {
+      setSelectedRelease(release);
+      setIsCreateModalOpen(true);
+      return;
+    }
+
+    // For other statuses (in_review, completed, live), create update request and change to revision
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`/api/releases/${release.id}/request-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (result.allow_direct_edit) {
+          // Submitted releases can edit directly
+          setSelectedRelease(release);
+          setIsCreateModalOpen(true);
+        } else {
+          // Status changed to revision - show success notification
+          showNotification(result.message || 'Update request submitted - status changed to revision', 'success');
+
+          // Update local state to reflect new status
+          setReleases(prev => prev.map(r =>
+            r.id === release.id ? { ...r, status: result.new_status || 'revision' } : r
+          ));
+        }
+      } else {
+        showNotification(result.error || 'Failed to create update request', 'error');
+      }
+    } catch (error) {
+      console.error('Error creating update request:', error);
+      showNotification('Error creating update request. Please try again.', 'error');
     }
   };
 
@@ -208,9 +306,9 @@ export default function ArtistReleases() {
   // Handle deleting a release - open confirmation modal
   const handleDeleteDraft = (releaseId, releaseTitle = 'this draft release') => {
     const release = releases.find(r => r.id === releaseId);
-    setReleaseToDelete({ 
-      id: releaseId, 
-      title: release?.title || releaseTitle 
+    setReleaseToDelete({
+      id: releaseId,
+      title: release?.title || releaseTitle
     });
     setIsDeleteModalOpen(true);
   };
@@ -220,49 +318,41 @@ export default function ArtistReleases() {
     if (!releaseToDelete) return;
 
     try {
-      console.log('🗑️ Deleting draft release:', releaseToDelete.id);
-      
+      console.log('🗑️ Deleting release:', releaseToDelete.id);
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        showNotification('Authentication error. Please log in again.', 'error');
+        return;
+      }
+
       const response = await fetch(`/api/releases/delete?id=${releaseToDelete.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
       });
+
+      const result = await response.json();
 
       if (response.ok) {
         console.log('✅ Release deleted successfully');
-        
-        // Show success notification
-        const successDiv = document.createElement('div');
-        successDiv.innerHTML = `
-          <div style="
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            background: #fef2f2; 
-            border-left: 4px solid #ef4444; 
-            padding: 16px 24px; 
-            color: #ef4444; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-          ">
-            Draft release deleted!
-          </div>
-        `;
-        document.body.appendChild(successDiv);
-        setTimeout(() => document.body.removeChild(successDiv), 3000);
+        showNotification('Draft release deleted!', 'success');
 
-        // Remove the deleted release from local state (no refresh needed!)
+        // Remove from local state
         setReleases(prev => prev.filter(release => release.id !== releaseToDelete.id));
-        
-        // Close the modal and reset state
+
+        // Close modal
         setIsDeleteModalOpen(false);
         setReleaseToDelete(null);
       } else {
-        console.error('❌ Failed to delete release:', response.status);
-        alert('Failed to delete release. Please try again.');
+        console.error('❌ Failed to delete:', result);
+        showNotification(result.error || 'Failed to delete release', 'error');
       }
     } catch (error) {
       console.error('❌ Error deleting release:', error);
-      alert('Error deleting release. Please try again.');
+      showNotification('Network error. Please try again.', 'error');
     }
   };
 
@@ -435,7 +525,7 @@ export default function ArtistReleases() {
       draft: releases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length,
       submitted: releases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length,
       inReview: releases.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length,
-      approvals: releases.filter(r => r.status === RELEASE_STATUSES.APPROVALS).length,
+      revision: releases.filter(r => r.status === RELEASE_STATUSES.REVISION).length,
       completed: releases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length,
       live: releases.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
 
@@ -574,10 +664,7 @@ export default function ArtistReleases() {
 
           {/* Edit Button */}
           <button
-            onClick={() => {
-              setSelectedRelease(release);
-              setIsCreateModalOpen(true);
-            }}
+            onClick={() => handleUpdateRequest(release)}
             className="w-20 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center rounded-r-lg gap-0.5"
             title="Edit Release"
           >
@@ -754,15 +841,15 @@ export default function ArtistReleases() {
                 <div className="text-2xl font-bold text-orange-800">{stats.inReview}</div>
                 <div className="text-sm text-orange-700">In Review</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
-                  hoveredStatus === RELEASE_STATUSES.APPROVALS || statusFilter === RELEASE_STATUSES.APPROVALS ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
+                  hoveredStatus === RELEASE_STATUSES.REVISION || statusFilter === RELEASE_STATUSES.REVISION ? 'bg-purple-200 shadow-md transform scale-105' : 'bg-purple-50 hover:bg-purple-100'
                 }`}
-                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.APPROVALS)}
-                onClick={() => {setStatusFilter(RELEASE_STATUSES.APPROVALS); setHoveredStatus(RELEASE_STATUSES.APPROVALS);}}
+                onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.REVISION)}
+                onClick={() => {setStatusFilter(RELEASE_STATUSES.REVISION); setHoveredStatus(RELEASE_STATUSES.REVISION);}}
               >
-                <div className="text-2xl font-bold text-purple-800">{stats.approvals}</div>
-                <div className="text-sm text-purple-700">Approvals</div>
+                <div className="text-2xl font-bold text-purple-800">{stats.revision}</div>
+                <div className="text-sm text-purple-700">Revision</div>
               </div>
               <div 
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
