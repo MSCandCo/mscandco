@@ -88,22 +88,35 @@ export default function ArtistReleases() {
 
   // Audio player functions
   const togglePlay = (releaseId, audioUrl) => {
-    if (!audioUrl) return;
-    
+    console.log('🎵 togglePlay called:', { releaseId, audioUrl });
+
+    if (!audioUrl) {
+      console.log('❌ No audio URL provided');
+      return;
+    }
+
     const audio = audioRefs.current[releaseId];
     if (!audio) {
       // Create new audio element
+      console.log('🆕 Creating new Audio element');
       audioRefs.current[releaseId] = new Audio(audioUrl);
       audioRefs.current[releaseId].muted = isMuted;
-      
+
       // Handle audio end
       audioRefs.current[releaseId].addEventListener('ended', () => {
         setCurrentlyPlaying(null);
       });
+
+      // Handle errors
+      audioRefs.current[releaseId].addEventListener('error', (e) => {
+        console.error('❌ Audio error:', e);
+        console.error('Audio URL:', audioUrl);
+      });
     }
-    
+
     if (currentlyPlaying === releaseId) {
       // Pause current
+      console.log('⏸️ Pausing audio');
       audioRefs.current[releaseId].pause();
       setCurrentlyPlaying(null);
     } else {
@@ -113,10 +126,17 @@ export default function ArtistReleases() {
           audioRefs.current[id].pause();
         }
       });
-      
+
       // Play this audio
-      audioRefs.current[releaseId].play();
-      setCurrentlyPlaying(releaseId);
+      console.log('▶️ Playing audio');
+      audioRefs.current[releaseId].play()
+        .then(() => {
+          console.log('✅ Audio playing successfully');
+          setCurrentlyPlaying(releaseId);
+        })
+        .catch(error => {
+          console.error('❌ Play failed:', error);
+        });
     }
   };
 
@@ -428,17 +448,17 @@ export default function ArtistReleases() {
     const isPlaying = currentlyPlaying === release.id;
     const hasAudio = release.audio_file_url || release.audioFileUrl;
     const hasArtwork = release.artwork_url || release.artworkUrl;
-    
+
     return (
-      <div key={release.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden group">
-        {/* Portrait Card with 10:18 aspect ratio (slightly longer) */}
-        <div className="relative" style={{ aspectRatio: '10/18' }}>
-          
+      <div key={release.id} className="relative bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-visible group">
+        {/* Portrait Card with 10:18 aspect ratio */}
+        <div className="relative overflow-hidden rounded-2xl" style={{ aspectRatio: '10/18' }}>
+
           {/* Artwork Section - Top 60% */}
           <div className="relative h-3/5 overflow-hidden">
             {hasArtwork ? (
-              <img 
-                src={release.artwork_url || release.artworkUrl} 
+              <img
+                src={release.artwork_url || release.artworkUrl}
                 alt={release.title || release.projectName}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
@@ -447,20 +467,23 @@ export default function ArtistReleases() {
                 <Music className="w-12 h-12 text-slate-500" />
               </div>
             )}
-            
+
             {/* Status Badge - Top Right */}
-            <div className="absolute top-3 right-3">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${getStatusColor(release.status)}`}>
+            <div className="absolute top-3 right-3 z-20">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm bg-opacity-10 ${getStatusColor(release.status)}`}>
                 {getStatusLabel(release.status)}
               </span>
             </div>
-            
-            {/* Faint Play Button Overlay - Only when audio exists */}
+
+            {/* Play Button Overlay - Make sure it's clickable */}
             {hasAudio && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                 <button
-                  onClick={() => togglePlay(release.id, release.audio_file_url || release.audioFileUrl)}
-                  className="w-16 h-16 bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm opacity-80 hover:opacity-100 transform hover:scale-110"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlay(release.id, release.audio_file_url || release.audioFileUrl);
+                  }}
+                  className="w-16 h-16 bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm opacity-80 hover:opacity-100 transform hover:scale-110 pointer-events-auto"
                 >
                   {isPlaying ? (
                     <Pause className="w-8 h-8 text-white ml-0" />
@@ -470,9 +493,9 @@ export default function ArtistReleases() {
                 </button>
               </div>
             )}
-            
-            {/* Gradient Overlay with Title and Artist */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex flex-col justify-end p-4">
+
+            {/* Gradient Overlay with Title and Artist - Don't block clicks */}
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex flex-col justify-end p-4 pointer-events-none">
               <h3 className="text-lg font-bold text-white mb-1 line-clamp-2 leading-tight drop-shadow-lg">
                 {release.title || release.projectName}
               </h3>
@@ -482,131 +505,108 @@ export default function ArtistReleases() {
             </div>
           </div>
 
-          {/* Information Section - Bottom 40% */}
-          <div className="h-2/5 p-4 flex flex-col">
+          {/* Information Section - Bottom 40% - FULL WIDTH */}
+          <div className="h-2/5 p-3 flex flex-col justify-between">
 
             {/* Release Details Tags */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-medium">
+            <div className="flex flex-nowrap gap-1 mb-1.5 min-h-[24px]">
+              <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap flex-shrink truncate">
                 {release.releaseType || release.release_type || 'single'}
               </span>
-              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium">
+              <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap flex-shrink truncate">
                 {release.genre || 'African'}
               </span>
-              <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-xs font-medium">
+              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap flex-shrink truncate">
                 {release.trackListing?.length || 1} tracks
               </span>
             </div>
 
-            {/* Key Metrics - Smaller */}
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              <div className="text-center bg-green-50 rounded-md py-1.5 px-1">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 gap-2 mb-1.5">
+              <div className="text-center bg-green-50 rounded-lg py-1.5">
                 <div className="text-sm font-bold text-green-600">
                   {formatCurrency(release.earnings || 0, selectedCurrency)}
                 </div>
-                <div className="text-xs text-green-700 font-medium">Earnings</div>
+                <div className="text-[10px] text-green-700 font-medium">Earnings</div>
               </div>
-              <div className="text-center bg-blue-50 rounded-md py-1.5 px-1">
+              <div className="text-center bg-blue-50 rounded-lg py-1.5">
                 <div className="text-sm font-bold text-blue-600">
                   {(release.streams || 0).toLocaleString()}
                 </div>
-                <div className="text-xs text-blue-700 font-medium">Streams</div>
+                <div className="text-[10px] text-blue-700 font-medium">Streams</div>
               </div>
             </div>
 
-            {/* Timeline Info - Compact */}
-            <div className="space-y-1 mb-2 text-xs bg-gray-50 rounded-md p-2">
+            {/* Timeline Info */}
+            <div className="text-[10px] -space-y-1">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-medium">Release Date:</span>
-                <span className="text-gray-800 font-semibold">
+                <span className="text-gray-900 font-semibold">
                   {release.releaseDate || release.release_date || '2025-12-01'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-medium">Last Updated:</span>
-                <span className="text-gray-800 font-semibold">
+                <span className="text-gray-900 font-semibold">
                   {release.lastUpdated || release.updated_at?.split('T')[0] || '2025-10-03'}
                 </span>
               </div>
             </div>
 
-            {/* Audio Controls */}
-            {hasAudio && (
-              <div className="flex items-center justify-center space-x-2 mb-2 bg-slate-50 rounded-md py-1">
-                <button
-                  onClick={toggleMute}
-                  className="p-1 text-gray-500 hover:text-gray-700 transition-colors rounded-sm hover:bg-white"
-                  title={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted ? (
-                    <VolumeX className="w-3.5 h-3.5" />
-                  ) : (
-                    <Volume2 className="w-3.5 h-3.5" />
-                  )}
-                </button>
-                <span className="text-xs text-gray-600 font-medium">Audio</span>
-              </div>
-            )}
-
           </div>
         </div>
 
-        {/* Paddle Tabs - Sticking out from RIGHT side only */}
-        <div className="absolute right-0 top-16 transform translate-x-0 space-y-0 pointer-events-auto z-10">
-          
-          {/* View Tab - Always present */}
+        {/* Action Buttons - OUTSIDE card, sticking to the right */}
+        <div className="absolute -right-20 top-12 space-y-0 z-10">
+
+          {/* View Button */}
           <button
             onClick={() => {
               setSelectedRelease(release);
               setIsViewModalOpen(true);
             }}
-            className="w-16 h-12 bg-gray-600 hover:bg-gray-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:translate-x-1"
+            className="w-20 h-12 bg-gray-600 hover:bg-gray-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center rounded-r-lg gap-0.5"
             title="View Release"
           >
-            <Eye className="w-5 h-5" />
+            <Eye className="w-4 h-4" />
+            <span className="text-[9px] font-medium">View</span>
           </button>
-          
-          {/* Edit Tab - For editable releases */}
+
+          {/* Edit Button */}
           <button
             onClick={() => {
-              console.log('✏️ EDIT BUTTON CLICKED - release data:', release);
               setSelectedRelease(release);
               setIsCreateModalOpen(true);
             }}
-            className="w-16 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:translate-x-1"
+            className="w-20 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center rounded-r-lg gap-0.5"
             title="Edit Release"
           >
-            <FaEdit className="w-5 h-5" />
+            <FaEdit className="w-4 h-4" />
+            <span className="text-[9px] font-medium">Edit</span>
           </button>
-          
-          {/* Submit Tab - For drafts */}
-          {release.status === 'draft' && isStatusEditableByArtist(release.status) ? (
+
+          {/* Submit Button - Only for drafts */}
+          {release.status === 'draft' && (
             <button
               onClick={() => handleSubmitRelease(release.id)}
-              className="w-16 h-12 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:translate-x-1"
-              title="Submit Release"
+              className="w-20 h-12 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center rounded-r-lg gap-0.5"
+              title="Submit for Review"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
+              <span className="text-[9px] font-medium">Submit</span>
             </button>
-          ) : (
-            <div className="w-16 h-12 bg-gray-300 text-gray-500 shadow-lg flex items-center justify-center">
-              <Send className="w-5 h-5" />
-            </div>
           )}
-          
-          {/* Delete Tab - For drafts */}
-          {release.status === 'draft' && isStatusEditableByArtist(release.status) ? (
+
+          {/* Delete Button - Only for drafts */}
+          {release.status === 'draft' && (
             <button
-              onClick={() => handleDeleteDraft(release.id)}
-              className="w-16 h-12 bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center transform hover:translate-x-1"
-              title="Delete Release"
+              onClick={() => handleDeleteDraft(release.id, release.title || release.projectName)}
+              className="w-20 h-12 bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col items-center justify-center rounded-r-lg gap-0.5"
+              title="Delete Draft"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span className="text-[9px] font-medium">Delete</span>
             </button>
-          ) : (
-            <div className="w-16 h-12 bg-gray-300 text-gray-500 shadow-lg flex items-center justify-center">
-              <X className="w-5 h-5" />
-            </div>
           )}
         </div>
       </div>
@@ -902,7 +902,7 @@ export default function ArtistReleases() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pr-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-x-28 gap-y-9 pr-20">
               {filteredReleases.map(renderReleaseCard)}
             </div>
           )}

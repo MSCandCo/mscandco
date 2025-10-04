@@ -281,6 +281,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [userCountry, setUserCountry] = useState(null);
 
@@ -289,35 +290,56 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     const loadArtistProfile = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        if (!session) {
+          console.warn('⚠️ No session found, cannot load profile');
+          return;
+        }
 
+        console.log('🔄 Loading artist profile for form prefill...');
         const response = await fetch('/api/artist/profile', {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
 
         if (response.ok) {
           const profileData = await response.json();
+          console.log('✅ Profile loaded:', profileData);
           setArtistProfile(profileData);
-          
-          // Pre-fill form with profile data (only if not editing existing release)
-          if (!editingRelease) {
-            setFormData(prev => ({
-              ...prev,
-              primaryArtist: profileData.artistName || prev.primaryArtist,
-              label: profileData.recordLabel || prev.label,
-              genre: profileData.primaryGenre || prev.genre,
-              secondaryGenre: profileData.secondaryGenre || prev.secondaryGenre
-            }));
-            console.log('📋 Pre-filled release form with profile data:', {
-              primaryArtist: profileData.artistName,
-              label: profileData.recordLabel,
-              genre: profileData.primaryGenre,
-              secondaryGenre: profileData.secondaryGenre
+
+          // Validate that artist has a name set in profile
+          if (!profileData.artistName && !profileData.artist_name) {
+            console.warn('⚠️ Artist name not set in profile');
+            setErrors({
+              submit: 'Please set your artist name in your profile before creating a release. Go to Profile → Edit Profile to add your artist name.'
             });
           }
+
+          // Pre-fill form with profile data (only if not editing existing release)
+          if (!editingRelease) {
+            const artistName = profileData.artistName || profileData.artist_name || '';
+            const recordLabel = profileData.recordLabel || profileData.record_label || '';
+            const primaryGenre = profileData.primaryGenre || profileData.primary_genre || '';
+            const secondaryGenre = profileData.secondaryGenre || profileData.secondary_genre || '';
+
+            setFormData(prev => ({
+              ...prev,
+              primaryArtist: artistName || prev.primaryArtist,
+              label: recordLabel || prev.label,
+              genre: primaryGenre || prev.genre,
+              secondaryGenre: secondaryGenre || prev.secondaryGenre
+            }));
+
+            console.log('📋 Pre-filled release form with profile data:', {
+              primaryArtist: artistName,
+              label: recordLabel,
+              genre: primaryGenre,
+              secondaryGenre: secondaryGenre
+            });
+          }
+        } else {
+          console.error('❌ Failed to load profile:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('Error loading artist profile for pre-fill:', error);
+        console.error('❌ Error loading artist profile for pre-fill:', error);
       }
     };
 
@@ -554,7 +576,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       console.log('⏸️ Save already in progress, ignoring duplicate call');
       return;
     }
-    
+
     console.log('🔥 saveToDraft ENTRY - Component props:', {
       hasEditingRelease: !!editingRelease,
       editingReleaseId: editingRelease?.id,
@@ -565,10 +587,17 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     console.log('  - formData.artworkUrl:', formData.artworkUrl);
     console.log('  - formData.assets[0].audioFileUrl:', formData.assets[0]?.audioFileUrl);
     console.log('  - formData.assets[0].appleLosslessUrl:', formData.assets[0]?.appleLosslessUrl);
-    
+
+    // Validation
     if (!formData.releaseTitle) {
       console.error('❌ Cannot save - Release Title required');
       setErrors({ submit: 'Release Title is required to save' });
+      return;
+    }
+
+    if (!formData.primaryArtist) {
+      console.error('❌ Cannot save - Artist Name required');
+      setErrors({ submit: 'Artist name is required. Please set your artist name in your profile first.' });
       return;
     }
     
@@ -635,12 +664,21 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       console.log('🔍 FULL editingRelease object:', editingRelease);
       console.log(`${isEditing ? '✏️ Updating existing' : '🆕 Creating new'} release`, { isEditing, releaseId: editingRelease?.id });
 
+      // Get auth token for API calls
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeaders = session?.access_token
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        : { 'Content-Type': 'application/json' };
+
       let response;
       if (isEditing) {
         // Update existing release
         response = await fetch('/api/releases/simple-update', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           body: JSON.stringify({
             id: editingRelease.id,
             releaseTitle: draftData.releaseTitle,
@@ -697,7 +735,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         
         response = await fetch('/api/releases/simple-save', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           body: JSON.stringify(savePayload)
         });
       }
@@ -732,12 +770,106 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     }
   };
 
+  // Submit for review function
+  const handleSubmitForReview = async () => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to submit this release for review?\n\n' +
+      'Once submitted:\n' +
+      '• The release will be locked for editing\n' +
+      '• Admins will be notified to review your submission\n' +
+      '• You cannot make changes until review is complete\n\n' +
+      'Make sure all information is correct before proceeding.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    // Validate required fields
+    const validationErrors = [];
+    if (!formData.releaseTitle) validationErrors.push('Release title is required');
+    if (!formData.primaryArtist) validationErrors.push('Primary artist is required');
+    if (!formData.genre) validationErrors.push('Primary genre is required');
+    if (!formData.releaseDate) validationErrors.push('Release date is required');
+    if (!formData.artworkUrl) validationErrors.push('Cover artwork is required');
+    if (!formData.assets[0]?.songTitle) validationErrors.push('Song title is required');
+    if (!formData.assets[0]?.duration) validationErrors.push('Track duration is required');
+    if (!formData.assets[0]?.audioFileUrl) validationErrors.push('Audio file is required');
+
+    if (validationErrors.length > 0) {
+      setErrors({ submit: `Please complete required fields:\n${validationErrors.join('\n')}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setSubmitting(true);
+    setErrors({});
+
+    try {
+      // First save the current form data
+      console.log('💾 Saving release before submission...');
+      const saveResult = await saveToDraft();
+
+      if (!saveResult) {
+        throw new Error('Failed to save release before submission');
+      }
+
+      const releaseId = editingRelease?.id || saveResult.data?.id;
+
+      if (!releaseId) {
+        throw new Error('No release ID available for submission');
+      }
+
+      console.log('📤 Submitting release for review:', releaseId);
+
+      // Get auth token for submission API call
+      const { data: { session } } = await supabase.auth.getSession();
+      const submitHeaders = session?.access_token
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        : { 'Content-Type': 'application/json' };
+
+      // Submit for review
+      const response = await fetch('/api/releases/submit', {
+        method: 'POST',
+        headers: submitHeaders,
+        body: JSON.stringify({ release_id: releaseId })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Submission failed');
+      }
+
+      const result = await response.json();
+      console.log('✅ Release submitted successfully:', result);
+
+      // Show success notification
+      showSuccessNotification('Release submitted for review! Admins have been notified.');
+
+      // Notify parent and close
+      if (onSuccess) {
+        onSuccess(result.data || result);
+      }
+      onClose();
+
+    } catch (error) {
+      console.error('❌ Submit for review error:', error);
+      setErrors({ submit: error.message });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const calculateBusinessDays = (date) => {
     const today = new Date();
     const releaseDate = new Date(date);
     let count = 0;
     const current = new Date(today);
-    
+
     while (current < releaseDate) {
       const dayOfWeek = current.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
@@ -796,12 +928,21 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
       const isEditing = editingRelease && editingRelease.id;
       const apiUrl = isEditing ? `/api/releases/${editingRelease.id}` : '/api/releases/create';
       const method = isEditing ? 'PUT' : 'POST';
-      
+
       console.log(`${isEditing ? '✏️ Updating' : '🆕 Creating'} release:`, apiUrl);
-      
+
+      // Get auth token for API call
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeaders = session?.access_token
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        : { 'Content-Type': 'application/json' };
+
       const response = await fetch(apiUrl, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(submitData)
       });
       
@@ -845,12 +986,12 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if (saving) {
                   console.log('⏸️ Save button clicked but save already in progress');
                   return;
                 }
-                
+
                 console.log('💾 Save Draft button clicked');
                 try {
                   await saveToDraft();
@@ -858,7 +999,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                   console.error('Save failed:', error);
                 }
               }}
-              disabled={!formData.releaseTitle || loading || saving}
+              disabled={!formData.releaseTitle || !formData.primaryArtist || loading || saving}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -882,6 +1023,33 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         </div>
 
         <form id="releaseForm" onSubmit={handleSubmit} className="p-6 space-y-8">
+          {/* Warning if artist name not set in profile */}
+          {artistProfile && !formData.primaryArtist && (
+            <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Artist Name Required
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>
+                      Your artist name is not set in your profile. Please{' '}
+                      <a href="/artist/profile" className="font-medium underline hover:text-yellow-600">
+                        update your profile
+                      </a>{' '}
+                      to add your artist name before creating a release.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Project Information */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Information</h3>
@@ -913,14 +1081,27 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Artist *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  Primary Artist *
+                  {artistProfile && (
+                    <svg className="w-4 h-4 ml-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </label>
                 <input
                   type="text"
                   value={formData.primaryArtist}
                   onChange={(e) => setFormData(prev => ({ ...prev, primaryArtist: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!!artistProfile}
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    artistProfile
+                      ? 'bg-gray-100 border-gray-300 text-gray-700 cursor-not-allowed'
+                      : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                  }`}
                   placeholder="Enter primary artist name"
                   required
+                  title={artistProfile ? "Artist name is locked and comes from your profile" : ""}
                 />
               </div>
               
@@ -1628,18 +1809,18 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
             >
               Cancel
             </button>
-            
+
             <button
               type="button"
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if (saving) {
                   console.log('⏸️ Save button clicked but save already in progress');
                   return;
                 }
-                
+
                 console.log('💾 Save Draft button clicked');
                 try {
                   await saveToDraft();
@@ -1647,7 +1828,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                   console.error('Manual save failed:', error);
                 }
               }}
-              disabled={!formData.releaseTitle || loading || saving}
+              disabled={!formData.releaseTitle || !formData.primaryArtist || loading || saving || submitting}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -1655,10 +1836,37 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
               </svg>
               <span>Save Draft</span>
             </button>
-            
+
+            {/* Submit for Review button - only show for draft releases */}
+            {(!editingRelease || editingRelease.status === 'draft') && (
+              <button
+                type="button"
+                onClick={handleSubmitForReview}
+                disabled={!formData.releaseTitle || !formData.primaryArtist || loading || saving || submitting}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2"
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+                    </svg>
+                    <span>Submit for Review</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || submitting}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? (editingRelease ? 'Updating...' : 'Creating...') : (editingRelease ? 'Update Release' : 'Create Release')}
@@ -1667,7 +1875,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           
           {errors.submit && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{errors.submit}</p>
+              <p className="text-red-600 text-sm whitespace-pre-line">{errors.submit}</p>
             </div>
           )}
         </form>

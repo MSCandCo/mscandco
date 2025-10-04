@@ -18,6 +18,11 @@ const supabase = createClient(
  */
 async function getUserAndRole(req) {
   try {
+    // Safety check for headers
+    if (!req || !req.headers) {
+      return { user: null, role: null, error: 'Invalid request object' };
+    }
+
     // Extract auth token
     const token = req.headers.authorization?.replace('Bearer ', '');
 
@@ -122,6 +127,12 @@ export function requirePermission(requiredPermissions, options = {}) {
   return function middleware(handler) {
     return async function wrappedHandler(req, res) {
       try {
+        // Safety check for request and response objects
+        if (!req || !res) {
+          console.error('Permission middleware: Invalid req/res objects');
+          return;
+        }
+
         // Get user and role
         const { user, role, error } = await getUserAndRole(req);
 
@@ -182,10 +193,12 @@ export function requirePermission(requiredPermissions, options = {}) {
         return handler(req, res);
       } catch (error) {
         console.error('Permission middleware error:', error);
-        return res.status(500).json({
-          error: 'Internal Server Error',
-          message: 'An error occurred while checking permissions'
-        });
+        if (res && res.status) {
+          return res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'An error occurred while checking permissions'
+          });
+        }
       }
     };
   };
@@ -210,6 +223,12 @@ export function requireRole(requiredRoles) {
   return function middleware(handler) {
     return async function wrappedHandler(req, res) {
       try {
+        // Safety check for request and response objects
+        if (!req || !res) {
+          console.error('Role middleware: Invalid req/res objects');
+          return;
+        }
+
         // Get user and role
         const { user, role, error } = await getUserAndRole(req);
 
@@ -258,10 +277,12 @@ export function requireRole(requiredRoles) {
         return handler(req, res);
       } catch (error) {
         console.error('Role middleware error:', error);
-        return res.status(500).json({
-          error: 'Internal Server Error',
-          message: 'An error occurred while checking role'
-        });
+        if (res && res.status) {
+          return res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'An error occurred while checking role'
+          });
+        }
       }
     };
   };
@@ -282,6 +303,12 @@ export function requireRole(requiredRoles) {
 export function requireAuth(handler) {
   return async function wrappedHandler(req, res) {
     try {
+      // Safety check for request and response objects
+      if (!req || !res) {
+        console.error('Auth middleware: Invalid req/res objects');
+        return;
+      }
+
       // Get user and role
       const { user, role, error } = await getUserAndRole(req);
 
@@ -300,10 +327,12 @@ export function requireAuth(handler) {
       return handler(req, res);
     } catch (error) {
       console.error('Auth middleware error:', error);
-      return res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'An error occurred during authentication'
-      });
+      if (res && res.status) {
+        return res.status(500).json({
+          error: 'Internal Server Error',
+          message: 'An error occurred during authentication'
+        });
+      }
     }
   };
 }
