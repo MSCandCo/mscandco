@@ -49,6 +49,9 @@ export const BRANDS = {
 };
 
 export const getBrandById = (brandId) => {
+  if (!brandId || typeof brandId !== 'string') {
+    return BRANDS.AUDIO_MSC;
+  }
   return BRANDS[brandId.toUpperCase()] || BRANDS.AUDIO_MSC;
 };
 

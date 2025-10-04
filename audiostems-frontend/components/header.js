@@ -2,7 +2,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { Dropdown } from 'flowbite-react';
 import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
 import { HiDownload } from 'react-icons/hi';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
@@ -153,9 +153,9 @@ function Header({ largeLogo = false }) {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                       <Link href={
-                        getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                        getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
                         '/dashboard'
                       }>
                         <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
@@ -175,6 +175,46 @@ function Header({ largeLogo = false }) {
                           Download History
                         </div>
                       </Link>
+
+                      {/* Distribution Partner Menu */}
+                      {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Distribution
+                          </div>
+                          <Link href="/distribution/queue">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Inbox className="w-4 h-4 mr-3 text-gray-400" />
+                              Distribution Queue
+                            </div>
+                          </Link>
+                          <Link href="/distribution/revisions">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <RefreshCw className="w-4 h-4 mr-3 text-gray-400" />
+                              Revision Queue
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Admin Menu */}
+                      {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Admin
+                          </div>
+                          <Link href="/admin/content-library">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Database className="w-4 h-4 mr-3 text-gray-400" />
+                              Content Library
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
+                      <hr className="my-1 border-gray-200" />
                       <button
                         onClick={openCustomerPortal}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
@@ -273,9 +313,9 @@ function Header({ largeLogo = false }) {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                     <Link href={
-                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : 
+                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
                       '/dashboard'
                     }>
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
@@ -295,6 +335,46 @@ function Header({ largeLogo = false }) {
                         Download History
                       </div>
                     </Link>
+
+                    {/* Distribution Partner Menu */}
+                    {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                          Distribution
+                        </div>
+                        <Link href="/distribution/queue">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Inbox className="w-4 h-4 mr-3 text-gray-400" />
+                            Distribution Queue
+                          </div>
+                        </Link>
+                        <Link href="/distribution/revisions">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <RefreshCw className="w-4 h-4 mr-3 text-gray-400" />
+                            Revision Queue
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Admin Menu */}
+                    {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                          Admin
+                        </div>
+                        <Link href="/admin/content-library">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Database className="w-4 h-4 mr-3 text-gray-400" />
+                            Content Library
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    <hr className="my-1 border-gray-200" />
                     <button
                       onClick={openCustomerPortal}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
@@ -406,6 +486,46 @@ function Header({ largeLogo = false }) {
                   >
                     Profile
                   </Link>
+
+                  {/* Distribution Partner Menu */}
+                  {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                    <>
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                        Distribution
+                      </div>
+                      <Link
+                        href="/distribution/queue"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Distribution Queue
+                      </Link>
+                      <Link
+                        href="/distribution/revisions"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Revision Queue
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Admin Menu */}
+                  {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                    <>
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                        Admin
+                      </div>
+                      <Link
+                        href="/admin/content-library"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Content Library
+                      </Link>
+                    </>
+                  )}
+
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);

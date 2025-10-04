@@ -3,7 +3,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import Layout from '@/components/layouts/mainLayout';
 import { FaSearch, FaFilter } from 'react-icons/fa';
-import { Eye, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Send, Edit, X } from 'lucide-react';
 import {
   RELEASE_STATUSES,
   getStatusLabel,
@@ -16,8 +16,16 @@ export default function DistributionQueue() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingRelease, setEditingRelease] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
+    // Handle URL params for status filtering
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParam = urlParams.get('status');
+    if (statusParam && ['submitted', 'in_review', 'completed'].includes(statusParam)) {
+      setStatusFilter(statusParam);
+    }
     loadReleases();
   }, []);
 
@@ -78,6 +86,30 @@ export default function DistributionQueue() {
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status');
+    }
+  };
+
+  const handleEditMetadata = async (releaseId, updates) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const { error } = await supabase
+        .from('releases')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', releaseId);
+
+      if (error) throw error;
+
+      loadReleases();
+      setIsEditModalOpen(false);
+      setEditingRelease(null);
+      alert('Release metadata updated successfully');
+    } catch (error) {
+      console.error('Error updating metadata:', error);
+      alert('Failed to update metadata');
     }
   };
 
@@ -217,6 +249,16 @@ export default function DistributionQueue() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => {
+                            setEditingRelease(release);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
+                          title="Edit Metadata"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
                         {release.status === 'submitted' && (
                           <button
                             onClick={() => handleStatusChange(release.id, 'in_review')}
@@ -261,6 +303,88 @@ export default function DistributionQueue() {
             </table>
           </div>
         </div>
+
+        {/* Edit Metadata Modal */}
+        {isEditModalOpen && editingRelease && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Edit Release Metadata</h3>
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingRelease(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={editingRelease.title}
+                      onChange={(e) => setEditingRelease({...editingRelease, title: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+                    <input
+                      type="text"
+                      value={editingRelease.genre || ''}
+                      onChange={(e) => setEditingRelease({...editingRelease, genre: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
+                    <input
+                      type="date"
+                      value={editingRelease.release_date}
+                      onChange={(e) => setEditingRelease({...editingRelease, release_date: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Note:</strong> You cannot edit artwork or audio files. If these need changes, push the release back to draft.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingRelease(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleEditMetadata(editingRelease.id, {
+                    title: editingRelease.title,
+                    genre: editingRelease.genre,
+                    release_date: editingRelease.release_date
+                  })}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
