@@ -22,14 +22,84 @@ async function handler(req, res) {
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('❌ Error loading profile:', error);
         return res.status(500).json({ error: 'Failed to load profile' });
       }
 
-      console.log('✅ Profile loaded from database');
+      // If profile exists but role is NULL, fix it
+      if (profile && !profile.role) {
+        console.log('⚠️ Profile has NULL role, updating to artist for user:', userId);
+        const { error: updateError } = await supabase
+          .from('user_profiles')
+          .update({ role: 'artist', updated_at: new Date().toISOString() })
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('❌ Error updating profile role:', updateError);
+        } else {
+          profile.role = 'artist';
+        }
+      }
+
+      // If no profile exists, create a minimal one
+      if (!profile) {
+        console.log('⚠️ No profile found, creating minimal profile for user:', userId);
+
+        // Get user email from auth
+        const { data: userData } = await supabase.auth.admin.getUserById(userId);
+        const email = userData?.user?.email || '';
+
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: userId,
+            email: email,
+            role: 'artist',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('❌ Error creating profile:', createError);
+          // Return empty profile instead of failing
+          return res.status(200).json({
+            id: userId,
+            email: email,
+            firstName: '',
+            lastName: '',
+            artistName: '',
+            dateOfBirth: null,
+            nationality: '',
+            country: '',
+            city: '',
+            artistType: '',
+            phone: '',
+            countryCode: '+44',
+            primaryGenre: '',
+            secondaryGenre: '',
+            yearsActive: '',
+            recordLabel: '',
+            bio: '',
+            website: '',
+            instagram: '',
+            facebook: '',
+            twitter: '',
+            youtube: '',
+            tiktok: '',
+            profile_picture_url: null
+          });
+        }
+
+        console.log('✅ Created minimal profile');
+        profile = newProfile;
+      } else {
+        console.log('✅ Profile loaded from database');
+      }
 
       // Return real profile data in expected format
       return res.status(200).json({

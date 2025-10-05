@@ -263,7 +263,6 @@ async function handleUpdateRelease(req, res) {
         .from('releases')
         .update({
           status: 'submitted',
-          submitted_at: new Date().toISOString(),
           distribution_partner_assigned: true,
           updated_at: new Date().toISOString()
         })
