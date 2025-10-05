@@ -702,39 +702,34 @@ export default function ArtistReleases() {
 
   if (isLoading || isLoadingData) {
     return (
-      <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading your releases...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your releases...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   // Role check temporarily disabled - TODO: Fix role system
   if (false && (!user || userRole !== 'artist')) {
     return (
-      <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-xl font-semibold text-gray-900">Access Denied</h1>
-            <p className="text-gray-600">You must be logged in as an artist to view this page.</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-gray-900">Access Denied</h1>
+          <p className="text-gray-600">You must be logged in as an artist to view this page.</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <SubscriptionGate 
+    <SubscriptionGate
       requiredFor="release management"
       showFeaturePreview={true}
       userRole="artist"
     >
-      <Layout>
-        <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1076,7 +1071,6 @@ export default function ArtistReleases() {
         )}
 
       </div>
-    </Layout>
     </SubscriptionGate>
   );
 }
