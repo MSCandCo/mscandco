@@ -404,65 +404,61 @@ export default function RoleBasedDashboard() {
 
   if (!user) {
     return (
-      <MainLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to access your dashboard</h2>
-            <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              Sign In
-            </Link>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to access your dashboard</h2>
+          <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Sign In
+          </Link>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <MainLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Error loading dashboard</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            
-            {/* Check if in ghost mode */}
-            {typeof window !== 'undefined' && sessionStorage.getItem('ghost_mode') === 'true' && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-yellow-800 text-sm mb-2">
-                  <strong>Ghost Mode Active:</strong> You're viewing as a different user role.
-                </p>
-                <button
-                  onClick={() => {
-                    sessionStorage.removeItem('ghost_mode');
-                    sessionStorage.removeItem('ghost_target_user');
-                    window.dispatchEvent(new Event('ghostModeChanged'));
-                    window.location.reload();
-                  }}
-                  className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
-                >
-                  Exit Ghost Mode
-                </button>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <button 
-                onClick={loadDashboardData}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full"
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Error loading dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+
+          {/* Check if in ghost mode */}
+          {typeof window !== 'undefined' && sessionStorage.getItem('ghost_mode') === 'true' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-yellow-800 text-sm mb-2">
+                <strong>Ghost Mode Active:</strong> You're viewing as a different user role.
+              </p>
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem('ghost_mode');
+                  sessionStorage.removeItem('ghost_target_user');
+                  window.dispatchEvent(new Event('ghostModeChanged'));
+                  window.location.reload();
+                }}
+                className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
               >
-                Try Again
-              </button>
-              
-              <button 
-                onClick={() => router.push('/login')}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full"
-              >
-                Back to Login
+                Exit Ghost Mode
               </button>
             </div>
+          )}
+
+          <div className="space-y-2">
+            <button
+              onClick={loadDashboardData}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full"
+            >
+              Try Again
+            </button>
+
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full"
+            >
+              Back to Login
+            </button>
           </div>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
