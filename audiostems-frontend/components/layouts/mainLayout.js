@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Footer from "../footer";
 import GhostModeIndicator from "../admin/GhostModeIndicator";
-import Header from "../header";
+// Header removed - navigation handled by _app.js
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '@/lib/user-utils';
 import Link from 'next/link';
@@ -138,7 +138,7 @@ function MainLayout({ children, className, showSidebar = false }) {
 
   return (
     <div className={className}>
-      <Header />
+      {/* Header removed - navigation handled by _app.js */}
       {showSidebar && user && (
         <div className="flex">
           {/* Sidebar Navigation */}
