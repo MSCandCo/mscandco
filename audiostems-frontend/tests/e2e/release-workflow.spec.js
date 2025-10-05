@@ -12,7 +12,7 @@ test.describe('User Dashboard Access', () => {
     await page.waitForURL('/dashboard', { timeout: 60000 });
 
     // Verify distribution partner dashboard loaded
-    await expect(page.locator('text=Distribution Partner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Distribution Partner")')).toBeVisible({ timeout: 10000 });
 
     // Verify navigation elements are present
     await page.waitForSelector('nav', { timeout: 10000 });
