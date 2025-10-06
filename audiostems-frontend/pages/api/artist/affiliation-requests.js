@@ -1,7 +1,7 @@
 // ARTIST AFFILIATION REQUESTS API
 // Shows incoming requests from label admins
 import { createClient } from '@supabase/supabase-js';
-import { requireAuth } from '@/lib/rbac/middleware';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -151,4 +151,4 @@ async function respondToRequest(req, res) {
   }
 }
 
-export default requireAuth(handler);
+export default requirePermission('affiliation:view:own')(handler);

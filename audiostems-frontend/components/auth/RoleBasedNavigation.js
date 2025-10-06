@@ -335,6 +335,13 @@ export default function RoleBasedNavigation() {
                       <Bell className="w-4 h-4 mr-2" />
                       Messages
                     </Link>
+                    <Link
+                      href="/distributionpartner/settings"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -405,6 +412,13 @@ export default function RoleBasedNavigation() {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/distributionpartner/settings"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Settings
                     </Link>
                     <button
                       onClick={() => {
@@ -886,7 +900,13 @@ export default function RoleBasedNavigation() {
                   href="/labeladmin/releases"
                   className={getNavLinkClasses('/labeladmin/releases')}
                 >
-                  All Releases
+                  My Releases
+                </Link>
+                <Link
+                  href="/labeladmin/analytics"
+                  className={getNavLinkClasses('/labeladmin/analytics')}
+                >
+                  Analytics
                 </Link>
                 <Link
                   href="/labeladmin/earnings"
@@ -895,10 +915,10 @@ export default function RoleBasedNavigation() {
                   Earnings
                 </Link>
                 <Link
-                  href="/labeladmin/analytics"
-                  className={getNavLinkClasses('/labeladmin/analytics')}
+                  href="/labeladmin/roster"
+                  className={getNavLinkClasses('/labeladmin/roster')}
                 >
-                  Analytics
+                  Roster
                 </Link>
               </div>
             </div>
@@ -966,12 +986,13 @@ export default function RoleBasedNavigation() {
                       )}
                     </Link>
                     <Link
-                      href="/billing"
+                      href="/labeladmin/settings"
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Billing
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
                     </Link>
+                    <div className="border-t border-gray-100 my-1"></div>
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1023,7 +1044,14 @@ export default function RoleBasedNavigation() {
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  All Releases
+                  My Releases
+                </Link>
+                <Link
+                  href="/labeladmin/analytics"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Analytics
                 </Link>
                 <Link
                   href="/labeladmin/earnings"
@@ -1033,11 +1061,11 @@ export default function RoleBasedNavigation() {
                   Earnings
                 </Link>
                 <Link
-                  href="/labeladmin/analytics"
+                  href="/labeladmin/roster"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Analytics
+                  Roster
                 </Link>
                 <div className="border-t border-gray-200 pt-4 pb-3">
                   <div className="px-3 py-2">
@@ -1060,11 +1088,11 @@ export default function RoleBasedNavigation() {
                       Profile
                     </Link>
                     <Link
-                      href="/billing"
+                      href="/labeladmin/settings"
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Billing
+                      Settings
                     </Link>
                     <button
                       onClick={() => {
@@ -1226,10 +1254,10 @@ export default function RoleBasedNavigation() {
                         )}
                       </div>
                     </Link>
-                    <Link href="/billing">
+                    <Link href="/artist/settings">
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Billing
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
                       </div>
                     </Link>
                     <hr className="my-1" />
@@ -1329,11 +1357,11 @@ export default function RoleBasedNavigation() {
                     Profile
                   </Link>
                   <Link
-                    href="/billing"
+                    href="/artist/settings"
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Billing
+                    Settings
                   </Link>
                   <button
                     onClick={() => {

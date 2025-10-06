@@ -10,24 +10,22 @@ async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // req.user and req.userRole are automatically attached by middleware
-    const artist_id = req.user.id;
+    const labelAdminId = req.user.id;
 
-    console.log('Loading wallet data for artist:', artist_id);
+    console.log('Loading wallet data for label admin:', labelAdminId);
 
-    // Calculate wallet summary directly from earnings_log table
+    // Calculate wallet summary directly from earnings_log table for label admin
     const { data: allEarnings, error: earningsError } = await supabase
       .from('earnings_log')
       .select('*')
-      .eq('artist_id', artist_id);
+      .eq('label_admin_id', labelAdminId); // Assuming earnings_log has label_admin_id field
 
     if (earningsError) {
-      console.error('Error loading earnings:', earningsError);
+      console.error('Error loading label admin earnings:', earningsError);
       return res.status(500).json({ error: 'Failed to load earnings data' });
     }
 
-    // Calculate balances
-    // Calculate wallet balances (exclude cancelled entries)
+    // Calculate balances (exclude cancelled entries)
     const activeEarnings = allEarnings?.filter(e => e.status !== 'cancelled') || [];
     
     const walletSummary = {
@@ -47,7 +45,7 @@ async function handler(req, res) {
       .slice(0, 20) || [];
 
     const wallet = {
-      artist_id,
+      label_admin_id: labelAdminId,
       available_balance: walletSummary?.available_balance || 0,
       pending_balance: walletSummary?.pending_balance || 0,
       held_balance: walletSummary?.held_balance || 0,
@@ -57,7 +55,7 @@ async function handler(req, res) {
       last_updated: walletSummary?.last_updated || new Date().toISOString()
     };
 
-    console.log('Wallet summary loaded:', {
+    console.log('Label admin wallet summary loaded:', {
       available: wallet.available_balance,
       pending: wallet.pending_balance,
       total: wallet.total_earned,
@@ -71,9 +69,11 @@ async function handler(req, res) {
       recent_history: recentHistory || []
     });
   } catch (error) {
-    console.error('Error fetching wallet:', error);
+    console.error('Error fetching label admin wallet:', error);
     return res.status(500).json({ error: error.message });
   }
 }
 
 export default requirePermission('wallet:view:own')(handler);
+
+

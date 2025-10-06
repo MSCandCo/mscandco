@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { supabase } from '@/lib/supabase';
@@ -24,6 +25,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
   const [showCropModal, setShowCropModal] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
+  
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState();
   const [uploading, setUploading] = useState(false);
@@ -119,7 +121,6 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
 
   const startCamera = async () => {
     try {
-      console.log('🎥 Starting camera...');
       
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -462,7 +463,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Camera Modal */}
-      {showCameraModal && (
+      {showCameraModal && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
@@ -518,12 +519,13 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
             )}
           </div>
           <canvas ref={canvasRef} className="hidden" />
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Crop Modal */}
-      {showCropModal && imgSrc && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      {showCropModal && imgSrc && typeof window !== 'undefined' && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-900">Crop Profile Picture</h3>
@@ -668,11 +670,12 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Branded Error Modal */}
-      {showErrorModal && (
+      {showErrorModal && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full border-l-4 border-red-500">
             <div className="flex items-start">
@@ -698,7 +701,8 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <a

@@ -1,7 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import { requireAuth } from '@/lib/rbac/middleware';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 // Disable body parsing, we'll handle it with formidable
 export const config = {
@@ -142,4 +142,4 @@ async function handler(req, res) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-export default requireAuth(handler)
+export default requirePermission('roster:edit:own')(handler);

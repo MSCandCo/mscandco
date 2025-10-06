@@ -7,6 +7,7 @@ import Player from "@/components/player";
 import Header from "@/components/header";
 import RoleBasedNavigation from "@/components/auth/RoleBasedNavigation";
 import { AuthProvider, useUser } from "@/components/providers/SupabaseProvider";
+import { ThemeProvider } from "next-themes";
 import Head from "next/head";
 
 const inter = Inter({
@@ -30,27 +31,29 @@ function AppContent({ Component, pageProps }) {
 }
 
 export default function App({ Component, pageProps }) {
-  
+
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </Head>
       <NextNProgress color="#0117df" />
-      <AuthProvider>
-        <Player>
-          <div className={inter.className}>
-            <SWRConfig
-              value={{
-                fetcher: (url) => axios.get(url).then((res) => res.data),
-                onError: (error) => console.error(error),
-              }}
-            >
-              <AppContent Component={Component} pageProps={pageProps} />
-            </SWRConfig>
-          </div>
-        </Player>
-      </AuthProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <AuthProvider>
+          <Player>
+            <div className={inter.className}>
+              <SWRConfig
+                value={{
+                  fetcher: (url) => axios.get(url).then((res) => res.data),
+                  onError: (error) => console.error(error),
+                }}
+              >
+                <AppContent Component={Component} pageProps={pageProps} />
+              </SWRConfig>
+            </div>
+          </Player>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 }

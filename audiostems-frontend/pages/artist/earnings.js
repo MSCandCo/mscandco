@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { createClient } from '@supabase/supabase-js';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
 import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
 import { 
@@ -21,6 +22,12 @@ import {
   CreditCard,
   ArrowRight
 } from 'lucide-react';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 // Comprehensive currency selector component
 const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false }) => {
@@ -194,7 +201,20 @@ export default function ArtistEarnings() {
   const fetchWalletData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/artist/wallet-simple');
+      
+      // Get authentication token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      
+      const response = await fetch('/api/artist/wallet-simple', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch wallet data');

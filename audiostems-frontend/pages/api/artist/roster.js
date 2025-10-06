@@ -1,5 +1,5 @@
 // Roster will be populated from release contributors
-import { requireAuth } from '@/lib/rbac/middleware';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 let mockRoster = [];
 
@@ -21,4 +21,4 @@ async function handler(req, res) {
   }
 }
 
-export default requireAuth(handler); 
+export default requirePermission('roster:view:own')(handler); 

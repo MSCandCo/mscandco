@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { requireAuth } from '@/lib/rbac/middleware';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -150,4 +150,4 @@ async function handler(req, res) {
   }
 }
 
-export default requireAuth(handler);
+export default requirePermission('wallet:payout:own')(handler);
