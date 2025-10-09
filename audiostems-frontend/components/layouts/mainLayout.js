@@ -101,7 +101,7 @@ const getNavigationItems = (hasPermission) => {
     },
     {
       name: 'Roles & Permissions',
-      href: '/admin/permissions',
+      href: '/superadmin/permissionsroles',
       icon: Shield,
       show: hasPermission('role:read:any'),
     },

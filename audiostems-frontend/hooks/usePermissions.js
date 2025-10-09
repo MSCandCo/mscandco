@@ -87,6 +87,13 @@ export function usePermissions(userId = null) {
       const data = await response.json();
       const permissionNames = data.permissions || [];
 
+      console.log('🔑 usePermissions hook received:', {
+        user_id: data.user_id,
+        user_email: data.user_email,
+        permissions: permissionNames,
+        hasWildcard: permissionNames.includes('*:*:*')
+      });
+
       setPermissions(permissionNames);
       setLoading(false);
     } catch (err) {
@@ -140,11 +147,13 @@ export function usePermissions(userId = null) {
 
     // Check wildcard first (super admin)
     if (permissions.includes('*:*:*')) {
+      console.log(`✅ hasPermission('${permission}') = true (wildcard match)`);
       return true;
     }
 
     // Check exact match
     if (permissions.includes(permission)) {
+      console.log(`✅ hasPermission('${permission}') = true (exact match)`);
       return true;
     }
 
@@ -153,14 +162,17 @@ export function usePermissions(userId = null) {
 
     // Check resource:*:* (e.g., user:*:* matches user:read:any, user:update:own, etc.)
     if (permissions.includes(`${resource}:*:*`)) {
+      console.log(`✅ hasPermission('${permission}') = true (resource wildcard)`);
       return true;
     }
 
     // Check resource:action:* (e.g., user:read:* matches user:read:any, user:read:own)
     if (permissions.includes(`${resource}:${action}:*`)) {
+      console.log(`✅ hasPermission('${permission}') = true (action wildcard)`);
       return true;
     }
 
+    console.log(`❌ hasPermission('${permission}') = false (no match). Available:`, permissions);
     return false;
   }, [permissions, currentUserId]);
 

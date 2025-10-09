@@ -48,6 +48,12 @@ export default async function handler(req, res) {
     // Extract permission names for client-side use
     const permissionNames = permissions.map(p => p.permission_name);
 
+    console.log('📋 User permissions API response:', {
+      user_id: user.id,
+      user_email: user.email,
+      permissions: permissionNames
+    });
+
     res.status(200).json({
       success: true,
       permissions: permissionNames,

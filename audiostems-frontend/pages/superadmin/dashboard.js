@@ -100,7 +100,7 @@ export default function SuperadminDashboard() {
                 title="Roles & Permissions"
                 description="Manage RBAC system"
                 icon={<Shield className="w-6 h-6" />}
-                href="/admin/permissions"
+                href="/superadmin/permissionsroles"
                 color="green"
               />
             )}
