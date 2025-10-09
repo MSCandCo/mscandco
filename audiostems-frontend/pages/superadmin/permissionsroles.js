@@ -387,7 +387,7 @@ export default function PermissionsPage() {
       <MainLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <Loader2 className="w-8 h-8 animate-spin text-gray-700 mx-auto mb-4" />
             <p className="text-gray-600">Loading permissions...</p>
           </div>
         </div>
@@ -406,7 +406,7 @@ export default function PermissionsPage() {
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={loadData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
             >
               Retry
             </button>
@@ -424,7 +424,7 @@ export default function PermissionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <Shield className="h-8 w-8 mr-3 text-blue-600" />
+                <Shield className="h-8 w-8 mr-3 text-gray-700" />
                 Permissions & Roles
               </h1>
               <p className="mt-2 text-gray-600">
@@ -434,7 +434,7 @@ export default function PermissionsPage() {
             <button
               onClick={loadData}
               disabled={loading}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
             >
               <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -473,7 +473,7 @@ export default function PermissionsPage() {
                       onClick={() => selectRole(role)}
                       className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                         selectedRole?.id === role.id
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                          ? 'bg-gray-700 text-white border-gray-700 shadow-lg'
                           : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                       }`}
                     >
@@ -483,7 +483,7 @@ export default function PermissionsPage() {
                             {role.name.replace('_', ' ').toUpperCase()}
                           </div>
                           <div className={`text-sm ${
-                            selectedRole?.id === role.id ? 'text-blue-100' : 'text-gray-500'
+                            selectedRole?.id === role.id ? 'text-gray-200' : 'text-gray-500'
                           }`}>
                             {role.permission_count || 0} permissions
                           </div>
@@ -505,7 +505,7 @@ export default function PermissionsPage() {
                   <h3 className="text-sm font-medium text-gray-700">Custom Roles</h3>
                   <button
                     onClick={handleCreateRole}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors font-medium"
                   >
                     + Create
                   </button>
@@ -520,7 +520,7 @@ export default function PermissionsPage() {
                         key={role.id}
                         className={`rounded-lg border transition-colors ${
                           selectedRole?.id === role.id
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                            ? 'bg-gray-700 text-white border-gray-700 shadow-lg'
                             : 'bg-white text-gray-700 border-gray-200'
                         }`}
                       >
@@ -534,7 +534,7 @@ export default function PermissionsPage() {
                                 {role.name.replace('_', ' ').toUpperCase()}
                               </div>
                               <div className={`text-sm ${
-                                selectedRole?.id === role.id ? 'text-blue-100' : 'text-gray-500'
+                                selectedRole?.id === role.id ? 'text-gray-200' : 'text-gray-500'
                               }`}>
                                 {role.permission_count || 0} permissions
                               </div>
@@ -597,7 +597,7 @@ export default function PermissionsPage() {
                         placeholder="Search permissions..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-6 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-12 pr-6 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-700"
                         style={{ maxWidth: '300px' }}
                       />
                     </div>
@@ -664,7 +664,7 @@ export default function PermissionsPage() {
                 <button
                   onClick={confirmReset}
                   disabled={saving}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Resetting...' : 'Reset to Default'}
                 </button>
@@ -721,8 +721,8 @@ export default function PermissionsPage() {
             <div className="p-6">
               {/* Modal Header */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-gray-700" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Create Custom Role</h3>
@@ -741,7 +741,7 @@ export default function PermissionsPage() {
                     value={newRoleName}
                     onChange={(e) => setNewRoleName(e.target.value)}
                     placeholder="e.g., Content Manager, Regional Admin"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-700"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Will be converted to: {newRoleName ? newRoleName.toLowerCase().replace(/\s+/g, '_') : 'example_role'}
@@ -757,7 +757,7 @@ export default function PermissionsPage() {
                     onChange={(e) => setNewRoleDescription(e.target.value)}
                     placeholder="Describe the purpose and responsibilities of this role"
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-700"
                   />
                 </div>
               </div>
@@ -770,7 +770,7 @@ export default function PermissionsPage() {
                   </h4>
                   <button
                     onClick={() => setSelectedPermissions([])}
-                    className="text-xs text-blue-600 hover:text-blue-700"
+                    className="text-xs text-gray-700 hover:text-gray-800"
                   >
                     Clear All
                   </button>
@@ -806,7 +806,7 @@ export default function PermissionsPage() {
                                   );
                                 }
                               }}
-                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-gray-700 rounded focus:ring-gray-500"
                             />
                             <span className="font-medium text-gray-900 capitalize">
                               {resource === '*' ? 'Wildcard (All Permissions)' : `${resource} Permissions`}
@@ -828,7 +828,7 @@ export default function PermissionsPage() {
                                 type="checkbox"
                                 checked={selectedPermissions.includes(permission.id)}
                                 onChange={() => togglePermissionSelection(permission.id)}
-                                className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                className="mt-1 w-4 h-4 text-gray-700 rounded focus:ring-gray-500"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium text-gray-900">
@@ -873,7 +873,7 @@ export default function PermissionsPage() {
                 <button
                   onClick={createRole}
                   disabled={saving || !newRoleName.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Creating...' : 'Create Role'}
                 </button>
@@ -949,7 +949,7 @@ function PermissionGroup({
                     </div>
                   )}
                   {isWildcardGranted && (
-                    <div className="text-xs text-blue-600 mt-1">
+                    <div className="text-xs text-gray-700 mt-1">
                       Granted via wildcard permission
                     </div>
                   )}

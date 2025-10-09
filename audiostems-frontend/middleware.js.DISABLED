@@ -3,9 +3,11 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 export async function middleware(req) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
 
   console.log('🔒 Middleware checking:', req.nextUrl.pathname);
+  console.log('[MW-DEBUG] Cookies available:', req.cookies.getAll().map(c => c.name).join(', '));
+
+  const supabase = createMiddlewareClient({ req, res });
 
   const {
     data: { session },
