@@ -169,6 +169,8 @@ export default function SuperadminDashboard() {
  * Quick Action Card Component
  */
 function QuickActionCard({ title, description, icon, href, color }) {
+  const router = useRouter();
+
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white',
     purple: 'bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white',
@@ -177,24 +179,30 @@ function QuickActionCard({ title, description, icon, href, color }) {
     red: 'bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white',
   };
 
+  const handleClick = () => {
+    console.log('🖱️ QuickActionCard clicked:', { title, href });
+    router.push(href);
+  };
+
   return (
-    <Link href={href}>
-      <div className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 hover:border-gray-300 cursor-pointer">
-        <div className="p-6">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-all duration-200 ${colorClasses[color]}`}>
-            {icon}
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center justify-between">
-            {title}
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
-          </h3>
-
-          <p className="text-sm text-gray-600">
-            {description}
-          </p>
+    <div
+      onClick={handleClick}
+      className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 hover:border-gray-300 cursor-pointer"
+    >
+      <div className="p-6">
+        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-all duration-200 ${colorClasses[color]}`}>
+          {icon}
         </div>
+
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center justify-between">
+          {title}
+          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+        </h3>
+
+        <p className="text-sm text-gray-600">
+          {description}
+        </p>
       </div>
-    </Link>
+    </div>
   );
 }

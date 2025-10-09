@@ -2,13 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 
-export function useWalletBalance() {
+export function useWalletBalance(skip = false) {
   const { user } = useUser();
   const [walletBalance, setWalletBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchWalletBalance = useCallback(async () => {
+    // Skip wallet fetch if requested (e.g., for superadmins)
+    if (skip) {
+      setWalletBalance(0);
+      setIsLoading(false);
+      return;
+    }
+
     if (!user) {
       setWalletBalance(0);
       setIsLoading(false);
@@ -54,7 +61,7 @@ export function useWalletBalance() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, skip]);
 
   // Fetch wallet balance on mount and when user changes
   useEffect(() => {

@@ -35,11 +35,14 @@ export default function RoleBasedNavigation() {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
-  // Use shared wallet balance hook
-  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance();
-
   // Use permissions hook for permission-based navigation
   const { hasPermission, loading: permissionsLoading } = usePermissions();
+
+  // Check if user is superadmin - superadmins don't need wallet/profile
+  const isSuperAdmin = user && hasPermission('*:*:*');
+
+  // Use shared wallet balance hook - skip for superadmins
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(!isSuperAdmin);
 
   // Load unread notification count for artists and label admins
   useEffect(() => {
@@ -96,20 +99,25 @@ export default function RoleBasedNavigation() {
     return `${baseClasses} text-gray-400 hover:text-gray-800`;
   };
 
-  // Fetch profile data to get first and last name
+  // Fetch profile data to get first and last name - skip for superadmins
   useEffect(() => {
     const fetchProfile = async () => {
+      // Skip profile fetch for superadmins
+      if (isSuperAdmin) {
+        return;
+      }
+
       if (user && user) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           const token = session?.access_token;
-          
+
           if (!token) return;
-          
+
           const response = await fetch('/api/artist/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setProfileData(data);
@@ -119,9 +127,9 @@ export default function RoleBasedNavigation() {
         }
       }
     };
-    
+
     fetchProfile();
-  }, [user, user]);
+  }, [user, user, isSuperAdmin]);
 
   if (!user || !user) {
     return null;
@@ -257,63 +265,19 @@ export default function RoleBasedNavigation() {
               </Link>
             ))}
 
-            {/* Admin Dropdown - Show if user has any admin permissions */}
-            {hasAdminAccess && (
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-sm font-medium transition-colors duration-200 text-gray-400 hover:text-gray-800">
-                  <Shield className="w-4 h-4" />
-                  <span>Admin</span>
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-
-                {/* Dropdown Menu */}
-                <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  {hasPermission('user:read:any') && (
-                    <Link href="/admin/users">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Users className="w-4 h-4 mr-2" />
-                        User Management
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('user:read:any') && (
-                    <Link href="/admin/profile-requests">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <ClipboardList className="w-4 h-4 mr-2" />
-                        Profile Requests
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('role:read:any') && (
-                    <Link href="/superadmin/permissionsroles">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Permissions & Roles
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('analytics:read:any') && (
-                    <Link href="/admin/analytics">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Platform Analytics
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('release:read:any') && (
-                    <Link href="/admin/releases">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <FileText className="w-4 h-4 mr-2" />
-                        All Releases
-                      </div>
-                    </Link>
-                  )}
-                </div>
-              </div>
+            {/* Permissions & Roles - Standalone */}
+            {hasPermission('role:read:any') && (
+              <Link
+                href="/superadmin/permissionsroles"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/superadmin/permissionsroles')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <Shield className="w-4 h-4" />
+                <span>Permissions & Roles</span>
+              </Link>
             )}
           </div>
 
@@ -397,31 +361,38 @@ export default function RoleBasedNavigation() {
                         Dashboard
                       </div>
                     </Link>
-                    <Link href="/artist/profile">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <User className="w-4 h-4 mr-2" />
-                        Profile
-                      </div>
-                    </Link>
-                    {hasPermission('notification:read:own') && (
-                      <Link href="/artist/messages">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <Bell className="w-4 h-4 mr-2" />
-                          Messages
-                          {unreadCount > 0 && (
-                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
+                    
+                    {/* Profile, Messages, and Settings - Only for non-superadmin users */}
+                    {!isSuperAdmin && (
+                      <>
+                        <Link href="/artist/profile">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <User className="w-4 h-4 mr-2" />
+                            Profile
+                          </div>
+                        </Link>
+                        {hasPermission('notification:read:own') && (
+                          <Link href="/artist/messages">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Bell className="w-4 h-4 mr-2" />
+                              Messages
+                              {unreadCount > 0 && (
+                                <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                                  {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        )}
+                        <Link href="/artist/settings">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Settings
+                          </div>
+                        </Link>
+                      </>
                     )}
-                    <Link href="/artist/settings">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </div>
-                    </Link>
+                    
                     <hr className="my-1" />
                     <button
                       onClick={handleLogout}
@@ -482,43 +453,16 @@ export default function RoleBasedNavigation() {
                 </Link>
               ))}
 
-              {/* Admin Links - Mobile */}
-              {hasAdminAccess && (
-                <>
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase mt-4">
-                    Admin
-                  </div>
-                  {hasPermission('user:read:any') && (
-                    <Link
-                      href="/admin/users"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Users className="w-5 h-5" />
-                      <span>User Management</span>
-                    </Link>
-                  )}
-                  {hasPermission('user:read:any') && (
-                    <Link
-                      href="/admin/profile-requests"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <ClipboardList className="w-5 h-5" />
-                      <span>Profile Requests</span>
-                    </Link>
-                  )}
-                  {hasPermission('role:read:any') && (
-                    <Link
-                      href="/superadmin/permissionsroles"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Shield className="w-5 h-5" />
-                      <span>Permissions & Roles</span>
-                    </Link>
-                  )}
-                </>
+              {/* Permissions & Roles - Standalone Mobile */}
+              {hasPermission('role:read:any') && (
+                <Link
+                  href="/superadmin/permissionsroles"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Shield className="w-5 h-5" />
+                  <span>Permissions & Roles</span>
+                </Link>
               )}
 
               {/* Utility Links */}
@@ -550,20 +494,27 @@ export default function RoleBasedNavigation() {
                   >
                     Dashboard
                   </Link>
-                  <Link
-                    href="/artist/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    href="/artist/settings"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
+                  
+                  {/* Profile and Settings - Only for non-superadmin users */}
+                  {!isSuperAdmin && (
+                    <>
+                      <Link
+                        href="/artist/profile"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        href="/artist/settings"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Settings
+                      </Link>
+                    </>
+                  )}
+                  
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);

@@ -72,11 +72,14 @@ export default function RoleBasedDashboard() {
   const [error, setError] = useState(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   
-  // Use shared wallet balance hook
-  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance();
-
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
+
+  // Skip wallet and subscription for superadmins
+  const isSuperAdmin = userRole === 'super_admin';
+
+  // Use shared wallet balance hook - skip for superadmins
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(isSuperAdmin);
 
   // Check email verification first
   useEffect(() => {
@@ -92,9 +95,12 @@ export default function RoleBasedDashboard() {
   useEffect(() => {
     if (user && userRole) {
       loadDashboardData();
-      fetchSubscriptionStatus();
+      // Skip subscription fetch for superadmins
+      if (!isSuperAdmin) {
+        fetchSubscriptionStatus();
+      }
     }
-  }, [user, userRole]);
+  }, [user, userRole, isSuperAdmin]);
 
   // Fetch subscription status
   const fetchSubscriptionStatus = async () => {

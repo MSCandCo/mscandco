@@ -266,6 +266,215 @@ export default async function handler(req, res) {
         // Communication
         'message:read:own',
         'notification:read:own'
+      ],
+
+      content_moderator: [
+        // Content review
+        'content:read:any',
+        'content:moderate:any',
+        'content:flag:any',
+        'content:approve:any',
+        'content:reject:any',
+
+        // Release review
+        'release:read:any',
+        'release:moderate:any',
+
+        // User content
+        'user:read:any',
+
+        // Communication
+        'message:read:own',
+        'notification:read:own',
+        'notification:send:any'
+      ],
+
+      financial_admin: [
+        // Earnings management
+        'earnings:read:any',
+        'earnings:create:any',
+        'earnings:update:any',
+        'earnings:export:any',
+        'earnings:calculate:any',
+
+        // Payout management
+        'payout:read:any',
+        'payout:create:any',
+        'payout:approve:any',
+        'payout:process:any',
+        'payout:cancel:any',
+
+        // Splits
+        'split:read:any',
+        'split:approve:any',
+
+        // Analytics
+        'analytics:read:any',
+        'analytics:export:any',
+
+        // Users (for payment info)
+        'user:read:any',
+
+        // Communication
+        'message:read:own',
+        'notification:read:own',
+        'notification:send:any'
+      ],
+
+      support_admin: [
+        // Support tickets
+        'support:read:any',
+        'support:create:any',
+        'support:respond:any',
+        'support:update:any',
+        'support:assign:any',
+        'support:escalate:any',
+        'support:close:any',
+
+        // User management (read only)
+        'user:read:any',
+
+        // Communication
+        'message:send:any',
+        'message:read:any',
+        'notification:send:any',
+        'notification:read:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
+      ],
+
+      marketing_admin: [
+        // Communications
+        'message:send:any',
+        'message:read:any',
+        'notification:send:any',
+        'notification:read:any',
+        'announcement:create:any',
+        'announcement:update:any',
+        'announcement:delete:any',
+
+        // Content access
+        'content:read:any',
+        'content:create:any',
+        'content:update:any',
+
+        // User data (for targeting)
+        'user:read:any',
+
+        // Analytics (for campaigns)
+        'analytics:read:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
+      ],
+
+      requests_admin: [
+        // User change requests
+        'user:read:any',
+        'user:approve_changes:any',
+        'user:reject_changes:any',
+
+        // Label affiliation
+        'label:affiliation:read:any',
+        'label:affiliation:approve:any',
+        'label:affiliation:reject:any',
+
+        // Artist requests
+        'artist:request:read:any',
+        'artist:request:approve:any',
+        'artist:request:reject:any',
+
+        // Communication
+        'message:read:own',
+        'notification:read:own',
+        'notification:send:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
+      ],
+
+      release_admin: [
+        // Release management
+        'release:read:any',
+        'release:create:any',
+        'release:update:any',
+        'release:delete:any',
+        'release:approve:any',
+        'release:reject:any',
+        'release:distribute:any',
+
+        // Distribution
+        'distribution:read:any',
+        'distribution:manage:any',
+
+        // Analytics
+        'analytics:read:any',
+        'analytics:export:any',
+
+        // Users (artists)
+        'user:read:any',
+
+        // Communication
+        'message:read:own',
+        'notification:read:own',
+        'notification:send:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
+      ],
+
+      roster_admin: [
+        // Label roster management
+        'label:read:any',
+        'label:roster:read:any',
+        'label:roster:manage:any',
+        'label:affiliation:read:any',
+        'label:affiliation:approve:any',
+        'label:affiliation:reject:any',
+
+        // Artist management
+        'user:read:any',
+        'user:create:any',
+        'user:update:any',
+
+        // Artist requests
+        'artist:request:read:any',
+        'artist:request:approve:any',
+        'artist:request:reject:any',
+
+        // Releases (read only)
+        'release:read:any',
+
+        // Communication
+        'message:send:any',
+        'message:read:any',
+        'notification:send:any',
+        'notification:read:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
+      ],
+
+      request_admin: [
+        // User change requests
+        'user:read:any',
+        'user:approve_changes:any',
+        'user:reject_changes:any',
+
+        // Communication
+        'message:read:own',
+        'notification:read:own',
+        'notification:send:any',
+
+        // Own profile
+        'user:read:own',
+        'user:update:own'
       ]
     };
 

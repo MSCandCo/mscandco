@@ -53,6 +53,7 @@ export default function PermissionsPage() {
   // Check permission on mount
   useEffect(() => {
     if (!permissionsLoading && !hasPermission('role:read:any')) {
+      console.log('❌ Missing role:read:any permission, redirecting to dashboard');
       router.push('/dashboard');
     }
   }, [permissionsLoading, hasPermission, router]);
@@ -174,8 +175,15 @@ export default function PermissionsPage() {
         throw new Error(`Failed to ${hasPermission ? 'remove' : 'add'} permission`);
       }
 
-      // Reload role permissions
-      await selectRole(selectedRole);
+      // Reload role permissions WITHOUT collapsing groups
+      const permResponse = await fetch(`/api/admin/roles/${selectedRole.id}/permissions`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (permResponse.ok) {
+        const data = await permResponse.json();
+        setRolePermissions(data.permissions || []);
+      }
 
     } catch (err) {
       console.error('Error toggling permission:', err);
@@ -355,7 +363,21 @@ export default function PermissionsPage() {
   const hasWildcard = rolePermissions.some(p => p.permission_name === '*:*:*');
 
   // Separate standard and custom roles
-  const standardRoleNames = ['super_admin', 'company_admin', 'label_admin', 'artist', 'distribution_partner'];
+  const standardRoleNames = [
+    'super_admin',
+    'company_admin',
+    'label_admin',
+    'artist',
+    'distribution_partner',
+    'content_moderator',
+    'financial_admin',
+    'support_admin',
+    'marketing_admin',
+    'requests_admin',
+    'release_admin',
+    'roster_admin',
+    'request_admin'
+  ];
   const systemRoles = roles.filter(role => standardRoleNames.includes(role.name));
   const customRoles = roles.filter(role => !standardRoleNames.includes(role.name));
 
@@ -576,6 +598,7 @@ export default function PermissionsPage() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-12 pr-6 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        style={{ maxWidth: '300px' }}
                       />
                     </div>
                   </div>
@@ -877,6 +900,15 @@ function PermissionGroup({
   saving,
   isProtected
 }) {
+  // Calculate active permissions count
+  const activeCount = permissions.filter(permission => {
+    const isGranted = rolePermissions.some(p => p.permission_name === permission.name);
+    const isWildcardGranted = hasWildcard && permission.name !== '*:*:*';
+    return isGranted || isWildcardGranted;
+  }).length;
+
+  const totalCount = permissions.length;
+
   return (
     <div className="border border-gray-200 rounded-lg">
       <button
@@ -890,7 +922,7 @@ function PermissionGroup({
           {resource === '*' ? 'Wildcard (All Permissions)' : `${resource} Permissions`}
         </span>
         <span className="text-sm text-gray-500">
-          {permissions.length} permissions
+          {activeCount}/{totalCount} permissions
         </span>
       </button>
 

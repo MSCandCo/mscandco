@@ -143,6 +143,11 @@ export function usePermissions(userId = null) {
    */
   const hasPermission = useCallback((permission) => {
     if (!permission) return false;
+
+    // During loading, return false but don't log
+    // This prevents false negatives during initialization
+    if (loading) return false;
+
     if (!currentUserId) return false;
 
     // Check wildcard first (super admin)
