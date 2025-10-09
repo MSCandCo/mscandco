@@ -4,6 +4,7 @@ import GhostModeIndicator from "../admin/GhostModeIndicator";
 // Header removed - navigation handled by _app.js
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '@/lib/user-utils';
+import usePermissions from '@/hooks/usePermissions';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
@@ -14,91 +15,99 @@ import {
   Inbox,
   RefreshCw,
   Database,
-  Users
+  Users,
+  Shield,
+  ClipboardList
 } from 'lucide-react';
 
-// Navigation items based on role
-const getNavigationItems = (userRole) => {
-  const commonItems = [
+// Navigation items based on permissions (not roles)
+const getNavigationItems = (hasPermission) => {
+  // Check if user has admin access
+  const isAdmin = hasPermission('user:read:any') ||
+                  hasPermission('role:read:any') ||
+                  hasPermission('support:read:any') ||
+                  hasPermission('analytics:read:any') ||
+                  hasPermission('release:read:any');
+
+  const items = [
     {
       name: 'Dashboard',
-      href: userRole === 'distribution_partner' ? '/distribution/dashboard' : '/dashboard',
+      href: '/dashboard',
       icon: Home,
-    }
+      show: true, // Everyone sees dashboard
+    },
+    // Artist/Creator Items - ONLY show if NOT admin
+    {
+      name: 'My Releases',
+      href: '/artist/releases',
+      icon: Music,
+      show: !isAdmin && hasPermission('release:read:own'),
+    },
+    {
+      name: 'Analytics',
+      href: '/artist/analytics',
+      icon: BarChart3,
+      show: !isAdmin && hasPermission('analytics:read:own'),
+    },
+    {
+      name: 'Earnings',
+      href: '/artist/earnings',
+      icon: DollarSign,
+      show: !isAdmin && hasPermission('earnings:read:own'),
+    },
+    {
+      name: 'Roster',
+      href: '/artist/roster',
+      icon: Users,
+      show: !isAdmin && hasPermission('user:read:label'),
+    },
+    // Distribution Partner Items
+    {
+      name: 'Distribution Queue',
+      href: '/distribution/queue',
+      icon: Inbox,
+      show: hasPermission('distribution:read:own') || hasPermission('distribution:read:any'),
+    },
+    {
+      name: 'Revision Queue',
+      href: '/distribution/revisions',
+      icon: RefreshCw,
+      show: hasPermission('distribution:update:own') || hasPermission('distribution:update:any'),
+    },
+    // Admin Items
+    {
+      name: 'Content Library',
+      href: '/admin/content-library',
+      icon: Database,
+      show: hasPermission('release:read:any'),
+    },
+    {
+      name: 'All Releases',
+      href: '/admin/releases',
+      icon: Music,
+      show: hasPermission('release:read:any'),
+    },
+    {
+      name: 'Users',
+      href: '/admin/users',
+      icon: Users,
+      show: hasPermission('user:read:any'),
+    },
+    {
+      name: 'Profile Requests',
+      href: '/admin/profile-requests',
+      icon: ClipboardList,
+      show: hasPermission('user:read:any'),
+    },
+    {
+      name: 'Roles & Permissions',
+      href: '/admin/permissions',
+      icon: Shield,
+      show: hasPermission('role:read:any'),
+    },
   ];
 
-  // Artist-specific navigation
-  if (userRole === 'artist') {
-    return [
-      ...commonItems,
-      {
-        name: 'My Releases',
-        href: '/artist/releases',
-        icon: Music,
-      },
-      {
-        name: 'Analytics',
-        href: '/artist/analytics',
-        icon: BarChart3,
-      },
-      {
-        name: 'Earnings',
-        href: '/artist/earnings',
-        icon: DollarSign,
-      }
-    ];
-  }
-
-  // Distribution Partner navigation
-  if (userRole === 'distribution_partner') {
-    return [
-      ...commonItems,
-      {
-        name: 'Distribution Queue',
-        href: '/distribution/queue',
-        icon: Inbox,
-      },
-      {
-        name: 'Revision Queue',
-        href: '/distribution/revisions',
-        icon: RefreshCw,
-      }
-    ];
-  }
-
-  // Admin navigation
-  if (['company_admin', 'super_admin'].includes(userRole)) {
-    return [
-      ...commonItems,
-      {
-        name: 'Distribution Queue',
-        href: '/distribution/queue',
-        icon: Inbox,
-      },
-      {
-        name: 'Revision Queue',
-        href: '/distribution/revisions',
-        icon: RefreshCw,
-      },
-      {
-        name: 'Content Library',
-        href: '/admin/content-library',
-        icon: Database,
-      },
-      {
-        name: 'All Releases',
-        href: '/admin/releases',
-        icon: Music,
-      },
-      {
-        name: 'Users',
-        href: '/admin/users',
-        icon: Users,
-      }
-    ];
-  }
-
-  return commonItems;
+  return items.filter(item => item.show);
 };
 
 function MainLayout({ children, className, showSidebar = false }) {
@@ -106,7 +115,8 @@ function MainLayout({ children, className, showSidebar = false }) {
   const { user } = useUser();
   const router = useRouter();
   const userRole = getUserRoleSync(user);
-  const navigationItems = getNavigationItems(userRole);
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  const navigationItems = getNavigationItems(hasPermission);
 
   useEffect(() => {
     const checkGhostMode = () => {
@@ -144,24 +154,28 @@ function MainLayout({ children, className, showSidebar = false }) {
           {/* Sidebar Navigation */}
           <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
             <nav className="p-4 space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActivePage(item.href);
-                return (
-                  <Link key={item.name} href={item.href}>
-                    <div
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
-                        active
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span>{item.name}</span>
-                    </div>
-                  </Link>
-                );
-              })}
+              {permissionsLoading ? (
+                <div className="text-center text-gray-500 py-4">Loading...</div>
+              ) : (
+                navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActivePage(item.href);
+                  return (
+                    <Link key={item.name} href={item.href}>
+                      <div
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                          active
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.name}</span>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
             </nav>
           </aside>
           {/* Main Content */}

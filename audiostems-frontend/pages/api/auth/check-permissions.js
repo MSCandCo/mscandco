@@ -85,7 +85,7 @@ async function handler(req, res) {
       '/companyadmin/requests': hasPermission('requests.monitor_all'),
       
       '/superadmin/users': userProfile.role === 'super_admin',
-      '/superadmin/permissions': hasPermission('admin.permissions'),
+      '/admin/permissions': hasPermission('admin.permissions'),
       
       '/distributionpartner/reports': hasPermission('revenue.report'),
       

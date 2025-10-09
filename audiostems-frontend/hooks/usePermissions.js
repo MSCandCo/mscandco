@@ -1,56 +1,59 @@
 /**
  * usePermissions Hook
- * Provides permission checking functionality for React components
- * Integrates with RBAC system and Supabase authentication
+ *
+ * Optimized React hook for permission-based UI rendering
+ * Loads user permissions once and caches them for the component lifecycle
+ * Supports wildcard pattern matching for flexible permission checks
+ *
+ * Updated to use new RBAC permission system from @/lib/permissions
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import {
-  hasPermission as checkPermission,
-  hasAnyPermission as checkAnyPermission,
-  hasAllPermissions as checkAllPermissions,
-  ROLES
-} from '@/lib/rbac/roles';
+import { getUserPermissions } from '@/lib/permissions';
 
 /**
  * Hook to manage user permissions in React components
  *
+ * @param {string} userId - Optional user ID. If not provided, uses current session user
  * @returns {Object} Permission checking functions and state
  * @property {Function} hasPermission - Check if user has a specific permission
  * @property {Function} hasAnyPermission - Check if user has any of the provided permissions
  * @property {Function} hasAllPermissions - Check if user has all of the provided permissions
- * @property {string|null} role - Current user's role
- * @property {boolean} isLoading - Whether role is being fetched
- * @property {Error|null} error - Error object if role fetch failed
- * @property {Function} refetch - Manually refetch the user's role
+ * @property {Array<string>} permissions - Array of permission names
+ * @property {boolean} loading - Whether permissions are being fetched
+ * @property {Error|null} error - Error object if permission fetch failed
+ * @property {Function} refresh - Manually refetch the user's permissions
  *
  * @example
- * const { hasPermission, role, isLoading } = usePermissions();
+ * const { hasPermission, loading } = usePermissions();
  *
- * if (isLoading) return <Spinner />;
+ * if (loading) return <Spinner />;
  *
  * return (
  *   <>
- *     {hasPermission('release:create') && <CreateReleaseButton />}
- *     {hasAnyPermission(['release:edit:own', 'release:edit:label']) && <EditButton />}
+ *     {hasPermission('user:read:any') && <Link href="/admin/users">Users</Link>}
+ *     {hasPermission('release:create:own') && <CreateReleaseButton />}
  *   </>
  * );
  */
-export function usePermissions() {
-  const [role, setRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function usePermissions(userId = null) {
+  const [permissions, setPermissions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(userId);
 
   /**
-   * Fetch user's role from Supabase
+   * Fetch user's permissions from Supabase
    */
-  const fetchUserRole = useCallback(async () => {
+  const fetchPermissions = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
 
-      // Get current session
+      let targetUserId = currentUserId;
+
+      // Get session for authentication
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
@@ -59,55 +62,49 @@ export function usePermissions() {
 
       if (!session?.user) {
         // No authenticated user
-        setRole(null);
-        setIsLoading(false);
+        setPermissions([]);
+        setLoading(false);
         return;
       }
 
-      const user = session.user;
-
-      // Try to get role from user metadata first (faster)
-      if (user.user_metadata?.role) {
-        setRole(user.user_metadata.role);
-        setIsLoading(false);
-        return;
+      // If no userId provided, use session user
+      if (!targetUserId) {
+        targetUserId = session.user.id;
+        setCurrentUserId(targetUserId);
       }
 
-      // Fallback: Fetch from database
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_role_assignments')
-        .select('role_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (roleError) {
-        // If no role assignment found, default to artist
-        if (roleError.code === 'PGRST116') {
-          console.warn('No role assignment found, defaulting to artist');
-          setRole(ROLES.ARTIST);
-        } else {
-          throw roleError;
+      // Get user permissions via API endpoint (server-side with proper permissions)
+      const response = await fetch('/api/user/permissions', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token || ''}`
         }
-      } else {
-        setRole(roleData?.role_name || ROLES.ARTIST);
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch permissions: ${response.status}`);
       }
+
+      const data = await response.json();
+      const permissionNames = data.permissions || [];
+
+      setPermissions(permissionNames);
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching user role:', err);
+      console.error('Error fetching permissions:', err);
       setError(err);
-      setRole(null);
-    } finally {
-      setIsLoading(false);
+      setPermissions([]);
+      setLoading(false);
     }
-  }, []);
+  }, [currentUserId]);
 
   /**
-   * Initialize role fetch and set up auth state listener
+   * Initialize permissions fetch and set up auth state listener
    */
   useEffect(() => {
     let isMounted = true;
 
     // Initial fetch
-    fetchUserRole();
+    fetchPermissions();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -116,7 +113,7 @@ export function usePermissions() {
 
         // Only refetch on relevant events
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          await fetchUserRole();
+          await fetchPermissions();
         }
       }
     );
@@ -125,76 +122,90 @@ export function usePermissions() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserRole]);
+  }, [fetchPermissions]);
 
   /**
    * Check if current user has a specific permission
-   * @param {string} permission - Permission string to check
+   * Supports wildcard pattern matching:
+   * - *:*:* (super admin - matches everything)
+   * - resource:*:* (matches all actions and scopes for a resource)
+   * - resource:action:* (matches all scopes for a resource:action)
+   *
+   * @param {string} permission - Permission string to check (e.g., 'user:read:any')
    * @returns {boolean} - True if user has the permission
    */
   const hasPermission = useCallback((permission) => {
-    if (!role) return false;
-    return checkPermission(role, permission);
-  }, [role]);
+    if (!permission) return false;
+    if (!currentUserId) return false;
+
+    // Check wildcard first (super admin)
+    if (permissions.includes('*:*:*')) {
+      return true;
+    }
+
+    // Check exact match
+    if (permissions.includes(permission)) {
+      return true;
+    }
+
+    // Check wildcard patterns
+    const [resource, action, scope] = permission.split(':');
+
+    // Check resource:*:* (e.g., user:*:* matches user:read:any, user:update:own, etc.)
+    if (permissions.includes(`${resource}:*:*`)) {
+      return true;
+    }
+
+    // Check resource:action:* (e.g., user:read:* matches user:read:any, user:read:own)
+    if (permissions.includes(`${resource}:${action}:*`)) {
+      return true;
+    }
+
+    return false;
+  }, [permissions, currentUserId]);
 
   /**
    * Check if current user has any of the specified permissions
-   * @param {string[]} permissions - Array of permission strings
+   * @param {string[]} permissionList - Array of permission strings
    * @returns {boolean} - True if user has at least one permission
    */
-  const hasAnyPermission = useCallback((permissions) => {
-    if (!role) return false;
-    return checkAnyPermission(role, permissions);
-  }, [role]);
+  const hasAnyPermission = useCallback((permissionList) => {
+    if (!Array.isArray(permissionList)) return false;
+    return permissionList.some(perm => hasPermission(perm));
+  }, [hasPermission]);
 
   /**
    * Check if current user has all of the specified permissions
-   * @param {string[]} permissions - Array of permission strings
+   * @param {string[]} permissionList - Array of permission strings
    * @returns {boolean} - True if user has all permissions
    */
-  const hasAllPermissions = useCallback((permissions) => {
-    if (!role) return false;
-    return checkAllPermissions(role, permissions);
-  }, [role]);
-
-  /**
-   * Check if user has a specific role
-   * @param {string|string[]} requiredRole - Role or array of roles to check
-   * @returns {boolean} - True if user has the role
-   */
-  const hasRole = useCallback((requiredRole) => {
-    if (!role) return false;
-
-    if (Array.isArray(requiredRole)) {
-      return requiredRole.includes(role);
-    }
-
-    return role === requiredRole;
-  }, [role]);
+  const hasAllPermissions = useCallback((permissionList) => {
+    if (!Array.isArray(permissionList)) return false;
+    return permissionList.every(perm => hasPermission(perm));
+  }, [hasPermission]);
 
   /**
    * Check if user is authenticated
-   * @returns {boolean} - True if user has a role (is authenticated)
+   * @returns {boolean} - True if user has permissions loaded (is authenticated)
    */
   const isAuthenticated = useCallback(() => {
-    return role !== null;
-  }, [role]);
+    return currentUserId !== null;
+  }, [currentUserId]);
 
   return {
     // Permission checking functions
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    hasRole,
     isAuthenticated,
 
     // State
-    role,
-    isLoading,
+    permissions,
+    loading,
     error,
 
     // Manual refetch
-    refetch: fetchUserRole,
+    refresh: fetchPermissions,
   };
 }
 
@@ -203,17 +214,17 @@ export function usePermissions() {
  * Useful for pages that require authentication
  *
  * @throws {Error} If user is not authenticated
- * @returns {Object} Same as usePermissions but guarantees role is not null
+ * @returns {Object} Same as usePermissions but guarantees user is authenticated
  *
  * @example
- * const { hasPermission, role } = useRequireAuth();
- * // role is guaranteed to be non-null here
+ * const { hasPermission } = useRequireAuth();
+ * // User is guaranteed to be authenticated here
  */
 export function useRequireAuth() {
-  const permissions = usePermissions();
+  const permissionsHook = usePermissions();
 
   useEffect(() => {
-    if (!permissions.isLoading && !permissions.role) {
+    if (!permissionsHook.loading && !permissionsHook.isAuthenticated()) {
       // Redirect to login or show error
       console.error('Authentication required but user is not authenticated');
 
@@ -222,86 +233,30 @@ export function useRequireAuth() {
         window.location.href = '/login';
       }
     }
-  }, [permissions.isLoading, permissions.role]);
+  }, [permissionsHook.loading, permissionsHook.isAuthenticated]);
 
-  return permissions;
+  return permissionsHook;
 }
 
 /**
- * Simple hook to just get the current user's role
- * Lighter weight if you only need the role
+ * Simple hook to check a single permission (simpler API)
  *
- * @returns {Object} Role and loading state
- * @property {string|null} role - Current user's role
- * @property {boolean} isLoading - Whether role is being fetched
+ * @param {string} permission - The permission to check
+ * @returns {Object} { allowed, loading }
  *
  * @example
- * const { role, isLoading } = useUserRole();
+ * const { allowed, loading } = usePermission('user:read:any')
+ * if (loading) return <Spinner />
+ * if (!allowed) return <Forbidden />
+ * return <UserList />
  */
-export function useUserRole() {
-  const [role, setRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function usePermission(permission) {
+  const { hasPermission, loading } = usePermissions();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchRole() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!isMounted) return;
-
-        if (!session?.user) {
-          setRole(null);
-          setIsLoading(false);
-          return;
-        }
-
-        const user = session.user;
-
-        // Try user metadata first
-        if (user.user_metadata?.role) {
-          setRole(user.user_metadata.role);
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch from database
-        const { data: roleData } = await supabase
-          .from('user_role_assignments')
-          .select('role_name')
-          .eq('user_id', user.id)
-          .single();
-
-        if (isMounted) {
-          setRole(roleData?.role_name || ROLES.ARTIST);
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.error('Error fetching role:', err);
-        if (isMounted) {
-          setRole(null);
-          setIsLoading(false);
-        }
-      }
-    }
-
-    fetchRole();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      if (isMounted) {
-        fetchRole();
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { role, isLoading };
+  return {
+    allowed: hasPermission(permission),
+    loading
+  };
 }
 
 export default usePermissions;

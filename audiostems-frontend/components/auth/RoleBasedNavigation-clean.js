@@ -17,13 +17,10 @@ import {
   X,
   Bell,
   LayoutDashboard,
-  Shield,
-  ClipboardList,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
-import usePermissions from '@/hooks/usePermissions';
 
 export default function RoleBasedNavigation() {
   const { user, isLoading } = useUser();
@@ -34,12 +31,9 @@ export default function RoleBasedNavigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
-
+  
   // Use shared wallet balance hook
   const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance();
-
-  // Use permissions hook for permission-based navigation
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
 
   // Load unread notification count for artists and label admins
   useEffect(() => {
@@ -129,28 +123,6 @@ export default function RoleBasedNavigation() {
 
   const userRole = getUserRoleSync(user);
 
-  // Show loading state while permissions are being fetched
-  if (permissionsLoading) {
-    return (
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex-shrink-0">
-              <Link href="/">
-                <img
-                  src="/logos/msc-logo.png"
-                  alt="MSC & Co"
-                  className="h-8 md:h-10 w-auto cursor-pointer"
-                />
-              </Link>
-            </div>
-            <div className="text-gray-500 text-sm">Loading...</div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-
   // Get display name with role and label information
   const getDisplayName = () => {
     // Use profile data if available, fallback to email
@@ -195,31 +167,13 @@ export default function RoleBasedNavigation() {
     }
   };
 
-  // Check if user has ANY admin permissions
-  const hasAdminAccess = hasPermission('user:read:any') ||
-                         hasPermission('role:read:any') ||
-                         hasPermission('support:read:any') ||
-                         hasPermission('analytics:read:any') ||
-                         hasPermission('release:read:any');
-
-  // Permission-based navigation items
-  const navigationItems = [];
-
-  // Artist/Creator Links - ONLY show if user is NOT an admin
-  if (!hasAdminAccess) {
-    if (hasPermission('release:read:own')) {
-      navigationItems.push({ href: '/artist/releases', label: 'My Releases', icon: FileText });
-    }
-    if (hasPermission('analytics:read:own')) {
-      navigationItems.push({ href: '/artist/analytics', label: 'Analytics', icon: BarChart3 });
-    }
-    if (hasPermission('earnings:read:own')) {
-      navigationItems.push({ href: '/artist/earnings', label: 'Earnings', icon: DollarSign });
-    }
-    if (hasPermission('user:read:label')) {
-      navigationItems.push({ href: '/artist/roster', label: 'Roster', icon: Users });
-    }
-  }
+  // Clean navigation - NO admin functions, just basic user navigation
+  const navigationItems = [
+    { href: '/artist/releases', label: 'My Releases', icon: FileText },
+    { href: '/artist/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/artist/earnings', label: 'Earnings', icon: DollarSign },
+    { href: '/artist/roster', label: 'Roster', icon: Users }
+  ];
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -239,90 +193,41 @@ export default function RoleBasedNavigation() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-3">
-            {/* Regular navigation items */}
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage(item.href)
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            ))}
+          {/* Desktop Navigation - Only show for non-admin users */}
+          {!['super_admin', 'company_admin'].includes(userRole) && (
+            <div className="hidden md:flex items-center space-x-3">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage(item.href) 
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          )}
 
-            {/* Admin Dropdown - Show if user has any admin permissions */}
-            {hasAdminAccess && (
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-sm font-medium transition-colors duration-200 text-gray-400 hover:text-gray-800">
-                  <Shield className="w-4 h-4" />
-                  <span>Admin</span>
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-
-                {/* Dropdown Menu */}
-                <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  {hasPermission('user:read:any') && (
-                    <Link href="/admin/users">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Users className="w-4 h-4 mr-2" />
-                        User Management
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('user:read:any') && (
-                    <Link href="/admin/profile-requests">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <ClipboardList className="w-4 h-4 mr-2" />
-                        Profile Requests
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('role:read:any') && (
-                    <Link href="/admin/permissions">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Permissions & Roles
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('analytics:read:any') && (
-                    <Link href="/admin/analytics">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Platform Analytics
-                      </div>
-                    </Link>
-                  )}
-
-                  {hasPermission('release:read:any') && (
-                    <Link href="/admin/releases">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <FileText className="w-4 h-4 mr-2" />
-                        All Releases
-                      </div>
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Admin users get clean header with no navigation */}
+          {['super_admin', 'company_admin'].includes(userRole) && (
+            <div className="hidden md:flex items-center">
+              <span className="text-lg font-semibold text-gray-800">
+                {userRole === 'super_admin' ? 'Super Admin' : 'Company Admin'} Dashboard
+              </span>
+            </div>
+          )}
 
           {/* Right side - User menu and Mobile menu button */}
           <div className="flex items-center space-x-3">
-            {/* Notification Bell - For users with notification access */}
-            {(hasPermission('notification:read:own') || hasPermission('user:read:any')) && (
+            {/* Notification Bell - For artists and label admins only */}
+            {['artist', 'label_admin'].includes(userRole) && (
               <Link
-                href={hasPermission('user:read:any') ? '/admin/profile-requests' : '/artist/messages'}
+                href={userRole === 'artist' ? '/artist/messages' : '/labeladmin/messages'}
                 className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <Bell className="w-6 h-6" />
@@ -334,8 +239,8 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
-            {/* Platform Funds Display - For users with wallet access */}
-            {hasPermission('earnings:read:own') && (
+            {/* Platform Funds Display - For artists only */}
+            {userRole === 'artist' && (
               <div 
                 className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={refreshBalance}
@@ -348,29 +253,31 @@ export default function RoleBasedNavigation() {
               </div>
             )}
 
-            {/* Desktop Utility Links */}
-            <div className="hidden md:flex items-center space-x-2">
-              <Link
-                href="/about"
-                className={`text-sm transition-colors duration-200 ${
-                  isActivePage('/about')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                About
-              </Link>
-              <Link
-                href="/support"
-                className={`text-sm transition-colors duration-200 ${
-                  isActivePage('/support')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                Support
-              </Link>
-            </div>
+            {/* Desktop Utility Links - Not for admin users */}
+            {!['super_admin', 'company_admin'].includes(userRole) && (
+              <div className="hidden md:flex items-center space-x-2">
+                <Link 
+                  href="/about" 
+                  className={`text-sm transition-colors duration-200 ${
+                    isActivePage('/about') 
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  About
+                </Link>
+                <Link 
+                  href="/support" 
+                  className={`text-sm transition-colors duration-200 ${
+                    isActivePage('/support') 
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  Support
+                </Link>
+              </div>
+            )}
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-2">
@@ -397,31 +304,33 @@ export default function RoleBasedNavigation() {
                         Dashboard
                       </div>
                     </Link>
-                    <Link href="/artist/profile">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <User className="w-4 h-4 mr-2" />
-                        Profile
-                      </div>
-                    </Link>
-                    {hasPermission('notification:read:own') && (
-                      <Link href="/artist/messages">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <Bell className="w-4 h-4 mr-2" />
-                          Messages
-                          {unreadCount > 0 && (
-                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
+                    {!['super_admin', 'company_admin'].includes(userRole) && (
+                      <>
+                        <Link href="/artist/profile">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <User className="w-4 h-4 mr-2" />
+                            Profile
+                          </div>
+                        </Link>
+                        <Link href="/artist/messages">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Bell className="w-4 h-4 mr-2" />
+                            Messages
+                            {unreadCount > 0 && (
+                              <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                        <Link href="/artist/settings">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Settings
+                          </div>
+                        </Link>
+                      </>
                     )}
-                    <Link href="/artist/settings">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </div>
-                    </Link>
                     <hr className="my-1" />
                     <button
                       onClick={handleLogout}
@@ -455,8 +364,8 @@ export default function RoleBasedNavigation() {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
-              {/* Mobile Balance Display - Users with wallet access */}
-              {hasPermission('earnings:read:own') && (
+              {/* Mobile Balance Display - Artists only */}
+              {userRole === 'artist' && (
                 <div 
                   className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
                   onClick={refreshBalance}
@@ -468,9 +377,9 @@ export default function RoleBasedNavigation() {
                   </span>
                 </div>
               )}
-
-              {/* Navigation Items */}
-              {navigationItems.map((item) => (
+              
+              {/* Navigation Items - Not for admin users */}
+              {!['super_admin', 'company_admin'].includes(userRole) && navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -481,61 +390,26 @@ export default function RoleBasedNavigation() {
                   <span>{item.label}</span>
                 </Link>
               ))}
-
-              {/* Admin Links - Mobile */}
-              {hasAdminAccess && (
+              
+              {/* Utility Links - Not for admin users */}
+              {!['super_admin', 'company_admin'].includes(userRole) && (
                 <>
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase mt-4">
-                    Admin
-                  </div>
-                  {hasPermission('user:read:any') && (
-                    <Link
-                      href="/admin/users"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Users className="w-5 h-5" />
-                      <span>User Management</span>
-                    </Link>
-                  )}
-                  {hasPermission('user:read:any') && (
-                    <Link
-                      href="/admin/profile-requests"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <ClipboardList className="w-5 h-5" />
-                      <span>Profile Requests</span>
-                    </Link>
-                  )}
-                  {hasPermission('role:read:any') && (
-                    <Link
-                      href="/admin/permissions"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Shield className="w-5 h-5" />
-                      <span>Permissions & Roles</span>
-                    </Link>
-                  )}
+                  <Link
+                    href="/about"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    href="/support"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Support
+                  </Link>
                 </>
               )}
-
-              {/* Utility Links */}
-              <Link
-                href="/about"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/support"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Support
-              </Link>
               
               <div className="border-t border-gray-200 pt-4 pb-3">
                 <div className="px-3 py-2">
@@ -550,20 +424,24 @@ export default function RoleBasedNavigation() {
                   >
                     Dashboard
                   </Link>
-                  <Link
-                    href="/artist/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    href="/artist/settings"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
+                  {!['super_admin', 'company_admin'].includes(userRole) && (
+                    <>
+                      <Link
+                        href="/artist/profile"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        href="/artist/settings"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Settings
+                      </Link>
+                    </>
+                  )}
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
@@ -582,3 +460,4 @@ export default function RoleBasedNavigation() {
     </nav>
   );
 }
+

@@ -158,6 +158,9 @@ export default function RoleBasedDashboard() {
         case 'company_admin':
           apiEndpoint = '/api/companyadmin/dashboard-stats';
           break;
+        case 'super_admin':
+          apiEndpoint = '/api/admin/dashboard-stats';
+          break;
         default:
           console.error('Unsupported user role:', userRole);
           setError(`Unsupported user role: ${userRole}. Please contact support.`);
@@ -184,14 +187,27 @@ export default function RoleBasedDashboard() {
       } else {
         console.log('ℹ️ Dashboard API unavailable, using fallback data for development');
         // Use fallback data to prevent dashboard errors during development/testing
-        setDashboardData({
+        const fallbackData = {
+          // Artist fields
           totalReleases: 0,
           liveReleases: 0,
-          totalEarnings: 690.50, // From Henry's wallet
+          totalEarnings: 690.50,
           totalStreams: 0,
           recentActivity: [],
-          subscription: { tier: 'artist_pro', status: 'active' }
-        });
+          subscription: { tier: 'artist_pro', status: 'active' },
+          // Admin fields
+          totalUsers: 0,
+          userGrowth: 0,
+          releaseGrowth: 0,
+          totalRevenue: 0,
+          revenueGrowth: 0,
+          platformHealth: 100,
+          activeSubscriptions: 0,
+          // Growth metrics
+          earningsGrowth: 0,
+          streamGrowth: 0
+        };
+        setDashboardData(fallbackData);
       }
       
       setLoading(false);
@@ -383,13 +399,52 @@ export default function RoleBasedDashboard() {
             }
           ],
           cards: [
-            { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/companyadmin/users') },
-            { title: 'Analytics', description: 'View platform analytics', icon: BarChart3, onClick: () => router.push('/companyadmin/analytics') },
-            { title: 'Manage Artist Analytics', description: 'Update artist analytics data', icon: Edit3, onClick: () => router.push('/companyadmin/analytics-management') },
-            { title: 'Manage Artist Earnings', description: 'Add earnings & approve payouts', icon: TrendingUp, onClick: () => router.push('/companyadmin/earnings-management') },
-            { title: 'Payout Approvals', description: 'Review and approve payout requests', icon: DollarSign, onClick: () => router.push('/companyadmin/payout-requests') },
-            { title: 'Finance', description: 'Platform financial reports', icon: DollarSign, onClick: () => router.push('/companyadmin/finance') },
-            { title: 'Artist Requests', description: 'Manage artist approvals', icon: FileText, onClick: () => router.push('/companyadmin/artist-requests') }
+            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/admin/permissions') },
+            { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/admin/users') },
+            { title: 'System Analytics', description: 'View platform analytics', icon: BarChart3, onClick: () => router.push('/admin/analytics') },
+            { title: 'Platform Settings', description: 'Configure system settings', icon: Settings, onClick: () => router.push('/admin/settings') }
+          ]
+        };
+
+      case 'super_admin':
+        return {
+          title: 'Super Admin Dashboard',
+          subtitle: 'Ultimate System Control',
+          description: 'Complete platform oversight with full administrative access',
+          stats: [
+            { 
+              title: 'Total Users', 
+              value: dashboardData.totalUsers?.toLocaleString() || '0', 
+              change: `${dashboardData.userGrowth > 0 ? '+' : ''}${dashboardData.userGrowth || 0}% this month`, 
+              icon: Users,
+              trend: dashboardData.userGrowth >= 0 ? 'up' : 'down'
+            },
+            { 
+              title: 'Total Releases', 
+              value: dashboardData.totalReleases?.toString() || '0', 
+              change: `${dashboardData.releaseGrowth > 0 ? '+' : ''}${dashboardData.releaseGrowth || 0}% this month`, 
+              icon: Music,
+              trend: dashboardData.releaseGrowth >= 0 ? 'up' : 'down'
+            },
+            { 
+              title: 'Platform Revenue', 
+              value: formatCurrency(dashboardData.totalRevenue || 0, selectedCurrency), 
+              change: `${dashboardData.revenueGrowth > 0 ? '+' : ''}${dashboardData.revenueGrowth || 0}% this month`, 
+              icon: DollarSign,
+              trend: dashboardData.revenueGrowth >= 0 ? 'up' : 'down'
+            },
+            { 
+              title: 'System Health', 
+              value: `${dashboardData.platformHealth || 100}%`, 
+              change: 'All systems operational', 
+              icon: TrendingUp 
+            }
+          ],
+          cards: [
+            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/admin/permissions') },
+            { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/admin/users') },
+            { title: 'System Analytics', description: 'View platform metrics', icon: BarChart3, onClick: () => router.push('/admin/analytics') },
+            { title: 'Platform Settings', description: 'Configure system settings', icon: Settings, onClick: () => router.push('/admin/settings') }
           ]
         };
 
