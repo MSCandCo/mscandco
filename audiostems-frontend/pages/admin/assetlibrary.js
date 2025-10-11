@@ -531,12 +531,28 @@ export default function AssetLibrary() {
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
+                            {file.file_type === 'image' && (
+                              <img
+                                src={file.storage_url}
+                                alt={file.name}
+                                className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            )}
+                            {file.file_type === 'image' && (
+                              <div className="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center" style={{ display: 'none' }}>
+                                <ImageIcon size={20} className="text-gray-400" />
+                              </div>
+                            )}
                             {file.file_type === 'audio' && (
                               <button
-                                onClick={() => playAudio(file.file_path)}
+                                onClick={() => playAudio(file.storage_url)}
                                 className="p-2 rounded-full hover:bg-gray-200 transition-colors"
                               >
-                                {playingAudio === file.file_path ? (
+                                {playingAudio === file.storage_url ? (
                                   <Pause size={16} className="text-gray-700" />
                                 ) : (
                                   <Play size={16} className="text-gray-700" />
@@ -544,9 +560,9 @@ export default function AssetLibrary() {
                               </button>
                             )}
                             <div>
-                              <p className="font-medium text-gray-900">{file.file_name}</p>
-                              {file.category && (
-                                <p className="text-xs text-gray-500">{file.category}</p>
+                              <p className="font-medium text-gray-900">{file.name}</p>
+                              {file.bucket_id && (
+                                <p className="text-xs text-gray-500">{file.bucket_id}</p>
                               )}
                             </div>
                           </div>
@@ -568,7 +584,7 @@ export default function AssetLibrary() {
                           {formatFileSize(file.file_size)}
                         </td>
                         <td className="px-6 py-4 text-gray-700">
-                          {file.uploader_name}
+                          {file.owner || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 text-gray-700 text-sm">
                           {formatDate(file.created_at)}
@@ -606,8 +622,9 @@ export default function AssetLibrary() {
                             ) : (
                               <>
                                 <a
-                                  href={file.file_path}
-                                  download
+                                  href={file.storage_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                   className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
                                   title="Download"
                                 >
