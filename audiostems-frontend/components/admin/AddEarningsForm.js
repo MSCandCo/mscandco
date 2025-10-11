@@ -301,7 +301,7 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
             <label className="block text-sm font-medium mb-2" style={{color: '#374151'}}>Expected Payment Date</label>
             <input
               type="date"
-              value={formData.expected_payment_date}
+              value={formData.expected_payment_date || ''}
               onChange={(e) => setFormData({...formData, expected_payment_date: e.target.value})}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
               style={{
@@ -318,7 +318,7 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
             <label className="block text-sm font-medium mb-2" style={{color: '#374151'}}>Actual Payment Date (when MSC received payment)</label>
             <input
               type="date"
-              value={formData.actual_payment_date}
+              value={formData.actual_payment_date || ''}
               onChange={(e) => setFormData({...formData, actual_payment_date: e.target.value})}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
               style={{
@@ -373,7 +373,7 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
             <label className="block text-sm font-medium mb-2" style={{color: '#374151'}}>Period Start</label>
             <input
               type="date"
-              value={formData.period_start}
+              value={formData.period_start || ''}
               onChange={(e) => setFormData({...formData, period_start: e.target.value})}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
               style={{
@@ -388,7 +388,7 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
             <label className="block text-sm font-medium mb-2" style={{color: '#374151'}}>Period End</label>
             <input
               type="date"
-              value={formData.period_end}
+              value={formData.period_end || ''}
               onChange={(e) => setFormData({...formData, period_end: e.target.value})}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
               style={{
