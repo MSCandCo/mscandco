@@ -155,15 +155,21 @@ export function requirePermission(requiredPermissions, options = {}) {
           ? requiredPermissions
           : [requiredPermissions];
 
-        // Check permissions based on logic type
+        // Check permissions based on logic type (V2: now async)
         let hasAccess = false;
 
         if (requireAll) {
           // AND logic - must have all permissions
-          hasAccess = permissions.every(permission => hasPermission(role, permission));
+          for (const permission of permissions) {
+            if (!(await hasPermission(role, permission, user.id))) {
+              hasAccess = false;
+              break;
+            }
+            hasAccess = true;
+          }
         } else {
           // OR logic - must have at least one permission
-          hasAccess = hasAnyPermission(role, permissions);
+          hasAccess = await hasAnyPermission(role, permissions, user.id);
         }
 
         if (!hasAccess) {

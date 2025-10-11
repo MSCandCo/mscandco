@@ -1,7 +1,27 @@
 /**
- * Role-Based Access Control (RBAC) Configuration
- * Defines roles, permissions, and their mappings for the platform
+ * Role-Based Access Control (RBAC) Configuration V2
+ * Now supports database-driven permissions with backward compatibility
+ *
+ * V2 Changes:
+ * - hasPermission() now queries database instead of hardcoded mappings
+ * - Supports new V2 permission format (e.g., 'finance:wallet_management:read')
+ * - Maintains backward compatibility with legacy permissions
+ * - Super Admin retains wildcard '*:*:*' access
  */
+
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client for permission queries
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 // Role definitions
 export const ROLES = {
@@ -139,50 +159,175 @@ export const PERMISSIONS = {
 };
 
 /**
- * Check if a role has a specific permission
+ * Check if a role has a specific permission (Database-driven V2)
  * @param {string} role - The role to check
  * @param {string} permission - The permission to verify
- * @returns {boolean} - True if the role has the permission
+ * @param {string} userId - Optional user ID to check user-specific permissions
+ * @returns {Promise<boolean>} - True if the role has the permission
  */
-export function hasPermission(role, permission) {
-  // Super admin has wildcard permission - can access everything
-  if (role === ROLES.SUPER_ADMIN && permission === '*:*:*') {
-    return true;
+export async function hasPermission(role, permission, userId = null) {
+  try {
+    // Super admin wildcard check - bypass all other checks
+    if (permission === '*:*:*') {
+      return role === ROLES.SUPER_ADMIN;
+    }
+
+    // Super admin with wildcard role has all permissions
+    const { data: wildcardPermission } = await supabase
+      .from('role_permissions')
+      .select(`
+        permission:permissions!inner(name)
+      `)
+      .eq('role_id', await getRoleId(role))
+      .eq('permissions.name', '*:*:*')
+      .single();
+
+    if (wildcardPermission) {
+      return true;
+    }
+
+    // Check user-specific permissions first (if userId provided)
+    if (userId) {
+      const { data: userPermission } = await supabase
+        .from('user_permissions')
+        .select(`
+          permission:permissions!inner(name)
+        `)
+        .eq('user_id', userId)
+        .eq('permissions.name', permission)
+        .single();
+
+      if (userPermission) {
+        return true;
+      }
+    }
+
+    // Check role-based permissions from database
+    const { data: rolePermission } = await supabase
+      .from('role_permissions')
+      .select(`
+        permission:permissions!inner(name)
+      `)
+      .eq('role_id', await getRoleId(role))
+      .eq('permissions.name', permission)
+      .single();
+
+    if (rolePermission) {
+      return true;
+    }
+
+    // Fallback to legacy hardcoded permissions for backward compatibility
+    const allowedRoles = PERMISSIONS[permission];
+    return allowedRoles ? allowedRoles.includes(role) : false;
+
+  } catch (error) {
+    console.error('Error checking permission:', error);
+    // Fallback to legacy permissions on error
+    const allowedRoles = PERMISSIONS[permission];
+    return allowedRoles ? allowedRoles.includes(role) : false;
+  }
+}
+
+/**
+ * Get role ID from role name (cached for performance)
+ * @param {string} roleName - The role name
+ * @returns {Promise<string>} - The role UUID
+ */
+const roleIdCache = {};
+async function getRoleId(roleName) {
+  if (roleIdCache[roleName]) {
+    return roleIdCache[roleName];
   }
 
-  const allowedRoles = PERMISSIONS[permission];
-  return allowedRoles ? allowedRoles.includes(role) : false;
+  const { data: role } = await supabase
+    .from('roles')
+    .select('id')
+    .eq('name', roleName)
+    .single();
+
+  if (role) {
+    roleIdCache[roleName] = role.id;
+    return role.id;
+  }
+
+  throw new Error(`Role not found: ${roleName}`);
 }
 
 /**
- * Check if a role has any of the specified permissions
+ * Check if a role has any of the specified permissions (Database-driven V2)
  * @param {string} role - The role to check
  * @param {string[]} permissions - Array of permissions to check
- * @returns {boolean} - True if the role has at least one permission
+ * @param {string} userId - Optional user ID
+ * @returns {Promise<boolean>} - True if the role has at least one permission
  */
-export function hasAnyPermission(role, permissions) {
-  return permissions.some(permission => hasPermission(role, permission));
+export async function hasAnyPermission(role, permissions, userId = null) {
+  for (const permission of permissions) {
+    if (await hasPermission(role, permission, userId)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
- * Check if a role has all of the specified permissions
+ * Check if a role has all of the specified permissions (Database-driven V2)
  * @param {string} role - The role to check
  * @param {string[]} permissions - Array of permissions to check
- * @returns {boolean} - True if the role has all permissions
+ * @param {string} userId - Optional user ID
+ * @returns {Promise<boolean>} - True if the role has all permissions
  */
-export function hasAllPermissions(role, permissions) {
-  return permissions.every(permission => hasPermission(role, permission));
+export async function hasAllPermissions(role, permissions, userId = null) {
+  for (const permission of permissions) {
+    if (!(await hasPermission(role, permission, userId))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
- * Get all permissions for a specific role
+ * Get all permissions for a specific role (Database-driven V2)
  * @param {string} role - The role to get permissions for
- * @returns {string[]} - Array of permission strings
+ * @param {string} userId - Optional user ID for user-specific permissions
+ * @returns {Promise<string[]>} - Array of permission strings
  */
-export function getRolePermissions(role) {
-  return Object.keys(PERMISSIONS).filter(permission =>
-    PERMISSIONS[permission].includes(role)
-  );
+export async function getRolePermissions(role, userId = null) {
+  try {
+    const roleId = await getRoleId(role);
+
+    // Get role-based permissions
+    const { data: rolePermissions } = await supabase
+      .from('role_permissions')
+      .select(`
+        permission:permissions(name)
+      `)
+      .eq('role_id', roleId);
+
+    const permissions = rolePermissions?.map(rp => rp.permission.name) || [];
+
+    // Add user-specific permissions if userId provided
+    if (userId) {
+      const { data: userPermissions } = await supabase
+        .from('user_permissions')
+        .select(`
+          permission:permissions(name)
+        `)
+        .eq('user_id', userId);
+
+      const userPerms = userPermissions?.map(up => up.permission.name) || [];
+      permissions.push(...userPerms);
+    }
+
+    // Remove duplicates and return
+    return [...new Set(permissions)];
+
+  } catch (error) {
+    console.error('Error getting role permissions:', error);
+    // Fallback to legacy permissions
+    return Object.keys(PERMISSIONS).filter(permission =>
+      PERMISSIONS[permission].includes(role)
+    );
+  }
 }
 
 /**
