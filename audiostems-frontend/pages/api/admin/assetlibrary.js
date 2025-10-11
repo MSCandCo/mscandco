@@ -118,11 +118,32 @@ async function handler(req, res) {
     const offset = (parseInt(page) - 1) * parseInt(per_page);
     const paginatedFiles = allFiles.slice(offset, offset + parseInt(per_page));
 
+    // Get unique user IDs from paginated files
+    const userIds = [...new Set(
+      paginatedFiles
+        .map(f => {
+          const pathParts = f.name.split('/');
+          return pathParts.length > 1 ? pathParts[0] : null;
+        })
+        .filter(id => id !== null)
+    )];
+
+    // Fetch user details
+    const { data: userProfiles } = await supabase
+      .from('user_profiles')
+      .select('id, first_name, last_name, display_name, artist_name')
+      .in('id', userIds);
+
+    const userMap = {};
+    userProfiles?.forEach(u => {
+      userMap[u.id] = u.artist_name || u.display_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unknown User';
+    });
+
     console.log(`✅ Returning ${paginatedFiles.length} files (page ${page})`);
 
     return res.status(200).json({
       success: true,
-      files: enrichFiles(paginatedFiles),
+      files: enrichFiles(paginatedFiles, userMap),
       pagination: {
         page: parseInt(page),
         per_page: parseInt(per_page),
@@ -140,7 +161,7 @@ async function handler(req, res) {
   }
 }
 
-function enrichFiles(files) {
+function enrichFiles(files, userMap = {}) {
   return files.map(file => {
     const metadata = typeof file.metadata === 'string'
       ? JSON.parse(file.metadata)
@@ -167,7 +188,8 @@ function enrichFiles(files) {
       file_size_mb: (size / (1024 * 1024)).toFixed(2),
       file_size_gb: (size / (1024 * 1024 * 1024)).toFixed(3),
       mimetype: mimetype,
-      owner: file.owner || userId,
+      owner_id: userId,
+      owner_name: userId ? (userMap[userId] || 'Unknown User') : 'System',
       created_at: file.created_at,
       updated_at: file.updated_at,
       storage_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${file.bucket_public ? 'public' : 'authenticated'}/${file.bucket_id}/${file.name}`

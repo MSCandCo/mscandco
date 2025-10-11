@@ -741,7 +741,7 @@ export default function AssetLibrary() {
                           {formatFileSize(file.file_size)}
                         </td>
                         <td className="px-6 py-4 text-gray-700">
-                          {file.owner || 'Unknown'}
+                          {file.owner_name || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 text-gray-700 text-sm">
                           {formatDate(file.created_at)}
