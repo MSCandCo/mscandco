@@ -105,6 +105,7 @@ async function handler(req, res) {
       return res.status(200).json({
         id: profile.id,
         email: profile.email,
+        role: profile.role || 'artist',
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         artistName: profile.artist_name || '',
