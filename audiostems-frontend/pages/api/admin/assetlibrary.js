@@ -194,5 +194,5 @@ function enrichFiles(files, userMap = {}) {
   });
 }
 
-// Only superadmins can access
-export default requirePermission('*:*:*')(handler);
+// Requires read permission for asset library (V2 Permission System)
+export default requirePermission('content:asset_library:read')(handler);

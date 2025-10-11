@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { requireAuth } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -12,6 +13,11 @@ async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      // Check read permission
+      const canRead = await hasPermission(req.userRole, 'content:asset_library:read', req.user.id);
+      if (!canRead) {
+        return res.status(403).json({ error: 'Insufficient permissions to view asset details' });
+      }
       // Get single file details
       console.log('📁 Fetching file details for:', id);
 
@@ -51,6 +57,12 @@ async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
+      // Check delete permission
+      const canDelete = await hasPermission(req.userRole, 'content:asset_library:delete', req.user.id);
+      if (!canDelete) {
+        return res.status(403).json({ error: 'Insufficient permissions to delete assets' });
+      }
+
       // Soft delete - move to recycle bin
       console.log('🗑️ Soft deleting file:', id);
 
@@ -82,6 +94,12 @@ async function handler(req, res) {
     if (req.method === 'POST') {
       // Handle different actions
       if (action === 'restore') {
+        // Check delete permission (restore requires delete permission)
+        const canDelete = await hasPermission(req.userRole, 'content:asset_library:delete', req.user.id);
+        if (!canDelete) {
+          return res.status(403).json({ error: 'Insufficient permissions to restore assets' });
+        }
+
         // Restore from recycle bin
         console.log('♻️ Restoring file:', id);
 
@@ -112,6 +130,12 @@ async function handler(req, res) {
       }
 
       if (action === 'permanent_delete') {
+        // Check delete permission (permanent delete requires delete permission)
+        const canDelete = await hasPermission(req.userRole, 'content:asset_library:delete', req.user.id);
+        if (!canDelete) {
+          return res.status(403).json({ error: 'Insufficient permissions to permanently delete assets' });
+        }
+
         // Permanent delete
         console.log('💀 Permanently deleting file:', id);
 
@@ -153,4 +177,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('*:*:*')(handler);
+// Requires authentication - permission checks are done per-method inside handler
+export default requireAuth(handler);

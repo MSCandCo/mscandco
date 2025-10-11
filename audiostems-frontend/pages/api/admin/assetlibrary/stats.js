@@ -213,4 +213,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('*:*:*')(handler);
+// Requires read permission for asset library stats (V2 Permission System)
+export default requirePermission('content:asset_library:read')(handler);

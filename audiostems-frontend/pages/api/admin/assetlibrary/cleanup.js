@@ -44,4 +44,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('*:*:*')(handler);
+// Requires delete permission for cleanup (V2 Permission System)
+export default requirePermission('content:asset_library:delete')(handler);
