@@ -129,45 +129,6 @@ export async function middleware(req) {
     console.log('✅ Access granted to /companyadmin route');
   }
 
-  // Protect /labeladmin/* routes - label_admin, company_admin, and super_admin
-  if (req.nextUrl.pathname.startsWith('/labeladmin')) {
-    console.log('🔒 /labeladmin route detected, checking access...');
-
-    if (!session) {
-      console.log('❌ No session, redirecting to login');
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    console.log('👤 User role:', profile?.role, 'User ID:', session.user.id);
-
-    const allowedRoles = ['label_admin', 'company_admin', 'super_admin'];
-
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      console.log('❌ Role not allowed, redirecting to dashboard');
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
-    console.log('✅ Access granted to /labeladmin route');
-  }
-
-  // Protect /artist/* routes - authenticated users only
-  if (req.nextUrl.pathname.startsWith('/artist')) {
-    console.log('🔒 /artist route detected, checking access...');
-
-    if (!session) {
-      console.log('❌ No session, redirecting to login');
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    console.log('✅ Access granted to /artist route');
-  }
-
   return res;
 }
 
@@ -177,7 +138,5 @@ export const config = {
     '/admin/:path*',
     '/superadmin/:path*',
     '/companyadmin/:path*',
-    '/labeladmin/:path*',
-    '/artist/:path*',
   ],
 };

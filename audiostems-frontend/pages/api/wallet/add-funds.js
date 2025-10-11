@@ -103,5 +103,5 @@ async function handler(req, res) {
   }
 }
 
-// Protect with wallet:topup:own permission
-export default requirePermission('wallet:topup:own')(handler);
+// Protect with wallet:update:own permission (for adding funds to wallet)
+export default requirePermission('wallet:update:own')(handler);

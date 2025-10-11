@@ -75,19 +75,22 @@ export const AuthProvider = ({ children }) => {
     
     // Simple auth handler that doesn't do complex database operations
     const handleAuthUser = async (authUser) => {
-      if (!isMounted || isProcessing) return
+      if (!isMounted || isProcessing) {
+        console.log('⚠️ SupabaseProvider: Skipping handleAuthUser (mounted:', isMounted, 'processing:', isProcessing, ')')
+        return
+      }
       isProcessing = true
-      
-      // Processing auth user
-      
+
+      console.log('🔧 SupabaseProvider: Processing auth user...', authUser ? 'User exists' : 'No user')
+
       try {
         if (authUser) {
           // Import getUserRoleSync to determine role
           const { getUserRoleSync } = await import('../../lib/user-utils')
           const userRole = getUserRoleSync(authUser)
-          
-          // User role determined successfully
-          
+
+          console.log('✅ SupabaseProvider: User role determined:', userRole)
+
           // Set user with role - no complex database operations
           setUser({
             ...authUser,
@@ -95,35 +98,65 @@ export const AuthProvider = ({ children }) => {
             needsRegistration: false
           })
         } else {
+          console.log('❌ SupabaseProvider: No auth user, setting user to null')
           setUser(null)
         }
       } catch (error) {
-        console.error('Error processing auth user:', error)
+        console.error('💥 SupabaseProvider: Error processing auth user:', error)
         setUser(null)
       } finally {
         if (isMounted) {
+          console.log('✅ SupabaseProvider: Setting isLoading to FALSE')
           setIsLoading(false)
           isProcessing = false
         }
       }
     }
     
-    // Get initial session
+    // Get initial session with retry logic
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (!isMounted) return
-        
-        if (error) {
-          console.warn('Auth session error:', error)
+        console.log('🔍 SupabaseProvider: Getting initial session...')
+        // Retry logic to handle session establishment after login redirect
+        let session = null
+        let retries = 5
+
+        while (!session && retries > 0 && isMounted) {
+          console.log(`🔄 SupabaseProvider: Attempting to get session (${6 - retries}/5)...`)
+          const { data, error } = await supabase.auth.getSession()
+
+          if (error) {
+            console.warn('❌ SupabaseProvider: Auth session error:', error)
+            break
+          }
+
+          if (data.session) {
+            console.log('✅ SupabaseProvider: Session found!')
+            session = data.session
+            break
+          }
+
+          console.log(`⏳ SupabaseProvider: No session yet, retrying... (${retries - 1} retries left)`)
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 300))
+          retries--
+        }
+
+        if (!isMounted) {
+          console.log('⚠️ SupabaseProvider: Component unmounted during session check')
+          return
+        }
+
+        if (session) {
+          console.log('👤 SupabaseProvider: Processing user from session')
+          await handleAuthUser(session.user)
+        } else {
+          console.log('❌ SupabaseProvider: No session found after retries')
           setUser(null)
           setIsLoading(false)
-        } else {
-          await handleAuthUser(session?.user)
         }
       } catch (err) {
-        console.error('Failed to get session:', err)
+        console.error('💥 SupabaseProvider: Failed to get session:', err)
         if (isMounted) {
           setUser(null)
           setIsLoading(false)
@@ -138,9 +171,9 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
-        
-        // Auth state change detected
-        
+
+        console.log('🔔 SupabaseProvider: Auth state change detected -', event, session?.user ? 'User present' : 'No user')
+
         // Only handle SIGNED_IN and SIGNED_OUT events to prevent loops
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
           await handleAuthUser(session?.user)

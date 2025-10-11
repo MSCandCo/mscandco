@@ -60,12 +60,26 @@ export default function CompanyAdminDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Get session token for API calls
-      const { data: { session } } = await supabase.auth.getSession();
+
+      // Get session token for API calls with retry logic
+      let session = null;
+      let retries = 3;
+
+      while (!session && retries > 0) {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          session = currentSession;
+          break;
+        }
+        // Wait 400ms before retrying
+        await new Promise(resolve => setTimeout(resolve, 400));
+        retries--;
+      }
+
       const token = session?.access_token;
-      
+
       if (!token) {
+        console.error('No session token available after retries');
         router.push('/login');
         return;
       }

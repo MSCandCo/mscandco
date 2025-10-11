@@ -71,5 +71,5 @@ async function handler(req, res) {
   }
 }
 
-// Protect with wallet:view:own permission
-export default requirePermission('wallet:view:own')(handler);
+// Protect with earnings:read:own permission
+export default requirePermission('earnings:view:own')(handler);

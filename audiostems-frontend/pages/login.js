@@ -17,8 +17,29 @@ export default function LoginPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
 
+  // Clear any stale session on mount (important for logout flow)
   useEffect(() => {
+    const clearStaleSession = async () => {
+      // Check if there's a stale session that should be cleared
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // If we have a session but user is null in provider, clear it
+      if (session && !user && !isLoading) {
+        console.log('🧹 Clearing stale session on login page');
+        await supabase.auth.signOut({ scope: 'local' });
+      }
+    };
+
+    // Only run this check after initial loading is done
+    if (!isLoading) {
+      clearStaleSession();
+    }
+  }, [isLoading, user]);
+
+  useEffect(() => {
+    console.log('🔄 Login: Navigation useEffect triggered -', { user: !!user, isLoading });
     if (user && !isLoading) {
+      console.log('✅ Login: Conditions met, navigating to dashboard...');
       router.push('/dashboard');
     }
   }, [user, isLoading, router]);
@@ -28,19 +49,27 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError('');
 
-    console.log('Starting login attempt for:', email);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
+    console.log('🔐 Login: Starting login attempt for:', email);
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+
     if (error) {
-      console.log('Login error:', error);
+      console.log('❌ Login: Login error:', error);
+
+      // All users are pre-verified - just show the error message
       setError(error.message);
       setIsSubmitting(false);
     } else {
-      console.log('Login successful, redirecting to dashboard');
-      // Don't redirect here - let the auth state change handle it
+      console.log('✅ Login: Login successful, session established:', data.session ? 'Yes' : 'No');
+
+      // The onAuthStateChange in SupabaseProvider should fire automatically
+      // Don't navigate immediately - the useEffect on line 42-46 will handle navigation
+      // once the user state updates in the provider
+      console.log('⏳ Login: Waiting for SupabaseProvider to update user state...');
     }
   };
 
+
+  // Show loading spinner while checking initial auth state
   if (isLoading) {
     return (
       <MainLayout>
@@ -52,8 +81,19 @@ export default function LoginPage() {
     );
   }
 
+  // Show loading spinner while navigating to dashboard after login
   if (user) {
-    return null; // Will redirect to dashboard
+    return (
+      <MainLayout>
+        <SEO pageTitle="Redirecting..." />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1f2937] mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to dashboard...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
 
   return (
@@ -193,7 +233,7 @@ export default function LoginPage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Signing In...
+                    Establishing Session...
                   </>
                 ) : (
                   <>
@@ -233,6 +273,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
     </MainLayout>
   );
 } 

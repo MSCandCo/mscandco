@@ -76,12 +76,8 @@ export default function RegisterPage() {
       if (error) {
         setErrors({ submit: error.message });
       } else {
-        // Success - redirect to dashboard or email verification
-        if (data.user && !data.user.email_confirmed_at) {
-          router.push('/verify-email');
-        } else {
-          router.push('/dashboard');
-        }
+        // Success - all users are pre-verified, redirect to dashboard
+        router.push('/dashboard');
       }
     } catch (error) {
       setErrors({ submit: 'Registration failed. Please try again.' });

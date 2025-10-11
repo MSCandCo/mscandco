@@ -76,9 +76,9 @@ export default function SuperadminDashboard() {
             {hasPermission('user:read:any') && (
               <QuickActionCard
                 title="User Management"
-                description="View and manage all users"
+                description="View and manage all users and roles"
                 icon={<Users className="w-6 h-6" />}
-                href="/admin/users"
+                href="/admin/usermanagement"
                 color="blue"
               />
             )}

@@ -1,6 +1,6 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
@@ -71,158 +71,208 @@ export default function RoleBasedDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
-  
-  const userRole = getUserRoleSync(user);
-  const userBrand = getUserBrand(user);
+  const isLoadingRef = useRef(false); // Prevent multiple simultaneous loads
 
-  // Skip wallet and subscription for superadmins
-  const isSuperAdmin = userRole === 'super_admin';
+  const userRole = useMemo(() => getUserRoleSync(user), [user]);
+  const userBrand = useMemo(() => getUserBrand(user), [user]);
 
-  // Use shared wallet balance hook - skip for superadmins
-  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(isSuperAdmin);
+  // Skip wallet and subscription for roles that don't have wallets
+  const isSuperAdmin = useMemo(() => userRole === 'super_admin', [userRole]);
+  const hasWallet = useMemo(() => userRole === 'artist' || userRole === 'label_admin', [userRole]);
 
-  // Check email verification first
+  // Use shared wallet balance hook - only for roles that have wallets
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(!hasWallet);
+
+  // All users are pre-verified in this platform
+  // No email verification check needed
+
+  // Load role-specific dashboard data - run when user and role become available
   useEffect(() => {
-    if (user && !user.email_confirmed_at) {
-      router.push('/verify-email');
+    let isMounted = true;
+
+    // If no user or role, reset loading ref and return
+    if (!user || !userRole) {
+      console.log('⚠️ No user or role, resetting loading ref');
+      isLoadingRef.current = false;
       return;
     }
-  }, [user, router]);
 
-
-
-  // Load role-specific dashboard data
-  useEffect(() => {
-    if (user && userRole) {
-      loadDashboardData();
-      // Skip subscription fetch for superadmins
-      if (!isSuperAdmin) {
-        fetchSubscriptionStatus();
-      }
+    // Prevent multiple simultaneous loads
+    if (isLoadingRef.current) {
+      console.log('⚠️ Dashboard data already loading, skipping... (ref =', isLoadingRef.current, ')');
+      return;
     }
-  }, [user, userRole, isSuperAdmin]);
 
-  // Fetch subscription status
-  const fetchSubscriptionStatus = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) return;
+    console.log('✅ Starting dashboard load, setting ref to true...');
+    isLoadingRef.current = true;
 
-      const response = await fetch('/api/user/subscription-status', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setSubscriptionStatus(result.data);
-        console.log('📋 Subscription status loaded:', result.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch subscription status:', error);
-      // Set default no subscription status
-      setSubscriptionStatus({
-        status: 'none',
-        planName: 'No Subscription',
-        hasSubscription: false,
-        isPro: false,
-        isStarter: false
-      });
-    }
-  };
+    const fetchSubscriptionStatus = async () => {
+      try {
+        // Get session token with extended retry logic
+        let session = null;
+        let retries = 5;
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get session token for API calls
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) {
-        console.error('No authentication token available');
-        setError('Authentication required - please log in again');
-        return;
-      }
-
-      console.log('Loading dashboard data for role:', userRole);
-
-      let apiEndpoint;
-      switch (userRole) {
-        case 'artist':
-          apiEndpoint = '/api/artist/dashboard-stats';
-          break;
-        case 'label_admin':
-          apiEndpoint = '/api/labeladmin/dashboard-stats';
-          break;
-        case 'distribution_partner':
-          apiEndpoint = '/api/distributionpartner/dashboard-stats';
-          break;
-        case 'company_admin':
-          apiEndpoint = '/api/companyadmin/dashboard-stats';
-          break;
-        case 'super_admin':
-          apiEndpoint = '/api/admin/dashboard-stats';
-          break;
-        default:
-          console.error('Unsupported user role:', userRole);
-          setError(`Unsupported user role: ${userRole}. Please contact support.`);
-          return;
-      }
-
-      console.log('Fetching data from:', apiEndpoint);
-
-      const response = await fetch(apiEndpoint, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      console.log('API Response status:', response.status);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('API Response:', result);
-        if (result.success) {
-          setDashboardData(result.data);
-        } else {
-          console.error('API returned success=false:', result);
-          setError(result.message || 'Failed to load dashboard data');
+        while (!session && retries > 0) {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession) {
+            session = currentSession;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+          retries--;
         }
-      } else {
-        console.log('ℹ️ Dashboard API unavailable, using fallback data for development');
-        // Use fallback data to prevent dashboard errors during development/testing
-        const fallbackData = {
-          // Artist fields
-          totalReleases: 0,
-          liveReleases: 0,
-          totalEarnings: 690.50,
-          totalStreams: 0,
-          recentActivity: [],
-          subscription: { tier: 'artist_pro', status: 'active' },
-          // Admin fields
-          totalUsers: 0,
-          userGrowth: 0,
-          releaseGrowth: 0,
-          totalRevenue: 0,
-          revenueGrowth: 0,
-          platformHealth: 100,
-          activeSubscriptions: 0,
-          // Growth metrics
-          earningsGrowth: 0,
-          streamGrowth: 0
-        };
-        setDashboardData(fallbackData);
+
+        const token = session?.access_token;
+        if (!token) {
+          console.warn('No token available for subscription status check');
+          return;
+        }
+
+        const response = await fetch('/api/user/subscription-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setSubscriptionStatus(result.data);
+          console.log('📋 Subscription status loaded:', result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription status:', error);
+        setSubscriptionStatus({
+          status: 'none',
+          planName: 'No Subscription',
+          hasSubscription: false,
+          isPro: false,
+          isStarter: false
+        });
       }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      setError(`Error loading dashboard data: ${error.message}. Please try refreshing the page.`);
-      setLoading(false);
-    }
-  };
+    };
+
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get session token for API calls with extended retry logic
+        let session = null;
+        let retries = 5;
+
+        while (!session && retries > 0) {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession) {
+            session = currentSession;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+          retries--;
+        }
+
+        const token = session?.access_token;
+
+        if (!token) {
+          console.error('No authentication token available after retries');
+          setError('Authentication required - please log in again');
+          return;
+        }
+
+        console.log('Loading dashboard data for role:', userRole);
+
+        let apiEndpoint;
+        switch (userRole) {
+          case 'artist':
+            apiEndpoint = '/api/artist/dashboard-stats';
+            break;
+          case 'label_admin':
+            apiEndpoint = '/api/labeladmin/dashboard-stats';
+            break;
+          case 'distribution_partner':
+            apiEndpoint = '/api/distributionpartner/dashboard-stats';
+            break;
+          case 'company_admin':
+            apiEndpoint = '/api/companyadmin/dashboard-stats';
+            break;
+          case 'super_admin':
+            apiEndpoint = '/api/admin/dashboard-stats';
+            break;
+          default:
+            console.error('Unsupported user role:', userRole);
+            setError(`Unsupported user role: ${userRole}. Please contact support.`);
+            return;
+        }
+
+        console.log('Fetching data from:', apiEndpoint);
+
+        const response = await fetch(apiEndpoint, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log('API Response status:', response.status);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('API Response:', result);
+          if (result.success) {
+            setDashboardData(result.data);
+          } else {
+            console.error('API returned success=false:', result);
+            setError(result.message || 'Failed to load dashboard data');
+          }
+        } else {
+          console.log('ℹ️ Dashboard API unavailable, using fallback data for development');
+          const fallbackData = {
+            totalReleases: 0,
+            liveReleases: 0,
+            totalEarnings: 690.50,
+            totalStreams: 0,
+            recentActivity: [],
+            subscription: { tier: 'artist_pro', status: 'active' },
+            totalUsers: 0,
+            userGrowth: 0,
+            releaseGrowth: 0,
+            totalRevenue: 0,
+            revenueGrowth: 0,
+            platformHealth: 100,
+            activeSubscriptions: 0,
+            earningsGrowth: 0,
+            streamGrowth: 0
+          };
+          setDashboardData(fallbackData);
+        }
+
+        setLoading(false);
+        isLoadingRef.current = false;
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setError(`Error loading dashboard data: ${error.message}. Please try refreshing the page.`);
+        setLoading(false);
+        isLoadingRef.current = false;
+      }
+    };
+
+    const initDashboard = async () => {
+      try {
+        if (user && userRole && isMounted) {
+          console.log('🔧 RoleBasedDashboard: Initializing dashboard for role:', userRole);
+          await loadDashboardData();
+          if (hasWallet && isMounted) {
+            await fetchSubscriptionStatus();
+          }
+        }
+      } catch (error) {
+        console.error('💥 RoleBasedDashboard: Error in initDashboard:', error);
+        isLoadingRef.current = false;
+      }
+    };
+
+    initDashboard();
+
+    return () => {
+      isMounted = false;
+      isLoadingRef.current = false;
+    };
+  }, [user, userRole, hasWallet]); // Only depend on user, userRole, and hasWallet - functions are defined inside
 
   // Get role-specific content
   const getDashboardContent = () => {

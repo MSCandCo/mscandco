@@ -4,11 +4,18 @@ const path = require('path');
 const nextConfig = {
   reactStrictMode: false,
   outputFileTracingRoot: path.join(__dirname, '../../'),
+
+  // Performance optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production', // Remove console.logs in production
+  },
+
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+
   images: {
     remotePatterns: [
       {
@@ -25,6 +32,11 @@ const nextConfig = {
         hostname: "mscandco.com",
       },
     ],
+  },
+
+  // Experimental features for better performance
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@supabase/supabase-js'], // Optimize large package imports
   },
 };
 

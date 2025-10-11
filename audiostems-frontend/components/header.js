@@ -42,7 +42,8 @@ function Header({ largeLogo = false }) {
           
           if (response.ok) {
             const data = await response.json();
-            console.log('Header profile data loaded:', data);
+            console.log('🎯 Header profile data loaded:', data);
+            console.log('🔍 Role from profile:', data?.role);
             setProfileData(data);
           }
         } catch (err) {

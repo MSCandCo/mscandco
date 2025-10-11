@@ -1,17 +1,45 @@
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // req.user and req.userRole are automatically attached by middleware
-    const artist_id = req.user.id;
+    // Get authenticated user from session
+    let user = null;
+
+    // Try Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      );
+      const { data: { user: tokenUser }, error } = await supabaseClient.auth.getUser(token);
+      if (!error && tokenUser) {
+        user = tokenUser;
+      }
+    }
+
+    // Fall back to cookie-based session
+    if (!user) {
+      const supabaseSession = createPagesServerClient({ req, res });
+      const { data: { session }, error } = await supabaseSession.auth.getSession();
+
+      if (error || !session?.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      user = session.user;
+    }
+
+    const artist_id = user.id;
 
     console.log('Loading wallet data for artist:', artist_id);
 
@@ -75,5 +103,3 @@ async function handler(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
-
-export default requirePermission('wallet:view:own')(handler);

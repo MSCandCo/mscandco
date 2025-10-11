@@ -127,4 +127,4 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('roster:view:any')(handler);
+export default requirePermission('roster:view:own')(handler);

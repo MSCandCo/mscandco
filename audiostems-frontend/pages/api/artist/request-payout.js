@@ -150,4 +150,4 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('wallet:payout:own')(handler);
+export default requirePermission('payout:create:own')(handler);

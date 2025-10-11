@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
-      router.push('/login')
+      router.push('/')
     } catch (error) {
       console.error('Logout error:', error)
     }

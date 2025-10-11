@@ -12,37 +12,40 @@ export default function AuthCallback() {
       try {
         // Get the session after email verification
         const { data, error } = await supabase.auth.getSession()
-        
+
         if (error) {
           console.error('Verification error:', error)
           router.push('/register?error=verification_failed')
           return
         }
-        
+
         if (data.session) {
           const user = data.session.user
           const userRole = user.user_metadata?.role || 'artist'
-          
+
           console.log('Email verified successfully for user:', user.email)
-          
+
+          // Wait for session to propagate to SupabaseProvider
+          await new Promise(resolve => setTimeout(resolve, 500));
+
           // Check if profile is completed
           if (!user.user_metadata?.profile_completed) {
             // Redirect to complete profile based on role
-            router.push(`/${userRole}/complete-profile`)
+            router.push(`/${userRole}/complete-profile`);
           } else {
             // Profile already completed, go to dashboard
-            router.push(`/${userRole}/dashboard`)
+            router.push('/dashboard');
           }
         } else {
           // No session found, redirect to login
-          router.push('/login?message=please_login')
+          router.push('/login?message=please_login');
         }
       } catch (error) {
         console.error('Auth callback error:', error)
         router.push('/register?error=verification_failed')
       }
     }
-    
+
     handleAuthCallback()
   }, [router])
   

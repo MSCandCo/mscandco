@@ -74,6 +74,6 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('wallet:view:own')(handler);
+export default requirePermission('earnings:view:own')(handler);
 
 

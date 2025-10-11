@@ -19,6 +19,8 @@ import {
   LayoutDashboard,
   Shield,
   ClipboardList,
+  Inbox,
+  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -41,8 +43,8 @@ export default function RoleBasedNavigation() {
   // Check if user is superadmin - superadmins don't need wallet/profile
   const isSuperAdmin = user && hasPermission('*:*:*');
 
-  // Use shared wallet balance hook - skip for superadmins
-  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(!isSuperAdmin);
+  // Use shared wallet balance hook - skip for superadmins (pass true to skip when isSuperAdmin is true)
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(isSuperAdmin);
 
   // Load unread notification count for artists and label admins
   useEffect(() => {
@@ -137,6 +139,20 @@ export default function RoleBasedNavigation() {
 
   const userRole = getUserRoleSync(user);
 
+  // Helper function to get the correct profile/settings path based on role
+  const getRoleBasePath = () => {
+    // Subscription customers have their own dedicated routes
+    if (userRole === 'artist') {
+      return '/artist';
+    }
+    if (userRole === 'label_admin') {
+      return '/labeladmin';
+    }
+    // System/company admins use /admin
+    // (company_admin, super_admin, distribution_partner)
+    return '/admin';
+  };
+
   // Show loading state while permissions are being fetched
   if (permissionsLoading) {
     return (
@@ -175,31 +191,30 @@ export default function RoleBasedNavigation() {
 
   const handleLogout = async () => {
     setIsDropdownOpen(false);
-    
+
     try {
-      // Clear ghost mode if active
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('ghost_mode');
-        sessionStorage.removeItem('ghost_session');
-        sessionStorage.removeItem('original_admin_user');
-        sessionStorage.removeItem('ghost_target_user');
-      }
-      
-      // Sign out from Supabase
+      // Sign out from Supabase first
       await supabase.auth.signOut();
-      
-      // Clear local storage
+
+      // Clear all storage
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
+
+        // Remove all cookies
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
       }
-      
-      // Redirect to login
-      router.push('/login');
+
+      // Force redirect using window.location for complete refresh
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback to logout page
-      router.push('/logout');
+      // Force redirect even on error
+      window.location.href = '/';
     }
   };
 
@@ -212,21 +227,36 @@ export default function RoleBasedNavigation() {
 
   // Permission-based navigation items
   const navigationItems = [];
+  const roleBasePath = getRoleBasePath();
 
-  // Artist/Creator Links - ONLY show if user is NOT an admin
-  if (!hasAdminAccess) {
-    if (hasPermission('release:read:own')) {
-      navigationItems.push({ href: '/artist/releases', label: 'My Releases', icon: FileText });
-    }
-    if (hasPermission('analytics:read:own')) {
-      navigationItems.push({ href: '/artist/analytics', label: 'Analytics', icon: BarChart3 });
-    }
-    if (hasPermission('earnings:read:own')) {
-      navigationItems.push({ href: '/artist/earnings', label: 'Earnings', icon: DollarSign });
-    }
-    if (hasPermission('user:read:label')) {
-      navigationItems.push({ href: '/artist/roster', label: 'Roster', icon: Users });
-    }
+  // System admins (super_admin, company_admin) should ONLY see admin links
+  // Subscription customers (artist, label_admin) should see customer links
+  const isSystemAdmin = userRole === 'super_admin' || userRole === 'company_admin';
+
+  // Subscription customer links - ONLY for non-system-admins AND non-distribution-partners
+  if (!isSystemAdmin && userRole !== 'distribution_partner') {
+    // Always show core navigation for subscription customers (artist, label_admin)
+    navigationItems.push({ href: `${roleBasePath}/releases`, label: 'Releases', icon: FileText });
+    navigationItems.push({ href: `${roleBasePath}/analytics`, label: 'Analytics', icon: BarChart3 });
+    navigationItems.push({ href: `${roleBasePath}/earnings`, label: 'Earnings', icon: DollarSign });
+    navigationItems.push({ href: `${roleBasePath}/roster`, label: 'Roster', icon: Users });
+  }
+
+  // Distribution Partner Items - Based on permissions
+  if (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) {
+    navigationItems.push({
+      href: '/distribution/queue',
+      label: 'Distribution Queue',
+      icon: Inbox
+    });
+  }
+
+  if (hasPermission('distribution:manage:partner') || hasPermission('distribution:manage:any')) {
+    navigationItems.push({
+      href: '/distribution/revisions',
+      label: 'Revision Queue',
+      icon: RefreshCw
+    });
   }
 
   return (
@@ -249,8 +279,8 @@ export default function RoleBasedNavigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Regular navigation items */}
-            {navigationItems.map((item) => (
+            {/* Regular navigation items - Only for non-system-admins */}
+            {!isSystemAdmin && navigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -265,8 +295,23 @@ export default function RoleBasedNavigation() {
               </Link>
             ))}
 
-            {/* Permissions & Roles - Standalone */}
-            {hasPermission('role:read:any') && (
+            {/* User Management - Standalone - Only for system admins */}
+            {isSystemAdmin && hasPermission('user:read:any') && (
+              <Link
+                href="/admin/usermanagement"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/usermanagement')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>User Management</span>
+              </Link>
+            )}
+
+            {/* Permissions & Roles - Standalone - Only for super admins with permission:read:any */}
+            {isSystemAdmin && hasPermission('permission:read:any') && (
               <Link
                 href="/superadmin/permissionsroles"
                 className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
@@ -283,10 +328,10 @@ export default function RoleBasedNavigation() {
 
           {/* Right side - User menu and Mobile menu button */}
           <div className="flex items-center space-x-3">
-            {/* Notification Bell - For users with notification access */}
-            {(hasPermission('notification:read:own') || hasPermission('user:read:any')) && (
+            {/* Notification Bell - For subscription customers only */}
+            {!isSystemAdmin && hasPermission('notification:read:own') && (
               <Link
-                href={hasPermission('user:read:any') ? '/admin/profile-requests' : '/artist/messages'}
+                href={`${getRoleBasePath()}/messages`}
                 className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <Bell className="w-6 h-6" />
@@ -298,8 +343,8 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
-            {/* Platform Funds Display - For users with wallet access */}
-            {hasPermission('earnings:read:own') && (
+            {/* Platform Funds Display - For subscription customers only */}
+            {!isSystemAdmin && hasPermission('earnings:read:own') && (
               <div 
                 className="hidden sm:flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={refreshBalance}
@@ -365,14 +410,14 @@ export default function RoleBasedNavigation() {
                     {/* Profile, Messages, and Settings - Only for non-superadmin users */}
                     {!isSuperAdmin && (
                       <>
-                        <Link href="/artist/profile">
+                        <Link href={`${getRoleBasePath()}/profile`}>
                           <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                             <User className="w-4 h-4 mr-2" />
                             Profile
                           </div>
                         </Link>
                         {hasPermission('notification:read:own') && (
-                          <Link href="/artist/messages">
+                          <Link href={`${getRoleBasePath()}/messages`}>
                             <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                               <Bell className="w-4 h-4 mr-2" />
                               Messages
@@ -384,7 +429,7 @@ export default function RoleBasedNavigation() {
                             </div>
                           </Link>
                         )}
-                        <Link href="/artist/settings">
+                        <Link href={`${getRoleBasePath()}/settings`}>
                           <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                             <Settings className="w-4 h-4 mr-2" />
                             Settings
@@ -426,8 +471,8 @@ export default function RoleBasedNavigation() {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
-              {/* Mobile Balance Display - Users with wallet access */}
-              {hasPermission('earnings:read:own') && (
+              {/* Mobile Balance Display - Subscription customers only */}
+              {!isSystemAdmin && hasPermission('earnings:read:own') && (
                 <div 
                   className="flex items-center justify-center space-x-1 bg-gray-100 px-3 py-2 rounded-lg mx-3 mb-3 cursor-pointer hover:bg-gray-200 transition-colors"
                   onClick={refreshBalance}
@@ -440,8 +485,8 @@ export default function RoleBasedNavigation() {
                 </div>
               )}
 
-              {/* Navigation Items */}
-              {navigationItems.map((item) => (
+              {/* Navigation Items - Only show for non-system-admins */}
+              {!isSystemAdmin && navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -453,8 +498,20 @@ export default function RoleBasedNavigation() {
                 </Link>
               ))}
 
-              {/* Permissions & Roles - Standalone Mobile */}
-              {hasPermission('role:read:any') && (
+              {/* User Management - Standalone Mobile - Only for system admins */}
+              {isSystemAdmin && hasPermission('user:read:any') && (
+                <Link
+                  href="/admin/usermanagement"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Users className="w-5 h-5" />
+                  <span>User Management</span>
+                </Link>
+              )}
+
+              {/* Permissions & Roles - Standalone Mobile - Only for super admins with permission:read:any */}
+              {isSystemAdmin && hasPermission('permission:read:any') && (
                 <Link
                   href="/superadmin/permissionsroles"
                   className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
@@ -499,14 +556,14 @@ export default function RoleBasedNavigation() {
                   {!isSuperAdmin && (
                     <>
                       <Link
-                        href="/artist/profile"
+                        href={`${getRoleBasePath()}/profile`}
                         className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Profile
                       </Link>
                       <Link
-                        href="/artist/settings"
+                        href={`${getRoleBasePath()}/settings`}
                         className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

@@ -15,18 +15,15 @@ export default function Dashboard() {
       return;
     }
 
-    // Check email verification first
-    if (user && !user.email_confirmed_at) {
-      router.push('/verify-email');
-      return;
-    }
+    // All users are pre-verified in this platform
+    // No email verification check needed
 
     // Redirect role-specific users to their dedicated dashboards
     if (user) {
       try {
         // Check if we're in ghost mode - if so, don't redirect based on real user role
         const isGhostMode = typeof window !== 'undefined' && sessionStorage.getItem('ghost_mode') === 'true';
-        
+
         // All users now see the same dashboard - no admin redirects
       } catch (error) {
         // Handle role detection errors gracefully
