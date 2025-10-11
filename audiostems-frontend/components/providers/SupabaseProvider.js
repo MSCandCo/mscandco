@@ -85,13 +85,39 @@ export const AuthProvider = ({ children }) => {
 
       try {
         if (authUser) {
-          // Import getUserRoleSync to determine role
-          const { getUserRoleSync } = await import('../../lib/user-utils')
-          const userRole = getUserRoleSync(authUser)
+          // Fetch role from database via profile API
+          let userRole = 'artist' // default
 
-          console.log('✅ SupabaseProvider: User role determined:', userRole)
+          try {
+            const { data: { session } } = await supabase.auth.getSession()
+            const token = session?.access_token
 
-          // Set user with role - no complex database operations
+            if (token) {
+              const response = await fetch('/api/artist/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+              })
+
+              if (response.ok) {
+                const profileData = await response.json()
+                userRole = profileData.role || 'artist'
+                console.log('✅ SupabaseProvider: User role from database:', userRole)
+              } else {
+                // Fallback to getUserRoleSync if API fails
+                const { getUserRoleSync } = await import('../../lib/user-utils')
+                userRole = getUserRoleSync(authUser)
+                console.log('⚠️ SupabaseProvider: Using fallback role:', userRole)
+              }
+            }
+          } catch (roleError) {
+            console.error('⚠️ SupabaseProvider: Error fetching role from database:', roleError)
+            // Fallback to getUserRoleSync
+            const { getUserRoleSync } = await import('../../lib/user-utils')
+            userRole = getUserRoleSync(authUser)
+          }
+
+          console.log('✅ SupabaseProvider: Final user role:', userRole)
+
+          // Set user with role from database
           setUser({
             ...authUser,
             role: userRole,
