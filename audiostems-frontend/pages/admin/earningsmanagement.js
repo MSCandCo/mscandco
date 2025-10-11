@@ -620,9 +620,8 @@ function EditStatusForm({ entry, onSubmit, onCancel }) {
     }
   };
 
-  // Initialize with formatted date
-  const initialDate = formatDateForInput(entry.payment_date);
-  const [paymentDate, setPaymentDate] = useState(initialDate);
+  // Initialize with formatted date using lazy initializer
+  const [paymentDate, setPaymentDate] = useState(() => formatDateForInput(entry.payment_date));
   const [notes, setNotes] = useState(entry.notes || '');
   const [loading, setLoading] = useState(false);
 
