@@ -17,7 +17,10 @@ import {
   AlertCircle,
   Check,
   X,
-  Calendar
+  Calendar,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/components/providers/SupabaseProvider';
@@ -35,13 +38,14 @@ export default function AssetLibrary() {
   const [playingAudio, setPlayingAudio] = useState(null);
   const [audioElement, setAudioElement] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, per_page: 50, total: 0 });
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
   useEffect(() => {
     if (user) {
       fetchFiles();
       fetchStats();
     }
-  }, [user, activeTab, pagination.page]);
+  }, [user, activeTab, pagination.page, sortConfig]);
 
   useEffect(() => {
     // Create audio element
@@ -81,6 +85,11 @@ export default function AssetLibrary() {
 
       if (searchTerm) {
         params.append('search', searchTerm);
+      }
+
+      if (sortConfig.key) {
+        params.append('sort_by', sortConfig.key);
+        params.append('sort_order', sortConfig.direction);
       }
 
       const response = await fetch(`/api/admin/assetlibrary?${params}`, {
@@ -264,6 +273,83 @@ export default function AssetLibrary() {
     }
   };
 
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === key) {
+        // Toggle direction if same column
+        return {
+          key,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      // Default to ascending for new column
+      return { key, direction: 'asc' };
+    });
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedFiles(files.map(f => f.id));
+    } else {
+      setSelectedFiles([]);
+    }
+  };
+
+  const handleSelectFile = (fileId) => {
+    setSelectedFiles(prev => {
+      if (prev.includes(fileId)) {
+        return prev.filter(id => id !== fileId);
+      } else {
+        return [...prev, fileId];
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedFiles.length === 0) return;
+
+    if (!confirm(`Move ${selectedFiles.length} file(s) to recycle bin?`)) {
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      let successCount = 0;
+      for (const fileId of selectedFiles) {
+        const response = await fetch(`/api/admin/assetlibrary/${fileId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response.ok) successCount++;
+      }
+
+      showNotification(`${successCount} file(s) moved to recycle bin`, 'success');
+      setSelectedFiles([]);
+      fetchFiles();
+      fetchStats();
+    } catch (error) {
+      console.error('Error bulk deleting files:', error);
+      showNotification('Error deleting files', 'error');
+    }
+  };
+
+  const handleBulkDownload = () => {
+    if (selectedFiles.length === 0) return;
+
+    const selectedFileObjects = files.filter(f => selectedFiles.includes(f.id));
+    selectedFileObjects.forEach(file => {
+      window.open(file.storage_url, '_blank');
+    });
+
+    showNotification(`Opening ${selectedFiles.length} file(s) for download`, 'success');
+  };
+
   const showNotification = (message, type = 'success') => {
     const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
     const borderColor = type === 'success' ? '#065f46' : '#991b1b';
@@ -305,6 +391,15 @@ export default function AssetLibrary() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return <ArrowUpDown size={14} className="text-gray-400" />;
+    }
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={14} className="text-gray-700" />
+      : <ArrowDown size={14} className="text-gray-700" />;
   };
 
   if (userLoading || loading) {
@@ -450,6 +545,28 @@ export default function AssetLibrary() {
             </div>
 
             <div className="flex items-center space-x-3">
+              {selectedFiles.length > 0 && (
+                <>
+                  <span className="text-sm font-medium text-gray-700">
+                    {selectedFiles.length} selected
+                  </span>
+                  <button
+                    onClick={handleBulkDownload}
+                    className="flex items-center space-x-2 bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-all"
+                  >
+                    <Download size={18} />
+                    <span>Download</span>
+                  </button>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="flex items-center space-x-2 bg-red-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-red-700 transition-all"
+                  >
+                    <Trash2 size={18} />
+                    <span>Delete</span>
+                  </button>
+                </>
+              )}
+
               {activeTab === 'recyclebin' && (
                 <button
                   onClick={handleRunCleanup}
@@ -485,20 +602,52 @@ export default function AssetLibrary() {
               <table className="w-full">
                 <thead style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      File
+                    <th className="px-6 py-4 text-left">
+                      <input
+                        type="checkbox"
+                        checked={files.length > 0 && selectedFiles.length === files.length}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                      />
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Type
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>File</span>
+                        {getSortIcon('name')}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Size
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('file_type')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Type</span>
+                        {getSortIcon('file_type')}
+                      </div>
+                    </th>
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('file_size')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Size</span>
+                        {getSortIcon('file_size')}
+                      </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Uploaded By
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Date
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('created_at')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Date</span>
+                        {getSortIcon('created_at')}
+                      </div>
                     </th>
                     {activeTab === 'recyclebin' && (
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -513,7 +662,7 @@ export default function AssetLibrary() {
                 <tbody>
                   {files.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
                         <AlertCircle size={48} className="mx-auto mb-4 text-gray-400" />
                         <p className="text-lg font-medium">No files found</p>
                         <p className="text-sm mt-2">Try adjusting your filters or search term</p>
@@ -529,6 +678,14 @@ export default function AssetLibrary() {
                         }}
                         className="hover:bg-gray-50 transition-colors"
                       >
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedFiles.includes(file.id)}
+                            onChange={() => handleSelectFile(file.id)}
+                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                          />
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
                             {file.file_type === 'image' && (
