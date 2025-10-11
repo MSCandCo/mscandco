@@ -2,13 +2,14 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { Dropdown } from 'flowbite-react';
 import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
 import { HiDownload } from 'react-icons/hi';
-import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings } from 'lucide-react';
+import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
 import { getUserRoleSync, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import usePermissions from '@/hooks/usePermissions';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -23,6 +24,7 @@ function Header({ largeLogo = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
 
   // Fetch profile data to get first and last name
   useEffect(() => {
@@ -176,8 +178,40 @@ function Header({ largeLogo = false }) {
                         </div>
                       </Link>
 
+                      {/* Artist Menu */}
+                      {hasPermission('roster:view:own') && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Artist
+                          </div>
+                          <Link href="/artist/roster">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Users className="w-4 h-4 mr-3 text-gray-400" />
+                              Roster
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Label Admin Menu */}
+                      {hasPermission('artist:view:label') && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Label Admin
+                          </div>
+                          <Link href="/labeladmin/artists">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Users className="w-4 h-4 mr-3 text-gray-400" />
+                              My Artists
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
                       {/* Distribution Partner Menu */}
-                      {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                      {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
                         <>
                           <hr className="my-1 border-gray-200" />
                           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
@@ -199,7 +233,7 @@ function Header({ largeLogo = false }) {
                       )}
 
                       {/* Admin Menu */}
-                      {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                      {hasPermission('user:read:any') && (
                         <>
                           <hr className="my-1 border-gray-200" />
                           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
@@ -336,8 +370,40 @@ function Header({ largeLogo = false }) {
                       </div>
                     </Link>
 
+                    {/* Artist Menu */}
+                    {hasPermission('roster:view:own') && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                          Artist
+                        </div>
+                        <Link href="/artist/roster">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Users className="w-4 h-4 mr-3 text-gray-400" />
+                            Roster
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Label Admin Menu */}
+                    {hasPermission('artist:view:label') && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                          Label Admin
+                        </div>
+                        <Link href="/labeladmin/artists">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Users className="w-4 h-4 mr-3 text-gray-400" />
+                            My Artists
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
                     {/* Distribution Partner Menu */}
-                    {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                    {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
                       <>
                         <hr className="my-1 border-gray-200" />
                         <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
@@ -359,7 +425,7 @@ function Header({ largeLogo = false }) {
                     )}
 
                     {/* Admin Menu */}
-                    {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                    {hasPermission('user:read:any') && (
                       <>
                         <hr className="my-1 border-gray-200" />
                         <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
@@ -487,8 +553,40 @@ function Header({ largeLogo = false }) {
                     Profile
                   </Link>
 
+                  {/* Artist Menu */}
+                  {hasPermission('roster:view:own') && (
+                    <>
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                        Artist
+                      </div>
+                      <Link
+                        href="/artist/roster"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Roster
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Label Admin Menu */}
+                  {hasPermission('artist:view:label') && (
+                    <>
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                        Label Admin
+                      </div>
+                      <Link
+                        href="/labeladmin/artists"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        My Artists
+                      </Link>
+                    </>
+                  )}
+
                   {/* Distribution Partner Menu */}
-                  {['distribution_partner', 'company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                  {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
                     <>
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
                         Distribution
@@ -511,7 +609,7 @@ function Header({ largeLogo = false }) {
                   )}
 
                   {/* Admin Menu */}
-                  {['company_admin', 'super_admin'].includes(getUserRoleSync(user)) && (
+                  {hasPermission('user:read:any') && (
                     <>
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
                         Admin
