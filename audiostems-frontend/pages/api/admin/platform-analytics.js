@@ -21,7 +21,7 @@ async function handler(req, res) {
 
     // 1. Fetch earnings data
     const { data: earnings, error: earningsError } = await supabase
-      .from('earnings')
+      .from('earnings_log')
       .select('*')
       .gte('created_at', startDate.toISOString());
 
