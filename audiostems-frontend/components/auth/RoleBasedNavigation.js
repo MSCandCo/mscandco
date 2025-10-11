@@ -39,8 +39,16 @@ export default function RoleBasedNavigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDistributionDropdownOpen, setIsDistributionDropdownOpen] = useState(false);
+  const [isUsersDropdownOpen, setIsUsersDropdownOpen] = useState(false);
+  const [isAnalyticsDropdownOpen, setIsAnalyticsDropdownOpen] = useState(false);
+  const [isFinanceDropdownOpen, setIsFinanceDropdownOpen] = useState(false);
+  const [isContentDropdownOpen, setIsContentDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const distributionDropdownRef = useRef(null);
+  const usersDropdownRef = useRef(null);
+  const analyticsDropdownRef = useRef(null);
+  const financeDropdownRef = useRef(null);
+  const contentDropdownRef = useRef(null);
 
   // Use permissions hook for permission-based navigation
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -89,6 +97,18 @@ export default function RoleBasedNavigation() {
       }
       if (distributionDropdownRef.current && !distributionDropdownRef.current.contains(event.target)) {
         setIsDistributionDropdownOpen(false);
+      }
+      if (usersDropdownRef.current && !usersDropdownRef.current.contains(event.target)) {
+        setIsUsersDropdownOpen(false);
+      }
+      if (analyticsDropdownRef.current && !analyticsDropdownRef.current.contains(event.target)) {
+        setIsAnalyticsDropdownOpen(false);
+      }
+      if (financeDropdownRef.current && !financeDropdownRef.current.contains(event.target)) {
+        setIsFinanceDropdownOpen(false);
+      }
+      if (contentDropdownRef.current && !contentDropdownRef.current.contains(event.target)) {
+        setIsContentDropdownOpen(false);
       }
     };
 
@@ -309,154 +329,162 @@ export default function RoleBasedNavigation() {
               </Link>
             ))}
 
-            {/* User Management - Standalone - Only for system admins */}
-            {isSystemAdmin && hasPermission('user:read:any') && (
-              <Link
-                href="/admin/usermanagement"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/usermanagement')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span>User Management</span>
-              </Link>
+            {/* Users & Access Dropdown - For system admins */}
+            {isSystemAdmin && (hasPermission('user:read:any') || hasPermission('permission:read:any') || hasPermission('request:read:any') || hasPermission('*:*:*')) && (
+              <div className="relative" ref={usersDropdownRef}>
+                <button
+                  onClick={() => setIsUsersDropdownOpen(!isUsersDropdownOpen)}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage('/admin/usermanagement') || isActivePage('/superadmin/permissionsroles') || isActivePage('/admin/requests')
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Users & Access</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {isUsersDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    {hasPermission('user:read:any') && (
+                      <Link href="/admin/usermanagement">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <Users className="w-4 h-4 mr-2" />
+                          User Management
+                        </div>
+                      </Link>
+                    )}
+                    {hasPermission('permission:read:any') && (
+                      <Link href="/superadmin/permissionsroles">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Permissions & Roles
+                        </div>
+                      </Link>
+                    )}
+                    {(hasPermission('request:read:any') || hasPermission('*:*:*')) && (
+                      <Link href="/admin/requests">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <ClipboardList className="w-4 h-4 mr-2" />
+                          Requests
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Permissions & Roles - Standalone - Only for super admins with permission:read:any */}
-            {isSystemAdmin && hasPermission('permission:read:any') && (
-              <Link
-                href="/superadmin/permissionsroles"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/superadmin/permissionsroles')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span>Permissions & Roles</span>
-              </Link>
-            )}
-
-            {/* Requests - For users with request management permissions */}
-            {(hasPermission('request:read:any') || hasPermission('request:manage:any') || hasPermission('*:*:*')) && (
-              <Link
-                href="/admin/requests"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/requests')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <ClipboardList className="w-4 h-4" />
-                <span>Requests</span>
-              </Link>
-            )}
-
-            {/* Platform Analytics - For super admins */}
+            {/* Analytics & Insights Dropdown - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/platformanalytics"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/platformanalytics')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4" />
-                <span>Platform Analytics</span>
-              </Link>
+              <div className="relative" ref={analyticsDropdownRef}>
+                <button
+                  onClick={() => setIsAnalyticsDropdownOpen(!isAnalyticsDropdownOpen)}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage('/admin/platformanalytics') || isActivePage('/admin/analyticsmanagement')
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Analytics</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {isAnalyticsDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/admin/platformanalytics">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Platform Analytics
+                      </div>
+                    </Link>
+                    <Link href="/admin/analyticsmanagement">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Analytics Management
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Analytics Management - For super admins */}
+            {/* Finance Dropdown - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/analyticsmanagement"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/analyticsmanagement')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Analytics Management</span>
-              </Link>
+              <div className="relative" ref={financeDropdownRef}>
+                <button
+                  onClick={() => setIsFinanceDropdownOpen(!isFinanceDropdownOpen)}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage('/admin/earningsmanagement') || isActivePage('/admin/walletmanagement') || isActivePage('/admin/splitconfiguration')
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <DollarSign className="w-4 h-4" />
+                  <span>Finance</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {isFinanceDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/admin/earningsmanagement">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        Earnings Management
+                      </div>
+                    </Link>
+                    <Link href="/admin/walletmanagement">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Wallet className="w-4 h-4 mr-2" />
+                        Wallet Management
+                      </div>
+                    </Link>
+                    <Link href="/admin/splitconfiguration">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <PieChart className="w-4 h-4 mr-2" />
+                        Split Configuration
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Earnings Management - For super admins */}
+            {/* Content & Assets Dropdown - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/earningsmanagement"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/earningsmanagement')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <DollarSign className="w-4 h-4" />
-                <span>Earnings Management</span>
-              </Link>
-            )}
+              <div className="relative" ref={contentDropdownRef}>
+                <button
+                  onClick={() => setIsContentDropdownOpen(!isContentDropdownOpen)}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage('/admin/assetlibrary') || isActivePage('/admin/masterroster')
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <HardDrive className="w-4 h-4" />
+                  <span>Content</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
 
-            {/* Asset Library - For super admins */}
-            {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/assetlibrary"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/assetlibrary')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <HardDrive className="w-4 h-4" />
-                <span>Asset Library</span>
-              </Link>
-            )}
-
-            {/* Master Roster - For super admins */}
-            {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/masterroster"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/masterroster')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span>Master Roster</span>
-              </Link>
-            )}
-
-            {/* Wallet Management - For super admins */}
-            {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/walletmanagement"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/walletmanagement')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <Wallet className="w-4 h-4" />
-                <span>Wallet Management</span>
-              </Link>
-            )}
-
-            {/* Split Configuration - For super admins */}
-            {isSystemAdmin && hasPermission('*:*:*') && (
-              <Link
-                href="/admin/splitconfiguration"
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/splitconfiguration')
-                    ? 'text-gray-800 font-semibold'
-                    : 'text-gray-400 hover:text-gray-800'
-                }`}
-              >
-                <PieChart className="w-4 h-4" />
-                <span>Split Configuration</span>
-              </Link>
+                {isContentDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/admin/assetlibrary">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <HardDrive className="w-4 h-4 mr-2" />
+                        Asset Library
+                      </div>
+                    </Link>
+                    <Link href="/admin/masterroster">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Users className="w-4 h-4 mr-2" />
+                        Master Roster
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Distribution Dropdown - For super admins */}
@@ -693,132 +721,137 @@ export default function RoleBasedNavigation() {
                 </Link>
               ))}
 
-              {/* User Management - Standalone Mobile - Only for system admins */}
-              {isSystemAdmin && hasPermission('user:read:any') && (
-                <Link
-                  href="/admin/usermanagement"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Users className="w-5 h-5" />
-                  <span>User Management</span>
-                </Link>
+              {/* Users & Access - Mobile - For system admins */}
+              {isSystemAdmin && (hasPermission('user:read:any') || hasPermission('permission:read:any') || hasPermission('request:read:any') || hasPermission('*:*:*')) && (
+                <>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Users & Access
+                  </div>
+                  {hasPermission('user:read:any') && (
+                    <Link
+                      href="/admin/usermanagement"
+                      className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Users className="w-5 h-5" />
+                      <span>User Management</span>
+                    </Link>
+                  )}
+                  {hasPermission('permission:read:any') && (
+                    <Link
+                      href="/superadmin/permissionsroles"
+                      className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span>Permissions & Roles</span>
+                    </Link>
+                  )}
+                  {(hasPermission('request:read:any') || hasPermission('*:*:*')) && (
+                    <Link
+                      href="/admin/requests"
+                      className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <ClipboardList className="w-5 h-5" />
+                      <span>Requests</span>
+                    </Link>
+                  )}
+                </>
               )}
 
-              {/* Permissions & Roles - Standalone Mobile - Only for super admins with permission:read:any */}
-              {isSystemAdmin && hasPermission('permission:read:any') && (
-                <Link
-                  href="/superadmin/permissionsroles"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Shield className="w-5 h-5" />
-                  <span>Permissions & Roles</span>
-                </Link>
-              )}
-
-              {/* Requests - Mobile - For users with request management permissions */}
-              {(hasPermission('request:read:any') || hasPermission('request:manage:any') || hasPermission('*:*:*')) && (
-                <Link
-                  href="/admin/requests"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <ClipboardList className="w-5 h-5" />
-                  <span>Requests</span>
-                </Link>
-              )}
-
-              {/* Platform Analytics - Mobile - For super admins */}
+              {/* Analytics - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/platformanalytics"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Platform Analytics</span>
-                </Link>
+                <>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
+                    Analytics
+                  </div>
+                  <Link
+                    href="/admin/platformanalytics"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Platform Analytics</span>
+                  </Link>
+                  <Link
+                    href="/admin/analyticsmanagement"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <BarChart3 className="w-5 h-5" />
+                    <span>Analytics Management</span>
+                  </Link>
+                </>
               )}
 
-              {/* Analytics Management - Mobile - For super admins */}
+              {/* Finance - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/analyticsmanagement"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  <span>Analytics Management</span>
-                </Link>
+                <>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
+                    Finance
+                  </div>
+                  <Link
+                    href="/admin/earningsmanagement"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <DollarSign className="w-5 h-5" />
+                    <span>Earnings Management</span>
+                  </Link>
+                  <Link
+                    href="/admin/walletmanagement"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Wallet className="w-5 h-5" />
+                    <span>Wallet Management</span>
+                  </Link>
+                  <Link
+                    href="/admin/splitconfiguration"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <PieChart className="w-5 h-5" />
+                    <span>Split Configuration</span>
+                  </Link>
+                </>
               )}
 
-              {/* Earnings Management - Mobile - For super admins */}
+              {/* Content & Assets - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/earningsmanagement"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <DollarSign className="w-5 h-5" />
-                  <span>Earnings Management</span>
-                </Link>
+                <>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
+                    Content & Assets
+                  </div>
+                  <Link
+                    href="/admin/assetlibrary"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <HardDrive className="w-5 h-5" />
+                    <span>Asset Library</span>
+                  </Link>
+                  <Link
+                    href="/admin/masterroster"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Users className="w-5 h-5" />
+                    <span>Master Roster</span>
+                  </Link>
+                </>
               )}
 
-              {/* Asset Library - Mobile - For super admins */}
-              {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/assetlibrary"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <HardDrive className="w-5 h-5" />
-                  <span>Asset Library</span>
-                </Link>
-              )}
-
-              {/* Master Roster - Mobile - For super admins */}
-              {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/masterroster"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Users className="w-5 h-5" />
-                  <span>Master Roster</span>
-                </Link>
-              )}
-
-              {/* Wallet Management - Mobile - For super admins */}
-              {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/walletmanagement"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Wallet className="w-5 h-5" />
-                  <span>Wallet Management</span>
-                </Link>
-              )}
-
-              {/* Split Configuration - Mobile - For super admins */}
-              {isSystemAdmin && hasPermission('*:*:*') && (
-                <Link
-                  href="/admin/splitconfiguration"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <PieChart className="w-5 h-5" />
-                  <span>Split Configuration</span>
-                </Link>
-              )}
-
-              {/* Distribution Links - Mobile - For super admins */}
+              {/* Distribution - Mobile - For super admins */}
               {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
                 <>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
+                    Distribution
+                  </div>
                   <Link
                     href="/distribution"
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Truck className="w-5 h-5" />
@@ -826,7 +859,7 @@ export default function RoleBasedNavigation() {
                   </Link>
                   <Link
                     href="/distribution/reporting"
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <TrendingUp className="w-5 h-5" />
