@@ -23,7 +23,7 @@ export default function DistributionQueue() {
     // Handle URL params for status filtering
     const urlParams = new URLSearchParams(window.location.search);
     const statusParam = urlParams.get('status');
-    if (statusParam && ['submitted', 'in_review', 'completed'].includes(statusParam)) {
+    if (statusParam && ['submitted', 'in_review', 'completed', 'live'].includes(statusParam)) {
       setStatusFilter(statusParam);
     }
     loadReleases();
@@ -33,11 +33,11 @@ export default function DistributionQueue() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Fetch releases with status: submitted, in_review, or completed
+      // Fetch releases with status: submitted, in_review, completed, or live
       const { data, error } = await supabase
         .from('releases')
         .select('*')
-        .in('status', ['submitted', 'in_review', 'completed'])
+        .in('status', ['submitted', 'in_review', 'completed', 'live'])
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -117,7 +117,8 @@ export default function DistributionQueue() {
     total: releases.length,
     submitted: releases.filter(r => r.status === 'submitted').length,
     inReview: releases.filter(r => r.status === 'in_review').length,
-    completed: releases.filter(r => r.status === 'completed').length
+    completed: releases.filter(r => r.status === 'completed').length,
+    live: releases.filter(r => r.status === 'live').length
   }), [releases]);
 
   if (loading) {
@@ -143,7 +144,7 @@ export default function DistributionQueue() {
             <p className="mt-2 text-gray-600">Review and manage submitted releases</p>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-5 gap-4 mt-6">
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                 <div className="text-sm text-gray-600">Total</div>
@@ -159,6 +160,10 @@ export default function DistributionQueue() {
               <div className="bg-indigo-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-indigo-800">{stats.completed}</div>
                 <div className="text-sm text-indigo-700">Completed</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-800">{stats.live}</div>
+                <div className="text-sm text-green-700">Live</div>
               </div>
             </div>
           </div>
@@ -188,6 +193,7 @@ export default function DistributionQueue() {
               <option value="submitted">Submitted</option>
               <option value="in_review">In Review</option>
               <option value="completed">Completed</option>
+              <option value="live">Live</option>
             </select>
           </div>
         </div>
