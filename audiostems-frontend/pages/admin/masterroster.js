@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Users, Search, Filter, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useUser } from '@/components/providers/SupabaseProvider';
 
 export default function MasterRoster() {
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
   const [contributors, setContributors] = useState([]);
   const [filteredContributors, setFilteredContributors] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -15,17 +18,37 @@ export default function MasterRoster() {
   const [sortConfig, setSortConfig] = useState({ key: 'joined_date', direction: 'desc' });
 
   useEffect(() => {
-    fetchMasterRoster();
-  }, []);
+    if (user) {
+      fetchMasterRoster();
+    }
+  }, [user]);
 
   useEffect(() => {
     applyFilters();
   }, [contributors, searchTerm, roleFilter, sourceFilter, sortConfig]);
 
   const fetchMasterRoster = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/master-roster');
+
+      // Get session for auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        console.error('No auth token available');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/admin/master-roster', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch master roster');
@@ -191,7 +214,7 @@ export default function MasterRoster() {
       <ChevronDown className="w-4 h-4" />;
   };
 
-  if (loading) {
+  if (userLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
         <div className="text-center">
