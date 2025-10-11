@@ -19,11 +19,7 @@ async function handler(req, res) {
 
   try {
     const {
-      status = 'active',
-      file_type,
-      uploaded_by,
-      entity_type,
-      category,
+      bucket = 'all',
       search,
       sort_by = 'created_at',
       sort_order = 'desc',
@@ -31,104 +27,107 @@ async function handler(req, res) {
       per_page = 50
     } = req.query;
 
-    console.log('📁 Fetching media files...');
+    console.log('📁 Fetching files from storage...');
 
-    // Build query
-    let query = supabase
-      .from('media_files')
-      .select(`
-        *,
-        uploader:uploaded_by (
-          id,
-          first_name,
-          last_name,
-          display_name,
-          email,
-          artist_name
-        ),
-        deleter:deleted_by (
-          id,
-          first_name,
-          last_name,
-          display_name,
-          email
-        )
-      `, { count: 'exact' });
+    // Use Supabase storage list API to get ALL files from all buckets
+    const { data: buckets } = await supabase.storage.listBuckets();
+    let allFiles = [];
 
-    // Apply filters
-    if (status === 'all') {
-      // No status filter
-    } else {
-      query = query.eq('status', status);
+    console.log(`📦 Found ${buckets?.length || 0} storage buckets`);
+
+    for (const bucketItem of buckets || []) {
+      if (bucket !== 'all' && bucketItem.id !== bucket) continue;
+
+      console.log(`📂 Listing files in bucket: ${bucketItem.id}`);
+
+      // List all files in this bucket recursively
+      const { data: bucketFiles, error: listError } = await supabase.storage
+        .from(bucketItem.id)
+        .list('', {
+          limit: 1000,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
+
+      if (listError) {
+        console.error(`❌ Error listing bucket ${bucketItem.id}:`, listError);
+        continue;
+      }
+
+      if (bucketFiles) {
+        // For each folder/user, list their files
+        for (const item of bucketFiles) {
+          if (item.id === null) {
+            // This is a folder, list files inside it
+            const { data: folderFiles } = await supabase.storage
+              .from(bucketItem.id)
+              .list(item.name, {
+                limit: 1000
+              });
+
+            if (folderFiles) {
+              allFiles = allFiles.concat(
+                folderFiles.map(f => ({
+                  id: f.id,
+                  name: `${item.name}/${f.name}`,
+                  bucket_id: bucketItem.id,
+                  bucket_public: bucketItem.public,
+                  created_at: f.created_at,
+                  updated_at: f.updated_at,
+                  metadata: f.metadata || {}
+                }))
+              );
+            }
+          } else {
+            // This is a file at root level
+            allFiles.push({
+              id: item.id,
+              name: item.name,
+              bucket_id: bucketItem.id,
+              bucket_public: bucketItem.public,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              metadata: item.metadata || {}
+            });
+          }
+        }
+      }
     }
 
-    if (file_type) {
-      query = query.eq('file_type', file_type);
-    }
+    console.log(`📊 Total files found: ${allFiles.length}`);
 
-    if (uploaded_by) {
-      query = query.eq('uploaded_by', uploaded_by);
-    }
-
-    if (entity_type) {
-      query = query.eq('entity_type', entity_type);
-    }
-
-    if (category) {
-      query = query.eq('category', category);
-    }
-
+    // Apply search filter
     if (search) {
-      query = query.ilike('file_name', `%${search}%`);
+      allFiles = allFiles.filter(f =>
+        f.name.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
-    // Sorting
-    query = query.order(sort_by, { ascending: sort_order === 'asc' });
+    // Sort files
+    allFiles.sort((a, b) => {
+      const aValue = sort_by === 'name' ? a.name : new Date(a[sort_by] || a.created_at).getTime();
+      const bValue = sort_by === 'name' ? b.name : new Date(b[sort_by] || b.created_at).getTime();
 
-    // Pagination
+      if (sort_order === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    // Apply pagination
     const offset = (parseInt(page) - 1) * parseInt(per_page);
-    query = query.range(offset, offset + parseInt(per_page) - 1);
+    const paginatedFiles = allFiles.slice(offset, offset + parseInt(per_page));
 
-    const { data: files, error, count } = await query;
-
-    if (error) {
-      console.error('❌ Error fetching media files:', error);
-      return res.status(500).json({
-        error: 'Failed to fetch media files',
-        details: error.message
-      });
-    }
-
-    // Enrich data with formatted information
-    const enrichedFiles = files.map(file => ({
-      ...file,
-      uploader_name: file.uploader?.artist_name ||
-                    file.uploader?.display_name ||
-                    `${file.uploader?.first_name || ''} ${file.uploader?.last_name || ''}`.trim() ||
-                    file.uploader?.email ||
-                    'Unknown',
-      deleter_name: file.deleter ? (
-        file.deleter?.display_name ||
-        `${file.deleter?.first_name || ''} ${file.deleter?.last_name || ''}`.trim() ||
-        file.deleter?.email ||
-        'Unknown'
-      ) : null,
-      file_size_mb: (file.file_size / (1024 * 1024)).toFixed(2),
-      days_until_permanent_delete: file.permanent_delete_at
-        ? Math.ceil((new Date(file.permanent_delete_at) - new Date()) / (1000 * 60 * 60 * 24))
-        : null
-    }));
-
-    console.log(`✅ Found ${files.length} media files`);
+    console.log(`✅ Returning ${paginatedFiles.length} files (page ${page})`);
 
     return res.status(200).json({
       success: true,
-      files: enrichedFiles,
+      files: enrichFiles(paginatedFiles),
       pagination: {
         page: parseInt(page),
         per_page: parseInt(per_page),
-        total: count,
-        total_pages: Math.ceil(count / parseInt(per_page))
+        total: allFiles.length,
+        total_pages: Math.ceil(allFiles.length / parseInt(per_page))
       }
     });
 
@@ -139,6 +138,41 @@ async function handler(req, res) {
       details: error.message
     });
   }
+}
+
+function enrichFiles(files) {
+  return files.map(file => {
+    const metadata = typeof file.metadata === 'string'
+      ? JSON.parse(file.metadata)
+      : (file.metadata || {});
+
+    const size = metadata.size || metadata.contentLength || 0;
+    const mimetype = metadata.mimetype || 'unknown';
+
+    // Extract file type from mimetype
+    const fileType = mimetype.split('/')[0] || 'unknown';
+
+    // Extract user ID from path (format: userId/filename)
+    const pathParts = file.name.split('/');
+    const userId = pathParts.length > 1 ? pathParts[0] : null;
+
+    return {
+      id: file.id,
+      name: file.name.split('/').pop(), // Get filename without path
+      full_path: file.name,
+      bucket_id: file.bucket_id,
+      bucket_public: file.bucket_public,
+      file_type: fileType,
+      file_size: size,
+      file_size_mb: (size / (1024 * 1024)).toFixed(2),
+      file_size_gb: (size / (1024 * 1024 * 1024)).toFixed(3),
+      mimetype: mimetype,
+      owner: file.owner || userId,
+      created_at: file.created_at,
+      updated_at: file.updated_at,
+      storage_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${file.bucket_public ? 'public' : 'authenticated'}/${file.bucket_id}/${file.name}`
+    };
+  });
 }
 
 // Only superadmins can access

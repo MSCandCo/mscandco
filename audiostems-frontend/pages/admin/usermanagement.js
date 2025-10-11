@@ -593,14 +593,6 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => handleChangeRole(user)}
-                          disabled={saving}
-                          className="text-gray-700 hover:text-gray-900 font-medium disabled:opacity-50"
-                        >
-                          Change Role
-                        </button>
-                        <span className="text-gray-300">|</span>
                         {user.status === 'pending' ? (
                           <button
                             onClick={() => handleStatusChange(user, 'activate')}
