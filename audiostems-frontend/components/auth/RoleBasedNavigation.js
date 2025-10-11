@@ -382,6 +382,21 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
+            {/* Master Roster - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/masterroster"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/masterroster')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Master Roster</span>
+              </Link>
+            )}
+
             {/* Distribution Dropdown - For super admins */}
             {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
               <div className="relative" ref={distributionDropdownRef}>
@@ -663,6 +678,18 @@ export default function RoleBasedNavigation() {
                 >
                   <DollarSign className="w-5 h-5" />
                   <span>Earnings Management</span>
+                </Link>
+              )}
+
+              {/* Master Roster - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/masterroster"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Users className="w-5 h-5" />
+                  <span>Master Roster</span>
                 </Link>
               )}
 
