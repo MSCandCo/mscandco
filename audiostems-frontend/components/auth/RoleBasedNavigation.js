@@ -22,6 +22,7 @@ import {
   Truck,
   TrendingUp,
   HardDrive,
+  PieChart,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -428,6 +429,36 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
+            {/* Wallet Management - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/walletmanagement"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/walletmanagement')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <Wallet className="w-4 h-4" />
+                <span>Wallet Management</span>
+              </Link>
+            )}
+
+            {/* Split Configuration - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/splitconfiguration"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/splitconfiguration')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <PieChart className="w-4 h-4" />
+                <span>Split Configuration</span>
+              </Link>
+            )}
+
             {/* Distribution Dropdown - For super admins */}
             {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
               <div className="relative" ref={distributionDropdownRef}>
@@ -755,6 +786,30 @@ export default function RoleBasedNavigation() {
                 >
                   <Users className="w-5 h-5" />
                   <span>Master Roster</span>
+                </Link>
+              )}
+
+              {/* Wallet Management - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/walletmanagement"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span>Wallet Management</span>
+                </Link>
+              )}
+
+              {/* Split Configuration - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/splitconfiguration"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <PieChart className="w-5 h-5" />
+                  <span>Split Configuration</span>
                 </Link>
               )}
 
