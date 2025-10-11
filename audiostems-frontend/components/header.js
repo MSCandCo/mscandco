@@ -136,23 +136,30 @@ function Header({ largeLogo = false }) {
                   ref={dropdownRef}
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    onMouseEnter={() => setIsDropdownOpen(true)}
-                    className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
-                    type="button"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    Hi, {(() => {
-                      if (profileData?.firstName && profileData?.lastName) {
-                        return `${profileData.firstName} ${profileData.lastName}`;
-                      }
-                      return user?.email ? String(user.email) : 'User';
-                    })()}
-                    <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                    </svg>
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    {profileData?.role && (
+                      <span className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
+                        {profileData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      onMouseEnter={() => setIsDropdownOpen(true)}
+                      className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                      type="button"
+                    >
+                      <span className="sr-only">Open user menu</span>
+                      Hi, {(() => {
+                        if (profileData?.firstName && profileData?.lastName) {
+                          return `${profileData.firstName} ${profileData.lastName}`;
+                        }
+                        return user?.email ? String(user.email) : 'User';
+                      })()}
+                      <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                      </svg>
+                    </button>
+                  </div>
 
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
@@ -270,20 +277,20 @@ function Header({ largeLogo = false }) {
               </div>
             ) : (
               <div className="flex items-center space-x-8 ml-auto">
-                <Link 
-                  href="/pricing" 
+                <Link
+                  href="/pricing"
                   className={getNavLinkClasses('/pricing')}
                 >
                   Prices
                 </Link>
-                <Link 
-                  href="/about" 
+                <Link
+                  href="/about"
                   className={getNavLinkClasses('/about')}
                 >
                   About
                 </Link>
-                <Link 
-                  href="/support" 
+                <Link
+                  href="/support"
                   className={getNavLinkClasses('/support')}
                 >
                   Support
@@ -323,28 +330,35 @@ function Header({ largeLogo = false }) {
           {/* Mobile Center - Just Login/Register */}
           <div className="md:hidden flex items-center justify-center flex-1">
             {user ? (
-              <div 
+              <div
                 className="relative"
                 ref={dropdownRef}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  onMouseEnter={() => setIsDropdownOpen(true)}
-                  className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
-                  type="button"
-                >
-                  <span className="sr-only">Open user menu</span>
-                  Hi, {(() => {
-                    if (profileData?.firstName && profileData?.lastName) {
-                      return `${profileData.firstName} ${profileData.lastName}`;
-                    }
-                    return user?.email ? String(user.email) : 'User';
-                  })()}
-                  <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                  </svg>
-                </button>
+                <div className="flex items-center space-x-2">
+                  {profileData?.role && (
+                    <span className="px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
+                      {profileData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onMouseEnter={() => setIsDropdownOpen(true)}
+                    className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                    type="button"
+                  >
+                    <span className="sr-only">Open user menu</span>
+                    Hi, {(() => {
+                      if (profileData?.firstName && profileData?.lastName) {
+                        return `${profileData.firstName} ${profileData.lastName}`;
+                      }
+                      return user?.email ? String(user.email) : 'User';
+                    })()}
+                    <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                    </svg>
+                  </button>
+                </div>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
