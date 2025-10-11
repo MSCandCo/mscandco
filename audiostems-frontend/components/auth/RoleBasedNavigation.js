@@ -21,6 +21,7 @@ import {
   ClipboardList,
   Truck,
   TrendingUp,
+  HardDrive,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -352,6 +353,21 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
+            {/* Platform Analytics - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/platformanalytics"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/platformanalytics')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>Platform Analytics</span>
+              </Link>
+            )}
+
             {/* Analytics Management - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
               <Link
@@ -379,6 +395,21 @@ export default function RoleBasedNavigation() {
               >
                 <DollarSign className="w-4 h-4" />
                 <span>Earnings Management</span>
+              </Link>
+            )}
+
+            {/* Asset Library - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/assetlibrary"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/assetlibrary')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <HardDrive className="w-4 h-4" />
+                <span>Asset Library</span>
               </Link>
             )}
 
@@ -546,19 +577,29 @@ export default function RoleBasedNavigation() {
                       </>
                     )}
 
-                    {/* Messages for super admin */}
-                    {isSuperAdmin && hasPermission('notification:read:any') && (
-                      <Link href="/superadmin/messages">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <Bell className="w-4 h-4 mr-2" />
-                          Platform Messages
-                          {unreadCount > 0 && (
-                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
+                    {/* Messages and Settings for super admin */}
+                    {isSuperAdmin && (
+                      <>
+                        {hasPermission('notification:read:any') && (
+                          <Link href="/superadmin/messages">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Bell className="w-4 h-4 mr-2" />
+                              Platform Messages
+                              {unreadCount > 0 && (
+                                <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                                  {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        )}
+                        <Link href="/admin/settings">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Settings
+                          </div>
+                        </Link>
+                      </>
                     )}
                     
                     <hr className="my-1" />
@@ -657,6 +698,18 @@ export default function RoleBasedNavigation() {
                 </Link>
               )}
 
+              {/* Platform Analytics - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/platformanalytics"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Platform Analytics</span>
+                </Link>
+              )}
+
               {/* Analytics Management - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
                 <Link
@@ -678,6 +731,18 @@ export default function RoleBasedNavigation() {
                 >
                   <DollarSign className="w-5 h-5" />
                   <span>Earnings Management</span>
+                </Link>
+              )}
+
+              {/* Asset Library - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/assetlibrary"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <HardDrive className="w-5 h-5" />
+                  <span>Asset Library</span>
                 </Link>
               )}
 
@@ -763,6 +828,17 @@ export default function RoleBasedNavigation() {
                         Settings
                       </Link>
                     </>
+                  )}
+
+                  {/* Settings for superadmin users */}
+                  {isSuperAdmin && (
+                    <Link
+                      href="/admin/settings"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
                   )}
                   
                   <button
