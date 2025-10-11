@@ -50,6 +50,8 @@ export default function UserManagementPage() {
   const [statusAction, setStatusAction] = useState(null); // 'activate' or 'deactivate'
   const [sortColumn, setSortColumn] = useState('created_at'); // Default sort by creation date
   const [sortDirection, setSortDirection] = useState('desc'); // 'asc' or 'desc'
+  const [showQuickRoleModal, setShowQuickRoleModal] = useState(false);
+  const [quickRoleChange, setQuickRoleChange] = useState(null); // { user, oldRole, newRole }
 
   // Check permission on mount
   useEffect(() => {
@@ -140,10 +142,29 @@ export default function UserManagementPage() {
         throw new Error(data.error || 'Failed to update role');
       }
 
+      const result = await response.json();
+
       // Update local state
       setUsers(users.map(u =>
         u.id === selectedUser.id ? { ...u, role: newRole } : u
       ));
+
+      // Broadcast role change to user's active sessions (for immediate badge update)
+      if (typeof window !== 'undefined') {
+        const roleChangeEvent = {
+          type: 'ROLE_UPDATED',
+          userId: selectedUser.id,
+          email: selectedUser.email,
+          newRole: newRole,
+          timestamp: Date.now()
+        };
+        
+        // Broadcast to all tabs via localStorage
+        localStorage.setItem('user_role_update', JSON.stringify(roleChangeEvent));
+        setTimeout(() => localStorage.removeItem('user_role_update'), 100);
+        
+        console.log(`📢 Broadcast role change for ${selectedUser.email} to ${newRole}`);
+      }
 
       setShowRoleModal(false);
       setSelectedUser(null);
@@ -524,9 +545,32 @@ export default function UserManagementPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {user.role.replace('_', ' ').toUpperCase()}
-                      </span>
+                      <select
+                        value={user.role}
+                        onChange={(e) => {
+                          const newRoleValue = e.target.value;
+                          if (newRoleValue === user.role) return;
+
+                          // Show branded confirmation modal
+                          setQuickRoleChange({
+                            user: user,
+                            oldRole: user.role,
+                            newRole: newRoleValue
+                          });
+                          setShowQuickRoleModal(true);
+
+                          // Reset dropdown to current value (will update if confirmed)
+                          e.target.value = user.role;
+                        }}
+                        disabled={saving}
+                        className="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:outline-none disabled:opacity-50 cursor-pointer"
+                      >
+                        {roles.map((role) => (
+                          <option key={role.id} value={role.name}>
+                            {role.name.replace(/_/g, ' ').toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {user.status === 'active' ? (
@@ -651,6 +695,111 @@ export default function UserManagementPage() {
                   className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Updating...' : 'Update Role'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Role Change Modal */}
+      {showQuickRoleModal && quickRoleChange && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Users className="h-6 w-6 text-gray-700" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Change User Role</h3>
+                  <p className="text-sm text-gray-600">{quickRoleChange.user.email}</p>
+                </div>
+              </div>
+
+              <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700 mb-3">
+                  Change role from <strong className="text-gray-900">{quickRoleChange.oldRole.replace(/_/g, ' ').toUpperCase()}</strong> to <strong className="text-gray-900">{quickRoleChange.newRole.replace(/_/g, ' ').toUpperCase()}</strong>?
+                </p>
+                {user && user.id === quickRoleChange.user.id ? (
+                  <p className="text-xs text-gray-600">
+                    This will change your own role. The page will reload to apply the changes.
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-600">
+                    User must logout and login again to see the new role badge in the header.
+                  </p>
+                )}
+              </div>
+
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-5 w-5 text-red-400 mr-2" />
+                    <span className="text-sm text-red-800">{error}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowQuickRoleModal(false);
+                    setQuickRoleChange(null);
+                    setError(null);
+                  }}
+                  disabled={saving}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      setError(null);
+
+                      const { data: { session } } = await supabase.auth.getSession();
+                      const token = session?.access_token;
+
+                      const response = await fetch(`/api/admin/users/${quickRoleChange.user.id}/update-role`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ role: quickRoleChange.newRole })
+                      });
+
+                      if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || 'Failed to update role');
+                      }
+
+                      // Update local state
+                      setUsers(users.map(u =>
+                        u.id === quickRoleChange.user.id ? { ...u, role: quickRoleChange.newRole } : u
+                      ));
+
+                      // If this is the current user, update their session context immediately
+                      if (user && user.id === quickRoleChange.user.id) {
+                        // Trigger a page reload to refresh the auth context
+                        window.location.reload();
+                      }
+
+                      setShowQuickRoleModal(false);
+                      setQuickRoleChange(null);
+                    } catch (err) {
+                      console.error('Error updating role:', err);
+                      setError(err.message);
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Updating...' : 'Confirm Change'}
                 </button>
               </div>
             </div>

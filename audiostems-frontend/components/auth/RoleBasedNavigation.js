@@ -26,6 +26,7 @@ import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import usePermissions from '@/hooks/usePermissions';
+import { useRoleSync } from '@/hooks/useRoleSync';
 
 export default function RoleBasedNavigation() {
   const { user, isLoading } = useUser();
@@ -39,6 +40,9 @@ export default function RoleBasedNavigation() {
 
   // Use permissions hook for permission-based navigation
   const { hasPermission, loading: permissionsLoading } = usePermissions();
+
+  // Use role sync hook for real-time role updates
+  const syncedRole = useRoleSync();
 
   // Check if user is superadmin - superadmins don't need wallet/profile
   const isSuperAdmin = user && hasPermission('*:*:*');
@@ -137,7 +141,8 @@ export default function RoleBasedNavigation() {
     return null;
   }
 
-  const userRole = getUserRoleSync(user);
+  // Use synced role if available (for real-time updates), otherwise fall back to getUserRoleSync
+  const userRole = syncedRole || getUserRoleSync(user);
 
   // Helper function to get the correct profile/settings path based on role
   const getRoleBasePath = () => {
@@ -384,7 +389,7 @@ export default function RoleBasedNavigation() {
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                {String(userRole || '').replace('_', ' ').toUpperCase()}
+                {userRole ? userRole.replace('_', ' ').toUpperCase() : 'USER'}
               </span>
               
               <div className="relative" ref={dropdownRef}>
@@ -541,7 +546,7 @@ export default function RoleBasedNavigation() {
               <div className="border-t border-gray-200 pt-4 pb-3">
                 <div className="px-3 py-2">
                   <div className="text-base font-medium text-gray-800">{getDisplayName()}</div>
-                  <div className="text-sm text-gray-500">{String(userRole || '').replace('_', ' ').toUpperCase()}</div>
+                  <div className="text-sm text-gray-500">{userRole ? userRole.replace('_', ' ').toUpperCase() : 'USER'}</div>
                 </div>
                 <div className="mt-3 space-y-1">
                   <Link

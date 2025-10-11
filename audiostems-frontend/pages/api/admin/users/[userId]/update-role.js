@@ -105,6 +105,26 @@ export default async function handler(req, res) {
 
     console.log(`Successfully updated user ${updatedUser.email} to role ${updatedUser.role}`);
 
+    // Update auth.users metadata so it's available on next login
+    try {
+      const { error: metadataError } = await supabase.auth.admin.updateUserById(
+        userId,
+        {
+          user_metadata: {
+            role: role
+          }
+        }
+      );
+
+      if (metadataError) {
+        console.error('Warning: Failed to update user metadata:', metadataError);
+      } else {
+        console.log(`✅ Updated auth metadata for ${updatedUser.email} with role ${role}`);
+      }
+    } catch (metadataUpdateError) {
+      console.error('Warning: Exception updating user metadata:', metadataUpdateError);
+    }
+
     res.status(200).json({
       success: true,
       message: `User role updated to ${role}`,
