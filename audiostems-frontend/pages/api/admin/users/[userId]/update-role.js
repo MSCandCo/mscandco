@@ -3,25 +3,21 @@
  * POST /api/admin/users/[userId]/update-role
  *
  * Updates a user's role in the user_profiles table
- * Requires: user:update:any permission
+ * V2: Requires users_access:user_management:update permission
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check permission - only users with user update access
-  const authorized = await requirePermission(req, res, 'user:update:any');
-  if (!authorized) return;
 
   const { userId } = req.query;
   const { role } = req.body;
@@ -147,3 +143,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires update permission for user management
+export default requirePermission('users_access:user_management:update')(handler);

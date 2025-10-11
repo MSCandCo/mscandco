@@ -3,25 +3,21 @@
  * GET /api/admin/users/list
  *
  * Returns all users with their profiles and roles
- * Requires: user:read:any permission
+ * V2: Requires users_access:user_management:read permission
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check permission - only users with user management access
-  const authorized = await requirePermission(req, res, 'user:read:any');
-  if (!authorized) return;
 
   try {
     // Get all user profiles with role information
@@ -86,3 +82,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires read permission for user management
+export default requirePermission('users_access:user_management:read')(handler);
