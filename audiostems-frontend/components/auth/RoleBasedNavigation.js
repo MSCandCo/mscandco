@@ -367,6 +367,21 @@ export default function RoleBasedNavigation() {
               </Link>
             )}
 
+            {/* Earnings Management - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/earnings-management"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/earnings-management')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>Earnings Management</span>
+              </Link>
+            )}
+
             {/* Distribution Dropdown - For super admins */}
             {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
               <div className="relative" ref={distributionDropdownRef}>
@@ -636,6 +651,18 @@ export default function RoleBasedNavigation() {
                 >
                   <BarChart3 className="w-5 h-5" />
                   <span>Analytics Management</span>
+                </Link>
+              )}
+
+              {/* Earnings Management - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/earnings-management"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <DollarSign className="w-5 h-5" />
+                  <span>Earnings Management</span>
                 </Link>
               )}
 
