@@ -128,15 +128,12 @@ async function handler(req, res) {
         .filter(id => id !== null)
     )];
 
-    // Fetch user details
-    const { data: userProfiles } = await supabase
-      .from('user_profiles')
-      .select('id, first_name, last_name, display_name, artist_name')
-      .in('id', userIds);
+    // Fetch user emails from auth.users
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
 
     const userMap = {};
-    userProfiles?.forEach(u => {
-      userMap[u.id] = u.artist_name || u.display_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unknown User';
+    authUsers?.users?.forEach(u => {
+      userMap[u.id] = u.email || 'Unknown';
     });
 
     console.log(`✅ Returning ${paginatedFiles.length} files (page ${page})`);
@@ -189,7 +186,7 @@ function enrichFiles(files, userMap = {}) {
       file_size_gb: (size / (1024 * 1024 * 1024)).toFixed(3),
       mimetype: mimetype,
       owner_id: userId,
-      owner_name: userId ? (userMap[userId] || 'Unknown User') : 'System',
+      owner_email: userId ? (userMap[userId] || 'Unknown') : 'System',
       created_at: file.created_at,
       updated_at: file.updated_at,
       storage_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${file.bucket_public ? 'public' : 'authenticated'}/${file.bucket_id}/${file.name}`
