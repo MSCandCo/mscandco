@@ -138,9 +138,9 @@ function Header({ largeLogo = false }) {
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
                   <div className="flex items-center space-x-3">
-                    {profileData?.role && (
+                    {user?.role && (
                       <span className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                        {profileData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </span>
                     )}
                     <button
@@ -337,9 +337,9 @@ function Header({ largeLogo = false }) {
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
                 <div className="flex items-center space-x-2">
-                  {profileData?.role && (
+                  {user?.role && (
                     <span className="px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                      {profileData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </span>
                   )}
                   <button
