@@ -630,9 +630,15 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
             setSectionVisibility(sectionVisibility);
           }
 
-          // Load last updated timestamp
+          // Load last updated timestamp and ensure proper format for datetime-local input
           if (result.data.lastUpdated) {
-            setLastUpdated(result.data.lastUpdated);
+            // Ensure the format is YYYY-MM-DDTHH:mm for datetime-local input
+            const dateStr = result.data.lastUpdated;
+            // If it's a full ISO string, slice it; otherwise use as-is
+            const formattedDate = dateStr.includes('T') && dateStr.length > 16
+              ? dateStr.slice(0, 16)
+              : dateStr;
+            setLastUpdated(formattedDate);
           }
         } else {
           console.log('📭 No existing analytics data found for artist');

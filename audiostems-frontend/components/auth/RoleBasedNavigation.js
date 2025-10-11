@@ -19,8 +19,8 @@ import {
   LayoutDashboard,
   Shield,
   ClipboardList,
-  Inbox,
-  RefreshCw,
+  Truck,
+  TrendingUp,
 } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency as sharedFormatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -36,7 +36,9 @@ export default function RoleBasedNavigation() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isDistributionDropdownOpen, setIsDistributionDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const distributionDropdownRef = useRef(null);
 
   // Use permissions hook for permission-based navigation
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -50,9 +52,9 @@ export default function RoleBasedNavigation() {
   // Use shared wallet balance hook - skip for superadmins (pass true to skip when isSuperAdmin is true)
   const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(isSuperAdmin);
 
-  // Load unread notification count for artists and label admins
+  // Load unread notification count for artists, label admins, distribution partners, and super admins
   useEffect(() => {
-    if (user && ['artist', 'label_admin'].includes(getUserRoleSync(user))) {
+    if (user && ['artist', 'label_admin', 'distribution_partner', 'super_admin'].includes(getUserRoleSync(user))) {
       loadUnreadCount();
     }
   }, [user]);
@@ -77,11 +79,14 @@ export default function RoleBasedNavigation() {
     }
   };
 
-  // Click outside to close dropdown
+  // Click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+      }
+      if (distributionDropdownRef.current && !distributionDropdownRef.current.contains(event.target)) {
+        setIsDistributionDropdownOpen(false);
       }
     };
 
@@ -255,17 +260,14 @@ export default function RoleBasedNavigation() {
   // Distribution Partner Items - Based on permissions
   if (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) {
     navigationItems.push({
-      href: '/distribution/queue',
-      label: 'Distribution Queue',
-      icon: Inbox
+      href: '/distribution',
+      label: 'Distribution Hub',
+      icon: Truck
     });
-  }
-
-  if (hasPermission('distribution:manage:partner') || hasPermission('distribution:manage:any')) {
     navigationItems.push({
-      href: '/distribution/revisions',
-      label: 'Revision Queue',
-      icon: RefreshCw
+      href: '/distribution/reporting',
+      label: 'Revenue Reporting',
+      icon: TrendingUp
     });
   }
 
@@ -349,12 +351,63 @@ export default function RoleBasedNavigation() {
                 <span>Requests</span>
               </Link>
             )}
+
+            {/* Analytics Management - For super admins */}
+            {isSystemAdmin && hasPermission('*:*:*') && (
+              <Link
+                href="/admin/analytics-management"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/analytics-management')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Analytics Management</span>
+              </Link>
+            )}
+
+            {/* Distribution Dropdown - For super admins */}
+            {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
+              <div className="relative" ref={distributionDropdownRef}>
+                <button
+                  onClick={() => setIsDistributionDropdownOpen(!isDistributionDropdownOpen)}
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                    isActivePage('/distribution') || isActivePage('/distribution/reporting')
+                      ? 'text-gray-800 font-semibold'
+                      : 'text-gray-400 hover:text-gray-800'
+                  }`}
+                >
+                  <Truck className="w-4 h-4" />
+                  <span>Distribution</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {isDistributionDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/distribution">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <Truck className="w-4 h-4 mr-2" />
+                        Distribution Hub
+                      </div>
+                    </Link>
+                    <Link href="/distribution/reporting">
+                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Revenue Reporting
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right side - User menu and Mobile menu button */}
           <div className="flex items-center space-x-3">
-            {/* Notification Bell - For subscription customers only */}
-            {!isSystemAdmin && hasPermission('notification:read:own') && (
+            {/* Notification Bell - For subscription customers, distribution partners, and super admins */}
+            {((!isSystemAdmin || userRole === 'distribution_partner') && hasPermission('notification:read:own')) ||
+             (userRole === 'super_admin' && hasPermission('notification:read:any')) ? (
               <Link
                 href={`${getRoleBasePath()}/messages`}
                 className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
@@ -366,7 +419,7 @@ export default function RoleBasedNavigation() {
                   </span>
                 )}
               </Link>
-            )}
+            ) : null}
 
             {/* Platform Funds Display - For subscription customers only */}
             {!isSystemAdmin && hasPermission('earnings:read:own') && (
@@ -461,6 +514,21 @@ export default function RoleBasedNavigation() {
                           </div>
                         </Link>
                       </>
+                    )}
+
+                    {/* Messages for super admin */}
+                    {isSuperAdmin && hasPermission('notification:read:any') && (
+                      <Link href="/superadmin/messages">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <Bell className="w-4 h-4 mr-2" />
+                          Platform Messages
+                          {unreadCount > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
                     )}
                     
                     <hr className="my-1" />
@@ -557,6 +625,40 @@ export default function RoleBasedNavigation() {
                   <ClipboardList className="w-5 h-5" />
                   <span>Requests</span>
                 </Link>
+              )}
+
+              {/* Analytics Management - Mobile - For super admins */}
+              {isSystemAdmin && hasPermission('*:*:*') && (
+                <Link
+                  href="/admin/analytics-management"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Analytics Management</span>
+                </Link>
+              )}
+
+              {/* Distribution Links - Mobile - For super admins */}
+              {isSystemAdmin && (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any') || hasPermission('*:*:*')) && (
+                <>
+                  <Link
+                    href="/distribution"
+                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Truck className="w-5 h-5" />
+                    <span>Distribution Hub</span>
+                  </Link>
+                  <Link
+                    href="/distribution/reporting"
+                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Revenue Reporting</span>
+                  </Link>
+                </>
               )}
 
               {/* Utility Links */}
