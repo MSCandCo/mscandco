@@ -193,13 +193,15 @@ export default function SplitConfiguration() {
   };
 
   const filteredArtists = artistOverrides.filter(artist =>
-    artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    artist.email.toLowerCase().includes(searchTerm.toLowerCase())
+    !searchTerm ||
+    artist.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    artist.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredLabels = labelOverrides.filter(label =>
-    label.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    label.email.toLowerCase().includes(searchTerm.toLowerCase())
+    !searchTerm ||
+    label.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    label.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {

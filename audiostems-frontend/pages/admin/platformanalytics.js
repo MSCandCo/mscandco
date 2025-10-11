@@ -28,6 +28,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { DateRangeSelector } from '@/components/ui/DateRangeSelector';
 
 export default function PlatformAnalytics() {
   const router = useRouter();
@@ -35,6 +36,8 @@ export default function PlatformAnalytics() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState('30');
+  const [customStartDate, setCustomStartDate] = useState(null);
+  const [customEndDate, setCustomEndDate] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
 
   useEffect(() => {
@@ -63,7 +66,12 @@ export default function PlatformAnalytics() {
         return;
       }
 
-      const response = await fetch(`/api/admin/platform-analytics?timeRange=${timeRange}`, {
+      let queryParams = `timeRange=${timeRange}`;
+      if (timeRange === 'custom' && customStartDate && customEndDate) {
+        queryParams += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      }
+
+      const response = await fetch(`/api/admin/platform-analytics?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -171,22 +179,16 @@ export default function PlatformAnalytics() {
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Time Range Selector */}
-              <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2 border border-gray-200">
-                <Calendar size={18} className="text-gray-600" />
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(e.target.value)}
-                  className="text-sm font-medium focus:outline-none bg-transparent"
-                  style={{ color: '#1f2937' }}
-                >
-                  <option value="7">Last 7 days</option>
-                  <option value="30">Last 30 days</option>
-                  <option value="90">Last 90 days</option>
-                  <option value="365">Last year</option>
-                  <option value="all">All time</option>
-                </select>
-              </div>
+              {/* Date Range Selector */}
+              <DateRangeSelector
+                value={timeRange}
+                onChange={(range, start, end) => {
+                  setTimeRange(range);
+                  setCustomStartDate(start);
+                  setCustomEndDate(end);
+                }}
+                showCustom={true}
+              />
 
               {/* Refresh Button */}
               <button

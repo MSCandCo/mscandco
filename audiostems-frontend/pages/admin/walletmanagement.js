@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { CurrencySelector, formatCurrency as formatCurrencyUtil } from '@/components/ui/CurrencySelector';
 
 export default function WalletManagement() {
   const { user } = useUser();
@@ -28,6 +29,7 @@ export default function WalletManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [walletFilter, setWalletFilter] = useState('all'); // all, artists, label_admins
   const [transactionType, setTransactionType] = useState('all'); // all, credit, debit, subscription, topup
+  const [currencyFilter, setCurrencyFilter] = useState('GBP'); // Currency filter
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, per_page: 20, total_pages: 1 });
 
@@ -282,7 +284,7 @@ export default function WalletManagement() {
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search Users
@@ -330,6 +332,17 @@ export default function WalletManagement() {
                 <option value="topup">Top-ups (Revolut)</option>
                 <option value="earning">Earnings</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Currency
+              </label>
+              <CurrencySelector
+                value={currencyFilter}
+                onChange={setCurrencyFilter}
+                showSymbol={true}
+              />
             </div>
           </div>
         </div>
