@@ -14,11 +14,60 @@ async function handler(req, res) {
 
     console.log('Loading wallet data for label admin:', labelAdminId);
 
-    // Calculate wallet summary directly from earnings_log table for label admin
+    // First, get all artists under this label admin
+    const { data: roster, error: rosterError } = await supabase
+      .from('label_roster')
+      .select('artist_id')
+      .eq('label_admin_id', labelAdminId)
+      .eq('status', 'accepted');
+
+    if (rosterError) {
+      console.error('Error loading label roster:', rosterError);
+      // Return empty wallet instead of erroring
+      return res.status(200).json({
+        success: true,
+        wallet: {
+          label_admin_id: labelAdminId,
+          available_balance: 0,
+          pending_balance: 0,
+          held_balance: 0,
+          total_earned: 0,
+          currency: 'GBP',
+          minimum_payout: 50,
+          last_updated: new Date().toISOString()
+        },
+        pending_entries: [],
+        recent_history: []
+      });
+    }
+
+    const artistIds = roster?.map(r => r.artist_id) || [];
+
+    // If no artists, return empty wallet
+    if (artistIds.length === 0) {
+      console.log('Label admin has no artists yet');
+      return res.status(200).json({
+        success: true,
+        wallet: {
+          label_admin_id: labelAdminId,
+          available_balance: 0,
+          pending_balance: 0,
+          held_balance: 0,
+          total_earned: 0,
+          currency: 'GBP',
+          minimum_payout: 50,
+          last_updated: new Date().toISOString()
+        },
+        pending_entries: [],
+        recent_history: []
+      });
+    }
+
+    // Get earnings for all artists under this label
     const { data: allEarnings, error: earningsError } = await supabase
       .from('earnings_log')
       .select('*')
-      .eq('label_admin_id', labelAdminId); // Assuming earnings_log has label_admin_id field
+      .in('artist_id', artistIds);
 
     if (earningsError) {
       console.error('Error loading label admin earnings:', earningsError);
