@@ -588,24 +588,41 @@ function EditStatusForm({ entry, onSubmit, onCancel }) {
 
   // Format payment_date to YYYY-MM-DD for date input
   const formatDateForInput = (dateStr) => {
-    if (!dateStr) return '';
+    // Return empty string for null/undefined/empty
+    if (!dateStr || dateStr === '' || dateStr === 'null' || dateStr === 'undefined') {
+      return '';
+    }
+
     // If it's already in YYYY-MM-DD format, return as-is
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-    // Otherwise, parse and format
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (datePattern.test(dateStr)) {
+      return dateStr;
+    }
+
+    // Try to parse and format
     try {
       const date = new Date(dateStr);
       // Check if date is valid
-      if (isNaN(date.getTime())) return '';
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', dateStr);
+        return '';
+      }
       const formatted = date.toISOString().split('T')[0];
       // Final validation
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) return '';
+      if (!datePattern.test(formatted)) {
+        console.warn('Formatted date invalid:', formatted);
+        return '';
+      }
       return formatted;
-    } catch {
+    } catch (error) {
+      console.error('Error formatting date:', dateStr, error);
       return '';
     }
   };
 
-  const [paymentDate, setPaymentDate] = useState(formatDateForInput(entry.payment_date));
+  // Initialize with formatted date
+  const initialDate = formatDateForInput(entry.payment_date);
+  const [paymentDate, setPaymentDate] = useState(initialDate);
   const [notes, setNotes] = useState(entry.notes || '');
   const [loading, setLoading] = useState(false);
 
@@ -653,7 +670,7 @@ function EditStatusForm({ entry, onSubmit, onCancel }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
           <input
             type="date"
-            value={paymentDate}
+            value={paymentDate || ''}
             onChange={(e) => setPaymentDate(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
