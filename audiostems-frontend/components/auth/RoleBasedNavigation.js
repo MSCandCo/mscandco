@@ -240,6 +240,11 @@ export default function RoleBasedNavigation() {
 
   // Subscription customer links - ONLY for non-system-admins AND non-distribution-partners
   if (!isSystemAdmin && userRole !== 'distribution_partner') {
+    // Add "My Artists" link for label_admin users
+    if (userRole === 'label_admin') {
+      navigationItems.push({ href: '/labeladmin/artists', label: 'My Artists', icon: Users });
+    }
+
     // Always show core navigation for subscription customers (artist, label_admin)
     navigationItems.push({ href: `${roleBasePath}/releases`, label: 'Releases', icon: FileText });
     navigationItems.push({ href: `${roleBasePath}/analytics`, label: 'Analytics', icon: BarChart3 });
@@ -327,6 +332,21 @@ export default function RoleBasedNavigation() {
               >
                 <Shield className="w-4 h-4" />
                 <span>Permissions & Roles</span>
+              </Link>
+            )}
+
+            {/* Requests - For users with request management permissions */}
+            {(hasPermission('request:read:any') || hasPermission('request:manage:any') || hasPermission('*:*:*')) && (
+              <Link
+                href="/admin/requests"
+                className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
+                  isActivePage('/admin/requests')
+                    ? 'text-gray-800 font-semibold'
+                    : 'text-gray-400 hover:text-gray-800'
+                }`}
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>Requests</span>
               </Link>
             )}
           </div>
@@ -524,6 +544,18 @@ export default function RoleBasedNavigation() {
                 >
                   <Shield className="w-5 h-5" />
                   <span>Permissions & Roles</span>
+                </Link>
+              )}
+
+              {/* Requests - Mobile - For users with request management permissions */}
+              {(hasPermission('request:read:any') || hasPermission('request:manage:any') || hasPermission('*:*:*')) && (
+                <Link
+                  href="/admin/requests"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  <span>Requests</span>
                 </Link>
               )}
 
