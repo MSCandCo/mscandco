@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { requirePermission } from '@/lib/rbac/middleware';
+import { createNotification } from '@/lib/notifications';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -60,8 +61,8 @@ async function handler(req, res) {
 
     console.log('Invitation created:', data);
 
-    // CREATE NOTIFICATION for the artist
-    await supabase.from('notifications').insert({
+    // CREATE NOTIFICATION for the artist (with auto super admin CC)
+    await createNotification({
       user_id: data.artist_id,
       type: 'invitation',
       title: 'New Label Invitation',
@@ -71,14 +72,14 @@ async function handler(req, res) {
         label_admin_id: data.label_admin_id,
         label_split_percentage: data.label_split_percentage,
         artist_split_percentage: data.artist_split_percentage,
-        personal_message: data.personal_message
+        personal_message: data.personal_message,
+        action_required: true,
+        action_type: 'accept_decline'
       },
-      action_required: true,
-      action_type: 'accept_decline',
       action_url: '/artist/messages'
     });
 
-    console.log('✅ Notification created for artist');
+    console.log('✅ Notification created for artist (with super admin CC)');
     
     return res.status(200).json({ success: true, data });
 

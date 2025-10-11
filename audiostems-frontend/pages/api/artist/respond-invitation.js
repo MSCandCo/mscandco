@@ -1,6 +1,7 @@
 // ARTIST RESPOND TO INVITATION API
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/rbac/middleware';
+import { createNotification } from '@/lib/notifications';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -99,12 +100,12 @@ async function handler(req, res) {
       }
     }
 
-    // CREATE NOTIFICATION for label admin
-    await supabase.from('notifications').insert({
+    // CREATE NOTIFICATION for label admin (with auto super admin CC)
+    await createNotification({
       user_id: invitation.label_admin_id,
       type: 'invitation_response',
       title: action === 'accept' ? 'Invitation Accepted' : 'Invitation Declined',
-      message: action === 'accept' 
+      message: action === 'accept'
         ? `${invitation.artist_first_name} ${invitation.artist_last_name} accepted your partnership invitation`
         : `${invitation.artist_first_name} ${invitation.artist_last_name} declined your partnership invitation${decline_reason ? ': ' + decline_reason : ''}`,
       data: {
@@ -112,12 +113,10 @@ async function handler(req, res) {
         artist_id: invitation.artist_id,
         action: action,
         decline_reason: decline_reason
-      },
-      action_required: false,
-      read: false
+      }
     });
 
-    console.log('✅ Notification created for label admin');
+    console.log('✅ Notification created for label admin (with super admin CC)');
 
     return res.json({
       success: true,
@@ -133,4 +132,4 @@ async function handler(req, res) {
   }
 }
 
-export default requireAuth()(handler);
+export default requireAuth(handler);

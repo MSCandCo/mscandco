@@ -40,9 +40,10 @@ async function handler(req, res) {
     }
 
     // Get all releases from connected artists
+    // Note: contributors column doesn't exist yet in the database
     const { data: releases, error: releasesError } = await supabase
       .from('releases')
-      .select('id, title, artist_id, contributors, created_at')
+      .select('id, title, artist_id, created_at')
       .in('artist_id', artistIds);
 
     if (releasesError) {
@@ -50,14 +51,17 @@ async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to load releases' });
     }
 
-    // Extract all contributors from all releases
+    // TODO: Once the contributors column is added to the releases table,
+    // uncomment this code to extract contributors from releases
     const contributorMap = new Map();
 
+    // Temporarily disabled until contributors column exists:
+    /*
     releases?.forEach(release => {
       if (release.contributors && Array.isArray(release.contributors)) {
         release.contributors.forEach(contributor => {
           const contributorKey = `${contributor.name}-${contributor.email || contributor.type}`;
-          
+
           if (contributorMap.has(contributorKey)) {
             // Add this release to existing contributor
             const existing = contributorMap.get(contributorKey);
@@ -95,21 +99,24 @@ async function handler(req, res) {
         });
       }
     });
+    */
 
     // Convert map to array and sort by name
-    const roster = Array.from(contributorMap.values()).sort((a, b) => 
+    const roster = Array.from(contributorMap.values()).sort((a, b) =>
       (a.name || '').localeCompare(b.name || '')
     );
 
-    // Add artist information to releases
+    // Add artist information to releases (disabled until contributors exist)
+    /*
     const artistMap = new Map(acceptedArtists.map(artist => [artist.artistId, artist]));
-    
+
     roster.forEach(contributor => {
       contributor.releases = contributor.releases.map(release => ({
         ...release,
         artist_name: artistMap.get(release.artist_id)?.artistName || 'Unknown Artist'
       }));
     });
+    */
 
     console.log(`Found ${roster.length} unique contributors from ${releases?.length || 0} releases`);
 

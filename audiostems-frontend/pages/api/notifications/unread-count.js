@@ -40,4 +40,4 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('notification:view:own')(handler);
+export default requirePermission('notification:read:own')(handler);

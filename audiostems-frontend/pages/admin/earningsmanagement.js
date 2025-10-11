@@ -585,6 +585,7 @@ export default function EarningsManagement() {
 // Status Edit Form Component
 function EditStatusForm({ entry, onSubmit, onCancel }) {
   const [status, setStatus] = useState(entry.status);
+
   // Format payment_date to YYYY-MM-DD for date input
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return '';
@@ -593,11 +594,17 @@ function EditStatusForm({ entry, onSubmit, onCancel }) {
     // Otherwise, parse and format
     try {
       const date = new Date(dateStr);
-      return date.toISOString().split('T')[0];
+      // Check if date is valid
+      if (isNaN(date.getTime())) return '';
+      const formatted = date.toISOString().split('T')[0];
+      // Final validation
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) return '';
+      return formatted;
     } catch {
       return '';
     }
   };
+
   const [paymentDate, setPaymentDate] = useState(formatDateForInput(entry.payment_date));
   const [notes, setNotes] = useState(entry.notes || '');
   const [loading, setLoading] = useState(false);

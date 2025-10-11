@@ -355,9 +355,9 @@ export default function RoleBasedNavigation() {
             {/* Analytics Management - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
               <Link
-                href="/admin/analytics-management"
+                href="/admin/analyticsmanagement"
                 className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/analytics-management')
+                  isActivePage('/admin/analyticsmanagement')
                     ? 'text-gray-800 font-semibold'
                     : 'text-gray-400 hover:text-gray-800'
                 }`}
@@ -370,9 +370,9 @@ export default function RoleBasedNavigation() {
             {/* Earnings Management - For super admins */}
             {isSystemAdmin && hasPermission('*:*:*') && (
               <Link
-                href="/admin/earnings-management"
+                href="/admin/earningsmanagement"
                 className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                  isActivePage('/admin/earnings-management')
+                  isActivePage('/admin/earningsmanagement')
                     ? 'text-gray-800 font-semibold'
                     : 'text-gray-400 hover:text-gray-800'
                 }`}
@@ -645,7 +645,7 @@ export default function RoleBasedNavigation() {
               {/* Analytics Management - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
                 <Link
-                  href="/admin/analytics-management"
+                  href="/admin/analyticsmanagement"
                   className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -657,7 +657,7 @@ export default function RoleBasedNavigation() {
               {/* Earnings Management - Mobile - For super admins */}
               {isSystemAdmin && hasPermission('*:*:*') && (
                 <Link
-                  href="/admin/earnings-management"
+                  href="/admin/earningsmanagement"
                   className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
