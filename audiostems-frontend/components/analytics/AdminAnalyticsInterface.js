@@ -800,12 +800,12 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                 onChange={(e) => setLatestRelease(prev => ({ ...prev, artist: e.target.value }))}
                 className="border border-slate-300 rounded-lg px-3 py-2" 
               />
-              <input 
-                type="date" 
-                placeholder="Release Date" 
-                value={latestRelease.releaseDate}
+              <input
+                type="date"
+                placeholder="Release Date"
+                value={latestRelease.releaseDate || ''}
                 onChange={(e) => setLatestRelease(prev => ({ ...prev, releaseDate: e.target.value }))}
-                className="border border-slate-300 rounded-lg px-3 py-2" 
+                className="border border-slate-300 rounded-lg px-3 py-2"
               />
               <div className="relative">
                 <select 
@@ -1014,11 +1014,11 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                           <label className="block text-sm font-medium text-slate-700 mb-1">
                             Date
                           </label>
-                          <input 
-                            type="date" 
-                            value={milestone.date}
+                          <input
+                            type="date"
+                            value={milestone.date || ''}
                             onChange={(e) => updateMilestone(index, 'date', e.target.value)}
-                            className="w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                            className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                           />
                         </div>
                       </div>
@@ -1560,11 +1560,11 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Release Date</label>
-                      <input 
-                        type="date" 
-                        value={release.releaseDate}
+                      <input
+                        type="date"
+                        value={release.releaseDate || ''}
                         onChange={(e) => updateRelease(index, 'releaseDate', e.target.value)}
-                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                       />
                     </div>
                     <div>
