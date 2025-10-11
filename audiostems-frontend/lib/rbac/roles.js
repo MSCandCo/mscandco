@@ -145,6 +145,11 @@ export const PERMISSIONS = {
  * @returns {boolean} - True if the role has the permission
  */
 export function hasPermission(role, permission) {
+  // Super admin has wildcard permission - can access everything
+  if (role === ROLES.SUPER_ADMIN && permission === '*:*:*') {
+    return true;
+  }
+
   const allowedRoles = PERMISSIONS[permission];
   return allowedRoles ? allowedRoles.includes(role) : false;
 }

@@ -20,11 +20,14 @@ async function handler(req, res) {
       .from('user_profiles')
       .select(`
         id,
-        full_name,
+        first_name,
+        last_name,
+        artist_name,
+        display_name,
+        label_name,
         email,
         role,
         company_name,
-        invited_by,
         created_at,
         updated_at
       `)
@@ -43,25 +46,42 @@ async function handler(req, res) {
     // Build a map of user IDs to their full names for source lookup
     const userMap = {};
     profiles.forEach(profile => {
-      userMap[profile.id] = profile.full_name || profile.email;
+      // Construct full name based on role and available fields
+      let fullName = '';
+      if (profile.role === 'artist' && profile.artist_name) {
+        fullName = profile.artist_name;
+      } else if (profile.role === 'label_admin' && profile.label_name) {
+        fullName = profile.label_name;
+      } else if (profile.display_name) {
+        fullName = profile.display_name;
+      } else if (profile.first_name || profile.last_name) {
+        fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+      }
+      userMap[profile.id] = fullName || profile.email;
     });
 
     // Enrich profiles with source information
     const enrichedProfiles = profiles.map(profile => {
-      let sourceName = 'Direct Signup';
-
-      if (profile.invited_by) {
-        sourceName = userMap[profile.invited_by] || `User ID: ${profile.invited_by}`;
+      // Construct full name for this profile
+      let fullName = '';
+      if (profile.role === 'artist' && profile.artist_name) {
+        fullName = profile.artist_name;
+      } else if (profile.role === 'label_admin' && profile.label_name) {
+        fullName = profile.label_name;
+      } else if (profile.display_name) {
+        fullName = profile.display_name;
+      } else if (profile.first_name || profile.last_name) {
+        fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
       }
 
       return {
         id: profile.id,
-        full_name: profile.full_name || 'N/A',
+        full_name: fullName || 'N/A',
         email: profile.email,
         role: profile.role,
         company_name: profile.company_name || 'N/A',
-        source: sourceName,
-        source_user_id: profile.invited_by || null,
+        source: 'Direct Signup',
+        source_user_id: null,
         joined_date: profile.created_at,
         last_updated: profile.updated_at
       };
