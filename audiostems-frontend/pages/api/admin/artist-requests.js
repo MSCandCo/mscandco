@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { requireAuth } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,7 +21,11 @@ async function handler(req, res) {
 // Get all artist requests (for company admin and super admin)
 async function handleGetRequests(req, res) {
   try {
-    // req.user and req.userRole are automatically attached by middleware
+    // Check read permission for requests
+    const canRead = await hasPermission(req.userRole, 'analytics:requests:read', req.user.id);
+    if (!canRead) {
+      return res.status(403).json({ error: 'Insufficient permissions to view requests' });
+    }
 
     // Get all artist requests with optional status filter
     const { status } = req.query;
@@ -68,7 +73,11 @@ async function handleGetRequests(req, res) {
 // Process artist request (approve/reject)
 async function handleProcessRequest(req, res) {
   try {
-    // req.user and req.userRole are automatically attached by middleware
+    // Check update permission for requests (approve/reject)
+    const canUpdate = await hasPermission(req.userRole, 'analytics:requests:update', req.user.id);
+    if (!canUpdate) {
+      return res.status(403).json({ error: 'Insufficient permissions to approve/reject requests' });
+    }
 
     const { requestId, action, rejectionReason, notes } = req.body;
 
@@ -110,4 +119,5 @@ async function handleProcessRequest(req, res) {
   }
 }
 
-export default requirePermission(['artist:view:any', 'artist:invite'])(handler);
+// V2 Permission: Requires authentication - permission checks are done per-method inside handler
+export default requireAuth(handler);
