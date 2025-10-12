@@ -1,177 +1,209 @@
-# AudioStems Platform
+# MSC & Co - Multi-Brand Music Distribution Platform
 
-Enterprise-grade music licensing platform with advanced audio processing, AI-powered recommendations, and comprehensive AWS infrastructure.
+A comprehensive music distribution and publishing platform supporting multiple brands under the MSC & Co umbrella.
 
-## 🚀 Quick Start
+## 🚀 Project Architecture
 
-### Prerequisites
-- Node.js 18+ 
+### **Single Next.js Application**
+- **Location:** `mscandco-frontend/`
+- **Tech Stack:** Next.js 15.5.2 (Pages Router), React 18, Tailwind CSS
+- **Port:** 3013 (local development)
+- **Production:** https://mscandco.vercel.app
+- **Staging:** https://staging.mscandco.com
+
+### **Backend (Serverless)**
+- **API Routes:** Next.js API routes in `pages/api/`
+- **Database:** Supabase PostgreSQL (cloud-hosted)
+- **Authentication:** Supabase Auth (JWT-based)
+- **Storage:** Supabase Storage
+- **No separate backend server** - fully serverless architecture
+
+### **Deployment**
+- **Platform:** Vercel (automatic deployment on git push)
+- **Branch:** `mscandco`
+- **Auto-deploy:** Push to main → Vercel automatically deploys
+
+## 🎯 Key Features
+
+### **Advanced RBAC System**
+- **133 permissions** across platform features
+- **12 roles:** Super Admin, Company Admin, Label Admin, Distribution Partner, Artist + 7 custom roles
+- **Permission-based navigation** (not role-based)
+- **Database-driven** permissions system (V2)
+- **Wildcard support** for super admin (*:*:*)
+- **Real-time role badges** with dynamic updates
+
+### **Admin Features**
+- ✅ Ghost Login - User impersonation for support
+- ✅ Asset Library - Media file management
+- ✅ Wallet Management - Transaction tracking
+- ✅ Split Configuration - Revenue split management
+- ✅ Earnings Management - Wallet transactions
+- ✅ Distribution Hub - Release distribution
+- ✅ Revenue Reporting - Financial analytics
+- ✅ Master Roster - All platform contributors
+- ✅ Request Management - Profile change approvals
+- ✅ User Management - User & role administration
+- ✅ Permission Management - RBAC configuration
+
+### **Security**
+- **3-Layer Security:**
+  1. Page-level protection (usePermissions hook)
+  2. API-level protection (requirePermission middleware)
+  3. Database-level protection (Supabase RLS policies)
+- **No middleware** (Next.js 15 compatibility)
+- **JWT-based authentication**
+- **Audit logging** for permission changes
+
+## 🏃 Quick Start
+
+### **Prerequisites**
+- Node.js 18+
 - npm or yarn
-- Docker (for containerized deployment)
-- AWS CLI (for infrastructure deployment)
+- Supabase account
 
-### Development Setup
-
-1. **Install dependencies:**
-   ```bash
-   npm run setup
-   ```
-
-2. **Start development servers:**
-   ```bash
-   npm run dev
-   ```
-
-This will start both services:
-- **Backend (Strapi):** http://localhost:1337/admin
-- **Frontend (Next.js):** http://localhost:3000
-
-### Individual Service Commands
-
-**Backend only:**
-```bash
-npm run dev:backend
-```
-
-**Frontend only:**
-```bash
-npm run dev:frontend
-```
-
-## 🏗️ Architecture
-
-### Backend (Strapi)
-- **Location:** `audiostems-backend/`
-- **Port:** 1337
-- **Database:** SQLite (dev) / PostgreSQL (prod)
-- **Features:**
-  - Content management for songs, stems, artists
-  - User authentication & permissions
-  - Stripe integration for payments
-  - S3 file uploads
-  - REST & GraphQL APIs
-
-### Frontend (Next.js)
-- **Location:** `audiostems-frontend/`
-- **Port:** 3000
-- **Features:**
-  - Modern React with TypeScript
-  - Tailwind CSS for styling
-  - Audio player with waveform visualization
-  - User dashboard & analytics
-  - Responsive design
-
-### Infrastructure (AWS)
-- **Location:** `infrastructure/aws/`
-- **Components:**
-  - Multi-AZ Aurora PostgreSQL cluster
-  - Redis caching layer
-  - CloudFront CDN
-  - Application Load Balancer
-  - EKS Kubernetes cluster
-  - CloudWatch monitoring
-
-## 🎵 Audio Processing
-
-### Microservices
-- **Audio Processing:** `audio-processing/`
-- **AI Intelligence:** `auditus-ai/`
-
-### Features
-- High-quality audio stem separation
-- AI-powered music tagging
-- Real-time waveform generation
-- Automated metadata extraction
-
-## 🔧 Development Commands
+### **Development Setup**
 
 ```bash
-# Install all dependencies
-npm run setup
+# Navigate to project
+cd "/Users/htay/Documents/MSC & Co/mscandco-frontend"
 
-# Start both services
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 
-# Build for production
-npm run build
-
-# Start production servers
-npm run start
-
-# Clean all node_modules
-npm run clean
+# Open browser
+open http://localhost:3013
 ```
 
-## 🌐 Production Deployment
+## 📊 Database Schema
 
-### AWS Infrastructure
-```bash
-cd infrastructure/aws/database
-terraform init
-terraform plan
-terraform apply
+### **Core Tables**
+- `user_profiles` - User profiles linked to Supabase Auth
+- `permissions` - 133 granular permissions
+- `roles` - 12 system and custom roles
+- `role_permissions` - Join table for role-permission mapping
+- `profile_change_requests` - Approval workflow for profile updates
+- `admin_notifications` - Real-time admin notifications
+- `permission_audit_log` - Audit trail for permission changes
+- `wallet_transactions` - Financial transaction tracking
+- `earnings_log` - Revenue and earnings records
+- `media_files` - Asset library files
+
+### **Permission Format**
+```
+resource:action:scope
+
+Examples:
+- *:*:* (super admin wildcard)
+- users:read:all (read all users)
+- releases:create:own (create own releases)
+- analytics:read:all (read all analytics)
 ```
 
-### Docker Deployment
-```bash
-docker-compose up -d
-```
+## 🧪 Test Accounts
 
-## 📊 Monitoring & Analytics
-
-- **CloudWatch:** Application metrics and logs
-- **Prometheus:** Custom metrics collection
-- **Grafana:** Visualization dashboards
-
-## 🔐 Security Features
-
-- JWT authentication
-- Role-based access control
-- API rate limiting
-- SSL/TLS encryption
-- AWS WAF protection
-
-## 🎯 Business Features
-
-- **Advanced Analytics:** Real-time revenue tracking
-- **Royalty Distribution:** Automated payment processing
-- **Enterprise Auth:** SSO integration
-- **API Integrations:** Third-party service connections
-- **Compliance:** GDPR, SOC 2, PCI DSS
+| Email | Role | Password |
+|-------|------|----------|
+| superadmin@mscandco.com | Super Admin | (set via Supabase) |
+| companyadmin@mscandco.com | Company Admin | (set via Supabase) |
+| labeladmin@mscandco.com | Label Admin | (set via Supabase) |
+| artist@mscandco.com | Artist | (set via Supabase) |
+| requests@mscandco.com | Marketing Admin | (set via Supabase) |
+| analytics@mscandco.com | Financial Admin | (set via Supabase) |
 
 ## 📁 Project Structure
 
 ```
-├── audiostems-backend/     # Strapi CMS
-├── audiostems-frontend/    # Next.js frontend
-├── audio-processing/       # Audio processing service
-├── auditus-ai/           # AI intelligence service
-├── infrastructure/        # AWS Terraform configs
-├── monitoring/           # Prometheus & Grafana
-└── docs/                # Documentation
+/Users/htay/Documents/MSC & Co/
+├── mscandco-frontend/          # Main Next.js application
+│   ├── pages/                  # Next.js pages
+│   │   ├── api/               # API routes (serverless backend)
+│   │   ├── superadmin/        # Super admin pages
+│   │   ├── admin/             # Admin pages
+│   │   ├── artist/            # Artist portal pages
+│   │   └── distribution/      # Distribution pages
+│   ├── components/            # React components
+│   │   ├── layouts/          # Layout components
+│   │   ├── ui/               # UI components
+│   │   └── shared/           # Shared components
+│   ├── lib/                   # Utilities & configurations
+│   │   ├── permissions.js    # Permission utilities
+│   │   ├── usePermissions.js # Permission hooks
+│   │   └── supabase.js       # Supabase client
+│   ├── hooks/                 # Custom React hooks
+│   ├── database/              # SQL migrations & schema
+│   └── public/                # Static assets
+├── docs/                      # Documentation (may be outdated)
+├── _archived/                 # Legacy/obsolete code (for reference)
+└── README.md                  # This file
 ```
 
-## 🚦 Status
+## 🚀 Deployment
 
-✅ **Development Environment:** Running successfully
-✅ **Backend API:** Strapi CMS operational
-✅ **Frontend:** Next.js application running
-✅ **AWS Database:** Aurora PostgreSQL deployed
-🔄 **Audio Processing:** In development
-🔄 **AI Services:** In development
+### **Production Deployment**
+```bash
+cd "/Users/htay/Documents/MSC & Co/mscandco-frontend"
+git add -A
+git commit -m "Your commit message"
+git push origin mscandco
+
+# Vercel automatically deploys
+```
+
+### **Environment Variables**
+Set in Vercel dashboard:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- (See `.env.example` for full list)
+
+## 🔧 Recent Updates
+
+### **Last 24 Hours:**
+- ✅ V2 Permission System - Database-driven RBAC
+- ✅ Ghost Login feature for user impersonation
+- ✅ Asset Library for media management
+- ✅ Wallet Management & Split Configuration
+- ✅ Earnings Management system
+- ✅ Distribution Hub & Revenue Reporting
+- ✅ Master Roster page
+- ✅ Permission-based navigation
+- ✅ Real-time role badge updates
+- ✅ Profile change request workflow
+
+### **Architecture Changes:**
+- ❌ Removed Strapi backend (moved to `_archived/`)
+- ❌ Removed AWS infrastructure (moved to `_archived/`)
+- ✅ Migrated to Supabase + Vercel
+- ✅ Serverless Next.js API routes
+- ✅ Removed middleware (Next.js 15 compatibility)
 
 ## 📞 Support
 
-For development issues or questions, check the logs:
-- Backend: `audiostems-backend/logs/`
-- Frontend: Browser developer tools
-- Infrastructure: AWS CloudWatch
+For development issues or questions:
+- **Frontend:** Browser developer tools
+- **Database:** Supabase dashboard
+- **Logs:** Vercel deployment logs
 
-## 🔄 Recent Updates
+## 📝 Notes
 
-- ✅ Fixed npm command issues from root directory
-- ✅ Resolved port conflicts (1337, 3000)
-- ✅ Updated Next.js to latest version
-- ✅ Created unified development scripts
-- ✅ Deployed production Aurora PostgreSQL cluster
-- ✅ Implemented concurrent service management 
+- **Path contains spaces** - Always use quotes in bash commands:
+  ```bash
+  cd "/Users/htay/Documents/MSC & Co/mscandco-frontend"
+  ```
+- **Archived folders** - Old code in `_archived/` for reference only
+- **No separate backend** - Everything runs in Next.js
+- **Supabase handles** - Database, Auth, Storage, RLS policies
+
+## 📄 License
+
+This project is proprietary software owned by MSC & Co.
+
+---
+
+**Active Project:** `mscandco-frontend/`  
+**Production:** https://mscandco.vercel.app  
+**Last Updated:** October 12, 2025

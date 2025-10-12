@@ -145,3 +145,4 @@ export function getUserFullName(user) {
   return user.email?.split('@')[0] || 'User';
 }
 
+

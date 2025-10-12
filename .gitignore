@@ -392,3 +392,5 @@ uploads/
 temp/
 logs/
 *.log 
+# Archived/obsolete code (local reference only)
+_archived/
