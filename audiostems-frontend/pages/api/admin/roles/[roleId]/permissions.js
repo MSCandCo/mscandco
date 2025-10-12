@@ -1,14 +1,15 @@
-import { requirePermission } from '@/lib/permissions';
-import { supabaseService } from '@/lib/permissions';
+import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check permission
-  const authorized = await requirePermission(req, res, 'role:read:any');
-  if (!authorized) return;
 
   const { roleId } = req.query;
 
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
 
   try {
     // Fetch permissions for the specific role
-    const { data: permissions, error } = await supabaseService
+    const { data: permissions, error } = await supabase
       .from('role_permissions')
       .select(`
         permission_id,
@@ -68,3 +69,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires read permission for permissions & roles management
+export default requirePermission('users_access:permissions_roles:read')(handler);

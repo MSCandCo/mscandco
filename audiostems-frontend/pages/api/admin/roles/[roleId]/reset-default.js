@@ -1,14 +1,25 @@
-import { requirePermission, MASTER_ADMIN_ID } from '@/lib/permissions';
-import { supabaseService } from '@/lib/permissions';
+import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 
-export default async function handler(req, res) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// Master Admin ID for ultimate permission protection
+const MASTER_ADMIN_ID = process.env.MASTER_ADMIN_ID || 'cd4c6d06-c733-4c2f-a67c-abf914e06b0d';
+
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Check permission
-  const authorized = await requirePermission(req, res, 'permission:assign:any');
-  if (!authorized) return;
+  // Check update permission for permissions & roles
+  const canUpdate = await hasPermission(req.userRole, 'users_access:permissions_roles:update', req.user.id);
+  if (!canUpdate) {
+    return res.status(403).json({ error: 'Insufficient permissions to reset role permissions' });
+  }
 
   const { roleId } = req.query;
 
@@ -21,7 +32,7 @@ export default async function handler(req, res) {
 
   try {
     // Get role information
-    const { data: role, error: roleError } = await supabaseService
+    const { data: role, error: roleError } = await supabase
       .from('roles')
       .select('name')
       .eq('id', roleId)
@@ -43,7 +54,7 @@ export default async function handler(req, res) {
     }
 
     // Clear existing permissions for this role
-    const { error: clearError } = await supabaseService
+    const { error: clearError } = await supabase
       .from('role_permissions')
       .delete()
       .eq('role_id', roleId);
@@ -488,7 +499,7 @@ export default async function handler(req, res) {
     }
 
     // Get permission IDs for the default permissions
-    const { data: permissions, error: permError } = await supabaseService
+    const { data: permissions, error: permError } = await supabase
       .from('permissions')
       .select('id, name')
       .in('name', rolePermissions);
@@ -507,7 +518,7 @@ export default async function handler(req, res) {
       permission_id: perm.id
     }));
 
-    const { error: insertError } = await supabaseService
+    const { error: insertError } = await supabase
       .from('role_permissions')
       .insert(rolePermissionInserts);
 
@@ -533,5 +544,9 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires authentication - permission checks are done inside handler
+// NOTE: This endpoint contains legacy hardcoded permissions that need to be updated to V2 format
+export default requireAuth(handler);
 
 
