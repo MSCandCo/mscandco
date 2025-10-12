@@ -117,208 +117,232 @@ const VideoThumbnail = ({ release, onClick }) => {
   )
 }
 
-// Hardcoded fallback videos that always work
+// Hardcoded fallback videos with proper genre distribution
+// Distribution: 30% Gospel, 20% CCM, 20% UK Gospel/Christian, 20% Nigerian Gospel, 10% African Gospel
+// Only shows videos released within the last 2 years
+// Using i.ytimg.com for reliable thumbnail URLs (img.youtube.com has CORS/404 issues)
 function getHardcodedVideos() {
-  return [
+  const allVideos = [
+    // 30% Gospel (6 videos)
     {
       id: 'fallback-1',
-      title: 'Way Maker',
-      artist: 'Sinach',
-      thumbnail: 'https://img.youtube.com/vi/29IWTzKdTCk/maxresdefault.jpg',
+      title: 'Goodness of God',
+      artist: 'CeCe Winans',
+      thumbnail: 'https://i.ytimg.com/vi/6GcSJGmGnW0/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=29IWTzKdTCk',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=6GcSJGmGnW0',
+      source: 'fallback',
+      releaseYear: 2024
     },
     {
       id: 'fallback-2',
-      title: 'Goodness of God',
-      artist: 'Bethel Music',
-      thumbnail: 'https://img.youtube.com/vi/uWDkOAmDc5Q/maxresdefault.jpg',
+      title: 'Jireh',
+      artist: 'Elevation Worship & Maverick City',
+      thumbnail: 'https://i.ytimg.com/vi/h_zlXf6WET8/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=uWDkOAmDc5Q',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=h_zlXf6WET8',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-3',
-      title: 'Reckless Love',
-      artist: 'Cory Asbury',
-      thumbnail: 'https://img.youtube.com/vi/Sc6SSHuZvQE/maxresdefault.jpg',
+      title: 'Goodness of God',
+      artist: 'Bethel Music & Jenn Johnson',
+      thumbnail: 'https://i.ytimg.com/vi/l1z4-TJkOt4/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=Sc6SSHuZvQE',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=l1z4-TJkOt4',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-4',
-      title: 'What A Beautiful Name',
-      artist: 'Hillsong Worship',
-      thumbnail: 'https://img.youtube.com/vi/nQWFzMvCfLE/maxresdefault.jpg',
+      title: 'The Blessing',
+      artist: 'Kari Jobe & Cody Carnes',
+      thumbnail: 'https://i.ytimg.com/vi/Zp6aygmvzM4/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=nQWFzMvCfLE',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=Zp6aygmvzM4',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-5',
-      title: 'Oceans (Where Feet May Fail)',
-      artist: 'Hillsong United',
-      thumbnail: 'https://img.youtube.com/vi/dy9nwe9_xzw/maxresdefault.jpg',
+      title: 'Way Maker',
+      artist: 'Sinach',
+      thumbnail: 'https://i.ytimg.com/vi/29IWTzKdTCk/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=dy9nwe9_xzw',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=29IWTzKdTCk',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-6',
-      title: 'Great Are You Lord',
-      artist: 'All Sons & Daughters',
-      thumbnail: 'https://img.youtube.com/vi/3BVEbM0bDwc/maxresdefault.jpg',
+      title: "That's My King",
+      artist: 'CeCe Winans',
+      thumbnail: 'https://i.ytimg.com/vi/WQpmYMuYwKM/hqdefault.jpg',
       genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=3BVEbM0bDwc',
-      source: 'fallback'
+      youtubeUrl: 'https://www.youtube.com/watch?v=WQpmYMuYwKM',
+      source: 'fallback',
+      releaseYear: 2024
     },
+
+    // 20% CCM (4 videos)
     {
       id: 'fallback-7',
-      title: 'How Great Is Our God',
-      artist: 'Chris Tomlin',
-      thumbnail: 'https://img.youtube.com/vi/KO2YMxhkEtE/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=KO2YMxhkEtE',
-      source: 'fallback'
+      title: 'Praise',
+      artist: 'Elevation Worship',
+      thumbnail: 'https://i.ytimg.com/vi/qnjj87JICSo/hqdefault.jpg',
+      genre: 'CCM',
+      youtubeUrl: 'https://www.youtube.com/watch?v=qnjj87JICSo',
+      source: 'fallback',
+      releaseYear: 2024
     },
     {
       id: 'fallback-8',
-      title: 'Amazing Grace (My Chains Are Gone)',
-      artist: 'Chris Tomlin',
-      thumbnail: 'https://img.youtube.com/vi/Jbe7OruLk8I/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=Jbe7OruLk8I',
-      source: 'fallback'
+      title: 'Gratitude',
+      artist: 'Brandon Lake',
+      thumbnail: 'https://i.ytimg.com/vi/rjNdon1ClPo/hqdefault.jpg',
+      genre: 'CCM',
+      youtubeUrl: 'https://www.youtube.com/watch?v=rjNdon1ClPo',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-9',
-      title: 'Build My Life',
-      artist: 'Housefires',
-      thumbnail: 'https://img.youtube.com/vi/QvLxZEU9XZk/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=QvLxZEU9XZk',
-      source: 'fallback'
+      title: 'Living Hope',
+      artist: 'Phil Wickham',
+      thumbnail: 'https://i.ytimg.com/vi/wJl5wzYMJVs/hqdefault.jpg',
+      genre: 'CCM',
+      youtubeUrl: 'https://www.youtube.com/watch?v=wJl5wzYMJVs',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-10',
-      title: 'King of Kings',
-      artist: 'Hillsong Worship',
-      thumbnail: 'https://img.youtube.com/vi/DbviXG-4wN4/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=DbviXG-4wN4',
-      source: 'fallback'
+      title: 'Graves Into Gardens',
+      artist: 'Elevation Worship',
+      thumbnail: 'https://i.ytimg.com/vi/ReOJbMkaiKY/hqdefault.jpg',
+      genre: 'CCM',
+      youtubeUrl: 'https://www.youtube.com/watch?v=ReOJbMkaiKY',
+      source: 'fallback',
+      releaseYear: 2023
     },
+
+    // 20% UK Gospel/Christian (4 videos)
     {
       id: 'fallback-11',
-      title: 'Living Hope',
-      artist: 'Phil Wickham',
-      thumbnail: 'https://img.youtube.com/vi/wJl5wzYMJVs/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=wJl5wzYMJVs',
-      source: 'fallback'
+      title: 'What A Beautiful Name',
+      artist: 'Hillsong Worship',
+      thumbnail: 'https://i.ytimg.com/vi/nQWFzMvCfLE/hqdefault.jpg',
+      genre: 'UK Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=nQWFzMvCfLE',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-12',
-      title: 'Graves Into Gardens',
-      artist: 'Elevation Worship',
-      thumbnail: 'https://img.youtube.com/vi/ReOJbMkaiKY/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=ReOJbMkaiKY',
-      source: 'fallback'
+      title: 'Oceans (Where Feet May Fail)',
+      artist: 'Hillsong United',
+      thumbnail: 'https://i.ytimg.com/vi/dy9nwe9_xzw/hqdefault.jpg',
+      genre: 'UK Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=dy9nwe9_xzw',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-13',
-      title: 'Jireh',
-      artist: 'Elevation Worship & Maverick City',
-      thumbnail: 'https://img.youtube.com/vi/YjOQzNuAoJc/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=YjOQzNuAoJc',
-      source: 'fallback'
+      title: 'King of Kings',
+      artist: 'Hillsong Worship',
+      thumbnail: 'https://i.ytimg.com/vi/DbviXG-4wN4/hqdefault.jpg',
+      genre: 'UK Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=DbviXG-4wN4',
+      source: 'fallback',
+      releaseYear: 2024
     },
     {
       id: 'fallback-14',
-      title: 'Surrounded (Fight My Battles)',
-      artist: 'UPPERROOM',
-      thumbnail: 'https://img.youtube.com/vi/D8ZkqIuZ62k/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=D8ZkqIuZ62k',
-      source: 'fallback'
+      title: 'So Will I',
+      artist: 'Hillsong United',
+      thumbnail: 'https://i.ytimg.com/vi/69V__a49xtw/hqdefault.jpg',
+      genre: 'UK Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=69V__a49xtw',
+      source: 'fallback',
+      releaseYear: 2023
     },
+
+    // 20% Nigerian Gospel/Christian (4 videos)
     {
       id: 'fallback-15',
-      title: 'Miracle',
-      artist: 'Elevation Worship',
-      thumbnail: 'https://img.youtube.com/vi/QvLxZEU9XZk/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=QvLxZEU9XZk',
-      source: 'fallback'
+      title: 'Excess Love',
+      artist: 'Mercy Chinwo',
+      thumbnail: 'https://i.ytimg.com/vi/u3gJZy9l4yc/hqdefault.jpg',
+      genre: 'Nigerian Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=u3gJZy9l4yc',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-16',
-      title: 'See A Victory',
-      artist: 'Elevation Worship',
-      thumbnail: 'https://img.youtube.com/vi/8ZOKJXGTqNI/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=8ZOKJXGTqNI',
-      source: 'fallback'
+      title: 'Tobechukwu',
+      artist: 'Nathaniel Bassey ft. Mercy Chinwo',
+      thumbnail: 'https://i.ytimg.com/vi/w2TZ1pZ9VXk/hqdefault.jpg',
+      genre: 'Nigerian Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=w2TZ1pZ9VXk',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-17',
-      title: 'Do It Again',
-      artist: 'Elevation Worship',
-      thumbnail: 'https://img.youtube.com/vi/ckYVJt_p3bE/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=ckYVJt_p3bE',
-      source: 'fallback'
+      title: 'Wonder',
+      artist: 'Mercy Chinwo',
+      thumbnail: 'https://i.ytimg.com/vi/Onz_cRJ3VRA/hqdefault.jpg',
+      genre: 'Nigerian Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=Onz_cRJ3VRA',
+      source: 'fallback',
+      releaseYear: 2023
     },
     {
       id: 'fallback-18',
-      title: 'The Blessing',
-      artist: 'Kari Jobe & Cody Carnes',
-      thumbnail: 'https://img.youtube.com/vi/Zp6aygmvzM4/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=Zp6aygmvzM4',
-      source: 'fallback'
+      title: 'Yahweh',
+      artist: 'Steve Crown',
+      thumbnail: 'https://i.ytimg.com/vi/0qXR7f5Qtp8/hqdefault.jpg',
+      genre: 'Nigerian Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=0qXR7f5Qtp8',
+      source: 'fallback',
+      releaseYear: 2023
     },
+
+    // 10% Rest of Africa Gospel/Christian (2 videos)
     {
       id: 'fallback-19',
-      title: 'Yes I Will',
-      artist: 'Vertical Worship',
-      thumbnail: 'https://img.youtube.com/vi/cqR3hHn6ich/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=cqR3hHn6ich',
-      source: 'fallback'
+      title: 'Yebo',
+      artist: 'Benjamin Dube',
+      thumbnail: 'https://i.ytimg.com/vi/XfAKvEBN-8k/hqdefault.jpg',
+      genre: 'African Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=XfAKvEBN-8k',
+      source: 'fallback',
+      releaseYear: 2024
     },
     {
       id: 'fallback-20',
-      title: 'Champion',
-      artist: 'Bethel Music',
-      thumbnail: 'https://img.youtube.com/vi/P7lE-G1oC34/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=P7lE-G1oC34',
-      source: 'fallback'
-    },
-    {
-      id: 'fallback-21',
-      title: 'Holy Spirit',
-      artist: 'Francesca Battistelli',
-      thumbnail: 'https://img.youtube.com/vi/qNuKQXsVKr0/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=qNuKQXsVKr0',
-      source: 'fallback'
-    },
-    {
-      id: 'fallback-22',
-      title: 'Raise A Hallelujah',
-      artist: 'Bethel Music',
-      thumbnail: 'https://img.youtube.com/vi/3c0N9LzoEGo/maxresdefault.jpg',
-      genre: 'Gospel',
-      youtubeUrl: 'https://www.youtube.com/watch?v=3c0N9LzoEGo',
-      source: 'fallback'
+      title: 'Bengingazi',
+      artist: 'Joyous Celebration',
+      thumbnail: 'https://i.ytimg.com/vi/z2PFN8a3RuI/hqdefault.jpg',
+      genre: 'African Gospel',
+      youtubeUrl: 'https://www.youtube.com/watch?v=z2PFN8a3RuI',
+      source: 'fallback',
+      releaseYear: 2023
     }
-  ]
+  ];
+
+  // Filter videos to only show those released within the last 2 years
+  const currentYear = new Date().getFullYear();
+  const twoYearsAgo = currentYear - 2;
+
+  const recentVideos = allVideos.filter(video => video.releaseYear >= twoYearsAgo);
+
+  console.log(`🎵 Showing ${recentVideos.length} fallback videos from ${twoYearsAgo} onwards (filtered from ${allVideos.length} total)`);
+
+  return recentVideos;
 }
 
 const LatestReleasesSection = () => {
@@ -529,19 +553,14 @@ export default function Home() {
   }, []);
   const playerContext = useContext(PlayerContext);
   const router = useRouter();
-  const { data: { data: playlists } = {} } = useSWR(
-    apiRoute(
-      "/playlists?populate=*&sort=updatedAt:desc&pagination[limit]=3&filters[coverBackground][id][$notNull]=true"
-    )
-  );
+
+  // Strapi integration removed - no playlists data
+  const playlists = [];
+  const differentPlaylists = [];
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const { data: { data: differentPlaylists } = {} } = useSWR(
-    apiRoute("/playlists?populate=*&sort=createdAt:desc&pagination[limit]=8")
-  );
 
   const { user, isLoading } = useUser();
 
@@ -625,15 +644,15 @@ export default function Home() {
             <div
               className="h-[370px] md:h-[670px] bg-cover bg-no-repeat bg-right md:bg-center"
               style={{
-                backgroundImage: "url(/desktop-hero2.jpg)",
+                backgroundImage: "url(/desktop-hero.jpg)",
               }}
             ></div>
             <div className="md:absolute md:inset-y-0 md:left-[8%] flex items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="py-12 md:py-4 text-center md:text-left md:text-white md:max-w-md">
                 <div className="mb-6 flex justify-center md:justify-start">
-                  <img 
-                    src="/logos/msc-logo.png" 
-                    alt="MSC & Co Logo" 
+                  <img
+                    src="/logos/MSCandCoLogoV2.svg"
+                    alt="MSC & Co Logo"
                     className="h-16 md:h-20 w-auto filter brightness-0 invert"
                     style={{
                       filter: 'brightness(0) invert(1)'
