@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { requireAuth } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,6 +10,12 @@ const supabase = createClient(
 async function handler(req, res) {
   try {
     if (req.method === 'GET') {
+      // Check read permission
+      const canRead = await hasPermission(req.userRole, 'finance:split_configuration:read', req.user.id);
+      if (!canRead) {
+        return res.status(403).json({ error: 'Insufficient permissions to view split configuration' });
+      }
+
       console.log('📊 Fetching split configuration...');
 
       // Get global configuration
@@ -121,6 +128,12 @@ async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
+      // Check update permission
+      const canUpdate = await hasPermission(req.userRole, 'finance:split_configuration:update', req.user.id);
+      if (!canUpdate) {
+        return res.status(403).json({ error: 'Insufficient permissions to update split configuration' });
+      }
+
       console.log('💾 Updating split configuration...');
 
       const {
@@ -174,4 +187,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('*:*:*')(handler);
+// V2 Permission: Requires authentication - permission checks are done per-method inside handler
+export default requireAuth(handler);

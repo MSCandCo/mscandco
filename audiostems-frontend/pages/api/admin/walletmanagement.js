@@ -125,4 +125,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('*:*:*')(handler);
+// V2 Permission: Requires read permission for wallet management
+export default requirePermission('finance:wallet_management:read')(handler);
