@@ -1,13 +1,15 @@
-import { requirePermission, supabaseService, MASTER_ADMIN_ID } from '@/lib/permissions';
+import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+async function handler(req, res) {
   if (req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check permission
-  const authorized = await requirePermission(req, res, 'permission:assign:any');
-  if (!authorized) return;
 
   const { roleId } = req.query;
 
@@ -20,7 +22,7 @@ export default async function handler(req, res) {
 
   try {
     // Get role information
-    const { data: role, error: roleError } = await supabaseService
+    const { data: role, error: roleError } = await supabase
       .from('roles')
       .select('name')
       .eq('id', roleId)
@@ -43,7 +45,7 @@ export default async function handler(req, res) {
     }
 
     // Check if any users are assigned to this role
-    const { data: usersWithRole, error: usersError } = await supabaseService
+    const { data: usersWithRole, error: usersError } = await supabase
       .from('user_profiles')
       .select('id')
       .eq('role', role.name)
@@ -65,7 +67,7 @@ export default async function handler(req, res) {
     }
 
     // Delete role permissions first (foreign key constraint)
-    const { error: permissionsError } = await supabaseService
+    const { error: permissionsError } = await supabase
       .from('role_permissions')
       .delete()
       .eq('role_id', roleId);
@@ -79,7 +81,7 @@ export default async function handler(req, res) {
     }
 
     // Delete the role
-    const { error: deleteError } = await supabaseService
+    const { error: deleteError } = await supabase
       .from('roles')
       .delete()
       .eq('id', roleId);
@@ -105,3 +107,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires delete permission for permissions & roles management
+export default requirePermission('users_access:permissions_roles:delete')(handler);

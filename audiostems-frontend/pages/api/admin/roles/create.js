@@ -1,13 +1,15 @@
-import { requirePermission, supabaseService } from '@/lib/permissions';
+import { createClient } from '@supabase/supabase-js';
+import { requirePermission } from '@/lib/rbac/middleware';
 
-export default async function handler(req, res) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check permission
-  const authorized = await requirePermission(req, res, 'permission:assign:any');
-  if (!authorized) return;
 
   const { name, description, permission_ids } = req.body;
 
@@ -38,7 +40,7 @@ export default async function handler(req, res) {
 
   try {
     // Check if role already exists
-    const { data: existingRole, error: checkError } = await supabaseService
+    const { data: existingRole, error: checkError } = await supabase
       .from('roles')
       .select('id')
       .eq('name', roleName)
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     }
 
     // Create the role
-    const { data: newRole, error: createError } = await supabaseService
+    const { data: newRole, error: createError } = await supabase
       .from('roles')
       .insert({
         name: roleName,
@@ -76,14 +78,14 @@ export default async function handler(req, res) {
         permission_id: permissionId
       }));
 
-      const { error: permError } = await supabaseService
+      const { error: permError } = await supabase
         .from('role_permissions')
         .insert(rolePermissions);
 
       if (permError) {
         console.error('Error assigning permissions:', permError);
         // Delete the role if permission assignment fails
-        await supabaseService
+        await supabase
           .from('roles')
           .delete()
           .eq('id', newRole.id);
@@ -110,3 +112,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// V2 Permission: Requires create permission for permissions & roles management
+export default requirePermission('users_access:permissions_roles:create')(handler);
