@@ -54,5 +54,5 @@ async function handler(req, res) {
   }
 }
 
-// Protect with analytics:view:any permission (admin read access)
-export default requirePermission('analytics:view:any')(handler)
+// V2 Permission: Requires read permission for analytics management
+export default requirePermission('analytics:analytics_management:read')(handler)

@@ -143,5 +143,5 @@ async function handler(req, res) {
   }
 }
 
-// Protect with analytics:edit:any permission (admin write access)
-export default requirePermission('analytics:edit:any')(handler);
+// V2 Permission: Requires create permission for analytics management
+export default requirePermission('analytics:analytics_management:create')(handler);

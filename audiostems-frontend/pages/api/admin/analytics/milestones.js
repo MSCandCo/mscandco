@@ -1,6 +1,7 @@
 // Admin API for managing artist milestones
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { requireAuth } from '@/lib/rbac/middleware';
+import { hasPermission } from '@/lib/rbac/roles';
 
 // Server-side Supabase client with service role key
 const supabase = createClient(
@@ -14,9 +15,15 @@ async function handler(req, res) {
     console.log('🔐 Milestones admin access:', { userId: req.user.id, userRole: req.userRole });
 
     if (req.method === 'GET') {
+      // Check read permission
+      const canRead = await hasPermission(req.userRole, 'analytics:analytics_management:read', req.user.id);
+      if (!canRead) {
+        return res.status(403).json({ error: 'Insufficient permissions to view milestones' });
+      }
+
       // Get milestones for specific artist
       const { artistId, category } = req.query;
-      
+
       if (!artistId) {
         return res.status(400).json({ error: 'Artist ID required' });
       }
@@ -45,16 +52,16 @@ async function handler(req, res) {
 
       return res.json({
         success: true,
-        data: milestonesWithRelativeDates,
-        isAdmin
+        data: milestonesWithRelativeDates
       });
     }
 
     if (req.method === 'POST') {
-      // Create/update milestones (admin only)
-      if (!isAdmin) {
-        console.log('❌ Milestones admin permission denied:', { userId, userRole });
-        return res.status(403).json({ error: 'Admin permissions required' });
+      // Check create permission
+      const canCreate = await hasPermission(req.userRole, 'analytics:analytics_management:create', req.user.id);
+      if (!canCreate) {
+        console.log('❌ Milestones admin permission denied:', { userId: req.user.id, userRole: req.userRole });
+        return res.status(403).json({ error: 'Insufficient permissions to create milestones' });
       }
 
       const { artistId, milestones } = req.body;
@@ -116,9 +123,10 @@ async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      // Update milestone (admin only)
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Admin permissions required' });
+      // Check update permission
+      const canUpdate = await hasPermission(req.userRole, 'analytics:analytics_management:update', req.user.id);
+      if (!canUpdate) {
+        return res.status(403).json({ error: 'Insufficient permissions to update milestones' });
       }
 
       const { id } = req.query;
@@ -146,9 +154,10 @@ async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      // Delete milestone (admin only)
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Admin permissions required' });
+      // Check delete permission
+      const canDelete = await hasPermission(req.userRole, 'analytics:analytics_management:delete', req.user.id);
+      if (!canDelete) {
+        return res.status(403).json({ error: 'Insufficient permissions to delete milestones' });
       }
 
       const { id } = req.query;
@@ -202,5 +211,5 @@ function calculateRelativeDate(dateString) {
   }
 }
 
-// Protect with analytics:view:any permission (admin read access)
-export default requirePermission('analytics:view:any')(handler);
+// V2 Permission: Requires authentication - permission checks are done per-method inside handler
+export default requireAuth(handler);
