@@ -226,5 +226,5 @@ async function handler(req, res) {
   }
 }
 
-// Only superadmins with wildcard permission can access
-export default requirePermission('*:*:*')(handler);
+// V2 Permission: Requires read permission for platform analytics
+export default requirePermission('analytics:platform_analytics:read')(handler);
