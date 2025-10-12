@@ -1,0 +1,263 @@
+{
+  "kind": "collectionType",
+  "collectionName": "projects",
+  "info": {
+    "singularName": "project",
+    "pluralName": "projects",
+    "displayName": "Project",
+    "description": "Music projects containing multiple tracks/creations"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "projectName": {
+      "type": "string",
+      "required": true,
+      "description": "Name of the project/release"
+    },
+    "artist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "projects"
+    },
+    "releaseType": {
+      "type": "enumeration",
+      "enum": [
+        "Single",
+        "EP",
+        "Album",
+        "Mixtape",
+        "Compilation",
+        "Remix",
+        "Live Album",
+        "Soundtrack"
+      ],
+      "required": true
+    },
+    "genre": {
+      "type": "enumeration",
+      "enum": [
+        "Acoustic",
+        "Alternative",
+        "Ambient",
+        "Blues",
+        "Classical",
+        "Country",
+        "Dance",
+        "Electronic",
+        "Experimental",
+        "Folk",
+        "Funk",
+        "Gospel",
+        "Hip Hop",
+        "House",
+        "Indie",
+        "Jazz",
+        "Latin",
+        "Metal",
+        "Pop",
+        "Punk",
+        "R&B",
+        "Reggae",
+        "Rock",
+        "Soul",
+        "Techno",
+        "World"
+      ],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "submitted",
+        "under_review",
+        "approval_required",
+        "completed",
+        "live"
+      ],
+      "default": "draft",
+      "required": true
+    },
+    "submissionDate": {
+      "type": "date",
+      "description": "Date when project was submitted"
+    },
+    "expectedReleaseDate": {
+      "type": "date",
+      "description": "Expected release date"
+    },
+    "actualReleaseDate": {
+      "type": "date",
+      "description": "Actual release date"
+    },
+    "musicFiles": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["audios"],
+      "description": "Uploaded music files (.mp3, .wav, .flac)"
+    },
+    "artwork": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "description": "Project artwork (square format recommended)"
+    },
+    "trackListing": {
+      "type": "component",
+      "repeatable": true,
+      "component": "project.track-listing",
+      "description": "Dynamic track listing for albums/EPs"
+    },
+    "credits": {
+      "type": "text",
+      "description": "All contributors, producers, etc."
+    },
+    "publishingNotes": {
+      "type": "text",
+      "description": "Additional publishing information"
+    },
+    "lastUpdated": {
+      "type": "datetime",
+      "description": "Automatic last update timestamp"
+    },
+    "feedback": {
+      "type": "text",
+      "description": "Internal notes/feedback"
+    },
+    "marketingPlan": {
+      "type": "text",
+      "description": "Summarized marketing plan"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "medium", "high", "urgent"],
+      "default": "medium"
+    },
+    "tags": {
+      "type": "json",
+      "description": "Tags for categorization"
+    },
+    "budget": {
+      "type": "decimal",
+      "description": "Project budget"
+    },
+    "currency": {
+      "type": "enumeration",
+      "enum": ["GBP", "USD", "EUR", "CAD", "AUD"],
+      "default": "GBP"
+    },
+    "creations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::creation.creation",
+      "mappedBy": "project"
+    },
+    "coverImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "releaseDate": {
+      "type": "date"
+    },
+    "mood": {
+      "type": "enumeration",
+      "enum": [
+        "energetic",
+        "calm",
+        "melancholic",
+        "uplifting",
+        "dark",
+        "romantic",
+        "aggressive",
+        "peaceful",
+        "mysterious",
+        "joyful"
+      ]
+    },
+    "tempo": {
+      "type": "enumeration",
+      "enum": [
+        "very_slow",
+        "slow",
+        "medium",
+        "fast",
+        "very_fast"
+      ]
+    },
+    "language": {
+      "type": "string"
+    },
+    "isExplicit": {
+      "type": "boolean",
+      "default": false
+    },
+    "publishingRights": {
+      "type": "text"
+    },
+    "performanceRights": {
+      "type": "text"
+    },
+    "mechanicalRights": {
+      "type": "text"
+    },
+    "syncRights": {
+      "type": "text"
+    },
+    "territory": {
+      "type": "json"
+    },
+    "exclusivity": {
+      "type": "enumeration",
+      "enum": ["exclusive", "non_exclusive", "limited"],
+      "default": "exclusive"
+    },
+    "licenseType": {
+      "type": "enumeration",
+      "enum": [
+        "all_rights",
+        "sync_only",
+        "performance_only",
+        "mechanical_only",
+        "custom"
+      ],
+      "default": "all_rights"
+    },
+    "licenseDuration": {
+      "type": "enumeration",
+      "enum": [
+        "perpetual",
+        "one_year_duration",
+        "two_years_duration",
+        "five_years_duration",
+        "ten_years_duration",
+        "custom"
+      ],
+      "default": "perpetual"
+    },
+    "licenseStartDate": {
+      "type": "date"
+    },
+    "licenseEndDate": {
+      "type": "date"
+    },
+    "restrictions": {
+      "type": "text"
+    },
+    "usageNotes": {
+      "type": "text"
+    },
+    "totalDuration": {
+      "type": "integer",
+      "description": "Total duration in seconds"
+    },
+    "trackCount": {
+      "type": "integer",
+      "description": "Number of tracks in the project"
+    }
+  }
+} 

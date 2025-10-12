@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "genres",
+  "info": {
+    "singularName": "genre",
+    "pluralName": "genres",
+    "displayName": "Genre",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "artists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist.artist",
+      "mappedBy": "genre"
+    },
+    "playlists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::playlist.playlist",
+      "mappedBy": "genres"
+    },
+    "songs": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::song.song",
+      "mappedBy": "genres"
+    },
+    "lyrics": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::lyric.lyric",
+      "mappedBy": "genres"
+    },
+    "stem": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::stem.stem",
+      "inversedBy": "genres"
+    },
+    "projects": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::project.project",
+      "mappedBy": "genre"
+    },
+    "creations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::creation.creation",
+      "mappedBy": "genre"
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "kind": "collectionType",
+  "collectionName": "collaborations",
+  "info": {
+    "singularName": "collaboration",
+    "pluralName": "collaborations",
+    "displayName": "Collaboration",
+    "description": "Artist collaboration project management"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["proposed", "active", "completed", "cancelled"],
+      "default": "proposed"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["feature", "remix", "production", "writing", "mixing", "mastering", "marketing", "distribution"]
+    },
+    "initiator": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "initiatedCollaborations"
+    },
+    "participants": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist.artist",
+      "inversedBy": "collaborations"
+    },
+    "project": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::project.project"
+    },
+    "creation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::creation.creation"
+    },
+    "startDate": {
+      "type": "date"
+    },
+    "endDate": {
+      "type": "date"
+    },
+    "deadline": {
+      "type": "date"
+    },
+    "progress": {
+      "type": "decimal",
+      "default": 0
+    },
+    "roles": {
+      "type": "json"
+    },
+    "contributions": {
+      "type": "json"
+    },
+    "revenueSharing": {
+      "type": "json"
+    },
+    "communication": {
+      "type": "json"
+    },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["files", "images", "audios", "videos"]
+    },
+    "notes": {
+      "type": "richtext"
+    },
+    "aiScore": {
+      "type": "decimal",
+      "default": 0
+    },
+    "potentialImpact": {
+      "type": "decimal",
+      "default": 0
+    },
+    "marketOpportunity": {
+      "type": "decimal",
+      "default": 0
+    },
+    "recommendations": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "medium", "high", "urgent"],
+      "default": "medium"
+    },
+    "visibility": {
+      "type": "enumeration",
+      "enum": ["private", "participants", "public"],
+      "default": "private"
+    },
+    "achievements": {
+      "type": "json"
+    },
+    "challenges": {
+      "type": "json"
+    },
+    "nextSteps": {
+      "type": "json"
+    },
+    "automatedTriggers": {
+      "type": "json"
+    }
+  }
+} 

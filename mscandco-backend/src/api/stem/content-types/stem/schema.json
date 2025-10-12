@@ -1,0 +1,93 @@
+{
+  "kind": "collectionType",
+  "collectionName": "stems",
+  "info": {
+    "singularName": "stem",
+    "pluralName": "stems",
+    "displayName": "Stem",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tracks": {
+      "displayName": "Track",
+      "type": "component",
+      "repeatable": true,
+      "component": "stems.track"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "artists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist.artist",
+      "mappedBy": "stems"
+    },
+    "key": {
+      "type": "string"
+    },
+    "bpm": {
+      "type": "integer"
+    },
+    "length": {
+      "type": "integer"
+    },
+    "genres": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::genre.genre",
+      "mappedBy": "stem"
+    },
+    "vocals": {
+      "type": "enumeration",
+      "enum": [
+        "Ambient",
+        "Choir",
+        "Duet",
+        "Female",
+        "Group",
+        "Harmony",
+        "Male",
+        "Oohs & Ahhs",
+        "Shouts"
+      ]
+    },
+    "fullPreview": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "fullPreviewPeaks": {
+      "type": "json"
+    },
+    "credit": {
+      "type": "integer",
+      "required": true,
+      "default": 1
+    }
+  }
+}

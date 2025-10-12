@@ -1,0 +1,231 @@
+import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/rbac/middleware'
+
+// Server-side Supabase client with service role key
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // This stays on server!
+)
+
+async function handler(req, res) {
+  // req.user and req.userRole are automatically attached by middleware
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  try {
+    const userId = req.user.id
+    const userRole = req.userRole
+
+    // Role-based data fetching
+    let stats = {}
+
+    if (userRole === 'artist') {
+      // Fetch artist-specific stats
+      const [releasesResult, earningsResult, streamsResult] = await Promise.all([
+        supabase
+          .from('releases')
+          .select('id, streams, earnings, created_at')
+          .eq('artist_id', userId),
+        supabase
+          .from('earnings')
+          .select('amount, created_at')
+          .eq('user_id', userId),
+        supabase
+          .from('streams')
+          .select('platform, count, created_at')
+          .eq('artist_id', userId)
+      ])
+
+      const releases = releasesResult.data || []
+      const earnings = earningsResult.data || []
+      const streams = streamsResult.data || []
+
+      stats = {
+        totalReleases: releases.length,
+        totalEarnings: earnings.reduce((sum, e) => sum + (e.amount || 0), 0),
+        totalStreams: streams.reduce((sum, s) => sum + (s.count || 0), 0),
+        monthlyGrowth: calculateGrowth(earnings, 'month'),
+        recentReleases: releases.slice(0, 5),
+        platformBreakdown: groupByPlatform(streams)
+      }
+
+    } else if (userRole === 'label_admin') {
+      // Fetch label-specific stats
+      const [artistsResult, releasesResult, revenueResult] = await Promise.all([
+        supabase
+          .from('label_artists')
+          .select('artist_id, artists(name, email)')
+          .eq('label_id', userId),
+        supabase
+          .from('releases')
+          .select('id, title, streams, earnings, artist_id, created_at'),
+        supabase
+          .from('revenue_shares')
+          .select('amount, created_at')
+          .eq('label_id', userId)
+      ])
+
+      const artists = artistsResult.data || []
+      const releases = releasesResult.data || []
+      const revenue = revenueResult.data || []
+
+      stats = {
+        totalArtists: artists.length,
+        totalReleases: releases.length,
+        totalRevenue: revenue.reduce((sum, r) => sum + (r.amount || 0), 0),
+        topArtists: getTopArtists(releases),
+        recentReleases: releases.slice(0, 5),
+        monthlyGrowth: calculateGrowth(revenue, 'month')
+      }
+
+    } else if (['company_admin', 'super_admin'].includes(userRole)) {
+      // Fetch company-wide stats
+      const [usersResult, subscriptionsResult, profilesResult] = await Promise.all([
+        supabase.auth.admin.listUsers(),
+        supabase
+          .from('subscriptions')
+          .select('tier, amount, status, created_at'),
+        supabase
+          .from('user_profiles')
+          .select('*', { count: 'exact' })
+      ])
+
+      const users = usersResult.data?.users || []
+      const subscriptions = subscriptionsResult.data || []
+      const profiles = profilesResult.data || []
+
+      const activeSubscriptions = subscriptions.filter(s => s.status === 'active')
+      const totalRevenue = subscriptions.reduce((sum, s) => sum + (s.amount || 0), 0)
+      
+      // Calculate growth metrics
+      const userGrowth = calculateGrowth(users.map(u => ({ created_at: u.created_at, amount: 1 })), 'month')
+      const revenueGrowth = calculateGrowth(subscriptions, 'month')
+
+      stats = {
+        superAdmin: {
+          totalUsers: users.length,
+          activeProjects: activeSubscriptions.length,
+          totalRevenue: totalRevenue,
+          totalReleases: 0, // Will be updated when releases table is connected
+          platformHealth: users.length > 0 ? 100 : 0,
+          userGrowth: Math.round(userGrowth * 10) / 10, // Round to 1 decimal
+          revenueGrowth: Math.round(revenueGrowth * 10) / 10, // Round to 1 decimal
+          systemStatus: 'operational',
+          lastUpdated: new Date().toISOString()
+        },
+        companyAdmin: {
+          totalUsers: users.length,
+          activeProjects: activeSubscriptions.length,
+          totalRevenue: totalRevenue,
+          totalReleases: 0, // Will be updated when releases table is connected
+          platformHealth: users.length > 0 ? 100 : 0,
+          systemStatus: 'operational',
+          lastUpdated: new Date().toISOString()
+        },
+        labelAdmin: {
+          totalArtists: 0,
+          totalReleases: 0,
+          totalEarnings: 0,
+          pendingApprovals: 0
+        },
+        distributionPartner: {
+          totalPartners: 0,
+          totalReleases: 0,
+          totalRevenue: 0,
+          pendingDistributions: 0
+        },
+        artist: {
+          totalReleases: 0,
+          totalStreams: 0,
+          totalEarnings: 0,
+          pendingReleases: 0
+        }
+      }
+
+    } else {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+
+    // Return sanitized data
+    res.status(200).json({
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString()
+    })
+
+  } catch (error) {
+    console.error('Dashboard stats error:', error)
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    })
+  }
+}
+
+// Helper functions
+function calculateGrowth(data, period) {
+  if (!data.length) return 0
+  
+  const now = new Date()
+  const periodStart = new Date()
+  
+  if (period === 'month') {
+    periodStart.setMonth(now.getMonth() - 1)
+  } else if (period === 'week') {
+    periodStart.setDate(now.getDate() - 7)
+  }
+  
+  const currentPeriod = data.filter(d => new Date(d.created_at) >= periodStart)
+  const previousPeriod = data.filter(d => {
+    const date = new Date(d.created_at)
+    const prevStart = new Date(periodStart)
+    prevStart.setMonth(prevStart.getMonth() - 1)
+    return date >= prevStart && date < periodStart
+  })
+  
+  const currentSum = currentPeriod.reduce((sum, d) => sum + (d.amount || 0), 0)
+  const previousSum = previousPeriod.reduce((sum, d) => sum + (d.amount || 0), 0)
+  
+  if (previousSum === 0) return currentSum > 0 ? 100 : 0
+  return ((currentSum - previousSum) / previousSum) * 100
+}
+
+function groupByPlatform(streams) {
+  const grouped = {}
+  streams.forEach(stream => {
+    if (!grouped[stream.platform]) {
+      grouped[stream.platform] = 0
+    }
+    grouped[stream.platform] += stream.count || 0
+  })
+  return grouped
+}
+
+function getTopArtists(releases) {
+  const artistStats = {}
+  
+  releases.forEach(release => {
+    if (!artistStats[release.artist_id]) {
+      artistStats[release.artist_id] = {
+        totalStreams: 0,
+        totalEarnings: 0,
+        releaseCount: 0
+      }
+    }
+    
+    artistStats[release.artist_id].totalStreams += release.streams || 0
+    artistStats[release.artist_id].totalEarnings += release.earnings || 0
+    artistStats[release.artist_id].releaseCount++
+  })
+  
+  return Object.entries(artistStats)
+    .sort((a, b) => b[1].totalStreams - a[1].totalStreams)
+    .slice(0, 5)
+    .map(([artistId, stats]) => ({
+      artistId,
+      ...stats
+    }))
+}
+
+export default requireAuth(handler)

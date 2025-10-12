@@ -1,0 +1,79 @@
+{
+  "collectionName": "components_project_track_listings",
+  "info": {
+    "displayName": "Track Listing",
+    "description": "Individual track information for project track listing"
+  },
+  "options": {},
+  "attributes": {
+    "trackNumber": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "duration": {
+      "type": "integer",
+      "description": "Duration in seconds"
+    },
+    "bpm": {
+      "type": "integer",
+      "description": "Beats per minute"
+    },
+    "songKey": {
+      "type": "string",
+      "description": "Musical key (e.g., C Major, A Minor)"
+    },
+    "isrc": {
+      "type": "string",
+      "description": "International Standard Recording Code"
+    },
+    "creation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::creation.creation"
+    },
+    "isExplicit": {
+      "type": "boolean",
+      "default": false
+    },
+    "isBonus": {
+      "type": "boolean",
+      "default": false
+    },
+    "isRemix": {
+      "type": "boolean",
+      "default": false
+    },
+    "isLive": {
+      "type": "boolean",
+      "default": false
+    },
+    "isAcoustic": {
+      "type": "boolean",
+      "default": false
+    },
+    "isInstrumental": {
+      "type": "boolean",
+      "default": false
+    },
+    "featuring": {
+      "type": "string"
+    },
+    "producer": {
+      "type": "string"
+    },
+    "mixer": {
+      "type": "string"
+    },
+    "masteringEngineer": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+} 
