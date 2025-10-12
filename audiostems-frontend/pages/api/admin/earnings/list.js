@@ -78,5 +78,6 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('earnings:view:any')(handler);
+// V2 Permission: Requires read permission for earnings management
+export default requirePermission('finance:earnings_management:read')(handler);
 

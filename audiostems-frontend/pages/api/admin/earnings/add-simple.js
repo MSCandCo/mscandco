@@ -82,5 +82,6 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('earnings:edit:any')(handler);
+// V2 Permission: Requires create permission for earnings management
+export default requirePermission('finance:earnings_management:create')(handler);
 
