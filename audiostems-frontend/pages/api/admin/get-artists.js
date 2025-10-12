@@ -70,4 +70,5 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('artist:view:any')(handler);
+// V2 Permission: Requires read permission for analytics management (used for artist selection)
+export default requirePermission('analytics:analytics_management:read')(handler);
