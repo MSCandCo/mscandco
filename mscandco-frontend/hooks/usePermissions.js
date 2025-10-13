@@ -8,9 +8,13 @@
  * Updated to use new RBAC permission system from @/lib/permissions
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserPermissions } from '@/lib/permissions';
+
+// In-memory cache for permissions (shared across all hook instances)
+const permissionsCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Hook to manage user permissions in React components
@@ -44,9 +48,9 @@ export function usePermissions(userId = null) {
   const [currentUserId, setCurrentUserId] = useState(userId);
 
   /**
-   * Fetch user's permissions from Supabase
+   * Fetch user's permissions from Supabase with caching
    */
-  const fetchPermissions = useCallback(async () => {
+  const fetchPermissions = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -73,6 +77,17 @@ export function usePermissions(userId = null) {
         setCurrentUserId(targetUserId);
       }
 
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const cached = permissionsCache.get(targetUserId);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          console.log('🔑 usePermissions: Using cached permissions for', targetUserId);
+          setPermissions(cached.permissions);
+          setLoading(false);
+          return;
+        }
+      }
+
       // Get user permissions via API endpoint (server-side with proper permissions)
       const response = await fetch('/api/user/permissions', {
         headers: {
@@ -92,6 +107,12 @@ export function usePermissions(userId = null) {
         user_email: data.user_email,
         permissions: permissionNames,
         hasWildcard: permissionNames.includes('*:*:*')
+      });
+
+      // Cache the permissions
+      permissionsCache.set(targetUserId, {
+        permissions: permissionNames,
+        timestamp: Date.now()
       });
 
       setPermissions(permissionNames);
@@ -125,9 +146,26 @@ export function usePermissions(userId = null) {
       }
     );
 
+    // Listen for custom permission refresh events (force refresh when triggered)
+    const handlePermissionRefresh = () => {
+      if (isMounted) {
+        console.log('🔄 Permission refresh event received, refetching...');
+        fetchPermissions(true); // Force refresh, bypass cache
+      }
+    };
+
+    // Listen for both window events and visibility changes
+    if (typeof window !== 'undefined') {
+      window.addEventListener('permissionsChanged', handlePermissionRefresh);
+      // Don't refetch on visibility change - use cache instead
+    }
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('permissionsChanged', handlePermissionRefresh);
+      }
     };
   }, [fetchPermissions]);
 

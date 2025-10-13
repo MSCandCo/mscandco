@@ -54,6 +54,12 @@ export default async function handler(req, res) {
       permissions: permissionNames
     });
 
+    // Add cache headers for Safari and other browsers
+    // Cache for 5 minutes (300 seconds) to match client-side cache
+    res.setHeader('Cache-Control', 'private, max-age=300, stale-while-revalidate=60');
+    res.setHeader('CDN-Cache-Control', 'private, max-age=300');
+    res.setHeader('Vary', 'Authorization, Cookie');
+
     res.status(200).json({
       success: true,
       permissions: permissionNames,

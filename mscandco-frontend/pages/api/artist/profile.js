@@ -101,6 +101,12 @@ async function handler(req, res) {
         console.log('✅ Profile loaded from database');
       }
 
+      // Add cache headers for Safari and other browsers
+      // Cache for 5 minutes (300 seconds)
+      res.setHeader('Cache-Control', 'private, max-age=300, stale-while-revalidate=60');
+      res.setHeader('CDN-Cache-Control', 'private, max-age=300');
+      res.setHeader('Vary', 'Authorization, Cookie');
+
       // Return real profile data in expected format
       return res.status(200).json({
         id: profile.id,

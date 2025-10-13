@@ -16,8 +16,6 @@ async function handler(req, res) {
     // req.user and req.userRole are automatically attached by middleware
     const user = req.user;
 
-    console.log('🔔 Getting unread count for user:', user.id);
-
     const { data, error } = await supabase
       .from('notifications')
       .select('id')
@@ -32,6 +30,12 @@ async function handler(req, res) {
     const count = data?.length || 0;
     console.log(`✅ Unread notifications: ${count}`);
 
+    // Add cache headers for Safari and other browsers
+    // Shorter cache for notifications (1 minute) since they change frequently
+    res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=30');
+    res.setHeader('CDN-Cache-Control', 'private, max-age=60');
+    res.setHeader('Vary', 'Authorization, Cookie');
+
     return res.json({ count });
 
   } catch (error) {
@@ -40,4 +44,17 @@ async function handler(req, res) {
   }
 }
 
-export default requirePermission('notification:read:own')(handler);
+// Allow multiple permission patterns for notifications/messages
+// - Role-specific: artist:messages:access, label_admin:messages:access, etc.
+// - Legacy: notification:read:own, notification:view:own
+// - Super admin: dropdown:platform_messages:read
+export default requirePermission([
+  'artist:messages:access',
+  'label_admin:messages:access',
+  'distribution_partner:messages:access',
+  'company_admin:messages:access',
+  'super_admin:messages:access',
+  'notification:read:own',
+  'notification:view:own',
+  'dropdown:platform_messages:read'
+])(handler);

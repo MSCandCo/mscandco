@@ -139,16 +139,16 @@ export const AuthProvider = ({ children }) => {
       }
     }
     
-    // Get initial session with retry logic
+    // Get initial session with minimal retry logic
     const getInitialSession = async () => {
       try {
         console.log('🔍 SupabaseProvider: Getting initial session...')
-        // Retry logic to handle session establishment after login redirect
+        // Reduced retry logic - only retry once with shorter delay
         let session = null
-        let retries = 5
+        let retries = 2 // Reduced from 5 to 2
 
         while (!session && retries > 0 && isMounted) {
-          console.log(`🔄 SupabaseProvider: Attempting to get session (${6 - retries}/5)...`)
+          console.log(`🔄 SupabaseProvider: Attempting to get session (${3 - retries}/2)...`)
           const { data, error } = await supabase.auth.getSession()
 
           if (error) {
@@ -163,8 +163,8 @@ export const AuthProvider = ({ children }) => {
           }
 
           console.log(`⏳ SupabaseProvider: No session yet, retrying... (${retries - 1} retries left)`)
-          // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, 300))
+          // Reduced wait time from 300ms to 100ms
+          await new Promise(resolve => setTimeout(resolve, 100))
           retries--
         }
 
