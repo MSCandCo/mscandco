@@ -2042,7 +2042,7 @@ const MultiStepRegistration = () => {
             <div className="flex items-center justify-center mb-6">
               <span className="text-5xl font-bold text-[#1f2937] mr-1">Join</span>
               <img
-                src="/logos/msc-logo.png"
+                src="/logos/MSCandCoLogoV2.svg"
                 alt="MSC & Co Logo"
                 className="h-16 w-auto ml-1"
                 onError={(e) => {

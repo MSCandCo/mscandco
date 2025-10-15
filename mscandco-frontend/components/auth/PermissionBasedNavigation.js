@@ -242,6 +242,7 @@ export default function PermissionBasedNavigation() {
   // Memoized to prevent recalculation on every render
   const hasAdminAccess = useMemo(() => hasPermission('users_access:user_management:read') ||
                          hasPermission('users_access:permissions_roles:read') ||
+                         hasPermission('users_access:master_roster:read') ||
                          hasPermission('analytics:requests:read') ||
                          hasPermission('analytics:platform_analytics:read') ||
                          hasPermission('analytics:analytics_management:read') ||
@@ -249,8 +250,7 @@ export default function PermissionBasedNavigation() {
                          hasPermission('finance:wallet_management:read') ||
                          hasPermission('finance:split_configuration:read') ||
                          hasPermission('content:asset_library:read') ||
-                         hasPermission('content:master_roster:read') ||
-                         hasPermission('dropdown:platform_messages:read') ||
+                         hasPermission('platform_messages:read') ||
                          hasPermission('*:*:*'), [hasPermission]);
 
   // System admins (super_admin, company_admin) should ONLY see admin links
@@ -277,29 +277,31 @@ export default function PermissionBasedNavigation() {
       }
 
       // Permission-based navigation for subscription customers (artist, label_admin)
-      if (hasPermission(`${userRole}:release:access`)) {
+      if (hasPermission('releases:access')) {
         items.push({ href: `${roleBasePath}/releases`, label: 'Releases', icon: FileText });
       }
-      if (hasPermission(`${userRole}:analytics:access`)) {
+      if (hasPermission('analytics:access')) {
         items.push({ href: `${roleBasePath}/analytics`, label: 'Analytics', icon: BarChart3 });
       }
-      if (hasPermission(`${userRole}:earnings:access`)) {
+      if (hasPermission('earnings:access')) {
         items.push({ href: `${roleBasePath}/earnings`, label: 'Earnings', icon: DollarSign });
       }
-      if (hasPermission(`${userRole}:roster:access`)) {
+      if (hasPermission('roster:access')) {
         items.push({ href: `${roleBasePath}/roster`, label: 'Roster', icon: Users });
       }
     }
 
-    // Distribution Partner Items - Based on permissions
-    if (hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) {
+    // Distribution Partner Items - Based on new consolidated permissions
+    if (hasPermission('distribution:distribution_hub:access')) {
       items.push({
-        href: '/distribution',
+        href: '/distribution/hub',
         label: 'Distribution Hub',
         icon: Truck
       });
+    }
+    if (hasPermission('distribution:revenue_reporting:access')) {
       items.push({
-        href: '/distribution/reporting',
+        href: '/distribution/revenue',
         label: 'Revenue Reporting',
         icon: TrendingUp
       });
@@ -345,12 +347,12 @@ export default function PermissionBasedNavigation() {
             ))}
 
             {/* Users & Access Dropdown - For system admins */}
-            {isSystemAdmin && (hasPermission('users_access:user_management:read') || hasPermission('users_access:permissions_roles:read') || hasPermission('analytics:requests:read') || hasPermission('*:*:*')) && (
+            {isSystemAdmin && (hasPermission('users_access:user_management:read') || hasPermission('users_access:permissions_roles:read') || hasPermission('users_access:master_roster:read') || hasPermission('analytics:requests:read') || hasPermission('*:*:*')) && (
               <div className="relative" ref={usersDropdownRef}>
                 <button
                   onClick={() => setIsUsersDropdownOpen(!isUsersDropdownOpen)}
                   className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                    isActivePage('/admin/usermanagement') || isActivePage('/superadmin/permissionsroles') || isActivePage('/admin/requests')
+                    isActivePage('/admin/usermanagement') || isActivePage('/superadmin/permissionsroles') || isActivePage('/admin/masterroster') || isActivePage('/admin/requests')
                       ? 'text-gray-800 font-semibold'
                       : 'text-gray-400 hover:text-gray-800'
                   }`}
@@ -375,6 +377,14 @@ export default function PermissionBasedNavigation() {
                         <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                           <Shield className="w-4 h-4 mr-2" />
                           Permissions & Roles
+                        </div>
+                      </Link>
+                    )}
+                    {hasPermission('users_access:master_roster:read') && (
+                      <Link href="/admin/masterroster">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <Users className="w-4 h-4 mr-2" />
+                          Master Roster
                         </div>
                       </Link>
                     )}
@@ -478,12 +488,12 @@ export default function PermissionBasedNavigation() {
             )}
 
             {/* Content & Assets Dropdown - For super admins */}
-            {isSystemAdmin && (hasPermission('content:asset_library:read') || hasPermission('content:master_roster:read') || hasPermission('*:*:*')) && (
+            {isSystemAdmin && hasPermission('content:asset_library:read') && (
               <div className="relative" ref={contentDropdownRef}>
                 <button
                   onClick={() => setIsContentDropdownOpen(!isContentDropdownOpen)}
                   className={`flex items-center space-x-1 text-sm font-medium transition-colors duration-200 ${
-                    isActivePage('/admin/assetlibrary') || isActivePage('/admin/masterroster')
+                    isActivePage('/admin/assetlibrary')
                       ? 'text-gray-800 font-semibold'
                       : 'text-gray-400 hover:text-gray-800'
                   }`}
@@ -500,14 +510,6 @@ export default function PermissionBasedNavigation() {
                         <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                           <HardDrive className="w-4 h-4 mr-2" />
                           Asset Library
-                        </div>
-                      </Link>
-                    )}
-                    {hasPermission('content:master_roster:read') && (
-                      <Link href="/admin/masterroster">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <Users className="w-4 h-4 mr-2" />
-                          Master Roster
                         </div>
                       </Link>
                     )}
@@ -557,7 +559,7 @@ export default function PermissionBasedNavigation() {
             {/* Notification Bell - For subscription customers, distribution partners, and super admins */}
             {((!isSystemAdmin || userRole === 'distribution_partner') &&
               (hasPermission(`${userRole}:messages:access`) || hasPermission('notification:read:own') || hasPermission('notification:view:own'))) ||
-             (userRole === 'super_admin' && hasPermission('dropdown:platform_messages:read')) ? (
+             (userRole === 'super_admin' && hasPermission('platform_messages:read')) ? (
               <Link
                 href={`${getRoleBasePath()}/messages`}
                 className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
@@ -669,7 +671,7 @@ export default function PermissionBasedNavigation() {
                     {/* Messages and Settings for super admin */}
                     {isSuperAdmin && (
                       <>
-                        {hasPermission('dropdown:platform_messages:read') && (
+                        {hasPermission('platform_messages:read') && (
                           <Link href="/superadmin/messages">
                             <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                               <Bell className="w-4 h-4 mr-2" />
@@ -752,7 +754,7 @@ export default function PermissionBasedNavigation() {
               ))}
 
               {/* Users & Access - Mobile - For system admins */}
-              {isSystemAdmin && (hasPermission('users_access:user_management:read') || hasPermission('users_access:permissions_roles:read') || hasPermission('analytics:requests:read') || hasPermission('*:*:*')) && (
+              {isSystemAdmin && (hasPermission('users_access:user_management:read') || hasPermission('users_access:permissions_roles:read') || hasPermission('users_access:master_roster:read') || hasPermission('analytics:requests:read') || hasPermission('*:*:*')) && (
                 <>
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Users & Access
@@ -775,6 +777,16 @@ export default function PermissionBasedNavigation() {
                     >
                       <Shield className="w-5 h-5" />
                       <span>Permissions & Roles</span>
+                    </Link>
+                  )}
+                  {hasPermission('users_access:master_roster:read') && (
+                    <Link
+                      href="/admin/masterroster"
+                      className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Users className="w-5 h-5" />
+                      <span>Master Roster</span>
                     </Link>
                   )}
                   {(hasPermission('analytics:requests:read') || hasPermission('*:*:*')) && (
@@ -859,7 +871,7 @@ export default function PermissionBasedNavigation() {
               )}
 
               {/* Content & Assets - Mobile - For super admins */}
-              {isSystemAdmin && (hasPermission('content:asset_library:read') || hasPermission('content:master_roster:read') || hasPermission('*:*:*')) && (
+              {isSystemAdmin && hasPermission('content:asset_library:read') && (
                 <>
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
                     Content & Assets
@@ -872,16 +884,6 @@ export default function PermissionBasedNavigation() {
                     >
                       <HardDrive className="w-5 h-5" />
                       <span>Asset Library</span>
-                    </Link>
-                  )}
-                  {hasPermission('content:master_roster:read') && (
-                    <Link
-                      href="/admin/masterroster"
-                      className="flex items-center space-x-2 px-5 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Users className="w-5 h-5" />
-                      <span>Master Roster</span>
                     </Link>
                   )}
                 </>

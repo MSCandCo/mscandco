@@ -183,7 +183,7 @@ export default function RoleBasedNavigation() {
           <div className="flex-shrink-0">
             <Link href="/">
               <img
-                src="/logos/msc-logo.png"
+                src="/logos/MSCandCoLogoV2.svg"
                 alt="MSC & Co"
                 className="h-8 md:h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                 onError={(e) => {

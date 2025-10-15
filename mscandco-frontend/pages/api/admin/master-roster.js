@@ -122,4 +122,4 @@ async function handler(req, res) {
 }
 
 // V2 Permission: Requires read permission for master roster
-export default requirePermission('content:master_roster:read')(handler);
+export default requirePermission('users_access:master_roster:read')(handler);

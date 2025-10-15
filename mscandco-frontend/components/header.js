@@ -2,7 +2,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { Dropdown } from 'flowbite-react';
 import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
 import { HiDownload } from 'react-icons/hi';
-import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings, Users } from 'lucide-react';
+import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings, Users, LayoutDashboard, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getBrandByUser } from '@/lib/brand-config';
@@ -119,10 +119,10 @@ function Header({ largeLogo = false }) {
             <Link href="/" className="flex items-center">
               <img
                 className={`${largeLogo ? 'h-32 w-32' : 'h-16 w-16 md:h-20 md:w-20'} object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200`}
-                src="/logos/msc-logo-square.png"
+                src="/logos/MSCandCoLogoV2.svg"
                 alt="MSC & Co Logo"
                 onError={(e) => {
-                  e.target.src = '/logos/msc-logo.png';
+                  e.target.src = '/logos/MSCandCoLogoV2.svg';
                 }}
               />
             </Link>
@@ -164,27 +164,36 @@ function Header({ largeLogo = false }) {
 
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                      {/* Dashboard - Everyone has access */}
                       <Link href={
                         getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
                         '/dashboard'
                       }>
                         <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                          <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
                           Dashboard
                         </div>
                       </Link>
-                      <Link href="/settings/me">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                          Profile
-                        </div>
-                      </Link>
-                      <Link href="/download-history">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
-                          Download History
-                        </div>
-                      </Link>
+
+                      {/* Profile - For non-superadmin users */}
+                      {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
+                        <Link href="/settings/me">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                            Profile
+                          </div>
+                        </Link>
+                      )}
+
+                      {/* Download History */}
+                      {hasPermission('download:read:own') && (
+                        <Link href="/download-history">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
+                            Download History
+                          </div>
+                        </Link>
+                      )}
 
                       {/* Artist Menu */}
                       {hasPermission('roster:view:own') && (
@@ -219,24 +228,28 @@ function Header({ largeLogo = false }) {
                       )}
 
                       {/* Distribution Partner Menu */}
-                      {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
+                      {(hasPermission('distribution:distribution_hub:access') || hasPermission('distribution:revenue_reporting:access')) && (
                         <>
                           <hr className="my-1 border-gray-200" />
                           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
                             Distribution
                           </div>
-                          <Link href="/distribution/queue">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Inbox className="w-4 h-4 mr-3 text-gray-400" />
-                              Distribution Queue
-                            </div>
-                          </Link>
-                          <Link href="/distribution/revisions">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <RefreshCw className="w-4 h-4 mr-3 text-gray-400" />
-                              Revision Queue
-                            </div>
-                          </Link>
+                          {hasPermission('distribution:distribution_hub:access') && (
+                            <Link href="/distribution/hub">
+                              <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
+                                Distribution Hub
+                              </div>
+                            </Link>
+                          )}
+                          {hasPermission('distribution:revenue_reporting:access') && (
+                            <Link href="/distribution/revenue">
+                              <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                <DollarSign className="w-4 h-4 mr-3 text-gray-400" />
+                                Revenue Reporting
+                              </div>
+                            </Link>
+                          )}
                         </>
                       )}
 
@@ -256,14 +269,46 @@ function Header({ largeLogo = false }) {
                         </>
                       )}
 
-                      <hr className="my-1 border-gray-200" />
-                      <button
-                        onClick={openCustomerPortal}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      >
-                        <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
-                        Billing
-                      </button>
+                      {/* Settings - For non-superadmin users */}
+                      {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <Link href="/settings">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                              Settings
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Settings for superadmin users */}
+                      {hasPermission('*:*:*') && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <Link href="/admin/settings">
+                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                              <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                              Settings
+                            </div>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Billing - For non-superadmin users */}
+                      {!hasPermission('*:*:*') && (
+                        <>
+                          <hr className="my-1 border-gray-200" />
+                          <button
+                            onClick={openCustomerPortal}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          >
+                            <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
+                            Billing
+                          </button>
+                        </>
+                      )}
+
                       <hr className="my-1 border-gray-200" />
                       <button
                         onClick={() => router.push('/logout')}
@@ -363,27 +408,36 @@ function Header({ largeLogo = false }) {
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    {/* Dashboard - Everyone has access */}
                     <Link href={
                       getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
                       '/dashboard'
                     }>
                       <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                        <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
                         Dashboard
                       </div>
                     </Link>
-                    <Link href="/settings/me">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                        Profile
-                      </div>
-                    </Link>
-                    <Link href="/download-history">
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
-                        Download History
-                      </div>
-                    </Link>
+
+                    {/* Profile - For non-superadmin users */}
+                    {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
+                      <Link href="/settings/me">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
+                          Profile
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Download History */}
+                    {hasPermission('download:read:own') && (
+                      <Link href="/download-history">
+                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                          <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
+                          Download History
+                        </div>
+                      </Link>
+                    )}
 
                     {/* Artist Menu */}
                     {hasPermission('roster:view:own') && (
@@ -424,6 +478,12 @@ function Header({ largeLogo = false }) {
                         <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
                           Distribution
                         </div>
+                        <Link href="/distribution/hub">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
+                            Distribution Hub
+                          </div>
+                        </Link>
                         <Link href="/distribution/queue">
                           <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                             <Inbox className="w-4 h-4 mr-3 text-gray-400" />
@@ -434,6 +494,12 @@ function Header({ largeLogo = false }) {
                           <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                             <RefreshCw className="w-4 h-4 mr-3 text-gray-400" />
                             Revision Queue
+                          </div>
+                        </Link>
+                        <Link href="/distribution/revenue">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <DollarSign className="w-4 h-4 mr-3 text-gray-400" />
+                            Revenue Reporting
                           </div>
                         </Link>
                       </>
@@ -455,14 +521,46 @@ function Header({ largeLogo = false }) {
                       </>
                     )}
 
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={openCustomerPortal}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    >
-                      <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
-                      Billing
-                    </button>
+                    {/* Settings - For non-superadmin users */}
+                    {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <Link href="/settings">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                            Settings
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Settings for superadmin users */}
+                    {hasPermission('*:*:*') && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <Link href="/admin/settings">
+                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                            <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                            Settings
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Billing - For non-superadmin users */}
+                    {!hasPermission('*:*:*') && (
+                      <>
+                        <hr className="my-1 border-gray-200" />
+                        <button
+                          onClick={openCustomerPortal}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        >
+                          <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
+                          Billing
+                        </button>
+                      </>
+                    )}
+
                     <hr className="my-1 border-gray-200" />
                     <button
                       onClick={() => router.push('/logout')}
@@ -553,6 +651,7 @@ function Header({ largeLogo = false }) {
                 </>
               ) : (
                 <>
+                  {/* Dashboard - Everyone has access */}
                   <Link
                     href={getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : '/dashboard'}
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
@@ -560,13 +659,17 @@ function Header({ largeLogo = false }) {
                   >
                     Dashboard
                   </Link>
-                  <Link
-                    href="/settings/me"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
+
+                  {/* Profile - For non-superadmin users */}
+                  {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
+                    <Link
+                      href="/settings/me"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                  )}
 
                   {/* Artist Menu */}
                   {hasPermission('roster:view:own') && (
@@ -607,6 +710,13 @@ function Header({ largeLogo = false }) {
                         Distribution
                       </div>
                       <Link
+                        href="/distribution/hub"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Distribution Hub
+                      </Link>
+                      <Link
                         href="/distribution/queue"
                         className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -619,6 +729,13 @@ function Header({ largeLogo = false }) {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Revision Queue
+                      </Link>
+                      <Link
+                        href="/distribution/revenue"
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Revenue Reporting
                       </Link>
                     </>
                   )}
@@ -639,15 +756,41 @@ function Header({ largeLogo = false }) {
                     </>
                   )}
 
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      openCustomerPortal();
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  >
-                    Billing
-                  </button>
+                  {/* Settings - For non-superadmin users */}
+                  {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
+                    <Link
+                      href="/settings"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                  )}
+
+                  {/* Settings for superadmin users */}
+                  {hasPermission('*:*:*') && (
+                    <Link
+                      href="/admin/settings"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                  )}
+
+                  {/* Billing - For non-superadmin users */}
+                  {!hasPermission('*:*:*') && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        openCustomerPortal();
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      Billing
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);

@@ -1,10 +1,27 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { Edit, Save, X, Building } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
+import { useUser } from '@/components/providers/SupabaseProvider';
+
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, '*:*:*');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function CompanyAdminProfile() {
-  const [profile, setProfile] = useState(null);
+  const router = useRouter();
+  const { user } = useUser();
+    const [profile, setProfile] = useState(null);
   const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -32,7 +49,14 @@ export default function CompanyAdminProfile() {
   const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
   const [showCustomDepartment, setShowCustomDepartment] = useState(false);
   const [customDepartmentValue, setCustomDepartmentValue] = useState('');
-  
+
+  // Check permission - allow wildcard or profile read permission
+  useEffect(() => {
+    if (!permissionsLoading && user && !hasPermission('*:*:*') && !hasPermission('profile:read')) {
+      router.push('/dashboard');
+    }
+  }, [permissionsLoading, user, hasPermission, router]);
+
   useEffect(() => {
     fetchProfile();
   }, []);

@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Building, Award, FileText } from 'lucide-react';
 import Layout from '../../../components/layouts/mainLayout';
 import ProfilePictureUpload from '../../../components/ProfilePictureUpload';
+import { useRouter } from 'next/router';
+
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'profile:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function LabelAdminProfile() {
-  const [profile, setProfile] = useState(null);
+  const router = useRouter();
+    const [profile, setProfile] = useState(null);
   const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -32,6 +47,13 @@ export default function LabelAdminProfile() {
     { code: '+1', country: 'US/CA' }, { code: '+44', country: 'UK' }, { code: '+33', country: 'FR' },
     { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
   ];
+
+  // Permission check
+  useEffect(() => {
+    if (!permissionsLoading && profile && !hasPermission('profile:read')) {
+      router.push('/dashboard');
+    }
+  }, [permissionsLoading, profile, hasPermission, router]);
 
   useEffect(() => {
     fetchProfile();

@@ -47,7 +47,7 @@ async function handler(req, res) {
 // Allow multiple permission patterns for notifications/messages
 // - Role-specific: artist:messages:access, label_admin:messages:access, etc.
 // - Legacy: notification:read:own, notification:view:own
-// - Super admin: dropdown:platform_messages:read
+// - Universal: platform_messages:read
 export default requirePermission([
   'artist:messages:access',
   'label_admin:messages:access',
@@ -56,5 +56,5 @@ export default requirePermission([
   'super_admin:messages:access',
   'notification:read:own',
   'notification:view:own',
-  'dropdown:platform_messages:read'
+  'platform_messages:read'
 ])(handler);

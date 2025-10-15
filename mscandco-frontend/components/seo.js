@@ -3,7 +3,7 @@ import Head from 'next/head';
 const SEO = ({ 
   pageTitle, 
   description = "MSC & Co - Multi-brand music distribution and publishing platform",
-  ogImage = "/logos/msc-logo-square.png",
+  ogImage = "/logos/MSCandCoLogoV2.svg",
   ogUrl,
   siteName = "MSC & Co"
 }) => {

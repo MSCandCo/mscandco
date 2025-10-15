@@ -5,7 +5,7 @@ import axios from "axios";
 import NextNProgress from "nextjs-progressbar";
 import Player from "@/components/player";
 import Header from "@/components/header";
-import RoleBasedNavigation from "@/components/auth/RoleBasedNavigation";
+import PermissionBasedNavigation from "@/components/auth/PermissionBasedNavigation";
 import { AuthProvider, useUser } from "@/components/providers/SupabaseProvider";
 import { ThemeProvider } from "next-themes";
 import Head from "next/head";
@@ -18,9 +18,9 @@ const inter = Inter({
 function AppContent({ Component, pageProps }) {
   const { user, isLoading } = useUser();
   const isAuthenticated = !!user;
-  
-  // Use role-based navigation for authenticated users, old header for public pages
-  const NavigationComponent = isAuthenticated ? RoleBasedNavigation : Header;
+
+  // Use permission-based navigation for authenticated users, old header for public pages
+  const NavigationComponent = isAuthenticated ? PermissionBasedNavigation : Header;
 
   return (
     <>

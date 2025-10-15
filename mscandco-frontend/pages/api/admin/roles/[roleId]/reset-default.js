@@ -53,487 +53,72 @@ async function handler(req, res) {
       });
     }
 
-    // Clear existing permissions for this role
-    const { error: clearError } = await supabase
+    /**
+     * NOTE: Default permissions are now managed in the role_permissions table
+     * This was done by running scripts/setup-default-role-permissions.js
+     *
+     * The "Reset to Default" functionality simply clears any user-specific
+     * permission overrides, allowing the user to inherit the role's default permissions
+     * from the role_permissions table.
+     *
+     * If you need to change the default permissions for a role, update them in
+     * the role_permissions table via the Permissions & Roles UI or by running
+     * the setup script again.
+     */
+
+    // For "Reset to Default", we don't actually modify the role_permissions table
+    // Instead, we clear any user-specific permission overrides for users with this role
+    // This allows them to inherit the role's default permissions
+
+    // Get all users with this role
+    const { data: usersWithRole, error: usersError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('role', role.name);
+
+    if (usersError) {
+      console.error('Error fetching users with role:', usersError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch users with this role'
+      });
+    }
+
+    // Clear user-specific permission overrides for these users
+    if (usersWithRole && usersWithRole.length > 0) {
+      const userIds = usersWithRole.map(u => u.id);
+
+      const { error: clearUserPermsError } = await supabase
+        .from('user_permissions')
+        .delete()
+        .in('user_id', userIds);
+
+      if (clearUserPermsError) {
+        console.error('Error clearing user permissions:', clearUserPermsError);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to clear user permission overrides'
+        });
+      }
+    }
+
+    // Get the count of default permissions for this role
+    const { data: rolePerms, error: rolePermsError } = await supabase
       .from('role_permissions')
-      .delete()
+      .select('permission_id')
       .eq('role_id', roleId);
 
-    if (clearError) {
-      console.error('Error clearing role permissions:', clearError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to clear existing permissions'
-      });
+    if (rolePermsError) {
+      console.error('Error fetching role permissions:', rolePermsError);
     }
 
-    // Define default permissions for each role
-    const defaultPermissions = {
-      super_admin: ['*:*:*'], // Wildcard - all permissions
-
-      company_admin: [
-        // User management
-        'user:read:any',
-        'user:create:any',
-        'user:update:any',
-        'user:delete:any',
-        'user:approve_changes:any',
-        'user:reject_changes:any',
-
-        // Release management
-        'release:read:any',
-        'release:create:partner',
-        'release:update:any',
-        'release:delete:any',
-        'release:approve:any',
-        'release:distribute:any',
-
-        // Analytics & Earnings
-        'analytics:read:any',
-        'analytics:export:any',
-        'earnings:read:any',
-        'earnings:export:any',
-        'earnings:calculate:any',
-
-        // Payouts
-        'payout:read:any',
-        'payout:approve:any',
-        'payout:process:any',
-        'payout:cancel:any',
-
-        // Labels
-        'label:read:any',
-        'label:create:any',
-        'label:update:any',
-        'label:roster:read:any',
-        'label:roster:manage:any',
-        'label:affiliation:approve:any',
-
-        // Splits
-        'split:read:any',
-        'split:approve:any',
-
-        // Support
-        'support:read:any',
-        'support:respond:any',
-        'support:assign:any',
-        'support:escalate:any',
-        'support:close:any',
-
-        // Roles & Permissions
-        'role:read:any',
-
-        // Subscriptions
-        'subscription:read:any',
-        'subscription:manage:any',
-        'subscription:billing:any',
-
-        // Communication
-        'message:send:any',
-        'notification:send:any',
-        'announcement:create:any'
-      ],
-
-      label_admin: [
-        // User management (label scope)
-        'user:read:label',
-        'user:create:label',
-        'user:update:label',
-        'user:read:own',
-        'user:update:own',
-
-        // Release management (label scope)
-        'release:read:label',
-        'release:create:label',
-        'release:update:label',
-        'release:delete:label',
-        'release:read:own',
-        'release:create:own',
-        'release:update:own',
-
-        // Analytics & Earnings (label scope)
-        'analytics:read:label',
-        'analytics:export:label',
-        'analytics:read:own',
-        'earnings:read:label',
-        'earnings:export:label',
-        'earnings:read:own',
-        'earnings:export:own',
-
-        // Payouts (label scope)
-        'payout:read:label',
-        'payout:approve:label',
-        'payout:read:own',
-        'payout:create:own',
-
-        // Label roster
-        'label:read:own',
-        'label:update:own',
-        'label:roster:read:own',
-        'label:roster:manage:own',
-
-        // Splits (label scope)
-        'split:read:label',
-        'split:create:label',
-        'split:update:label',
-        'split:delete:label',
-        'split:read:own',
-        'split:create:own',
-        'split:update:own',
-
-        // Support (label scope)
-        'support:read:label',
-        'support:read:own',
-        'support:create:own',
-        'support:respond:own',
-
-        // Subscription
-        'subscription:read:label',
-        'subscription:read:own',
-
-        // Communication (label scope)
-        'message:send:label',
-        'notification:send:label',
-        'message:read:own',
-        'notification:read:own'
-      ],
-
-      distribution_partner: [
-        // Distribution
-        'distribution:read:partner',
-        'distribution:manage:partner',
-        'distribution:approve:partner',
-
-        // Releases (partner scope)
-        'release:read:partner',
-        'release:create:partner',
-        'release:update:partner',
-        'release:approve:partner',
-
-        // Analytics & Earnings (partner scope)
-        'analytics:read:partner',
-        'analytics:export:partner',
-        'earnings:read:partner',
-        'earnings:export:partner',
-
-        // Payouts (partner scope)
-        'payout:read:partner',
-        'payout:approve:partner',
-
-        // Users (partner scope)
-        'user:read:partner',
-        'user:create:partner',
-        'user:update:partner',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own',
-        'subscription:read:own',
-        'notification:read:own',
-        'message:read:own'
-      ],
-
-      artist: [
-        // Own profile
-        'user:read:own',
-        'user:update:own',
-
-        // Own releases
-        'release:read:own',
-        'release:create:own',
-        'release:update:own',
-        'release:delete:own',
-
-        // Own analytics & earnings
-        'analytics:read:own',
-        'earnings:read:own',
-        'earnings:export:own',
-
-        // Own payouts
-        'payout:read:own',
-        'payout:create:own',
-
-        // Own splits
-        'split:read:own',
-        'split:create:own',
-        'split:update:own',
-        'split:delete:own',
-
-        // Distribution status
-        'distribution:read:own',
-
-        // Support
-        'support:read:own',
-        'support:create:own',
-        'support:respond:own',
-        'support:update:own',
-        'support:close:own',
-
-        // Subscription
-        'subscription:read:own',
-        'subscription:update:own',
-        'subscription:cancel:own',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own'
-      ],
-
-      content_moderator: [
-        // Content review
-        'content:read:any',
-        'content:moderate:any',
-        'content:flag:any',
-        'content:approve:any',
-        'content:reject:any',
-
-        // Release review
-        'release:read:any',
-        'release:moderate:any',
-
-        // User content
-        'user:read:any',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own',
-        'notification:send:any'
-      ],
-
-      financial_admin: [
-        // Earnings management
-        'earnings:read:any',
-        'earnings:create:any',
-        'earnings:update:any',
-        'earnings:export:any',
-        'earnings:calculate:any',
-
-        // Payout management
-        'payout:read:any',
-        'payout:create:any',
-        'payout:approve:any',
-        'payout:process:any',
-        'payout:cancel:any',
-
-        // Splits
-        'split:read:any',
-        'split:approve:any',
-
-        // Analytics
-        'analytics:read:any',
-        'analytics:export:any',
-
-        // Users (for payment info)
-        'user:read:any',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own',
-        'notification:send:any'
-      ],
-
-      support_admin: [
-        // Support tickets
-        'support:read:any',
-        'support:create:any',
-        'support:respond:any',
-        'support:update:any',
-        'support:assign:any',
-        'support:escalate:any',
-        'support:close:any',
-
-        // User management (read only)
-        'user:read:any',
-
-        // Communication
-        'message:send:any',
-        'message:read:any',
-        'notification:send:any',
-        'notification:read:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ],
-
-      marketing_admin: [
-        // Communications
-        'message:send:any',
-        'message:read:any',
-        'notification:send:any',
-        'notification:read:any',
-        'announcement:create:any',
-        'announcement:update:any',
-        'announcement:delete:any',
-
-        // Content access
-        'content:read:any',
-        'content:create:any',
-        'content:update:any',
-
-        // User data (for targeting)
-        'user:read:any',
-
-        // Analytics (for campaigns)
-        'analytics:read:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ],
-
-      requests_admin: [
-        // User change requests
-        'user:read:any',
-        'user:approve_changes:any',
-        'user:reject_changes:any',
-
-        // Label affiliation
-        'label:affiliation:read:any',
-        'label:affiliation:approve:any',
-        'label:affiliation:reject:any',
-
-        // Artist requests
-        'artist:request:read:any',
-        'artist:request:approve:any',
-        'artist:request:reject:any',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own',
-        'notification:send:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ],
-
-      release_admin: [
-        // Release management
-        'release:read:any',
-        'release:create:any',
-        'release:update:any',
-        'release:delete:any',
-        'release:approve:any',
-        'release:reject:any',
-        'release:distribute:any',
-
-        // Distribution
-        'distribution:read:any',
-        'distribution:manage:any',
-
-        // Analytics
-        'analytics:read:any',
-        'analytics:export:any',
-
-        // Users (artists)
-        'user:read:any',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own',
-        'notification:send:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ],
-
-      roster_admin: [
-        // Label roster management
-        'label:read:any',
-        'label:roster:read:any',
-        'label:roster:manage:any',
-        'label:affiliation:read:any',
-        'label:affiliation:approve:any',
-        'label:affiliation:reject:any',
-
-        // Artist management
-        'user:read:any',
-        'user:create:any',
-        'user:update:any',
-
-        // Artist requests
-        'artist:request:read:any',
-        'artist:request:approve:any',
-        'artist:request:reject:any',
-
-        // Releases (read only)
-        'release:read:any',
-
-        // Communication
-        'message:send:any',
-        'message:read:any',
-        'notification:send:any',
-        'notification:read:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ],
-
-      request_admin: [
-        // User change requests
-        'user:read:any',
-        'user:approve_changes:any',
-        'user:reject_changes:any',
-
-        // Communication
-        'message:read:own',
-        'notification:read:own',
-        'notification:send:any',
-
-        // Own profile
-        'user:read:own',
-        'user:update:own'
-      ]
-    };
-
-    const rolePermissions = defaultPermissions[role.name] || [];
-
-    if (rolePermissions.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'No default permissions defined for this role'
-      });
-    }
-
-    // Get permission IDs for the default permissions
-    const { data: permissions, error: permError } = await supabase
-      .from('permissions')
-      .select('id, name')
-      .in('name', rolePermissions);
-
-    if (permError) {
-      console.error('Error fetching permissions:', permError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to fetch permissions'
-      });
-    }
-
-    // Insert default permissions
-    const rolePermissionInserts = permissions.map(perm => ({
-      role_id: roleId,
-      permission_id: perm.id
-    }));
-
-    const { error: insertError } = await supabase
-      .from('role_permissions')
-      .insert(rolePermissionInserts);
-
-    if (insertError) {
-      console.error('Error inserting default permissions:', insertError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to insert default permissions'
-      });
-    }
+    const permissionsCount = rolePerms?.length || 0;
 
     res.status(200).json({
       success: true,
-      message: `Reset ${role.name} to default permissions successfully`,
-      permissionsAdded: rolePermissions.length
+      message: `Reset ${usersWithRole?.length || 0} user(s) with role ${role.name} to default permissions`,
+      defaultPermissionsCount: permissionsCount,
+      usersAffected: usersWithRole?.length || 0
     });
 
   } catch (error) {

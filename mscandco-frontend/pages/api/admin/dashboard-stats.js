@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
+import { requireAuth } from '@/lib/rbac/middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -91,5 +91,5 @@ async function handler(req, res) {
   }
 }
 
-// V2 Permission: Requires read permission for dashboard
-export default requirePermission('dropdown:dashboard:read')(handler);
+// Dashboard is accessible to all authenticated users
+export default requireAuth(handler);

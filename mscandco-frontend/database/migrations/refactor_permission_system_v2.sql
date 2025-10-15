@@ -95,17 +95,15 @@ INSERT INTO permissions (name, description, resource, action, scope) VALUES
 ('distribution:revenue_reporting:read', 'View Revenue Reporting page', 'revenue_reporting', 'read', 'admin')
 ON CONFLICT (name) DO NOTHING;
 
--- Group: Dropdown Pages
+-- Group: Admin Settings & Platform Messages
 INSERT INTO permissions (name, description, resource, action, scope) VALUES
-('dropdown:dashboard:read', 'View Dashboard page', 'dashboard', 'read', 'admin'),
+('platform_messages:read', 'View Platform Messages page', 'platform_messages', 'read', 'admin'),
+('platform_messages:create', 'Send platform messages', 'platform_messages', 'create', 'admin'),
+('platform_messages:update', 'Update platform messages', 'platform_messages', 'update', 'admin'),
+('platform_messages:delete', 'Delete platform messages', 'platform_messages', 'delete', 'admin'),
 
-('dropdown:platform_messages:read', 'View Platform Messages page', 'platform_messages', 'read', 'admin'),
-('dropdown:platform_messages:create', 'Send platform messages', 'platform_messages', 'create', 'admin'),
-('dropdown:platform_messages:update', 'Update platform messages', 'platform_messages', 'update', 'admin'),
-('dropdown:platform_messages:delete', 'Delete platform messages', 'platform_messages', 'delete', 'admin'),
-
-('dropdown:settings:read', 'View Settings page', 'settings', 'read', 'admin'),
-('dropdown:settings:update', 'Update settings', 'settings', 'update', 'admin')
+('settings:read', 'View Settings page', 'settings', 'read', 'admin'),
+('settings:update', 'Update settings', 'settings', 'update', 'admin')
 ON CONFLICT (name) DO NOTHING;
 
 -- ===========================================

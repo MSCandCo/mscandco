@@ -9,6 +9,8 @@ export default function Dashboard() {
   const { user, isLoading } = useUser();
   const router = useRouter();
 
+  // Dashboard is universally accessible - no permission check required
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login');

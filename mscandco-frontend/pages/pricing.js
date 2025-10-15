@@ -427,7 +427,7 @@ function Pricing() {
           <div className="text-center mb-8">
             <div className="flex flex-col items-center mb-4">
               <img 
-                src="/logos/msc-logo.png" 
+                src="/logos/MSCandCoLogoV2.svg" 
                 alt="MSC & Co" 
                 className="h-12 w-auto mb-2"
                 onError={(e) => {
