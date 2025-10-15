@@ -9,7 +9,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import usePermissions from '@/hooks/usePermissions';
 import Link from 'next/link';
 import {
   Shield,
@@ -21,10 +20,24 @@ import {
   Loader2,
 } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'user:read:any');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function SuperadminDashboard() {
   const router = useRouter();
   const { user } = useUser();
   const { hasPermission, hasAnyPermission, loading: permissionsLoading } = usePermissions();
+
+  // Dashboard is universally accessible - no permission check required
 
   // Check if user has any admin permissions
   const isAdmin = hasAnyPermission([
@@ -33,13 +46,6 @@ export default function SuperadminDashboard() {
     'analytics:read:any',
     'release:read:any'
   ]);
-
-  // Redirect if not admin
-  useEffect(() => {
-    if (!permissionsLoading && !isAdmin) {
-      router.push('/dashboard');
-    }
-  }, [permissionsLoading, isAdmin, router]);
 
   if (permissionsLoading) {
     return (

@@ -3,12 +3,25 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { User, Lock, Bell, Shield, Info, Save, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
+
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, '*:*:*');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function AdminSettings() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const [activeTab, setActiveTab] = useState('profile');
+    const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -47,6 +60,13 @@ export default function AdminSettings() {
     email_weekly_summary: false,
     email_monthly_report: true
   });
+
+  // Check permission - allow wildcard or specific settings permission
+  useEffect(() => {
+    if (!permissionsLoading && user && !hasPermission('*:*:*') && !hasPermission('settings:read')) {
+      router.push('/dashboard');
+    }
+  }, [permissionsLoading, user, hasPermission, router]);
 
   useEffect(() => {
     if (user) {

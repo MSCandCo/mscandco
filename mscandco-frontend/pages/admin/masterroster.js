@@ -3,12 +3,25 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Users, Search, Filter, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
+
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'users_access:master_roster:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function MasterRoster() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const [contributors, setContributors] = useState([]);
+    const [contributors, setContributors] = useState([]);
   const [filteredContributors, setFilteredContributors] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +30,8 @@ export default function MasterRoster() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: 'joined_date', direction: 'desc' });
 
+  // Check permission
+  
   useEffect(() => {
     if (user) {
       fetchMasterRoster();

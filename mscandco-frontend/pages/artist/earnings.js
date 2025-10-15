@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
 import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Calendar, 
+import {
+  TrendingUp,
+  DollarSign,
+  Calendar,
   Download,
   Eye,
   EyeOff,
@@ -82,9 +83,22 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
   return null;
 };
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'earnings:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function ArtistEarnings() {
+  const router = useRouter();
   const { user } = useUser();
-  const [walletData, setWalletData] = useState(null);
+    const [walletData, setWalletData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
@@ -93,6 +107,8 @@ export default function ArtistEarnings() {
   const [selectedPeriod, setSelectedPeriod] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+
+  // Permission check - redirect if no access
   
   // Use currency conversion hook
   const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);

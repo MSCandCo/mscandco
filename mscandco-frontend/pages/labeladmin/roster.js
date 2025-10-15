@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useUser } from '@/components/providers/SupabaseProvider';
 
 /**
  * Label Admin Roster Page
@@ -8,9 +9,24 @@ import { useRouter } from 'next/router';
  * the same functionality. The API endpoint handles permission-based access control,
  * ensuring label admins only see contributors from their connected artists.
  */
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'roster:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function LabelAdminRoster() {
   const router = useRouter();
-
+  const { user } = useUser();
+  
+  // Permission check
+  
   useEffect(() => {
     // Redirect to artist roster page
     router.replace('/artist/roster');

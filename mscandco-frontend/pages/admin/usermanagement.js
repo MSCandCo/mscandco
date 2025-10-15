@@ -9,8 +9,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import usePermissions from '@/hooks/usePermissions';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import {
   Users,
   Search,
@@ -30,10 +30,21 @@ import {
   ArrowDown,
 } from 'lucide-react';
 
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'users_access:user_management:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function UserManagementPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
 
   // State
   const [users, setUsers] = useState([]);
@@ -53,20 +64,12 @@ export default function UserManagementPage() {
   const [showQuickRoleModal, setShowQuickRoleModal] = useState(false);
   const [quickRoleChange, setQuickRoleChange] = useState(null); // { user, oldRole, newRole }
 
-  // Check permission on mount
+  // Load data on mount (permission already checked server-side)
   useEffect(() => {
-    if (!permissionsLoading && !hasPermission('user:read:any')) {
-      console.log('❌ Missing user:read:any permission, redirecting to dashboard');
-      router.push('/dashboard');
-    }
-  }, [permissionsLoading, hasPermission, router]);
-
-  // Load data on mount
-  useEffect(() => {
-    if (!permissionsLoading && user && hasPermission('user:read:any')) {
+    if (user) {
       loadData();
     }
-  }, [user, permissionsLoading]);
+  }, [user]);
 
   const loadData = async () => {
     setLoading(true);

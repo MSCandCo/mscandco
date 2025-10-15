@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { createClient } from '@supabase/supabase-js';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
+import { useRouter } from 'next/router';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '../../components/shared/CurrencySelector';
 import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEdit, FaPlay, FaCheckCircle, FaSend, FaCheck, FaTimes } from 'react-icons/fa';
 import { Send, Eye, FileText, CheckCircle, Play, Pause, Check, X, Volume2, VolumeX, Music } from 'lucide-react';
@@ -28,9 +29,22 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'releases:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function LabelAdminReleases() {
+  const router = useRouter();
   const { user, isLoading } = useUser();
-  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+    const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [releases, setReleases] = useState([]);
   const [acceptedArtists, setAcceptedArtists] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -52,6 +66,8 @@ export default function LabelAdminReleases() {
   const userRole = getUserRoleSync(user);
   const userBrand = getUserBrand(user);
 
+  // Permission check
+  
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {

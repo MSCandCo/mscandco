@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import MainLayout from '@/components/layouts/mainLayout';
 import { supabase } from '@/lib/supabase';
-import usePermissions from '@/hooks/usePermissions';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import {
   ShieldCheckIcon,
   UserGroupIcon,
@@ -13,11 +13,22 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'users_access:permissions_roles:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function PermissionsPage() {
   const router = useRouter();
   const { user, isLoading } = useUser();
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
-
+  
   // State management
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState([]);
@@ -38,14 +49,14 @@ export default function PermissionsPage() {
     if (!isLoading && !user) {
       router.push('/login');
     }
-    if (!permissionsLoading && !hasPermission('role:read:any')) {
+    if (!permissionsLoading && user && !hasPermission('users_access:permissions_roles:read')) {
       router.push('/dashboard');
     }
   }, [user, isLoading, permissionsLoading, hasPermission, router]);
 
   // Load initial data
   useEffect(() => {
-    if (!permissionsLoading && user && hasPermission('role:read:any')) {
+    if (user) {
       loadData();
     }
   }, [user, permissionsLoading, hasPermission]);

@@ -1,6 +1,8 @@
 // Company Admin Earnings Management Page
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import Layout from '../../components/layouts/mainLayout';
 import AddEarningsForm from '../../components/admin/AddEarningsForm';
@@ -12,9 +14,22 @@ import {
   TrendingUp
 } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'finance:earnings_management:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function EarningsManagement() {
+  const router = useRouter();
   const { user, isLoading } = useUser();
-  const [artists, setArtists] = useState([]);
+    const [artists, setArtists] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +40,8 @@ export default function EarningsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Check permission
+  
   // Fetch artists and label admins
   useEffect(() => {
     const fetchArtistsAndLabelAdmins = async () => {

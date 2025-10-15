@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import Layout from '../../components/layouts/mainLayout';
 import { 
   Users, 
@@ -18,9 +20,22 @@ import {
   Settings
 } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'analytics:requests:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function AdminRequests() {
+  const router = useRouter();
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState('artist');
+    const [activeTab, setActiveTab] = useState('artist');
   const [artistRequests, setArtistRequests] = useState([]);
   const [profileRequests, setProfileRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +45,8 @@ export default function AdminRequests() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
+  // Check permission
+  
   // Load all requests
   useEffect(() => {
     loadAllRequests();

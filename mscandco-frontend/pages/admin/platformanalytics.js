@@ -12,6 +12,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import {
   LineChart,
@@ -30,16 +31,30 @@ import {
 } from 'recharts';
 import { DateRangeSelector } from '@/components/ui/DateRangeSelector';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'analytics:platform_analytics:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function PlatformAnalytics() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState('30');
   const [customStartDate, setCustomStartDate] = useState(null);
   const [customEndDate, setCustomEndDate] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
 
+  // Check permission
+  
   useEffect(() => {
     if (user) {
       fetchAnalytics();

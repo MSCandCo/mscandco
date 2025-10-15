@@ -2,24 +2,41 @@
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Layout from '../../components/layouts/mainLayout';
 import SubscriptionGate from '../../components/auth/SubscriptionGate';
 import CleanManualDisplay from '../../components/analytics/CleanManualDisplay';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Crown, 
-  Lock 
+import {
+  BarChart3,
+  TrendingUp,
+  Crown,
+  Lock
 } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'analytics:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function ArtistAnalytics() {
+  const router = useRouter();
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState('basic');
+    const [activeTab, setActiveTab] = useState('basic');
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Permission check - redirect if no access
+  
   // Enhanced Pro access detection with multiple fallbacks
   const hasProAccess = 
     subscriptionStatus?.isPro || 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useTheme } from 'next-themes';
 import moment from 'moment-timezone';
@@ -122,9 +123,11 @@ const TIMEZONES = [
 const ArtistSettingsPage = () => {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const { theme, setTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
+  // Permission check - redirect if no access
+  
   // State management
   const [activeTab, setActiveTab] = useState('preferences');
   const [isLoading, setIsLoading] = useState(false);

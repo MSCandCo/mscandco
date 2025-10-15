@@ -14,6 +14,18 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { requirePermission } from '@/lib/serverSidePermissions';
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'admin:ghost_login:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function GhostLogin() {
   const router = useRouter();

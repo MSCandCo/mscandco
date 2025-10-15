@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useRouter } from 'next/router';
 import { 
   Users, Plus, Search, Send, CheckCircle, XCircle, Clock,
@@ -12,10 +13,22 @@ import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { getUserRole } from '@/lib/user-utils';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'roster:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function LabelAdminArtistsRebuilt() {
   const { user, isLoading } = useUser();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   
   // Real database state
   const [myArtists, setMyArtists] = useState([]);
@@ -42,6 +55,8 @@ export default function LabelAdminArtistsRebuilt() {
     show: false, type: '', title: '', message: '' 
   });
 
+  // Permission check
+  
   // Check access and load data
   useEffect(() => {
     if (!isLoading && user) {

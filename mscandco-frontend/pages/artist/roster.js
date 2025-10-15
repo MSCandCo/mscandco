@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '../../lib/user-utils';
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaSearch, 
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
   FaFilter,
   FaUser,
   FaUsers,
@@ -22,10 +23,22 @@ import useModals from '@/hooks/useModals';
 import Avatar from '@/components/shared/Avatar';
 import MSCVideo from '@/components/shared/MSCVideo';
 
-export default function ArtistRoster() {
 
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'roster:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
+export default function ArtistRoster() {
+  const router = useRouter();
   const { user, isLoading: authLoading } = useUser();
-  const [roster, setRoster] = useState([]);
+    const [roster, setRoster] = useState([]);
   const [filteredRoster, setFilteredRoster] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -33,6 +46,8 @@ export default function ArtistRoster() {
   const [editingContributor, setEditingContributor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Permission check - redirect if no access
+  
   // Initialize modals hook
   const {
     confirmModal,

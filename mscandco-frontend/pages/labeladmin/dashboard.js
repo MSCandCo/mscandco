@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync, getUserBrand } from '../../lib/user-utils';
+import { useRouter } from 'next/router';
 import Layout from '../../components/layouts/mainLayout';
 import { FaUsers, FaMusic, FaChartLine, FaDollarSign, FaCalendar, FaEye, FaEdit, FaPlus, FaDownload, FaTimes, FaSearch, FaFilter } from 'react-icons/fa';
 import { Users, Music, TrendingUp, DollarSign, Calendar, Eye, Edit, Plus, Download, Search, Filter } from 'lucide-react';
@@ -32,11 +33,12 @@ const downloadAllReleasesExcel = async (releases) => {
 };
 
 export default function LabelAdminDashboard() {
+  const router = useRouter();
   const { user, isLoading } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showAddArtist, setShowAddArtist] = useState(false);
-  
+
   // Table filtering and search states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -48,9 +50,11 @@ export default function LabelAdminDashboard() {
 
   const userRole = getUserRoleSync();
   const userBrand = getUserBrand(user);
-  
+
   // Currency system integration
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+
+  // Dashboard is universally accessible - no permission check required
 
   // Initialize modals hook
   const {

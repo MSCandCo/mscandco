@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { createClient } from '@supabase/supabase-js';
 import { getUserRoleSync } from '@/lib/user-utils';
+import { useRouter } from 'next/router';
 import { BarChart3, TrendingUp, Users, Crown, Lock } from 'lucide-react';
 import CleanManualDisplay from '@/components/analytics/CleanManualDisplay';
 
@@ -11,15 +12,30 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'analytics:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function LabelAdminAnalytics() {
+  const router = useRouter();
   const { user } = useUser();
-  const [connectedArtists, setConnectedArtists] = useState([]);
+    const [connectedArtists, setConnectedArtists] = useState([]);
   const [activeTab, setActiveTab] = useState('summary');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const userRole = getUserRoleSync(user);
 
+  // Permission check
+  
   // Load connected artists
   useEffect(() => {
     if (user && userRole === 'label_admin') {

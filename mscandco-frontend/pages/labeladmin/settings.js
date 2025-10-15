@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useTheme } from 'next-themes';
 import moment from 'moment-timezone';
@@ -123,7 +124,7 @@ const TIMEZONES = [
 const LabelAdminSettingsPage = () => {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const { theme, setTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
   const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   // State management
@@ -181,6 +182,8 @@ const LabelAdminSettingsPage = () => {
     webhookUrl: ''
   });
 
+  // Permission check
+  
   // Load settings data
   useEffect(() => {
     if (user) {

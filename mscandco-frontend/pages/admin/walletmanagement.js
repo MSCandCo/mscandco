@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import {
   Wallet,
   TrendingUp,
@@ -17,7 +19,19 @@ import {
 } from 'lucide-react';
 import { CurrencySelector, formatCurrency as formatCurrencyUtil } from '@/components/ui/CurrencySelector';
 
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'finance:wallet_management:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function WalletManagement() {
+  const router = useRouter();
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -33,6 +47,7 @@ export default function WalletManagement() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, per_page: 20, total_pages: 1 });
 
+  // Load data (permission already checked server-side)
   useEffect(() => {
     if (user) {
       loadData();

@@ -3,6 +3,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { createClient } from '@supabase/supabase-js';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
 import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
+import { useRouter } from 'next/router';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -82,9 +83,22 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
   return null;
 };
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'earnings:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function LabelAdminEarnings() {
+  const router = useRouter();
   const { user } = useUser();
-  const [walletData, setWalletData] = useState(null);
+    const [walletData, setWalletData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
@@ -151,6 +165,8 @@ export default function LabelAdminEarnings() {
 
   const periodMetrics = calculatePeriodMetrics();
 
+  // Permission check
+  
   useEffect(() => {
     fetchWalletData();
     // Fetch live exchange rates on component mount

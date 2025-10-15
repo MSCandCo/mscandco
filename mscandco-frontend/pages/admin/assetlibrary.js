@@ -23,12 +23,25 @@ import {
   ArrowDown
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
+
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'content:asset_library:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function AssetLibrary() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const [activeTab, setActiveTab] = useState('all');
+    const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [files, setFiles] = useState([]);
@@ -40,6 +53,8 @@ export default function AssetLibrary() {
   const [pagination, setPagination] = useState({ page: 1, per_page: 50, total: 0 });
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
+  // Check permission
+  
   useEffect(() => {
     if (user) {
       fetchFiles();

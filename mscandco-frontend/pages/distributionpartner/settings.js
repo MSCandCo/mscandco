@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import {
   Settings as SettingsIcon,
@@ -27,7 +28,7 @@ import { Button } from '@/components/ui/button';
 const DistributionPartnerSettingsPage = () => {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-
+  
   // State management
   const [activeTab, setActiveTab] = useState('preferences');
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +77,8 @@ const DistributionPartnerSettingsPage = () => {
     webhookUrl: ''
   });
 
+  // Permission check - require distribution:settings:access
+  
   // Load settings data
   useEffect(() => {
     if (user) {
@@ -286,7 +289,7 @@ const DistributionPartnerSettingsPage = () => {
     setTimeout(() => setSaveMessage(null), 3000);
   };
 
-  if (userLoading || isLoading) {
+  if (userLoading || isLoading || permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />

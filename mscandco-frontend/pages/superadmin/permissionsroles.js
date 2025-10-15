@@ -9,8 +9,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layouts/mainLayout';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import usePermissions from '@/hooks/usePermissions';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import {
   Shield,
   Users,
@@ -23,10 +23,75 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
+// Helper function to format role/permission names with proper capitalization
+const formatName = (name) => {
+  if (!name) return '';
+
+  // Special cases for common role names
+  const specialCases = {
+    'super_admin': 'Super Admin',
+    'label_admin': 'Label Admin',
+    'company_admin': 'Company Admin',
+    'distribution_partner': 'Distribution Partner',
+    'content_moderator': 'Content Moderator',
+    'financial_admin': 'Financial Admin',
+    'support_admin': 'Support Admin',
+    'marketing_admin': 'Marketing Admin',
+    'requests_admin': 'Requests Admin',
+    'release_admin': 'Release Admin',
+    'roster_admin': 'Roster Admin',
+    'request_admin': 'Request Admin'
+  };
+
+  // Check if it's a special case
+  if (specialCases[name]) {
+    return specialCases[name];
+  }
+
+  // Otherwise, split on underscore, capitalize each word, and join with space
+  return name
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+// Helper function to format permission resource names
+const formatResourceName = (resource) => {
+  if (resource === '*') return 'Wildcard (All Permissions)';
+
+  // Special cases for resource names
+  const specialCases = {
+    'users_access': 'User & Access',
+    'user_access': 'User & Access'
+  };
+
+  // Check if it's a special case
+  if (specialCases[resource.toLowerCase()]) {
+    return specialCases[resource.toLowerCase()];
+  }
+
+  // Split by colon if it's a full permission name, otherwise split by underscore
+  const parts = resource.includes(':') ? resource.split(':') : resource.split('_');
+  return parts
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' & ');
+};
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'admin:permissionsroles:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function PermissionsPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
 
   // State
   const [permissions, setPermissions] = useState([]);
@@ -50,20 +115,13 @@ export default function PermissionsPage() {
   const ULTIMATE_SUPER_ADMIN = 'superadmin@mscandco.com';
   const isUltimateSuperAdmin = user?.email === ULTIMATE_SUPER_ADMIN;
 
-  // Check permission on mount
+  // Load data on mount (permission already checked server-side)
   useEffect(() => {
-    if (!permissionsLoading && !hasPermission('role:read:any')) {
-      console.log('❌ Missing role:read:any permission, redirecting to dashboard');
-      router.push('/dashboard');
-    }
-  }, [permissionsLoading, hasPermission, router]);
-
-  // Load data on mount
-  useEffect(() => {
-    if (!permissionsLoading && user && hasPermission('role:read:any')) {
+    if (user) {
       loadData();
     }
-  }, [user, permissionsLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   /**
    * Load permissions and roles from database
@@ -480,7 +538,7 @@ export default function PermissionsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium">
-                            {role.name.replace('_', ' ').toUpperCase()}
+                            {formatName(role.name)}
                           </div>
                           <div className={`text-sm ${
                             selectedRole?.id === role.id ? 'text-gray-200' : 'text-gray-500'
@@ -531,7 +589,7 @@ export default function PermissionsPage() {
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="font-medium">
-                                {role.name.replace('_', ' ').toUpperCase()}
+                                {formatName(role.name)}
                               </div>
                               <div className={`text-sm ${
                                 selectedRole?.id === role.id ? 'text-gray-200' : 'text-gray-500'
@@ -573,7 +631,7 @@ export default function PermissionsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900">
-                        {selectedRole.name.replace('_', ' ').toUpperCase()} Permissions
+                        {formatName(selectedRole.name)} Permissions
                       </h2>
                       <p className="text-sm text-gray-600">
                         {rolePermissions.length} permissions assigned
@@ -651,7 +709,7 @@ export default function PermissionsPage() {
               </div>
 
               <p className="text-gray-600 mb-6">
-                Are you sure you want to reset <span className="font-semibold">{selectedRole?.name.replace('_', ' ').toUpperCase()}</span> to its default permissions? This will remove all custom permission assignments.
+                Are you sure you want to reset <span className="font-semibold">{formatName(selectedRole?.name)}</span> to its default permissions? This will remove all custom permission assignments.
               </p>
 
               <div className="flex gap-3 justify-end">
@@ -687,7 +745,7 @@ export default function PermissionsPage() {
               </div>
 
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete <span className="font-semibold">{roleToDelete.name.replace('_', ' ').toUpperCase()}</span>?
+                Are you sure you want to delete <span className="font-semibold">{formatName(roleToDelete.name)}</span>?
                 This will remove all users assigned to this role and cannot be undone.
               </p>
 
@@ -808,8 +866,8 @@ export default function PermissionsPage() {
                               }}
                               className="w-4 h-4 text-gray-700 rounded focus:ring-gray-500"
                             />
-                            <span className="font-medium text-gray-900 capitalize">
-                              {resource === '*' ? 'Wildcard (All Permissions)' : `${resource} Permissions`}
+                            <span className="font-medium text-gray-900">
+                              {formatResourceName(resource)}
                             </span>
                           </div>
                           <span className="text-sm text-gray-500">
@@ -918,8 +976,8 @@ function PermissionGroup({
         }))}
         className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-t-lg flex items-center justify-between"
       >
-        <span className="font-medium text-gray-900 capitalize">
-          {resource === '*' ? 'Wildcard (All Permissions)' : `${resource} Permissions`}
+        <span className="font-medium text-gray-900">
+          {formatResourceName(resource)}
         </span>
         <span className="text-sm text-gray-500">
           {activeCount}/{totalCount} permissions

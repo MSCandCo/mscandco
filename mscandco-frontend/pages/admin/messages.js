@@ -1,15 +1,32 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import Layout from '../../components/layouts/mainLayout';
 import { Mail, Bell, CheckCircle, TrendingUp, DollarSign, FileText, AlertCircle } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'platform_messages:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function AdminMessages() {
+  const router = useRouter();
   const { user } = useUser();
-  const [notifications, setNotifications] = useState([]);
+    const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // all, system, release, earning, payout
   const [loading, setLoading] = useState(true);
 
+  // Check permission
+  
   useEffect(() => {
     fetchNotifications();
   }, [filter]);

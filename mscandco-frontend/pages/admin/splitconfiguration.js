@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
 import {
   PieChart,
   Users,
@@ -13,9 +15,22 @@ import {
   Info
 } from 'lucide-react';
 
+
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'finance:split_configuration:read');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 export default function SplitConfiguration() {
+  const router = useRouter();
   const { user } = useUser();
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -38,6 +53,8 @@ export default function SplitConfiguration() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showOverridesOnly, setShowOverridesOnly] = useState(false);
 
+  // Check permission
+  
   useEffect(() => {
     if (user) {
       loadData();
