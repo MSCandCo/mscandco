@@ -1,0 +1,852 @@
+{
+  "timestamp": "2025-10-15T15:09:48.847Z",
+  "summary": {
+    "totalPages": 93,
+    "alreadyFixed": 35,
+    "needsFixing": 0,
+    "noChecks": 58,
+    "percentComplete": "100.0"
+  },
+  "alreadyFixed": [
+    {
+      "path": "admin/analyticsmanagement.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "analytics:analytics_management:read"
+    },
+    {
+      "path": "admin/assetlibrary.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "content:asset_library:read"
+    },
+    {
+      "path": "admin/earningsmanagement.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "finance:earnings_management:read"
+    },
+    {
+      "path": "admin/masterroster.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "users_access:master_roster:read"
+    },
+    {
+      "path": "admin/messages.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "platform_messages:read"
+    },
+    {
+      "path": "admin/permissions.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "users_access:permissions_roles:read"
+    },
+    {
+      "path": "admin/platformanalytics.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "analytics:platform_analytics:read"
+    },
+    {
+      "path": "admin/profile/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "*:*:*"
+    },
+    {
+      "path": "admin/requests.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "analytics:requests:read"
+    },
+    {
+      "path": "admin/settings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "*:*:*"
+    },
+    {
+      "path": "admin/splitconfiguration.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "finance:split_configuration:read"
+    },
+    {
+      "path": "admin/usermanagement.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "users_access:user_management:read"
+    },
+    {
+      "path": "admin/walletmanagement.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "finance:wallet_management:read"
+    },
+    {
+      "path": "artist/analytics.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "analytics:access"
+    },
+    {
+      "path": "artist/earnings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "earnings:access"
+    },
+    {
+      "path": "artist/messages.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "messages:access"
+    },
+    {
+      "path": "artist/releases.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "releases:access"
+    },
+    {
+      "path": "artist/roster.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "roster:access"
+    },
+    {
+      "path": "artist/settings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distribution/queue.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": true,
+      "permissionCheckLine": null,
+      "permission": "distribution:read:partner"
+    },
+    {
+      "path": "distribution/revisions.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": true,
+      "permissionCheckLine": null,
+      "permission": "distribution:read:partner"
+    },
+    {
+      "path": "distributionpartner/settings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "labeladmin/analytics.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "analytics:access"
+    },
+    {
+      "path": "labeladmin/artists.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "roster:access"
+    },
+    {
+      "path": "labeladmin/earnings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "earnings:access"
+    },
+    {
+      "path": "labeladmin/messages.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "messages:access"
+    },
+    {
+      "path": "labeladmin/profile/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "profile:read"
+    },
+    {
+      "path": "labeladmin/releases.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "releases:access"
+    },
+    {
+      "path": "labeladmin/roster.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "roster:access"
+    },
+    {
+      "path": "labeladmin/settings.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "superadmin/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": true,
+      "permissionCheckLine": null,
+      "permission": "user:read:any"
+    },
+    {
+      "path": "superadmin/ghost-login.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "admin:ghost_login:access"
+    },
+    {
+      "path": "superadmin/messages.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "messages:access"
+    },
+    {
+      "path": "superadmin/permissionsroles.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": true,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": "admin:permissionsroles:access"
+    },
+    {
+      "path": "test-rbac.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": true,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    }
+  ],
+  "needsFixing": [],
+  "noPermissionCheck": [
+    {
+      "path": "_app.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "_document.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "about.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "archived/distribution/queue.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "archived/distribution/revisions.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "artist/profile/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "auth/callback.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "billing/cancelled.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "billing/failed.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "billing/success.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "billing.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/analytics-management.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/approvals.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/artist-requests.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/content.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/dashboard-new.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/distribution.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/earnings-management.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/payout-requests.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/profile/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/profile-requests.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/requests.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/users-old.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "companyadmin/users.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "customadmin/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "dashboard-example.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distribution/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distribution/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distribution/reporting.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distribution/workflow.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distributionpartner/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distributionpartner/profile/index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distributionpartner/release-details.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distributionpartner/releases.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "distributionpartner/sync-board.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "dmca-policy.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "email-verified.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "faq.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "find-my-song.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "index.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "labeladmin/dashboard.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "license-terms.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "login.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "logout.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "payment/failed.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "payment/success.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "pricing.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "privacy-policy.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "register-simple.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "register.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "releases/create.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "settings/me.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "support.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "terms-of-use.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "unauthorized.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    },
+    {
+      "path": "verify-email.js",
+      "hasClientSideCheck": false,
+      "hasServerSideCheck": false,
+      "hasGetServerSideProps": false,
+      "usesUsePermissions": false,
+      "permissionCheckLine": null,
+      "permission": null
+    }
+  ]
+}
