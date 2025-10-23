@@ -1,3 +1,5 @@
+'use client'
+
 // Clean Code Group Release Form - Dropdown Addition System
 import { useState } from 'react';
 import { RELEASE_TYPES, GENRES, LANGUAGES, ASSET_CONTRIBUTOR_TYPES, RELEASE_CONTRIBUTOR_TYPES, SOCIAL_MEDIA_TYPES } from '../../lib/constants';

@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserPermissions } from '@/lib/permissions';
 
 // In-memory cache for permissions (shared across all hook instances)
@@ -42,6 +42,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  * );
  */
 export function usePermissions(userId = null) {
+  const { user: contextUser, session: contextSession, supabase } = useUser();
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,6 +52,12 @@ export function usePermissions(userId = null) {
    * Fetch user's permissions from Supabase with caching
    */
   const fetchPermissions = useCallback(async (forceRefresh = false) => {
+    // Wait for supabase client to be available
+    if (!supabase) {
+      console.log('🔑 usePermissions: Waiting for supabase client...');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -89,18 +96,33 @@ export function usePermissions(userId = null) {
       }
 
       // Get user permissions via API endpoint (server-side with proper permissions)
+      console.log('🔑 usePermissions: Fetching permissions from API...');
+      console.log('🔑 Session available?', !!session);
+      console.log('🔑 Access token available?', !!session?.access_token);
+      console.log('🔑 Access token length:', session?.access_token?.length || 0);
+      
       const response = await fetch('/api/user/permissions', {
         headers: {
           'Authorization': `Bearer ${session.access_token || ''}`
         }
       });
 
+      console.log('🔑 API Response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔑 API Error response:', errorText);
         throw new Error(`Failed to fetch permissions: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('🔑 API Response data:', data);
+      console.log('🔑 API Response data.permissions:', data.permissions);
+      console.log('🔑 API Response data.permissions type:', typeof data.permissions);
+      console.log('🔑 API Response data.permissions isArray?', Array.isArray(data.permissions));
       const permissionNames = data.permissions || [];
+      console.log('🔑 Extracted permissionNames:', permissionNames);
+      console.log('🔑 permissionNames length:', permissionNames.length);
 
       console.log('🔑 usePermissions hook received:', {
         user_id: data.user_id,
@@ -123,12 +145,14 @@ export function usePermissions(userId = null) {
       setPermissions([]);
       setLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, supabase]);
 
   /**
    * Initialize permissions fetch and set up auth state listener
    */
   useEffect(() => {
+    if (!supabase) return;
+
     let isMounted = true;
 
     // Initial fetch
@@ -167,7 +191,7 @@ export function usePermissions(userId = null) {
         window.removeEventListener('permissionsChanged', handlePermissionRefresh);
       }
     };
-  }, [fetchPermissions]);
+  }, [fetchPermissions, supabase]);
 
   /**
    * Check if current user has a specific permission
@@ -186,7 +210,7 @@ export function usePermissions(userId = null) {
     // This prevents false negatives during initialization
     if (loading) return false;
 
-    if (!currentUserId) return false;
+    if (!currentUserId && !contextUser) return false;
 
     // Check wildcard first (super admin)
     if (permissions.includes('*:*:*')) {
@@ -217,7 +241,7 @@ export function usePermissions(userId = null) {
 
     console.log(`❌ hasPermission('${permission}') = false (no match). Available:`, permissions);
     return false;
-  }, [permissions, currentUserId]);
+  }, [permissions, currentUserId, contextUser, loading]);
 
   /**
    * Check if current user has any of the specified permissions

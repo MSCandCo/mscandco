@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 import { Info, Clock, CheckCircle, X } from 'lucide-react';
 

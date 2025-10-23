@@ -1,3 +1,5 @@
+'use client'
+
 // 🎯 SHARED STATS CARD COMPONENT
 // Eliminates duplicate stats display code across all dashboards
 

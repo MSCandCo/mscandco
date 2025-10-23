@@ -5,6 +5,20 @@ import { Shield, CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-rea
 import MainLayout from '@/components/layouts/mainLayout';
 import SEO from '@/components/seo';
 import { supabase } from '@/lib/supabase';
+import { requirePermission } from '@/lib/serverSidePermissions';
+
+
+// Server-side permission check BEFORE page renders
+// Test page requires at least basic user access
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, '*:*:*');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
 
 export default function TestRBAC() {
   const { user, isLoading } = useUser();
@@ -12,12 +26,6 @@ export default function TestRBAC() {
   const [testResult, setTestResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login');
-    }
-  }, [isLoading, user, router]);
 
   const runRBACTest = async () => {
     setLoading(true);

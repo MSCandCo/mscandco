@@ -1,12 +1,13 @@
+'use client'
+
 // Admin Analytics Interface - Exact match to frontend sections
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useUser } from '@/components/providers/SupabaseProvider';
-import { 
-  Music, 
-  Settings, 
-  Save, 
-  Plus, 
+import { createClient } from '@/lib/supabase/client';
+import {
+  Music,
+  Settings,
+  Save,
+  Plus,
   Trash2,
   CheckCircle,
   Users,
@@ -15,9 +16,9 @@ import {
   Award
 } from 'lucide-react';
 
-export default function AdminAnalyticsInterface({ selectedArtistId, selectedArtistData, onDataUpdated }) {
-  const { user } = useUser();
-  const [isAdmin, setIsAdmin] = useState(false);
+export default function AdminAnalyticsInterface({ artistId, artistName }) {
+  const supabase = createClient();
+  const [isAdmin, setIsAdmin] = useState(true);
   
   // Brand Error Modal State
   const [errorModal, setErrorModal] = useState({
@@ -44,7 +45,6 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       icon: 'error'
     });
   };
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
@@ -355,7 +355,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
 
   // Save Functions
   const saveBasicAnalytics = async () => {
-    if (!selectedArtistId) {
+    if (!artistId) {
       alert('Please select an artist first');
       return;
     }
@@ -376,7 +376,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
       // Simplified for testing - bypass auth issues
       console.log('🔓 Bypassing auth for testing - using direct API call');
 
-      console.log('🚀 Starting save process for artist:', selectedArtistId);
+      console.log('🚀 Starting save process for artist:', artistId);
       console.log('📊 Data URL validation passed - Audio:', latestRelease.audioFileUrl?.length || 0, 'chars, Artwork:', latestRelease.artworkUrl?.length || 0, 'chars');
       console.log('📊 Release data:', {
         title: latestRelease.title,
@@ -397,7 +397,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          artistId: selectedArtistId,
+          artistId: artistId,
           releaseData: latestRelease,
           milestonesData: milestones,
           sectionVisibility: sectionVisibility,
@@ -460,14 +460,14 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
   };
 
   const saveAdvancedAnalytics = async () => {
-    if (!selectedArtistId) {
+    if (!artistId) {
       alert('Please select an artist first');
       return;
     }
-    
+
     setSaving(true);
     try {
-      console.log('🚀 Starting advanced analytics save for artist:', selectedArtistId);
+      console.log('🚀 Starting advanced analytics save for artist:', artistId);
       console.log('📊 Advanced data:', {
         artistRanking: artistRanking.length,
         careerSnapshot: careerSnapshot.length,
@@ -486,7 +486,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          artistId: selectedArtistId,
+          artistId: artistId,
           releaseData: null, // Advanced doesn't update release data
           milestonesData: null, // Don't touch milestones data at all
           advancedData: {
@@ -561,10 +561,10 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
   // Load existing data when artist is selected
   useEffect(() => {
     const loadExistingData = async () => {
-      if (!selectedArtistId) return;
+      if (!artistId) return;
 
       try {
-        console.log('📥 Loading existing data for artist:', selectedArtistId);
+        console.log('📥 Loading existing data for artist:', artistId);
 
         // Load existing data using the proper admin load API
         const { data: { session } } = await supabase.auth.getSession();
@@ -575,7 +575,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
           return;
         }
 
-        const response = await fetch(`/api/admin/analytics/load-data?artistId=${selectedArtistId}`, {
+        const response = await fetch(`/api/admin/analytics/load-data?artistId=${artistId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -650,33 +650,7 @@ export default function AdminAnalyticsInterface({ selectedArtistId, selectedArti
     };
 
     loadExistingData();
-  }, [selectedArtistId]);
-
-  // Check admin permissions from user metadata
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const userRole = user.user_metadata?.role;
-    const adminRoles = ['super_admin', 'company_admin'];
-    
-    console.log('🔐 Checking admin permissions:', { userRole, isAdmin: adminRoles.includes(userRole) });
-    setIsAdmin(adminRoles.includes(userRole));
-    setLoading(false);
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-slate-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-        </div>
-      </div>
-    );
-  }
+  }, [artistId]);
 
   if (!isAdmin) {
     return (

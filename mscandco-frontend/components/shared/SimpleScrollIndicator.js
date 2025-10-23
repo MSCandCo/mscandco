@@ -1,3 +1,5 @@
+'use client'
+
 // Simple Horizontal Scroll Indicator
 import { useState, useEffect, useRef } from 'react';
 

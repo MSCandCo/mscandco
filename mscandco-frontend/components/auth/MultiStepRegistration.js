@@ -1,6 +1,8 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Mail, Lock, Shield, User, Check, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { NationalityDropdown, CountryDropdown, CityDropdown } from '../shared/IntelligentDropdowns';
 

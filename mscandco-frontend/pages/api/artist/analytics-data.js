@@ -1,20 +1,42 @@
 // Analytics Data API - Fetches from user_profiles analytics_data field
 import { createClient } from '@supabase/supabase-js';
-import { requirePermission } from '@/lib/rbac/middleware';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // req.user and req.userRole are automatically attached by middleware
-    const userId = req.user.id;
+    // Get auth token from header
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    // Create Supabase client to verify user
+    const authClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+
+    // Verify the user's token
+    const { data: { user }, error: userError } = await authClient.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    console.log('✅ User authenticated:', user.email);
+
+    // Use service role to bypass RLS (we've already authenticated the user)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const userId = user.id;
     console.log('Fetching analytics data for user:', userId);
 
     // Fetch analytics data from user_profiles (using analytics_data column)
@@ -104,6 +126,3 @@ function calculateRelativeDate(dateString) {
     return years === 1 ? '1 year ago' : `${years} years ago`;
   }
 }
-
-// Protect with analytics:view:own permission
-export default requirePermission('analytics:view:own')(handler);

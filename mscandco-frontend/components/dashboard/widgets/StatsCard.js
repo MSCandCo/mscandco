@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Stats Card Widget
  * Displays a single metric with icon, value, and optional trend

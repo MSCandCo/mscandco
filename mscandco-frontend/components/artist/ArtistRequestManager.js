@@ -1,3 +1,5 @@
+'use client'
+
 // Artist Request Manager - Handle Label Admin Invitations
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';

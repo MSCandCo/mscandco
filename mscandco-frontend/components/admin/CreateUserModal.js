@@ -1,7 +1,11 @@
+'use client'
+
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useRoles } from '@/hooks/useRoles';
 
 const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
+  const { roles: availableRoles } = useRoles();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -239,11 +243,11 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
-                    <option value="artist">Artist</option>
-                    <option value="label_admin">Label Admin</option>
-                    <option value="distribution_partner">Distribution Partner</option>
-                    <option value="company_admin">Company Admin</option>
-                    <option value="super_admin">Super Admin</option>
+                    {availableRoles.map(role => (
+                      <option key={role.id} value={role.name}>
+                        {role.display_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

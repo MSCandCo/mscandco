@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Save, AlertCircle, CheckCircle, Lock, Unlock } from 'lucide-react';
 

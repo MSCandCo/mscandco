@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Dashboard Widget Component
  * Sortable, draggable widget wrapper

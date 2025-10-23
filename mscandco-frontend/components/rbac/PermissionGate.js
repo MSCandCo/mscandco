@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * PermissionGate Component
  * Conditionally renders children based on user permissions

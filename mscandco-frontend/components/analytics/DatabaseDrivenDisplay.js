@@ -1,3 +1,5 @@
+'use client'
+
 // Database-Driven Analytics Display - NO MOCK DATA
 import { useState, useEffect } from 'react';
 import { 

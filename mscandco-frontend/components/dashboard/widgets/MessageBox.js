@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Message Box Widget
  * Displays announcements, alerts, and platform messages

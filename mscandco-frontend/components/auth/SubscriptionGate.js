@@ -1,6 +1,7 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { supabase } from '@/lib/supabase';
 import { Lock, CreditCard, Music, BarChart3, DollarSign, Users, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -10,13 +11,13 @@ export default function SubscriptionGate({
   showFeaturePreview = false,
   userRole = null 
 }) {
-  const { user } = useUser();
+  const { user, supabase } = useUser();
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!user) {
+      if (!user || !supabase) {
         setLoading(false);
         return;
       }
@@ -126,7 +127,7 @@ export default function SubscriptionGate({
     };
 
     checkSubscription();
-  }, [user, userRole]);
+  }, [user, userRole, supabase]);
 
   // Show loading state
   if (loading) {

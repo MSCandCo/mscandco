@@ -43,7 +43,7 @@ export default async function handler(req, res) {
 
     console.log('Loading wallet data for artist:', artist_id);
 
-    // Calculate wallet summary directly from earnings_log table
+    // Fetch earnings_log (single source of truth)
     const { data: allEarnings, error: earningsError } = await supabase
       .from('earnings_log')
       .select('*')
@@ -54,18 +54,25 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to load earnings data' });
     }
 
-    // Calculate balances
-    // Calculate wallet balances (exclude cancelled entries)
+    // Calculate balances from earnings_log (includes splits, automated earnings, top-ups, and deductions)
     const activeEarnings = allEarnings?.filter(e => e.status !== 'cancelled') || [];
     
-    const walletSummary = {
-      available_balance: activeEarnings?.filter(e => e.status === 'paid' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      pending_balance: activeEarnings?.filter(e => e.status === 'pending' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      held_balance: activeEarnings?.filter(e => e.status === 'held' && e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      total_earned: activeEarnings?.filter(e => e.amount > 0).reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0,
-      total_entries: activeEarnings?.length || 0,
-      last_updated: new Date().toISOString()
-    };
+    // Available balance includes ALL paid entries (positive AND negative)
+    const available_balance = activeEarnings
+      ?.filter(e => e.status === 'paid')
+      .reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
+    
+    const pending_balance = activeEarnings
+      ?.filter(e => e.status === 'pending' && e.amount > 0)
+      .reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
+    
+    const held_balance = activeEarnings
+      ?.filter(e => e.status === 'held' && e.amount > 0)
+      .reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
+    
+    const total_earned = activeEarnings
+      ?.filter(e => e.amount > 0)
+      .reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
 
     // Filter pending entries (only positive amounts - actual earnings waiting to be paid, exclude cancelled)
     const pendingEntries = activeEarnings?.filter(e => ['pending', 'processing'].includes(e.status) && e.amount > 0) || [];
@@ -76,13 +83,13 @@ export default async function handler(req, res) {
 
     const wallet = {
       artist_id,
-      available_balance: walletSummary?.available_balance || 0,
-      pending_balance: walletSummary?.pending_balance || 0,
-      held_balance: walletSummary?.held_balance || 0,
-      total_earned: walletSummary?.total_earned || 0,
+      available_balance: available_balance,
+      pending_balance: pending_balance,
+      held_balance: held_balance,
+      total_earned: total_earned,
       currency: 'GBP',
       minimum_payout: 50,
-      last_updated: walletSummary?.last_updated || new Date().toISOString()
+      last_updated: new Date().toISOString()
     };
 
     console.log('Wallet summary loaded:', {

@@ -48,13 +48,6 @@ export default function LabelAdminProfile() {
     { code: '+49', country: 'DE' }, { code: '+34', country: 'ES' }, { code: '+39', country: 'IT' }
   ];
 
-  // Permission check
-  useEffect(() => {
-    if (!permissionsLoading && profile && !hasPermission('profile:read')) {
-      router.push('/dashboard');
-    }
-  }, [permissionsLoading, profile, hasPermission, router]);
-
   useEffect(() => {
     fetchProfile();
   }, []);

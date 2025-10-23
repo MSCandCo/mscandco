@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 
 function Avatar({ name, image, size = "w-10 h-10", textSize = "text-sm" }) {

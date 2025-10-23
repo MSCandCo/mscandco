@@ -70,27 +70,39 @@ async function handler(req, res) {
 
     if (action === 'approve') {
       try {
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('wallet_balance')
-          .eq('user_id', report.artist_user_id)
+        // Create entry in earnings_log (single source of truth)
+        const { data: earningsEntry, error: earningsError } = await supabase
+          .from('earnings_log')
+          .insert({
+            artist_id: report.artist_user_id,
+            amount: parseFloat(report.amount),
+            currency: report.currency || 'GBP',
+            earning_type: 'revenue_approval',
+            platform: 'Manual Approval',
+            status: 'paid',
+            payment_date: new Date().toISOString().split('T')[0],
+            notes: `Revenue payment: ${report.description}`,
+            created_at: new Date().toISOString(),
+            created_by: req.user.id
+          })
+          .select()
           .single();
 
-        const currentBalance = profile?.wallet_balance || 0;
-        const newBalance = currentBalance + parseFloat(report.amount);
-
-        const { error: walletError } = await supabase
-          .from('user_profiles')
-          .upsert({
-            user_id: report.artist_user_id,
-            wallet_balance: newBalance,
-            updated_at: new Date().toISOString()
-          });
-
-        if (walletError) {
-          throw walletError;
+        if (earningsError) {
+          throw earningsError;
         }
 
+        // Calculate new balance from earnings_log
+        const { data: balanceData } = await supabase
+          .from('earnings_log')
+          .select('amount')
+          .eq('artist_id', report.artist_user_id)
+          .neq('status', 'cancelled');
+
+        const newBalance = balanceData?.reduce((sum, entry) => sum + parseFloat(entry.amount), 0) || 0;
+        const previousBalance = newBalance - parseFloat(report.amount);
+
+        // Also log in wallet_transactions for backward compatibility (optional)
         const { error: transactionError } = await supabase
           .from('wallet_transactions')
           .insert({
@@ -103,15 +115,17 @@ async function handler(req, res) {
           });
 
         walletResult = {
-          previousBalance: currentBalance,
+          previousBalance: previousBalance,
           newBalance: newBalance,
-          creditAmount: parseFloat(report.amount)
+          creditAmount: parseFloat(report.amount),
+          earningsEntryId: earningsEntry.id
         };
 
         console.log('Artist wallet credited:', {
           artistEmail: report.artist_email,
           amount: `${report.currency} ${report.amount}`,
-          newBalance: newBalance
+          newBalance: newBalance,
+          earningsEntryId: earningsEntry.id
         });
 
       } catch (walletError) {

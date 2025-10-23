@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Label, TextInput, Select, Checkbox, Tabs } from 'flowbite-react';
 import { HiCog, HiSave, HiTrash, HiEye, HiDownload } from 'react-icons/hi';

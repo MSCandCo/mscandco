@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Line Chart Widget (Placeholder)
  * TODO: Implement with charting library (recharts, chart.js, etc.)

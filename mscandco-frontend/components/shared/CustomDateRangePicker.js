@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronDown, X } from 'lucide-react';
 

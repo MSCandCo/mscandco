@@ -1,8 +1,10 @@
+'use client'
+
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader, TrendingUp, Users, DollarSign, Music, BarChart3, FileText, Settings, Eye } from 'lucide-react';
 import CurrencySelector, { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';

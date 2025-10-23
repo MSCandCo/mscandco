@@ -1,3 +1,5 @@
+'use client'
+
 import { FaTimes, FaMusic, FaCalendar, FaUser, FaTag, FaFileAlt, FaGlobe, FaBarcode } from 'react-icons/fa';
 import { formatCurrency } from '../shared/CurrencySelector';
 

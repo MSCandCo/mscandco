@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { FaCheck, FaTimes, FaEye, FaUser, FaClock } from 'react-icons/fa';
 import { CheckCircle, XCircle, Clock, User } from 'lucide-react';

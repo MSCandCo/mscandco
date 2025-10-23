@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Empty State Components
  * Graceful empty states for when no data exists yet

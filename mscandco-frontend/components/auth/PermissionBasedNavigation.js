@@ -1,7 +1,9 @@
+'use client'
+
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { getUserRoleSync, getDefaultDisplayBrand, getUserBrand } from '@/lib/user-utils';
 import {
   FileText,

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Wallet, Plus, TrendingUp, TrendingDown, CreditCard, Loader, CheckCircle, XCircle } from 'lucide-react';

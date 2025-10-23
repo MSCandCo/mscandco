@@ -1,6 +1,8 @@
+'use client'
+
 // Comprehensive Role Router - Handles All 6 Roles + Permissions
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getUserRoleSync } from '@/lib/user-utils';
 import { getUserPermissions, canAccessPage } from '@/lib/permissions-utils';

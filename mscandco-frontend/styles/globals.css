@@ -2,8 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import custom styles */
+@import './components.css';
+@import './animations.css';
+@import './themes.css';
+
+/* CSS Variables for theming */
+:root {
+  /* Brand Colors */
+  --color-primary: 59 130 246;
+  --color-secondary: 107 114 128;
+  --color-success: 16 185 129;
+  --color-warning: 245 158 11;
+  --color-error: 239 68 68;
+  
+  /* Background */
+  --color-background: 255 255 255;
+  --color-foreground: 31 41 55;
+  
+  /* Borders */
+  --color-border: 229 231 235;
+  
+  /* Text */
+  --color-text-primary: 17 24 39;
+  --color-text-secondary: 107 114 128;
+  --color-text-muted: 156 163 175;
+}
+
+/* Dark mode variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: 17 24 39;
+    --color-foreground: 249 250 251;
+    --color-border: 55 65 81;
+    --color-text-primary: 249 250 251;
+    --color-text-secondary: 156 163 175;
+    --color-text-muted: 107 114 128;
+  }
+}
+
 body {
-  @apply text-gray-800 font-medium text-sm;
+  @apply text-gray-800 font-medium text-sm bg-gray-50;
 }
 
 /* Professional compact sizing - 10% reduction for better density */

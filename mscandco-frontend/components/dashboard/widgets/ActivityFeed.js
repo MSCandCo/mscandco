@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Activity Feed Widget
  * Shows recent activities/events

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/rbac/middleware';
 import { hasPermission } from '@/lib/rbac/roles';
+import { getDefaultPermissionsForRole } from '@/lib/rbac/default-role-permissions';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -11,19 +12,31 @@ const supabase = createClient(
 const MASTER_ADMIN_ID = process.env.MASTER_ADMIN_ID || 'cd4c6d06-c733-4c2f-a67c-abf914e06b0d';
 
 async function handler(req, res) {
+  console.log('=== RESET DEFAULT PERMISSIONS API CALLED ===');
+  console.log('Method:', req.method);
+  console.log('User:', req.user?.id, req.user?.email);
+  console.log('User Role:', req.userRole);
+
   if (req.method !== 'POST') {
+    console.log('Method not allowed');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   // Check update permission for permissions & roles
+  console.log('Checking permission: users_access:permissions_roles:update');
   const canUpdate = await hasPermission(req.userRole, 'users_access:permissions_roles:update', req.user.id);
+  console.log('Permission check result:', canUpdate);
+
   if (!canUpdate) {
+    console.log('PERMISSION DENIED - User lacks permission to reset role permissions');
     return res.status(403).json({ error: 'Insufficient permissions to reset role permissions' });
   }
 
   const { roleId } = req.query;
+  console.log('Role ID:', roleId);
 
   if (!roleId) {
+    console.log('Role ID missing');
     return res.status(400).json({
       success: false,
       error: 'Role ID is required'
@@ -32,13 +45,17 @@ async function handler(req, res) {
 
   try {
     // Get role information
+    console.log('Fetching role information...');
     const { data: role, error: roleError } = await supabase
       .from('roles')
       .select('name')
       .eq('id', roleId)
       .single();
 
+    console.log('Role query result:', { role, roleError });
+
     if (roleError || !role) {
+      console.log('Role not found');
       return res.status(404).json({
         success: false,
         error: 'Role not found'
@@ -47,6 +64,7 @@ async function handler(req, res) {
 
     // Protect Ultimate Super Admin
     if (role.name === 'super_admin' && req.user.id !== MASTER_ADMIN_ID) {
+      console.log('Cannot reset Ultimate Super Admin permissions');
       return res.status(403).json({
         success: false,
         error: 'Cannot reset Ultimate Super Admin permissions'
@@ -54,71 +72,97 @@ async function handler(req, res) {
     }
 
     /**
-     * NOTE: Default permissions are now managed in the role_permissions table
-     * This was done by running scripts/setup-default-role-permissions.js
+     * Reset to Default: This will restore the role's permissions to the defaults
+     * defined in the default-role-permissions.js configuration file
      *
-     * The "Reset to Default" functionality simply clears any user-specific
-     * permission overrides, allowing the user to inherit the role's default permissions
-     * from the role_permissions table.
-     *
-     * If you need to change the default permissions for a role, update them in
-     * the role_permissions table via the Permissions & Roles UI or by running
-     * the setup script again.
+     * Step 1: Get default permission names for this role from config
+     * Step 2: Look up permission IDs from permission names
+     * Step 3: Delete all current role_permissions entries for this role
+     * Step 4: Insert default permissions into role_permissions
      */
 
-    // For "Reset to Default", we don't actually modify the role_permissions table
-    // Instead, we clear any user-specific permission overrides for users with this role
-    // This allows them to inherit the role's default permissions
+    // Step 1: Get default permission names from config
+    console.log('Step 1: Getting default permissions from config...');
+    const defaultPermissionNames = getDefaultPermissionsForRole(role.name);
+    console.log(`Found ${defaultPermissionNames.length} default permissions for ${role.name}`);
 
-    // Get all users with this role
-    const { data: usersWithRole, error: usersError } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('role', role.name);
-
-    if (usersError) {
-      console.error('Error fetching users with role:', usersError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to fetch users with this role'
+    if (defaultPermissionNames.length === 0) {
+      console.log('No default permissions defined for this role');
+      return res.status(200).json({
+        success: true,
+        message: `No default permissions defined for ${role.name}`,
+        defaultPermissionsCount: 0
       });
     }
 
-    // Clear user-specific permission overrides for these users
-    if (usersWithRole && usersWithRole.length > 0) {
-      const userIds = usersWithRole.map(u => u.id);
+    // Step 2: Look up permission IDs from permission names
+    console.log('Step 2: Looking up permission IDs...');
+    const { data: permissions, error: permLookupError } = await supabase
+      .from('permissions')
+      .select('id, name')
+      .in('name', defaultPermissionNames);
 
-      const { error: clearUserPermsError } = await supabase
-        .from('user_permissions')
-        .delete()
-        .in('user_id', userIds);
+    console.log('Permissions lookup result:', { count: permissions?.length, error: permLookupError });
 
-      if (clearUserPermsError) {
-        console.error('Error clearing user permissions:', clearUserPermsError);
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to clear user permission overrides'
-        });
-      }
+    if (permLookupError) {
+      console.error('Error looking up permissions:', permLookupError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to look up permissions'
+      });
     }
 
-    // Get the count of default permissions for this role
-    const { data: rolePerms, error: rolePermsError } = await supabase
+    if (!permissions || permissions.length === 0) {
+      console.log('No matching permissions found in database');
+      return res.status(404).json({
+        success: false,
+        error: 'No matching permissions found in database'
+      });
+    }
+
+    // Step 3: Delete all current role_permissions for this role
+    console.log('Step 3: Deleting current role permissions...');
+    const { error: deleteError } = await supabase
       .from('role_permissions')
-      .select('permission_id')
+      .delete()
       .eq('role_id', roleId);
 
-    if (rolePermsError) {
-      console.error('Error fetching role permissions:', rolePermsError);
+    if (deleteError) {
+      console.error('Error deleting current role permissions:', deleteError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to delete current role permissions'
+      });
     }
+    console.log('Current permissions deleted successfully');
 
-    const permissionsCount = rolePerms?.length || 0;
+    // Step 4: Insert default permissions into role_permissions
+    console.log('Step 4: Inserting default permissions...');
+    const permissionsToInsert = permissions.map(perm => ({
+      role_id: roleId,
+      permission_id: perm.id
+    }));
 
+    console.log('Permissions to insert:', permissionsToInsert.length);
+
+    const { error: insertError } = await supabase
+      .from('role_permissions')
+      .insert(permissionsToInsert);
+
+    if (insertError) {
+      console.error('Error inserting default permissions:', insertError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to restore default permissions'
+      });
+    }
+    console.log('Default permissions inserted successfully');
+
+    console.log('Reset completed successfully');
     res.status(200).json({
       success: true,
-      message: `Reset ${usersWithRole?.length || 0} user(s) with role ${role.name} to default permissions`,
-      defaultPermissionsCount: permissionsCount,
-      usersAffected: usersWithRole?.length || 0
+      message: `Successfully reset ${role.name} to default permissions`,
+      defaultPermissionsCount: permissions?.length || 0
     });
 
   } catch (error) {

@@ -1,3 +1,5 @@
+'use client'
+
 // 🎯 SHARED CURRENCY SELECTOR COMPONENT
 // Provides consistent currency formatting and selection across the platform
 // Base currency: GBP - All amounts are stored in GBP and converted using live rates

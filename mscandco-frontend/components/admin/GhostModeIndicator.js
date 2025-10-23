@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Ghost, X, User, Shield } from 'lucide-react';
 
 export default function GhostModeIndicator() {

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Dashboard Grid Component
  * Flexible 12-column grid layout with drag-and-drop widget reordering

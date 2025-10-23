@@ -10,10 +10,15 @@ export default async function handler(req, res) {
     // Get user from session
     let user = null;
 
+    console.log('🔑 /api/user/permissions - Request received');
+    console.log('🔑 Authorization header present?', !!req.headers.authorization);
+    console.log('🔑 Cookie header present?', !!req.headers.cookie);
+
     // Try Authorization header first
     const authHeader = req.headers.authorization;
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
+      console.log('🔑 Attempting auth with Bearer token (length:', token.length, ')');
       
       const { createClient } = await import('@supabase/supabase-js');
       const supabaseClient = createClient(
@@ -24,15 +29,20 @@ export default async function handler(req, res) {
       const { data: { user: tokenUser }, error } = await supabaseClient.auth.getUser(token);
       if (!error && tokenUser) {
         user = tokenUser;
+        console.log('✅ Auth successful via Bearer token:', user.id);
+      } else {
+        console.log('❌ Bearer token auth failed:', error?.message);
       }
     }
 
     // Fall back to cookie-based session
     if (!user) {
+      console.log('🔑 Attempting auth via cookies...');
       const supabase = createPagesServerClient({ req, res });
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error || !session?.user) {
+        console.log('❌ Cookie auth failed:', error?.message || 'No session');
         return res.status(401).json({
           success: false,
           error: 'Not authenticated'
@@ -40,6 +50,7 @@ export default async function handler(req, res) {
       }
       
       user = session.user;
+      console.log('✅ Auth successful via cookies:', user.id);
     }
 
     // Get user permissions using server-side function

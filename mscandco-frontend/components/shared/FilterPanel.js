@@ -1,3 +1,5 @@
+'use client'
+
 // 🎯 SHARED FILTER PANEL COMPONENT
 // Eliminates duplicate filter code across all dashboards
 

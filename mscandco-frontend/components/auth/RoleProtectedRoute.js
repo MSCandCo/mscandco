@@ -1,6 +1,8 @@
+'use client'
+
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { getUserRole } from '@/lib/user-utils';
 
 export default function RoleProtectedRoute({ 

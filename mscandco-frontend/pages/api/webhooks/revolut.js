@@ -186,38 +186,39 @@ async function processWalletTopUp(orderData) {
       amount: topUpAmount
     });
     
-    // Get current wallet balance
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('wallet_balance')
-      .eq('user_id', userId)
-      .single();
-    
-    if (profileError && profileError.code !== 'PGRST116') {
-      console.error('❌ Error fetching user profile:', profileError);
-      throw profileError;
-    }
-    
-    const currentBalance = profile?.wallet_balance || 0;
-    const newBalance = currentBalance + parseFloat(topUpAmount);
-    
-    // Update wallet balance
-    const { data: updatedProfile, error: updateError } = await supabase
-      .from('user_profiles')
-      .upsert({
-        user_id: userId,
-        wallet_balance: newBalance,
-        updated_at: new Date().toISOString()
+    // Create entry in earnings_log (single source of truth)
+    const { data: earningsEntry, error: earningsError } = await supabase
+      .from('earnings_log')
+      .insert({
+        artist_id: userId,
+        amount: parseFloat(topUpAmount),
+        currency: 'GBP',
+        earning_type: 'wallet_topup',
+        platform: 'Revolut',
+        status: 'paid',
+        payment_date: new Date().toISOString().split('T')[0],
+        notes: `Wallet top-up via Revolut - Order: ${orderData.id}`,
+        created_at: new Date().toISOString(),
+        created_by: userId
       })
       .select()
       .single();
     
-    if (updateError) {
-      console.error('❌ Error updating wallet balance:', updateError);
-      throw updateError;
+    if (earningsError) {
+      console.error('❌ Error creating earnings entry:', earningsError);
+      throw earningsError;
     }
     
-    // Log transaction
+    // Calculate new balance from earnings_log
+    const { data: balanceData } = await supabase
+      .from('earnings_log')
+      .select('amount')
+      .eq('artist_id', userId)
+      .neq('status', 'cancelled');
+    
+    const newBalance = balanceData?.reduce((sum, entry) => sum + parseFloat(entry.amount), 0) || 0;
+    
+    // Also log in wallet_transactions for backward compatibility (optional)
     const { error: transactionError } = await supabase
       .from('wallet_transactions')
       .insert({
@@ -231,14 +232,14 @@ async function processWalletTopUp(orderData) {
     
     if (transactionError) {
       console.error('⚠️ Error logging wallet transaction:', transactionError);
-      // Don't throw here, wallet update succeeded
+      // Don't throw here, earnings entry succeeded
     }
     
     console.log('✅ Wallet topped up:', {
       userId: userId.substring(0, 8) + '...',
-      previousBalance: currentBalance,
       newBalance: newBalance,
-      topUpAmount: topUpAmount
+      topUpAmount: topUpAmount,
+      earningsEntryId: earningsEntry.id
     });
     
     return { 

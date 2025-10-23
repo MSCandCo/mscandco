@@ -1,0 +1,143 @@
+/**
+ * Brand Themes - MSC & Co Platform
+ * 
+ * Brand-specific theme customizations
+ */
+
+/* ========== MSC & CO THEME ========== */
+[data-brand="msc"],
+.theme-msc {
+  --brand-primary: 59 130 246;
+  --brand-secondary: 167 139 250;
+  --brand-accent: 16 185 129;
+}
+
+[data-brand="msc"] .brand-gradient {
+  background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(167 139 250) 100%);
+}
+
+[data-brand="msc"] .brand-text {
+  @apply text-msc-blue-600;
+}
+
+[data-brand="msc"] .brand-bg {
+  @apply bg-msc-blue-600;
+}
+
+[data-brand="msc"] .brand-border {
+  @apply border-msc-blue-600;
+}
+
+/* ========== YHWH THEME ========== */
+[data-brand="yhwh"],
+.theme-yhwh {
+  --brand-primary: 167 139 250;
+  --brand-secondary: 236 72 153;
+  --brand-accent: 251 146 60;
+}
+
+[data-brand="yhwh"] .brand-gradient {
+  background: linear-gradient(135deg, rgb(167 139 250) 0%, rgb(236 72 153) 100%);
+}
+
+[data-brand="yhwh"] .brand-text {
+  @apply text-msc-purple-600;
+}
+
+[data-brand="yhwh"] .brand-bg {
+  @apply bg-msc-purple-600;
+}
+
+[data-brand="yhwh"] .brand-border {
+  @apply border-msc-purple-600;
+}
+
+/* ========== CODE GROUP THEME ========== */
+[data-brand="codegroup"],
+.theme-codegroup {
+  --brand-primary: 16 185 129;
+  --brand-secondary: 6 182 212;
+  --brand-accent: 14 165 233;
+}
+
+[data-brand="codegroup"] .brand-gradient {
+  background: linear-gradient(135deg, rgb(16 185 129) 0%, rgb(6 182 212) 100%);
+}
+
+[data-brand="codegroup"] .brand-text {
+  @apply text-success;
+}
+
+[data-brand="codegroup"] .brand-bg {
+  @apply bg-success;
+}
+
+[data-brand="codegroup"] .brand-border {
+  @apply border-success;
+}
+
+/* ========== DARK MODE THEME ADJUSTMENTS ========== */
+@media (prefers-color-scheme: dark) {
+  [data-brand] {
+    --brand-text-opacity: 0.9;
+  }
+  
+  [data-brand] .brand-text {
+    opacity: var(--brand-text-opacity);
+  }
+}
+
+/* ========== THEME UTILITIES ========== */
+.brand-hover {
+  transition: all 0.2s ease;
+}
+
+[data-brand="msc"] .brand-hover:hover {
+  @apply bg-msc-blue-700;
+}
+
+[data-brand="yhwh"] .brand-hover:hover {
+  @apply bg-msc-purple-700;
+}
+
+[data-brand="codegroup"] .brand-hover:hover {
+  @apply bg-success-dark;
+}
+
+/* Brand-specific shadows */
+.brand-shadow {
+  box-shadow: 0 4px 14px 0 rgba(var(--brand-primary) / 0.2);
+}
+
+.brand-shadow-lg {
+  box-shadow: 0 10px 40px -10px rgba(var(--brand-primary) / 0.3);
+}
+
+/* Brand-specific gradients for text */
+.brand-gradient-text {
+  background: linear-gradient(135deg, rgb(var(--brand-primary)) 0%, rgb(var(--brand-secondary)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated brand gradient */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.brand-gradient-animated {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -10,7 +10,7 @@ import { formatCurrency } from '@/components/shared/CurrencySelector';
 import AdminHeader from './AdminHeader';
 
 function Header({ largeLogo = false }) {
-  const { user, isLoading, supabase } = useUser();
+  const { user, session, isLoading, supabase } = useUser();
   const router = useRouter();
   const [profileData, setProfileData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -25,20 +25,34 @@ function Header({ largeLogo = false }) {
   // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user && supabase) {
+      if (user && session) {
         try {
-          // Try user_profiles table first (correct column is id, not user_id)
-          const { data, error } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+          // Fetch from the same API that the profile page uses
+          const response = await fetch('/api/artist/profile', {
+            headers: { 'Authorization': `Bearer ${session.access_token}` }
+          });
 
-          if (!error && data) {
-            setProfileData(data);
+          if (response.ok) {
+            const profileData = await response.json();
+            console.log('📋 Header: Profile API response:', profileData);
+            
+            // Map API response to expected format (same as ProfileClient)
+            const mappedProfile = {
+              id: profileData.id,
+              first_name: profileData.firstName,
+              last_name: profileData.lastName,
+              email: profileData.email,
+              artist_name: profileData.artistName, // This is where "Charles Dada" comes from
+              role: profileData.role || 'artist',
+              profile_picture_url: profileData.profile_picture_url
+            };
+            
+            console.log('📋 Header: Mapped profile:', mappedProfile);
+            console.log('📋 Header: artist_name:', mappedProfile.artist_name);
+            setProfileData(mappedProfile);
           } else {
-            // Fallback: Use role from user metadata
-            console.log('Profile fetch error, using metadata:', error);
+            console.error('Failed to fetch profile from API:', response.status);
+            // Fallback: Use user metadata
             const roleFromMetadata = user.user_metadata?.role || user.app_metadata?.role || 'artist';
             setProfileData({ 
               role: roleFromMetadata,
@@ -48,7 +62,7 @@ function Header({ largeLogo = false }) {
             });
           }
         } catch (err) {
-          console.error('Error fetching profile:', err);
+          console.error('Error fetching profile from API:', err);
           // Fallback to metadata
           const roleFromMetadata = user.user_metadata?.role || user.app_metadata?.role || 'artist';
           setProfileData({ 
@@ -62,7 +76,7 @@ function Header({ largeLogo = false }) {
     };
 
     fetchProfile();
-  }, [user, supabase]);
+  }, [user, session]);
 
   // Fetch unread notification count
   useEffect(() => {
@@ -106,24 +120,59 @@ function Header({ largeLogo = false }) {
     }
   }, [user, supabase])
 
-  const getDisplayName = () => {
+  // For the button: Artist Name first
+  const getButtonDisplayName = () => {
+    console.log('🔍 getButtonDisplayName - profileData:', profileData);
+    console.log('🔍 artist_name:', profileData?.artist_name);
+    console.log('🔍 first_name:', profileData?.first_name);
+    console.log('🔍 last_name:', profileData?.last_name);
+    
+    // Priority 1: Artist Name
+    if (profileData?.artist_name) {
+      console.log('✅ Using artist_name:', profileData.artist_name);
+      return profileData.artist_name
+    }
+    // Priority 2: First Name + Last Name
+    if (profileData?.first_name && profileData?.last_name) {
+      console.log('✅ Using first+last name');
+      return `${profileData.first_name} ${profileData.last_name}`
+    }
+    // Priority 3: Formatted Role
+    if (profileData?.role) {
+      console.log('✅ Using role:', profileData.role);
+      return profileData.role
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }
+    // Priority 4: Email username as fallback
+    console.log('✅ Using email fallback');
+    return user?.email?.split('@')[0] || 'User'
+  }
+
+  // For the dropdown header: First Name + Last Name first
+  const getDropdownDisplayName = () => {
+    // Priority 1: First Name + Last Name
     if (profileData?.first_name && profileData?.last_name) {
       return `${profileData.first_name} ${profileData.last_name}`
     }
+    // Priority 2: Artist Name
     if (profileData?.artist_name) {
       return profileData.artist_name
     }
+    // Priority 3: Formatted Role
     if (profileData?.role) {
       return profileData.role
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
     }
+    // Priority 4: Email username as fallback
     return user?.email?.split('@')[0] || 'User'
   }
 
   const getInitials = () => {
-    const name = getDisplayName();
+    const name = getButtonDisplayName();
     return name
       .split(' ')
       .map(word => word[0])
@@ -170,12 +219,15 @@ function Header({ largeLogo = false }) {
     return 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
-  // If user is admin (super_admin or company_admin), use AdminHeader
-  if (user && (profileData?.role === 'super_admin' || profileData?.role === 'company_admin')) {
+  // Define admin roles that should use AdminHeader (all except artist and label_admin)
+  const adminRoles = ['super_admin', 'company_admin', 'analytics_admin', 'distribution_partner', 'requests_admin', 'labeladmin'];
+  
+  // If user is an admin, use AdminHeader
+  if (user && adminRoles.includes(profileData?.role)) {
     return <AdminHeader largeLogo={largeLogo} />;
   }
 
-  // Otherwise, use standard header for artists, label admins, and logged-out users
+  // Otherwise, use standard header for artists, label_admin, and logged-out users
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -194,24 +246,31 @@ function Header({ largeLogo = false }) {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Left-aligned Layout */}
+          {/* Desktop Navigation - Centered Layout */}
           <div className="hidden md:flex items-center flex-1 ml-8">
             {user ? (
               <>
-                {/* Left - Navigation Links - Role Based */}
-                <div className="flex items-center space-x-6">
+                {/* Left Spacer */}
+                <div className="flex-1"></div>
+
+                {/* Center - Navigation Links - Role Based */}
+                <div className="flex items-center space-x-2">
                   {profileData?.role === 'artist' && (
                     <>
-                      <Link href="/artist/releases" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/artist/analytics" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <BarChart3 className="w-4 h-4" />
                         Analytics
                       </Link>
-                      <Link href="/artist/earnings" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <DollarSign className="w-4 h-4" />
                         Earnings
                       </Link>
-                      <Link href="/artist/roster" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <Users className="w-4 h-4" />
                         Roster
                       </Link>
                     </>
@@ -219,27 +278,35 @@ function Header({ largeLogo = false }) {
 
                   {profileData?.role === 'label_admin' && (
                     <>
-                      <Link href="/labeladmin/artists" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/artists" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <Users className="w-4 h-4" />
                         My Artists
                       </Link>
-                      <Link href="/labeladmin/releases" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/labeladmin/analytics" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <BarChart3 className="w-4 h-4" />
                         Analytics
                       </Link>
-                      <Link href="/labeladmin/earnings" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <DollarSign className="w-4 h-4" />
                         Earnings
                       </Link>
-                      <Link href="/labeladmin/roster" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        <Users className="w-4 h-4" />
                         Roster
                       </Link>
                     </>
                   )}
                 </div>
 
+                {/* Right Spacer */}
+                <div className="flex-1 min-w-8"></div>
+
                 {/* Right Actions - Fixed position */}
-                <div className="flex items-center space-x-6 ml-auto">
+                <div className="flex items-center space-x-6">
                   {/* Wallet Balance - Only for artists and label admins - Simple style */}
                   {(profileData?.role === 'artist' || profileData?.role === 'label_admin') && (
                     <button
@@ -294,7 +361,7 @@ function Header({ largeLogo = false }) {
                         type="button"
                       >
                         <span className="sr-only">Open user menu</span>
-                        Hi, {getDisplayName()}
+                        Hi, {getButtonDisplayName()}
                         <ChevronDown className="w-4 h-4 ml-1" />
                       </button>
                     </div>
@@ -305,7 +372,7 @@ function Header({ largeLogo = false }) {
                         <div className="w-56 bg-white rounded-md shadow-lg py-1 border border-gray-200">
                         {/* User Info Header */}
                         <div className="px-4 py-3 border-b border-gray-200">
-                          <p className="text-sm font-medium text-gray-900">{getDisplayName()}</p>
+                          <p className="text-sm font-medium text-gray-900">{getDropdownDisplayName()}</p>
                           <p className="text-xs text-gray-500 truncate">{user.email}</p>
                         </div>
 
@@ -317,6 +384,16 @@ function Header({ largeLogo = false }) {
                       >
                         <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
                         Dashboard
+                      </Link>
+
+                      {/* Profile */}
+                      <Link
+                        href={getProfileLink()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <User className="w-4 h-4 mr-3 text-gray-400" />
+                        Profile
                       </Link>
 
                       {/* Messages */}
@@ -425,7 +502,7 @@ function Header({ largeLogo = false }) {
                 <>
                   {/* User Info */}
                   <div className="pb-3 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-900">{getDisplayName()}</p>
+                    <p className="text-sm font-medium text-gray-900">{getDropdownDisplayName()}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border mt-2 ${getRoleBadgeColor()}`}>
                       {getRoleBadgeText()}
@@ -449,7 +526,7 @@ function Header({ largeLogo = false }) {
                   {profileData?.role === 'artist' && (
                     <>
                       <Link href="/artist/releases" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
-                        <Music className="w-5 h-5" />
+                        <FileText className="w-5 h-5" />
                         <span>Releases</span>
                       </Link>
                       <Link href="/artist/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
@@ -470,7 +547,7 @@ function Header({ largeLogo = false }) {
                   {profileData?.role === 'label_admin' && (
                     <>
                       <Link href="/labeladmin/releases" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
-                        <Music className="w-5 h-5" />
+                        <FileText className="w-5 h-5" />
                         <span>Releases</span>
                       </Link>
                       <Link href="/labeladmin/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">

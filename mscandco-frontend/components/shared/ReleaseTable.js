@@ -1,3 +1,5 @@
+'use client'
+
 // 🎯 SHARED RELEASE TABLE COMPONENT
 // Eliminates duplicate table code across all dashboards
 

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Quick Actions Widget
  * Displays quick action buttons

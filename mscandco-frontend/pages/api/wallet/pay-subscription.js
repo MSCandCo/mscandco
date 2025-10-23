@@ -61,7 +61,14 @@ async function handler(req, res) {
       });
     }
 
-    const currentBalance = profile?.wallet_balance || 0;
+    // Calculate current balance from earnings_log
+    const { data: balanceData } = await supabase
+      .from('earnings_log')
+      .select('amount')
+      .eq('artist_id', userId)
+      .neq('status', 'cancelled');
+
+    const currentBalance = balanceData?.reduce((sum, entry) => sum + parseFloat(entry.amount), 0) || 0;
 
     if (currentBalance < planCost) {
       return res.status(400).json({
@@ -72,24 +79,35 @@ async function handler(req, res) {
       });
     }
 
-    const newBalance = currentBalance - planCost;
-
-    const { error: walletError } = await supabase
-      .from('user_profiles')
-      .update({
-        wallet_balance: newBalance,
-        updated_at: new Date().toISOString()
+    // Create NEGATIVE entry in earnings_log for subscription payment (debit)
+    const { data: earningsEntry, error: earningsError } = await supabase
+      .from('earnings_log')
+      .insert({
+        artist_id: userId,
+        amount: -planCost, // NEGATIVE for debit
+        currency: 'GBP',
+        earning_type: 'subscription_payment',
+        platform: 'Wallet',
+        status: 'paid',
+        payment_date: new Date().toISOString().split('T')[0],
+        notes: `Subscription payment: ${planName} (${billing})`,
+        created_at: new Date().toISOString(),
+        created_by: userId
       })
-      .eq('id', userId);
+      .select()
+      .single();
 
-    if (walletError) {
-      console.error('Error updating wallet balance:', walletError);
+    if (earningsError) {
+      console.error('Error creating earnings entry:', earningsError);
       return res.status(500).json({ 
         error: 'Failed to deduct from wallet',
-        details: walletError.message 
+        details: earningsError.message 
       });
     }
 
+    const newBalance = currentBalance - planCost;
+
+    // Also log in wallet_transactions for backward compatibility (optional)
     const { error: transactionError } = await supabase
       .from('wallet_transactions')
       .insert({

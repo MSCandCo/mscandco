@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { FaTimes, FaMusic, FaImage, FaPlus, FaTrash } from 'react-icons/fa';

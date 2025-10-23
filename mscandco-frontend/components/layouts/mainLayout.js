@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from "react";
 import Footer from "../footer";
 import GhostModeIndicator from "../admin/GhostModeIndicator";
@@ -6,7 +8,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '@/lib/user-utils';
 import usePermissions from '@/hooks/usePermissions';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import {
   Home,
   Music,

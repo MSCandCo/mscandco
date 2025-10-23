@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { formatDateOfBirth } from '../../lib/date-utils';
 import { getCountryFromIP, getUserTimezone, guessCountryFromTimezone } from '../../lib/geolocation-utils';

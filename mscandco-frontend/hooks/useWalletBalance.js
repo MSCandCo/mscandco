@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { getUserRoleSync } from '@/lib/user-utils';
-import { supabase } from '@/lib/supabase';
 
 export function useWalletBalance(skip = false) {
-  const { user } = useUser();
+  const { user, session } = useUser();
   const [walletBalance, setWalletBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,16 +38,15 @@ export function useWalletBalance(skip = false) {
       return;
     }
 
+    // Priority 4: Wait for session
+    if (!session) {
+      console.log('[useWalletBalance] Waiting for session...');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-
-      // Get user session for API call
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error('No active session');
-      }
 
       // Determine API endpoint based on user role
       let apiEndpoint = '/api/artist/wallet-simple';
@@ -86,9 +84,9 @@ export function useWalletBalance(skip = false) {
     } finally {
       setIsLoading(false);
     }
-  }, [user, skip]);
+  }, [user, session, skip]);
 
-  // Fetch wallet balance on mount and when user changes
+  // Fetch wallet balance on mount and when user/session changes
   useEffect(() => {
     fetchWalletBalance();
   }, [fetchWalletBalance]);

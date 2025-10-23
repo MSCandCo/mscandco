@@ -1,7 +1,11 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Calendar, Shield, Building2, Music, Save, AlertCircle } from 'lucide-react';
+import { useRoles } from '@/hooks/useRoles';
 
-export default function EditUserModal({ isOpen, onClose, user, onUserUpdated }) {
+export default function EditUserModal({ isOpen, onClose, user, onUserUpdated, onSuccess }) {
+  const { roles: availableRoles, formatRoleName } = useRoles();
   const [formData, setFormData] = useState({
     // Basic Info
     firstName: '',
@@ -40,29 +44,29 @@ export default function EditUserModal({ isOpen, onClose, user, onUserUpdated }) 
   useEffect(() => {
     if (user && isOpen) {
       setFormData({
-        firstName: user.firstName || user.profile?.first_name || '',
-        lastName: user.lastName || user.profile?.last_name || '',
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
         email: user.email || '',
-        phone: user.profile?.phone || '',
-        countryCode: user.profile?.country_code || '+44',
-        
-        artistName: user.artistName || user.profile?.artist_name || '',
-        bio: user.profile?.bio || '',
-        shortBio: user.profile?.short_bio || '',
-        country: user.profile?.country || 'United Kingdom',
-        artistType: user.profile?.artist_type || 'Solo Artist',
-        
+        phone: user.phone || '',
+        countryCode: user.country_code || '+44',
+
+        artistName: user.artist_name || '',
+        bio: user.bio || '',
+        shortBio: user.short_bio || '',
+        country: user.country || 'United Kingdom',
+        artistType: user.artist_type || 'Solo Artist',
+
         role: user.role || 'artist',
         status: user.status || 'active',
-        
-        walletEnabled: user.profile?.wallet_enabled ?? true,
-        negativeBalanceAllowed: user.profile?.negative_balance_allowed ?? false,
-        walletCreditLimit: user.profile?.wallet_credit_limit || 0,
-        profileCompleted: user.profile?.profile_completed ?? false,
-        
-        lockedFields: user.profile?.locked_fields || [],
-        approvalRequiredFields: user.profile?.approval_required_fields || [],
-        profileLockStatus: user.profile?.profile_lock_status || 'unlocked'
+
+        walletEnabled: user.wallet_enabled ?? true,
+        negativeBalanceAllowed: user.negative_balance_allowed ?? false,
+        walletCreditLimit: user.wallet_credit_limit || 0,
+        profileCompleted: user.profile_completed ?? false,
+
+        lockedFields: user.locked_fields || [],
+        approvalRequiredFields: user.approval_required_fields || [],
+        profileLockStatus: user.profile_lock_status || 'unlocked'
       });
       setErrors({});
     }
@@ -100,40 +104,82 @@ export default function EditUserModal({ isOpen, onClose, user, onUserUpdated }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
-      const response = await fetch('/api/dashboard/user-management', {
+      // Get auth token from Supabase session
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
+      // Map form data to actual database columns
+      const updates = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        country_code: formData.countryCode,
+        artist_name: formData.artistName,
+        bio: formData.bio,
+        short_bio: formData.shortBio,
+        country: formData.country,
+        artist_type: formData.artistType,
+        role: formData.role,
+        status: formData.status,
+        wallet_enabled: formData.walletEnabled,
+        negative_balance_allowed: formData.negativeBalanceAllowed,
+        wallet_credit_limit: formData.walletCreditLimit,
+        profile_completed: formData.profileCompleted,
+        locked_fields: formData.lockedFields,
+        approval_required_fields: formData.approvalRequiredFields,
+        profile_lock_status: formData.profileLockStatus
+      };
+
+      // Remove undefined or empty values
+      Object.keys(updates).forEach(key => {
+        if (updates[key] === undefined || updates[key] === '') {
+          delete updates[key];
+        }
+      });
+
+      const response = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await getAuthToken()}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           userId: user.id,
-          updates: formData
+          updates
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update user');
+        throw new Error(errorData.error || errorData.message || 'Failed to update user');
       }
 
       const result = await response.json();
-      
+
       // Call the callback to refresh the users list
-      if (onUserUpdated) {
-        onUserUpdated(result.data);
+      if (onSuccess) {
+        onSuccess();
+      } else if (onUserUpdated) {
+        onUserUpdated(result.user);
       }
-      
+
       onClose();
-      
+
     } catch (error) {
       console.error('Error updating user:', error);
       setErrors({ submit: error.message });
@@ -142,24 +188,6 @@ export default function EditUserModal({ isOpen, onClose, user, onUserUpdated }) 
     }
   };
 
-  const getAuthToken = async () => {
-    // Get token from Supabase session
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token;
-  };
-
-  const roleOptions = [
-    { value: 'artist', label: 'Artist', icon: Music },
-    { value: 'label_admin', label: 'Label Admin', icon: Building2 },
-    { value: 'distribution_partner', label: 'Distribution Partner', icon: Shield },
-    { value: 'company_admin', label: 'Company Admin', icon: Building2 },
-    { value: 'super_admin', label: 'Super Admin', icon: Shield }
-  ];
 
   const artistTypes = [
     'Solo Artist',
@@ -316,9 +344,9 @@ export default function EditUserModal({ isOpen, onClose, user, onUserUpdated }) 
                     onChange={(e) => handleChange('role', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    {roleOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {availableRoles.map(role => (
+                      <option key={role.id} value={role.name}>
+                        {role.display_name}
                       </option>
                     ))}
                   </select>

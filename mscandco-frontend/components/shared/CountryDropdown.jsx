@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronDown, Search, MapPin, Check, Loader2, AlertCircle } from 'lucide-react';
 // import { getPredictedCountries, clearLocationCache } from '../../lib/geolocation-utils';

@@ -25,6 +25,17 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 
+// Server-side permission check BEFORE page renders
+export async function getServerSideProps(context) {
+  const auth = await requirePermission(context, 'distribution:settings:access');
+
+  if (auth.redirect) {
+    return { redirect: auth.redirect };
+  }
+
+  return { props: { user: auth.user } };
+}
+
 const DistributionPartnerSettingsPage = () => {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
@@ -289,7 +300,7 @@ const DistributionPartnerSettingsPage = () => {
     setTimeout(() => setSaveMessage(null), 3000);
   };
 
-  if (userLoading || isLoading || permissionsLoading) {
+  if (userLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />

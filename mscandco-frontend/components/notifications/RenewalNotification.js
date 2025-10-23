@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { Clock, Calendar, CreditCard, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { formatCurrency } from '../shared/CurrencySelector';

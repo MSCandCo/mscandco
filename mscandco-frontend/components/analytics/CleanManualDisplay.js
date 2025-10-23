@@ -1,6 +1,8 @@
+'use client'
+
 // Clean Manual Analytics Display Component - WORKING VERSION
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { 
   TrendingUp, 
   Award, 
@@ -10,6 +12,7 @@ import {
 import SimpleScrollIndicator from '../shared/SimpleScrollIndicator';
 
 export default function CleanManualDisplay({ artistId, showAdvanced = false }) {
+  const { session } = useUser();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,7 +20,7 @@ export default function CleanManualDisplay({ artistId, showAdvanced = false }) {
   // Fetch manual analytics data
   useEffect(() => {
     const fetchAnalyticsData = async () => {
-      if (!artistId) {
+      if (!artistId || !session) {
         setLoading(false);
         return;
       }
@@ -26,8 +29,7 @@ export default function CleanManualDisplay({ artistId, showAdvanced = false }) {
         console.log('Fetching manual analytics for artist:', artistId);
 
         // Get auth token
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
+        const token = session.access_token;
 
         if (!token) {
           console.error('No auth token');
@@ -64,7 +66,7 @@ export default function CleanManualDisplay({ artistId, showAdvanced = false }) {
     };
 
     fetchAnalyticsData();
-  }, [artistId]);
+  }, [artistId, session]);
 
   // Loading state
   if (loading) {

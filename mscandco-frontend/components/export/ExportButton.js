@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react';
 import { Button, Dropdown } from 'flowbite-react';
 import { HiDownload, HiDocumentText, HiTable, HiChartBar, HiCog } from 'react-icons/hi';

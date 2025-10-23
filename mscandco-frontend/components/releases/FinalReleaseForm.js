@@ -1,3 +1,5 @@
+'use client'
+
 // Final Code Group Release Form - Complete & Working
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
