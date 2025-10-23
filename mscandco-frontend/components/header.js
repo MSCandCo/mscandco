@@ -1,119 +1,185 @@
-import { useUser } from '@/components/providers/SupabaseProvider';
-import { Dropdown } from 'flowbite-react';
-import { HiUser, HiCog6Tooth, HiArrowLeftOnRectangle } from 'react-icons/hi2';
-import { HiDownload } from 'react-icons/hi';
-import { Menu, X, Truck, Inbox, RefreshCw, Database, Settings, Users, LayoutDashboard, DollarSign } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { getBrandByUser } from '@/lib/brand-config';
-import { getUserRoleSync, getUserBrand } from '@/lib/user-utils';
-import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import usePermissions from '@/hooks/usePermissions';
+'use client'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { formatCurrency } from '@/components/shared/CurrencySelector';
+import AdminHeader from './AdminHeader';
 
 function Header({ largeLogo = false }) {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, supabase } = useUser();
   const router = useRouter();
-  const userBrand = getBrandByUser(user);
   const [profileData, setProfileData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  
+  // Wallet balance - only for artists and label admins
+  const skipWallet = !profileData?.role || (profileData?.role !== 'artist' && profileData?.role !== 'label_admin');
+  const { walletBalance, isLoading: walletLoading, refreshBalance } = useWalletBalance(skipWallet);
 
-  // Fetch profile data to get first and last name
+  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
+      if (user && supabase) {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
-          const token = session?.access_token;
-          
-          if (!token) return;
-          
-          const response = await fetch('/api/artist/profile', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('🎯 Header profile data loaded:', data);
-            console.log('🔍 Role from profile:', data?.role);
+          // Try user_profiles table first (correct column is id, not user_id)
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (!error && data) {
             setProfileData(data);
+          } else {
+            // Fallback: Use role from user metadata
+            console.log('Profile fetch error, using metadata:', error);
+            const roleFromMetadata = user.user_metadata?.role || user.app_metadata?.role || 'artist';
+            setProfileData({ 
+              role: roleFromMetadata,
+              first_name: user.user_metadata?.first_name,
+              last_name: user.user_metadata?.last_name,
+              artist_name: user.user_metadata?.artist_name
+            });
           }
         } catch (err) {
           console.error('Error fetching profile:', err);
+          // Fallback to metadata
+          const roleFromMetadata = user.user_metadata?.role || user.app_metadata?.role || 'artist';
+          setProfileData({ 
+            role: roleFromMetadata,
+            first_name: user.user_metadata?.first_name,
+            last_name: user.user_metadata?.last_name,
+            artist_name: user.user_metadata?.artist_name
+          });
         }
       }
     };
-    
+
     fetchProfile();
-  }, [user]);
+  }, [user, supabase]);
 
-  // Close dropdown when clicking outside
+  // Fetch unread notification count
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+    const fetchUnreadCount = async () => {
+      if (user && supabase) {
+        try {
+          const { count, error } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('read', false)
+
+          if (!error) {
+            setUnreadCount(count || 0)
+          }
+        } catch (err) {
+          console.error('Error fetching unread count:', err)
+        }
       }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const openCustomerPortal = async () => {
-    try {
-      const response = await fetch('/api/billing/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customerId: null,
-        }),
-      });
-
-      if (response.ok) {
-        const { url } = await response.json();
-        window.location.href = url;
-      } else {
-        console.error('Failed to create customer portal session');
-      }
-    } catch (error) {
-      console.error('Error opening customer portal:', error);
     }
-  };
 
-  const isActivePage = (path) => {
-    return router.pathname === path;
-  };
+    fetchUnreadCount()
 
-  // Get nav link classes with footer color scheme
-  const getNavLinkClasses = (path) => {
-    const baseClasses = "transition-colors duration-200";
-    if (isActivePage(path)) {
-      return `${baseClasses} text-gray-800 font-semibold`;
+    // Subscribe to notification changes for real-time count
+    if (user && supabase) {
+      const channel = supabase
+        .channel('notification_count')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => fetchUnreadCount()
+        )
+        .subscribe()
+
+      return () => supabase.removeChannel(channel)
     }
-    return `${baseClasses} text-gray-400 hover:text-gray-800`;
-  };
+  }, [user, supabase])
 
-  // Simple display name - no complex logic, no async calls
   const getDisplayName = () => {
-    return user?.email || 'User';
+    if (profileData?.first_name && profileData?.last_name) {
+      return `${profileData.first_name} ${profileData.last_name}`
+    }
+    if (profileData?.artist_name) {
+      return profileData.artist_name
+    }
+    if (profileData?.role) {
+      return profileData.role
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }
+    return user?.email?.split('@')[0] || 'User'
+  }
+
+  const getInitials = () => {
+    const name = getDisplayName();
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
+  const getProfileLink = () => {
+    const role = profileData?.role;
+    if (role === 'artist') return '/artist/profile';
+    if (role === 'label_admin') return '/labeladmin/profile';
+    if (role === 'super_admin') return '/admin/profile';
+    return '/profile';
+  };
+
+  const getSettingsLink = () => {
+    const role = profileData?.role;
+    if (role === 'artist') return '/artist/settings';
+    if (role === 'label_admin') return '/labeladmin/settings';
+    if (role === 'super_admin') return '/admin/settings';
+    return '/settings';
+  };
+
+  const getRoleBadgeText = () => {
+    const role = profileData?.role;
+    if (!role) return 'User';
+
+    if (role === 'super_admin') return 'Super Admin';
+    if (role === 'label_admin') return 'Label Admin';
+    if (role === 'artist') return 'Artist';
+
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const getRoleBadgeColor = () => {
+    const role = profileData?.role;
+    if (role === 'super_admin') return 'bg-red-100 text-red-800 border-red-300';
+    if (role === 'label_admin') return 'bg-blue-100 text-blue-800 border-blue-300';
+    if (role === 'artist') return 'bg-purple-100 text-purple-800 border-purple-300';
+    return 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  // If user is admin (super_admin or company_admin), use AdminHeader
+  if (user && (profileData?.role === 'super_admin' || profileData?.role === 'company_admin')) {
+    return <AdminHeader largeLogo={largeLogo} />;
+  }
+
+  // Otherwise, use standard header for artists, label admins, and logged-out users
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 md:h-20">
+        <div className="flex items-center h-16 md:h-20">
           {/* Logo - Left */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
@@ -128,678 +194,378 @@ function Header({ largeLogo = false }) {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Logo Left, Everything Right */}
-          <div className="hidden md:flex items-center flex-1">
+          {/* Desktop Navigation - Left-aligned Layout */}
+          <div className="hidden md:flex items-center flex-1 ml-8">
             {user ? (
-              <div className="flex items-center ml-auto">
-                <div 
-                  className="relative"
-                  ref={dropdownRef}
-                  onMouseLeave={() => setIsDropdownOpen(false)}
-                >
-                  <div className="flex items-center space-x-3">
-                    {user?.role && (
-                      <span className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                        {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      onMouseEnter={() => setIsDropdownOpen(true)}
-                      className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
-                      type="button"
-                    >
-                      <span className="sr-only">Open user menu</span>
-                      Hi, {(() => {
-                        if (profileData?.firstName && profileData?.lastName) {
-                          return `${profileData.firstName} ${profileData.lastName}`;
-                        }
-                        return user?.email ? String(user.email) : 'User';
-                      })()}
-                      <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                      </svg>
-                    </button>
-                  </div>
-
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                      {/* Dashboard - Everyone has access */}
-                      <Link href={
-                        getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
-                        '/dashboard'
-                      }>
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
-                          Dashboard
-                        </div>
-                      </Link>
-
-                      {/* Profile - For non-superadmin users */}
-                      {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
-                        <Link href="/settings/me">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                            Profile
-                          </div>
-                        </Link>
-                      )}
-
-                      {/* Download History */}
-                      {hasPermission('download:read:own') && (
-                        <Link href="/download-history">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
-                            Download History
-                          </div>
-                        </Link>
-                      )}
-
-                      {/* Artist Menu */}
-                      {hasPermission('roster:view:own') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                            Artist
-                          </div>
-                          <Link href="/artist/roster">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Users className="w-4 h-4 mr-3 text-gray-400" />
-                              Roster
-                            </div>
-                          </Link>
-                        </>
-                      )}
-
-                      {/* Label Admin Menu */}
-                      {hasPermission('artist:view:label') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                            Label Admin
-                          </div>
-                          <Link href="/labeladmin/artists">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Users className="w-4 h-4 mr-3 text-gray-400" />
-                              My Artists
-                            </div>
-                          </Link>
-                        </>
-                      )}
-
-                      {/* Distribution Partner Menu */}
-                      {(hasPermission('distribution:distribution_hub:access') || hasPermission('distribution:revenue_reporting:access')) && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                            Distribution
-                          </div>
-                          {hasPermission('distribution:distribution_hub:access') && (
-                            <Link href="/distribution/hub">
-                              <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
-                                Distribution Hub
-                              </div>
-                            </Link>
-                          )}
-                          {hasPermission('distribution:revenue_reporting:access') && (
-                            <Link href="/distribution/revenue">
-                              <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                <DollarSign className="w-4 h-4 mr-3 text-gray-400" />
-                                Revenue Reporting
-                              </div>
-                            </Link>
-                          )}
-                        </>
-                      )}
-
-                      {/* Admin Menu */}
-                      {hasPermission('user:read:any') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                            Admin
-                          </div>
-                          <Link href="/admin/content-library">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Database className="w-4 h-4 mr-3 text-gray-400" />
-                              Content Library
-                            </div>
-                          </Link>
-                        </>
-                      )}
-
-                      {/* Settings - For non-superadmin users */}
-                      {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <Link href="/settings">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Settings className="w-4 h-4 mr-3 text-gray-400" />
-                              Settings
-                            </div>
-                          </Link>
-                        </>
-                      )}
-
-                      {/* Settings for superadmin users */}
-                      {hasPermission('*:*:*') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <Link href="/admin/settings">
-                            <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                              <Settings className="w-4 h-4 mr-3 text-gray-400" />
-                              Settings
-                            </div>
-                          </Link>
-                        </>
-                      )}
-
-                      {/* Billing - For non-superadmin users */}
-                      {!hasPermission('*:*:*') && (
-                        <>
-                          <hr className="my-1 border-gray-200" />
-                          <button
-                            onClick={openCustomerPortal}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                          >
-                            <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
-                            Billing
-                          </button>
-                        </>
-                      )}
-
-                      <hr className="my-1 border-gray-200" />
-                      <button
-                        onClick={() => router.push('/logout')}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      >
-                        <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-8 ml-auto">
-                <Link
-                  href="/pricing"
-                  className={getNavLinkClasses('/pricing')}
-                >
-                  Prices
-                </Link>
-                <Link
-                  href="/about"
-                  className={getNavLinkClasses('/about')}
-                >
-                  About
-                </Link>
-                <Link
-                  href="/support"
-                  className={getNavLinkClasses('/support')}
-                >
-                  Support
-                </Link>
-                <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                  Login
-                </Link>
-                <Link href="/register">
-                  <button
-                    className="
-                      bg-transparent 
-                      text-[#1f2937] 
-                      border 
-                      border-[#1f2937] 
-                      rounded-xl 
-                      px-6 
-                      py-2 
-                      font-bold 
-                      shadow 
-                      transition-all 
-                      duration-300 
-                      hover:bg-[#1f2937] 
-                      hover:text-white 
-                      hover:shadow-lg 
-                      focus:outline-none
-                      focus:ring-2
-                      focus:ring-[#1f2937]
-                    "
-                  >
-                    Register
-                  </button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Center - Just Login/Register */}
-          <div className="md:hidden flex items-center justify-center flex-1">
-            {user ? (
-              <div
-                className="relative"
-                ref={dropdownRef}
-                onMouseLeave={() => setIsDropdownOpen(false)}
-              >
-                <div className="flex items-center space-x-2">
-                  {user?.role && (
-                    <span className="px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full border border-gray-300">
-                      {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  )}
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    onMouseEnter={() => setIsDropdownOpen(true)}
-                    className="flex items-center text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
-                    type="button"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    Hi, {(() => {
-                      if (profileData?.firstName && profileData?.lastName) {
-                        return `${profileData.firstName} ${profileData.lastName}`;
-                      }
-                      return user?.email ? String(user.email) : 'User';
-                    })()}
-                    <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                    </svg>
-                  </button>
-                </div>
-
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    {/* Dashboard - Everyone has access */}
-                    <Link href={
-                      getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' :
-                      '/dashboard'
-                    }>
-                      <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
-                        Dashboard
-                      </div>
-                    </Link>
-
-                    {/* Profile - For non-superadmin users */}
-                    {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
-                      <Link href="/settings/me">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <HiUser className="w-4 h-4 mr-3 text-gray-400" />
-                          Profile
-                        </div>
-                      </Link>
-                    )}
-
-                    {/* Download History */}
-                    {hasPermission('download:read:own') && (
-                      <Link href="/download-history">
-                        <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                          <HiDownload className="w-4 h-4 mr-3 text-gray-400" />
-                          Download History
-                        </div>
-                      </Link>
-                    )}
-
-                    {/* Artist Menu */}
-                    {hasPermission('roster:view:own') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Artist
-                        </div>
-                        <Link href="/artist/roster">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Users className="w-4 h-4 mr-3 text-gray-400" />
-                            Roster
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Label Admin Menu */}
-                    {hasPermission('artist:view:label') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Label Admin
-                        </div>
-                        <Link href="/labeladmin/artists">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Users className="w-4 h-4 mr-3 text-gray-400" />
-                            My Artists
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Distribution Partner Menu */}
-                    {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Distribution
-                        </div>
-                        <Link href="/distribution/hub">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
-                            Distribution Hub
-                          </div>
-                        </Link>
-                        <Link href="/distribution/queue">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Inbox className="w-4 h-4 mr-3 text-gray-400" />
-                            Distribution Queue
-                          </div>
-                        </Link>
-                        <Link href="/distribution/revisions">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <RefreshCw className="w-4 h-4 mr-3 text-gray-400" />
-                            Revision Queue
-                          </div>
-                        </Link>
-                        <Link href="/distribution/revenue">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <DollarSign className="w-4 h-4 mr-3 text-gray-400" />
-                            Revenue Reporting
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Admin Menu */}
-                    {hasPermission('user:read:any') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Admin
-                        </div>
-                        <Link href="/admin/content-library">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Database className="w-4 h-4 mr-3 text-gray-400" />
-                            Content Library
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Settings - For non-superadmin users */}
-                    {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <Link href="/settings">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Settings className="w-4 h-4 mr-3 text-gray-400" />
-                            Settings
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Settings for superadmin users */}
-                    {hasPermission('*:*:*') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <Link href="/admin/settings">
-                          <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                            <Settings className="w-4 h-4 mr-3 text-gray-400" />
-                            Settings
-                          </div>
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Billing - For non-superadmin users */}
-                    {!hasPermission('*:*:*') && (
-                      <>
-                        <hr className="my-1 border-gray-200" />
-                        <button
-                          onClick={openCustomerPortal}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                        >
-                          <HiCog6Tooth className="w-4 h-4 mr-3 text-gray-400" />
-                          Billing
-                        </button>
-                      </>
-                    )}
-
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={() => router.push('/logout')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    >
-                      <HiArrowLeftOnRectangle className="w-4 h-4 mr-3 text-gray-400" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                  Login
-                </Link>
-                <Link href="/register">
-                  <button
-                    className="
-                      bg-transparent 
-                      text-[#1f2937] 
-                      border 
-                      border-[#1f2937] 
-                      rounded-xl 
-                      px-4 
-                      py-2 
-                      font-bold 
-                      shadow 
-                      transition-all 
-                      duration-300 
-                      hover:bg-[#1f2937] 
-                      hover:text-white 
-                      hover:shadow-lg 
-                      focus:outline-none
-                      focus:ring-2
-                      focus:ring-[#1f2937]
-                    "
-                  >
-                    Register
-                  </button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Hamburger Menu - Mobile Only */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-            >
-              {isMobileMenuOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
-              {!user ? (
-                <>
-                  <Link
-                    href="/pricing"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Prices
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/support"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Support
-                  </Link>
-                </>
-              ) : (
-                <>
-                  {/* Dashboard - Everyone has access */}
-                  <Link
-                    href={getUserRoleSync(user) === 'super_admin' ? '/superadmin/dashboard' : '/dashboard'}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-
-                  {/* Profile - For non-superadmin users */}
-                  {!hasPermission('*:*:*') && hasPermission('profile:read:own') && (
-                    <Link
-                      href="/settings/me"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                  )}
-
-                  {/* Artist Menu */}
-                  {hasPermission('roster:view:own') && (
+              <>
+                {/* Left - Navigation Links - Role Based */}
+                <div className="flex items-center space-x-6">
+                  {profileData?.role === 'artist' && (
                     <>
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
-                        Artist
-                      </div>
-                      <Link
-                        href="/artist/roster"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                      <Link href="/artist/releases" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Releases
+                      </Link>
+                      <Link href="/artist/analytics" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Analytics
+                      </Link>
+                      <Link href="/artist/earnings" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Earnings
+                      </Link>
+                      <Link href="/artist/roster" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
                         Roster
                       </Link>
                     </>
                   )}
 
-                  {/* Label Admin Menu */}
-                  {hasPermission('artist:view:label') && (
+                  {profileData?.role === 'label_admin' && (
                     <>
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
-                        Label Admin
-                      </div>
-                      <Link
-                        href="/labeladmin/artists"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                      <Link href="/labeladmin/artists" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
                         My Artists
                       </Link>
-                    </>
-                  )}
-
-                  {/* Distribution Partner Menu */}
-                  {(hasPermission('distribution:read:partner') || hasPermission('distribution:read:any')) && (
-                    <>
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
-                        Distribution
-                      </div>
-                      <Link
-                        href="/distribution/hub"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Distribution Hub
+                      <Link href="/labeladmin/releases" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Releases
                       </Link>
-                      <Link
-                        href="/distribution/queue"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Distribution Queue
+                      <Link href="/labeladmin/analytics" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Analytics
                       </Link>
-                      <Link
-                        href="/distribution/revisions"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Revision Queue
+                      <Link href="/labeladmin/earnings" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Earnings
                       </Link>
-                      <Link
-                        href="/distribution/revenue"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Revenue Reporting
+                      <Link href="/labeladmin/roster" className="transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                        Roster
                       </Link>
                     </>
                   )}
+                </div>
 
-                  {/* Admin Menu */}
-                  {hasPermission('user:read:any') && (
-                    <>
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
-                        Admin
-                      </div>
-                      <Link
-                        href="/admin/content-library"
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Content Library
-                      </Link>
-                    </>
-                  )}
-
-                  {/* Settings - For non-superadmin users */}
-                  {!hasPermission('*:*:*') && hasPermission('settings:read:own') && (
-                    <Link
-                      href="/settings"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Settings
-                    </Link>
-                  )}
-
-                  {/* Settings for superadmin users */}
-                  {hasPermission('*:*:*') && (
-                    <Link
-                      href="/admin/settings"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Settings
-                    </Link>
-                  )}
-
-                  {/* Billing - For non-superadmin users */}
-                  {!hasPermission('*:*:*') && (
+                {/* Right Actions - Fixed position */}
+                <div className="flex items-center space-x-6 ml-auto">
+                  {/* Wallet Balance - Only for artists and label admins - Simple style */}
+                  {(profileData?.role === 'artist' || profileData?.role === 'label_admin') && (
                     <button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        openCustomerPortal();
-                      }}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      onClick={refreshBalance}
+                      className="flex items-center gap-2 transition-colors duration-200 text-gray-600 hover:text-gray-800 cursor-pointer"
+                      title="Click to refresh wallet balance"
                     >
-                      Billing
+                      <Wallet className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        {walletLoading ? '...' : formatCurrency(walletBalance, 'GBP')}
+                      </span>
                     </button>
                   )}
 
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      router.push('/logout');
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  {/* Notifications Bell */}
+                  <Link href="/notifications" className="relative">
+                    <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                      <Bell className="h-5 w-5" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-orange-600 rounded-full">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </Link>
+
+                  {/* About */}
+                  <Link href="/about" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                    About
+                  </Link>
+
+                  {/* Support */}
+                  <Link href="/support" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                    Support
+                  </Link>
+
+                  {/* User Dropdown with Role Badge */}
+                  <div 
+                    className="relative" 
+                    ref={dropdownRef}
+                    onMouseEnter={() => setIsDropdownOpen(true)}
+                    onMouseLeave={() => setIsDropdownOpen(false)}
                   >
-                    Logout
-                  </button>
+                    <div className="flex items-center space-x-3">
+                      {/* Role Badge */}
+                      <div className={`flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getRoleBadgeColor()}`}>
+                        {getRoleBadgeText()}
+                      </div>
+
+                      <button
+                        className="flex items-center space-x-3 text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                        type="button"
+                      >
+                        <span className="sr-only">Open user menu</span>
+                        Hi, {getDisplayName()}
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 pt-2 z-50">
+                        <div className="w-56 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+                        {/* User Info Header */}
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <p className="text-sm font-medium text-gray-900">{getDisplayName()}</p>
+                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        </div>
+
+                      {/* Dashboard */}
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 mr-3 text-gray-400" />
+                        Dashboard
+                      </Link>
+
+                      {/* Messages */}
+                      <Link
+                        href="/messages"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <User className="w-4 h-4 mr-3 text-gray-400" />
+                        Messages
+                      </Link>
+
+                      {/* Settings */}
+                      <Link
+                        href={getSettingsLink()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                        Settings
+                      </Link>
+
+                        <hr className="my-1 border-gray-200" />
+
+                        {/* Logout */}
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            router.push('/logout');
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4 mr-3 text-gray-400" />
+                          Logout
+                        </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Left Spacer for logged out */}
+                <div className="flex-1"></div>
+                
+                {/* Right - Public Links + Auth Buttons */}
+                <div className="flex items-center space-x-6 flex-1 justify-end">
+                  <Link href="/pricing" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                    Prices
+                  </Link>
+                  <Link href="/about" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                    About
+                  </Link>
+                  <Link href="/support" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                    Support
+                  </Link>
+                  <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/register">
+                    <button className="bg-transparent text-[#1f2937] border border-[#1f2937] rounded-xl px-6 py-2 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]">
+                      Register
+                    </button>
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Mobile - Right side */}
+          <div className="md:hidden flex items-center space-x-4 ml-auto">
+            {user && (
+              <Link href="/notifications" className="relative">
+                <button className="p-2 text-gray-500 hover:text-gray-700">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-orange-600 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
+            )}
+            
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-4 py-3 space-y-3">
+              {user ? (
+                <>
+                  {/* User Info */}
+                  <div className="pb-3 border-b border-gray-200">
+                    <p className="text-sm font-medium text-gray-900">{getDisplayName()}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border mt-2 ${getRoleBadgeColor()}`}>
+                      {getRoleBadgeText()}
+                    </div>
+                  </div>
+
+                  {/* Wallet Balance - Mobile */}
+                  {(profileData?.role === 'artist' || profileData?.role === 'label_admin') && (
+                    <button
+                      onClick={refreshBalance}
+                      className="flex items-center gap-2 w-full py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      <Wallet className="w-5 h-5" />
+                      <span className="font-medium">
+                        {walletLoading ? '...' : formatCurrency(walletBalance, 'GBP')}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Navigation Links - Role Based */}
+                  {profileData?.role === 'artist' && (
+                    <>
+                      <Link href="/artist/releases" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Music className="w-5 h-5" />
+                        <span>Releases</span>
+                      </Link>
+                      <Link href="/artist/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <BarChart3 className="w-5 h-5" />
+                        <span>Analytics</span>
+                      </Link>
+                      <Link href="/artist/earnings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <DollarSign className="w-5 h-5" />
+                        <span>Earnings</span>
+                      </Link>
+                      <Link href="/artist/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Users className="w-5 h-5" />
+                        <span>Roster</span>
+                      </Link>
+                    </>
+                  )}
+
+                  {profileData?.role === 'label_admin' && (
+                    <>
+                      <Link href="/labeladmin/releases" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Music className="w-5 h-5" />
+                        <span>Releases</span>
+                      </Link>
+                      <Link href="/labeladmin/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <BarChart3 className="w-5 h-5" />
+                        <span>Analytics</span>
+                      </Link>
+                      <Link href="/labeladmin/earnings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <DollarSign className="w-5 h-5" />
+                        <span>Earnings</span>
+                      </Link>
+                      <Link href="/labeladmin/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Users className="w-5 h-5" />
+                        <span>Artists</span>
+                      </Link>
+                    </>
+                  )}
+
+                  {profileData?.role === 'super_admin' && (
+                    <>
+                      <Link href="/admin/usermanagement" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Users className="w-5 h-5" />
+                        <span>Users</span>
+                      </Link>
+                      <Link href="/admin/earningsmanagement" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <DollarSign className="w-5 h-5" />
+                        <span>Earnings</span>
+                      </Link>
+                      <Link href="/admin/walletmanagement" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Wallet className="w-5 h-5" />
+                        <span>Wallet</span>
+                      </Link>
+                      <Link href="/admin/analyticsmanagement" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <BarChart3 className="w-5 h-5" />
+                        <span>Analytics</span>
+                      </Link>
+                    </>
+                  )}
+
+                  <div className="border-t border-gray-200 pt-3 mt-3">
+                    <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                      <Info className="w-5 h-5" />
+                      <span>About</span>
+                    </Link>
+                    <Link href="/support" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                      <HelpCircle className="w-5 h-5" />
+                      <span>Support</span>
+                    </Link>
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                      <LayoutDashboard className="w-5 h-5" />
+                      <span>Dashboard</span>
+                    </Link>
+                    <Link href={getProfileLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                      <User className="w-5 h-5" />
+                      <span>Profile</span>
+                    </Link>
+                    <Link href={getSettingsLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                      <Settings className="w-5 h-5" />
+                      <span>Settings</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        router.push('/logout');
+                      }}
+                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900 w-full"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                    <DollarSign className="w-5 h-5" />
+                    <span>Prices</span>
+                  </Link>
+                  <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                    <Info className="w-5 h-5" />
+                    <span>About</span>
+                  </Link>
+                  <Link href="/support" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                    <HelpCircle className="w-5 h-5" />
+                    <span>Support</span>
+                  </Link>
+                  <div className="border-t border-gray-200 pt-3 mt-3">
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-gray-700 hover:text-gray-900 font-semibold">
+                      Login
+                    </Link>
+                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <button className="w-full bg-transparent text-[#1f2937] border border-[#1f2937] rounded-xl px-4 py-2 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white">
+                        Register
+                      </button>
+                    </Link>
+                  </div>
                 </>
               )}
             </div>
