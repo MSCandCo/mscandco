@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd mscandco-frontend && npm run build",
+  "devCommand": "cd mscandco-frontend && npm run dev",
+  "installCommand": "cd mscandco-frontend && npm install",
+  "framework": "nextjs",
+  "outputDirectory": "mscandco-frontend/.next"
+}
