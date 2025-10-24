@@ -44,17 +44,13 @@ export default async function AdminLayoutServer({ children }) {
   }
 
   const user = session.user
-  console.log('✅ Admin Layout: Session found for user:', user.email)
 
   const permissions = await getUserPermissions(user.id, true)
-  console.log('🔍 Admin Layout: User permissions:', permissions.map(p => p.permission_name))
 
   if (!hasAdminAccess(permissions)) {
     console.warn('❌ Admin Layout: User does not have admin access - redirecting to dashboard')
     redirect('/dashboard')
   }
-
-  console.log('✅ Admin Layout: User has admin access')
 
   return (
     <AdminLayout>

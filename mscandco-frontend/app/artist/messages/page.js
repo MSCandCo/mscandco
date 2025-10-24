@@ -14,18 +14,9 @@ export default async function ArtistMessagesPage() {
   // Check permissions (useServiceRole = true for server-side)
   const hasAccess = await userHasPermission(session.user.id, 'artist:messages:access', true)
   
-  console.log('🔐 Artist Messages Page - Permission Check:', {
-    userId: session.user.id,
-    email: session.user.email,
-    hasAccess,
-    requiredPermission: 'artist:messages:access'
-  })
-  
   if (!hasAccess) {
-    console.log('❌ Access denied - redirecting to dashboard')
     redirect('/dashboard')
   }
   
-  console.log('✅ Access granted - rendering MessagesClient')
   return <MessagesClient />
 }

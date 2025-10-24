@@ -16,20 +16,12 @@ export default async function NotificationsPage() {
   )
 
   // Fetch initial notifications
-  const { data: initialNotifications, error } = await supabaseAdmin
+  const { data: initialNotifications } = await supabaseAdmin
     .from('notifications')
     .select('*')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false })
     .limit(50)
-
-  console.log('🔔 Notifications Page - Fetched notifications:', {
-    userId: session.user.id,
-    email: session.user.email,
-    count: initialNotifications?.length || 0,
-    types: initialNotifications?.map(n => n.type) || [],
-    error: error?.message
-  })
 
   return <NotificationsClient initialNotifications={initialNotifications || []} user={session.user} />
 }

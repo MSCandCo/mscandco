@@ -20,14 +20,7 @@ export default async function LabelAdminMessagesPage() {
   // Check if user has permission to access label admin messages
   const hasPermission = await userHasPermission(session.user.id, 'labeladmin:messages:access', true)
 
-  console.log('🔐 Label Admin Messages Page - Permission check:', {
-    userId: session.user.id,
-    hasPermission,
-    requiredPermission: 'labeladmin:messages:access'
-  })
-
   if (!hasPermission) {
-    console.log('❌ User does not have labeladmin:messages:access permission, redirecting to dashboard')
     redirect('/dashboard')
   }
 

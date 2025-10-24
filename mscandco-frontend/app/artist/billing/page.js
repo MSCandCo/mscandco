@@ -13,20 +13,10 @@ export default async function ArtistBillingPage() {
 
   // Check if user has permission to access billing (uses settings:access which artists already have)
   const hasAccess = await userHasPermission(session.user.id, 'settings:access', true)
-  
-  console.log('🔐 Artist Billing Page - Permission Check:', {
-    userId: session.user.id,
-    email: session.user.email,
-    hasAccess,
-    requiredPermission: 'settings:access'
-  })
 
   if (!hasAccess) {
-    console.log('❌ Access denied - redirecting to dashboard')
     redirect('/dashboard')
   }
-
-  console.log('✅ Access granted - rendering BillingClient for artist')
   
   return <BillingClient userRole="artist" />
 }

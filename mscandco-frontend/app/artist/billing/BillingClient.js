@@ -296,17 +296,9 @@ export default function BillingClient({ userRole = 'artist' }) {
     try {
       const gbpPrice = getPlanPrice(planId);
       const localPrice = convertPrice(gbpPrice);
-      
-      console.log('=== SUBSCRIPTION ATTEMPT ===');
-      console.log('Plan ID:', planId);
-      console.log('GBP Price:', gbpPrice);
-      console.log('Local Price:', localPrice);
-      console.log('Wallet Balance:', walletBalance);
-      console.log('Has Enough Funds:', walletBalance >= gbpPrice);
 
       if (walletBalance >= gbpPrice) {
         // Process real wallet payment
-        console.log('Processing wallet payment...');
         
         // Get user session for API call
         const { data: { session } } = await supabase.auth.getSession();
@@ -378,10 +370,6 @@ export default function BillingClient({ userRole = 'artist' }) {
     setIsLoading(true);
     
     try {
-      console.log('=== TOP UP & SUBSCRIPTION ===');
-      console.log('Top up amount:', topUpAmount);
-      console.log('Plan:', selectedPlan);
-      
       // Get user session for API call
       const { data: { session } } = await supabase.auth.getSession();
       
