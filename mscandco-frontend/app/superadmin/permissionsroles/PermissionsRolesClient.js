@@ -790,23 +790,69 @@ function PermissionGroup({
   }).length
 
   const totalCount = permissions.length
+  const allEnabled = activeCount === totalCount
+
+  // Toggle all permissions in this category
+  const toggleAllPermissions = async (e) => {
+    e.stopPropagation()
+    if (saving || isProtected) return
+
+    // Toggle all permissions in this category
+    for (const permission of permissions) {
+      const isGranted = rolePermissions.some(p => p.permission_name === permission.name)
+      const isWildcardGranted = hasWildcard && permission.name !== '*:*:*'
+      
+      // Skip if wildcard granted (can't toggle)
+      if (isWildcardGranted) continue
+
+      // If we're enabling all, only toggle off permissions
+      // If we're disabling all, only toggle on permissions
+      if (allEnabled && isGranted) {
+        await togglePermission(permission)
+      } else if (!allEnabled && !isGranted) {
+        await togglePermission(permission)
+      }
+    }
+  }
 
   return (
     <div className="border border-gray-200 rounded-lg">
-      <button
-        onClick={() => setExpandedGroups(prev => ({
-          ...prev,
-          [resource]: !prev[resource]
-        }))}
-        className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-t-lg flex items-center justify-between"
-      >
-        <span className="font-medium text-gray-900">
-          {formatResourceName(resource)}
-        </span>
-        <span className="text-sm text-gray-500">
-          {activeCount}/{totalCount} permissions
-        </span>
-      </button>
+      <div className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-t-lg flex items-center justify-between">
+        <button
+          onClick={() => setExpandedGroups(prev => ({
+            ...prev,
+            [resource]: !prev[resource]
+          }))}
+          className="flex-1 text-left flex items-center justify-between"
+        >
+          <span className="font-medium text-gray-900">
+            {formatResourceName(resource)}
+          </span>
+          <span className="text-sm text-gray-500">
+            {activeCount}/{totalCount} permissions
+          </span>
+        </button>
+        
+        {/* Toggle All Switch */}
+        <button
+          onClick={toggleAllPermissions}
+          disabled={saving || isProtected}
+          className={`ml-4 w-12 h-6 rounded-full transition-colors relative ${
+            allEnabled
+              ? 'bg-green-500'
+              : 'bg-gray-300'
+          } ${
+            isProtected ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+          }`}
+          title={allEnabled ? 'Disable all permissions' : 'Enable all permissions'}
+        >
+          <div
+            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+              allEnabled ? 'translate-x-6' : 'translate-x-0.5'
+            }`}
+          />
+        </button>
+      </div>
 
       {expandedGroups[resource] && (
         <div className="p-4 space-y-2">
