@@ -150,6 +150,7 @@ ON CONFLICT (role_id, permission_id) DO NOTHING;
 -- ===========================================
 -- PART 7: ASSIGN PERMISSIONS TO DISTRIBUTION PARTNER ROLE
 -- ===========================================
+-- Distribution Partner: FOCUSED ACCESS - Only Distribution Hub & Revenue Reporting
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
@@ -157,23 +158,32 @@ FROM roles r
 CROSS JOIN permissions p
 WHERE r.name = 'distribution_partner'
 AND p.name IN (
-  -- Page Access (already has distribution:* permissions)
-  'messages:access',
-  'settings:access',
-  'profile:access',
-  'dashboard:access',
-
+  -- Core Distribution Access (MAIN FEATURES)
+  'distribution:read:any',           -- View Distribution Hub
+  'distribution:manage:any',         -- Manage distributions
+  'revenue:read',                    -- View Revenue Reporting
+  'revenue:create',                  -- Create revenue reports
+  'revenue:update',                  -- Update revenue reports
+  
+  -- Basic User Access (ESSENTIAL)
+  'dashboard:access',                -- Access dashboard
+  'profile:access',                  -- Access profile
+  'messages:access',                 -- Access messages
+  'settings:access',                 -- Access settings
+  
   -- Message Tabs
-  'messages:system:view',
-  'messages:earnings:view',
-  'messages:payouts:view',
-
+  'messages:system:view',            -- View system messages
+  
   -- Settings Tabs
-  'settings:preferences:edit',
-  'settings:security:edit',
-  'settings:notifications:edit',
-  'settings:api_keys:view',
-  'settings:api_keys:manage'
+  'settings:preferences:edit',       -- Edit preferences
+  'settings:security:edit',          -- Edit security settings
+  'settings:notifications:edit',     -- Edit notification settings
+  
+  -- Own User Permissions
+  'user:read:own',                   -- Read own profile
+  'user:update:own',                 -- Update own profile
+  'notification:read:own',           -- Read own notifications
+  'message:read:own'                 -- Read own messages
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -189,5 +199,5 @@ ON CONFLICT (role_id, permission_id) DO NOTHING;
 -- Assigned to:
 -- - Artist: 20 permissions
 -- - Label Admin: 20 permissions
--- - Distribution Partner: 12 permissions
+-- - Distribution Partner: 20 permissions (focused on distribution & revenue only)
 -- ===========================================

@@ -5,6 +5,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRouter } from 'next/navigation';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
 import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
+import { useCurrencySync } from '@/components/shared/CurrencySelector';
 import {
   TrendingUp,
   DollarSign,
@@ -87,7 +88,7 @@ export default function EarningsClient({ user: serverUser }) {
   const [walletData, setWalletData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP');
+  const [selectedCurrency, setSelectedCurrency] = useCurrencySync('GBP'); // Synced with settings and header
   const [showAmounts, setShowAmounts] = useState(true);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('all_time');

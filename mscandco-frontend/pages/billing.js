@@ -25,7 +25,6 @@ const BillingPage = () => {
   const { user, isLoading: userLoading } = useUser();
   
   // State management
-  const [activeTab, setActiveTab] = useState('subscription');
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
   const [isLoading, setIsLoading] = useState(false);
@@ -569,31 +568,43 @@ const BillingPage = () => {
         </div>
       )}
 
-      {/* Tab Navigation */}
+      {/* Page Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('subscription')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'subscription'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Billing & Subscriptions</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage your subscription and payment methods</p>
+            </div>
+            {/* Wallet Balance Indicator */}
+            <div className="hidden sm:flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Wallet Balance</p>
+                <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
+              </div>
+              <button 
+                onClick={() => setShowTopUpModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Funds
+              </button>
+            </div>
+          </div>
+          {/* Mobile Wallet Balance */}
+          <div className="sm:hidden mt-4 flex items-center justify-between bg-gray-50 rounded-lg p-4">
+            <div>
+              <p className="text-sm text-gray-600">Wallet Balance</p>
+              <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
+            </div>
+            <button 
+              onClick={() => setShowTopUpModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
             >
-              Subscription
+              <Plus className="w-4 h-4 mr-2" />
+              Add Funds
             </button>
-            <button
-              onClick={() => setActiveTab('wallet')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'wallet'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Wallet
-            </button>
-          </nav>
+          </div>
         </div>
       </div>
 
@@ -606,9 +617,8 @@ const BillingPage = () => {
           walletBalance={walletBalance}
         />
         
-        {/* Subscription Tab */}
-        {activeTab === 'subscription' && (
-          <div className="space-y-8">
+        {/* Subscription Content */}
+        <div className="space-y-8">
             
 
 
@@ -782,92 +792,6 @@ const BillingPage = () => {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Wallet Tab */}
-        {activeTab === 'wallet' && (
-          <div className="space-y-6 sm:space-y-8">
-            
-            {/* Wallet Balance Card */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div className="text-center sm:text-left">
-                  <p className="text-purple-100 mb-2 text-sm sm:text-base">Wallet Balance</p>
-                  <p className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-4">£{walletBalance.toFixed(2)}</p>
-                  <p className="text-purple-100 text-sm sm:text-base">Add funds to your wallet for subscription payments and other platform services.</p>
-                </div>
-                <div className="text-center sm:text-right">
-                  <button 
-                    onClick={refreshBalance}
-                    className="mb-2 px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm flex items-center mx-auto sm:mx-0"
-                    disabled={loadingBalance}
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-1 ${loadingBalance ? 'animate-spin' : ''}`} />
-                    {loadingBalance ? 'Refreshing...' : 'Refresh'}
-                  </button>
-                  <button 
-                    onClick={() => handleAddFunds(50)}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all backdrop-blur-sm w-full sm:w-auto"
-                  >
-                    Add Funds
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-4 sm:p-6 border-b border-gray-200">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Recent Transactions</h2>
-              </div>
-              <div className="p-4 sm:p-6">
-                {loadingTransactions ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading transactions...</p>
-                  </div>
-                ) : recentTransactions.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {recentTransactions.map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                          <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
-                            transaction.type === 'subscription' ? 'bg-red-100' :
-                            transaction.type === 'topup' ? 'bg-green-100' : 'bg-blue-100'
-                          }`}>
-                            {transaction.type === 'subscription' ? <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" /> :
-                             transaction.type === 'topup' ? <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" /> :
-                             <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{transaction.description}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">
-                              {transaction.date} {transaction.time && `• ${transaction.time}`}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0 ml-2">
-                          <p className={`font-semibold text-sm sm:text-base ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {transaction.amount > 0 ? '+' : ''}£{Math.abs(transaction.amount).toFixed(2)}
-                          </p>
-                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {transaction.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12">
-                    <Calendar className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
-                    <p className="text-sm sm:text-base text-gray-600 px-4">Your transaction history will appear here once you start using the platform.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Top-Up Modal */}

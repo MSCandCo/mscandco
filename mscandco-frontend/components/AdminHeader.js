@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import usePermissions from '@/hooks/usePermissions';
+import { isPlatformAdmin, isContentCreator } from '@/lib/role-config';
 
 function AdminHeader({ largeLogo = false }) {
   const { user } = useUser();
@@ -47,16 +48,27 @@ function AdminHeader({ largeLogo = false }) {
       .join(' ');
   };
 
-  // Get role badge color
+  // Get role badge color - matching user management style
   const getRoleBadgeColor = () => {
     const role = getRole();
-    if (role === 'super_admin') return 'bg-red-100 text-red-800 border-red-300';
-    if (role === 'company_admin') return 'bg-blue-100 text-blue-800 border-blue-300';
-    if (role === 'distribution_partner') return 'bg-purple-100 text-purple-800 border-purple-300';
-    if (role === 'analytics_admin') return 'bg-green-100 text-green-800 border-green-300';
-    if (role === 'requests_admin') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    if (role === 'labeladmin') return 'bg-indigo-100 text-indigo-800 border-indigo-300';
-    return 'bg-gray-100 text-gray-800 border-gray-300';
+    
+    // Get first 2 characters and generate a color based on them
+    const firstTwo = role ? role.substring(0, 2).toLowerCase() : 'xx';
+    
+    // Color palette matching user management (no borders, cleaner look)
+    const colorPalette = {
+      'ar': 'bg-purple-100 text-purple-800',      // artist
+      'la': 'bg-cyan-100 text-cyan-800',           // labeladmin
+      'ad': 'bg-orange-100 text-orange-800',       // admin
+      'su': 'bg-red-100 text-red-800',             // super_admin
+      'di': 'bg-emerald-100 text-emerald-800',     // distribution_partner
+      'fi': 'bg-pink-100 text-pink-800',           // financial_admin
+      're': 'bg-indigo-100 text-indigo-800',       // requests_admin
+      'co': 'bg-teal-100 text-teal-800',           // company_admin
+      'an': 'bg-orange-100 text-orange-800',       // analytics_admin
+    };
+    
+    return colorPalette[firstTwo] || 'bg-gray-100 text-gray-800';
   };
 
   // Open navigation dropdown on hover
@@ -80,6 +92,9 @@ function AdminHeader({ largeLogo = false }) {
   const isSuperAdmin = getRole() === 'super_admin';
   const hasWildcard = permissions?.includes('*:*:*');
   const showAll = isSuperAdmin || hasWildcard;
+  
+  // Distribution Partner: Only show Distribution section in header navigation
+  const isDistributionPartner = getRole() === 'distribution_partner';
 
   console.log('🔑 AdminHeader Render - showAll:', showAll, 'isSuperAdmin:', isSuperAdmin, 'hasWildcard:', hasWildcard);
   console.log('🔑 AdminHeader Render - permissions:', permissions);
@@ -124,6 +139,17 @@ function AdminHeader({ largeLogo = false }) {
     distributionItems
   });
 
+  // Count total navigation items (for distribution partner, exclude hidden sections)
+  const totalNavItems = isDistributionPartner 
+    ? distributionItems 
+    : userAccessItems + analyticsItems + financeItems + contentItems + distributionItems;
+  
+  // If 5 or fewer items total, show all as standalone (no dropdowns)
+  const forceStandalone = totalNavItems <= 5;
+  
+  console.log('📊 Total navigation items:', totalNavItems);
+  console.log('📊 Force standalone mode:', forceStandalone);
+
   // Count user dropdown items (excluding Dashboard and Logout which are always visible)
   const userDropdownItems = [
     true,                                                // Profile - always visible
@@ -134,39 +160,78 @@ function AdminHeader({ largeLogo = false }) {
 
   console.log('📊 User dropdown items (excluding Dashboard/Logout):', userDropdownItems);
 
-  // Helper to get first visible item for standalone links
-  const getFirstUserAccessItem = () => {
-    if (showAll || hasPermission('analytics:requests:read')) return { href: '/admin/requests', label: 'Requests', icon: FileText };
-    if (showAll || hasPermission('users_access:user_management:read')) return { href: '/admin/usermanagement', label: 'User Management', icon: Users };
-    if (showAll || hasPermission('users_access:permissions_roles:read')) return { href: '/superadmin/permissionsroles', label: 'Permissions & Roles', icon: Shield };
-    if (showAll || hasPermission('user:impersonate')) return { href: '/superadmin/ghostlogin', label: 'Ghost Mode', icon: Eye };
-    return null;
+  // Helper to get ALL visible items for each section
+  const getAllUserAccessItems = () => {
+    const items = [];
+    if (showAll || hasPermission('analytics:requests:read')) items.push({ href: '/admin/requests', label: 'Requests', icon: FileText });
+    if (showAll || hasPermission('users_access:user_management:read')) items.push({ href: '/admin/usermanagement', label: 'User Management', icon: Users });
+    if (showAll || hasPermission('users_access:permissions_roles:read')) items.push({ href: '/superadmin/permissionsroles', label: 'Permissions & Roles', icon: Shield });
+    if (showAll || hasPermission('user:impersonate')) items.push({ href: '/superadmin/ghostlogin', label: 'Ghost Mode', icon: Eye });
+    return items;
   };
 
-  const getFirstAnalyticsItem = () => {
-    if (showAll || hasPermission('analytics:analytics_management:read')) return { href: '/admin/analyticsmanagement', label: 'Analytics Management', icon: BarChart3 };
-    if (showAll || hasPermission('analytics:platform_analytics:read')) return { href: '/admin/platformanalytics', label: 'Platform Analytics', icon: TrendingUp };
-    return null;
+  const getAllAnalyticsItems = () => {
+    const items = [];
+    if (showAll || hasPermission('analytics:analytics_management:read')) items.push({ href: '/admin/analyticsmanagement', label: 'Analytics Management', icon: BarChart3 });
+    if (showAll || hasPermission('analytics:platform_analytics:read')) items.push({ href: '/admin/platformanalytics', label: 'Platform Analytics', icon: TrendingUp });
+    return items;
   };
 
-  const getFirstFinanceItem = () => {
-    if (showAll || hasPermission('finance:earnings_management:read')) return { href: '/admin/earningsmanagement', label: 'Earnings Management', icon: DollarSign };
-    if (showAll || hasPermission('finance:wallet_management:read')) return { href: '/admin/walletmanagement', label: 'Wallet Management', icon: Wallet };
-    if (showAll || hasPermission('finance:split_configuration:read')) return { href: '/admin/splitconfiguration', label: 'Split Configuration', icon: PieChart };
-    return null;
+  const getAllFinanceItems = () => {
+    const items = [];
+    if (showAll || hasPermission('finance:earnings_management:read')) items.push({ href: '/admin/earningsmanagement', label: 'Earnings Management', icon: DollarSign });
+    if (showAll || hasPermission('finance:wallet_management:read')) items.push({ href: '/admin/walletmanagement', label: 'Wallet Management', icon: Wallet });
+    if (showAll || hasPermission('finance:split_configuration:read')) items.push({ href: '/admin/splitconfiguration', label: 'Split Configuration', icon: PieChart });
+    return items;
   };
 
-  const getFirstContentItem = () => {
-    if (showAll || hasPermission('content:asset_library:read')) return { href: '/admin/assetlibrary', label: 'Asset Library', icon: Database };
-    if (showAll || hasPermission('users_access:master_roster:read')) return { href: '/admin/masterroster', label: 'Master Roster', icon: Music };
-    return null;
+  const getAllContentItems = () => {
+    const items = [];
+    if (showAll || hasPermission('content:asset_library:read')) items.push({ href: '/admin/assetlibrary', label: 'Asset Library', icon: Database });
+    if (showAll || hasPermission('users_access:master_roster:read')) items.push({ href: '/admin/masterroster', label: 'Master Roster', icon: Music });
+    return items;
   };
 
-  const getFirstDistributionItem = () => {
-    if (showAll || hasPermission('distribution:read:any')) return { href: '/distribution/hub', label: 'Distribution Hub', icon: Inbox };
-    if (showAll || hasPermission('revenue:read')) return { href: '/distribution/revenue', label: 'Revenue Reporting', icon: BarChart3 };
-    return null;
+  const getAllDistributionItems = () => {
+    const items = [];
+    if (showAll || hasPermission('distribution:read:any')) items.push({ href: '/distribution/hub', label: 'Distribution Hub', icon: Inbox });
+    if (showAll || hasPermission('revenue:read')) items.push({ href: '/distribution/revenue', label: 'Revenue Reporting', icon: BarChart3 });
+    return items;
   };
+
+  // Helper to get first visible item for standalone links (when not in forceStandalone mode)
+  const getFirstUserAccessItem = () => getAllUserAccessItems()[0] || null;
+  const getFirstAnalyticsItem = () => getAllAnalyticsItems()[0] || null;
+  const getFirstFinanceItem = () => getAllFinanceItems()[0] || null;
+  const getFirstContentItem = () => getAllContentItems()[0] || null;
+  const getFirstDistributionItem = () => getAllDistributionItems()[0] || null;
+
+  // Show loading state while permissions are being fetched
+  if (permissionsLoading) {
+    return (
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Link href="/" className="flex items-center">
+                <img
+                  className={`${largeLogo ? 'h-32 w-32' : 'h-16 w-16 md:h-20 md:w-20'} object-contain`}
+                  src="/logos/MSCandCoLogoV2.svg"
+                  alt="MSC & Co Logo"
+                />
+              </Link>
+            </div>
+            {/* Loading indicator */}
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              <span className="text-sm">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -188,8 +253,25 @@ function AdminHeader({ largeLogo = false }) {
             {/* Navigation Dropdowns - All wrapped in one ref */}
             <div className="flex items-center" ref={navDropdownRef}>
               
-              {/* User & Access - Standalone link if 1 item, dropdown if 2+ */}
-              {userAccessItems === 1 ? (
+              {/* User & Access - Standalone if 1 item OR forceStandalone mode, dropdown if 2+ */}
+              {/* Hidden for Distribution Partners */}
+              {!isDistributionPartner && forceStandalone && userAccessItems > 0 ? (
+                // Force standalone mode: Show all items as individual links
+                getAllUserAccessItems().map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link 
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors whitespace-nowrap"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              ) : !isDistributionPartner && userAccessItems === 1 ? (
+                // Single item: Show as standalone link
                 (() => {
                   const item = getFirstUserAccessItem();
                   const Icon = item.icon;
@@ -203,7 +285,7 @@ function AdminHeader({ largeLogo = false }) {
                     </Link>
                   );
                 })()
-              ) : userAccessItems > 1 ? (
+              ) : !isDistributionPartner && userAccessItems > 1 ? (
               <div 
                 className="relative"
                 onMouseEnter={() => openNavDropdownOnHover('user-access')}
@@ -249,8 +331,25 @@ function AdminHeader({ largeLogo = false }) {
               </div>
               ) : null}
 
-              {/* Analytics - Standalone link if 1 item, dropdown if 2+ */}
-              {analyticsItems === 1 ? (
+              {/* Analytics - Standalone if 1 item OR forceStandalone mode, dropdown if 2+ */}
+              {/* Hidden for Distribution Partners */}
+              {!isDistributionPartner && forceStandalone && analyticsItems > 0 ? (
+                // Force standalone mode: Show all items as individual links
+                getAllAnalyticsItems().map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link 
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors whitespace-nowrap"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              ) : !isDistributionPartner && analyticsItems === 1 ? (
+                // Single item: Show as standalone link
                 (() => {
                   const item = getFirstAnalyticsItem();
                   const Icon = item.icon;
@@ -264,7 +363,7 @@ function AdminHeader({ largeLogo = false }) {
                     </Link>
                   );
                 })()
-              ) : analyticsItems > 1 ? (
+              ) : !isDistributionPartner && analyticsItems > 1 ? (
               <div 
                 className="relative"
                 onMouseEnter={() => openNavDropdownOnHover('analytics')}
@@ -298,8 +397,25 @@ function AdminHeader({ largeLogo = false }) {
               </div>
               ) : null}
 
-              {/* Finance - Standalone link if 1 item, dropdown if 2+ */}
-              {financeItems === 1 ? (
+              {/* Finance - Standalone if 1 item OR forceStandalone mode, dropdown if 2+ */}
+              {/* Hidden for Distribution Partners */}
+              {!isDistributionPartner && forceStandalone && financeItems > 0 ? (
+                // Force standalone mode: Show all items as individual links
+                getAllFinanceItems().map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link 
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors whitespace-nowrap"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              ) : !isDistributionPartner && financeItems === 1 ? (
+                // Single item: Show as standalone link
                 (() => {
                   const item = getFirstFinanceItem();
                   const Icon = item.icon;
@@ -313,7 +429,7 @@ function AdminHeader({ largeLogo = false }) {
                     </Link>
                   );
                 })()
-              ) : financeItems > 1 ? (
+              ) : !isDistributionPartner && financeItems > 1 ? (
               <div 
                 className="relative"
                 onMouseEnter={() => openNavDropdownOnHover('earnings')}
@@ -353,8 +469,25 @@ function AdminHeader({ largeLogo = false }) {
               </div>
               ) : null}
 
-              {/* Content - Standalone link if 1 item, dropdown if 2+ */}
-              {contentItems === 1 ? (
+              {/* Content - Standalone if 1 item OR forceStandalone mode, dropdown if 2+ */}
+              {/* Hidden for Distribution Partners */}
+              {!isDistributionPartner && forceStandalone && contentItems > 0 ? (
+                // Force standalone mode: Show all items as individual links
+                getAllContentItems().map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link 
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors whitespace-nowrap"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              ) : !isDistributionPartner && contentItems === 1 ? (
+                // Single item: Show as standalone link
                 (() => {
                   const item = getFirstContentItem();
                   const Icon = item.icon;
@@ -368,7 +501,7 @@ function AdminHeader({ largeLogo = false }) {
                     </Link>
                   );
                 })()
-              ) : contentItems > 1 ? (
+              ) : !isDistributionPartner && contentItems > 1 ? (
               <div 
                 className="relative"
                 onMouseEnter={() => openNavDropdownOnHover('content')}
@@ -402,8 +535,24 @@ function AdminHeader({ largeLogo = false }) {
               </div>
               ) : null}
 
-              {/* Distribution - Standalone link if 1 item, dropdown if 2+ */}
-              {distributionItems === 1 ? (
+              {/* Distribution - Standalone if 1 item OR forceStandalone mode, dropdown if 2+ */}
+              {forceStandalone && distributionItems > 0 ? (
+                // Force standalone mode: Show all items as individual links
+                getAllDistributionItems().map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link 
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors whitespace-nowrap"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              ) : distributionItems === 1 ? (
+                // Single item: Show as standalone link
                 (() => {
                   const item = getFirstDistributionItem();
                   const Icon = item.icon;
@@ -483,7 +632,7 @@ function AdminHeader({ largeLogo = false }) {
               >
                 <div className="flex items-center gap-2">
                   {/* Role Badge */}
-                  <div className={`flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeColor()}`}>
+                  <div className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getRoleBadgeColor()}`}>
                     {getRoleBadgeText()}
                   </div>
 

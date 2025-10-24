@@ -13,10 +13,21 @@ import { createClient } from '@supabase/supabase-js';
  */
 export async function getUserPermissions(userId, useServiceRole = false) {
   try {
+    // Determine which key to use
+    const supabaseKey = useServiceRole 
+      ? process.env.SUPABASE_SERVICE_ROLE_KEY 
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    // If service role is requested but not available (client-side), return empty array
+    if (useServiceRole && !supabaseKey) {
+      console.warn('⚠️ getUserPermissions: Service role key not available (client-side call)');
+      return [];
+    }
+    
     // Create Supabase client with appropriate key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      useServiceRole ? process.env.SUPABASE_SERVICE_ROLE_KEY : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabaseKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -204,17 +215,20 @@ export async function userHasAllPermissions(userId, permissionList, useServiceRo
 /**
  * Create a Supabase client with service role key for server-side operations
  * This is used for API routes that need elevated permissions
+ * Only available on server-side (will be undefined on client)
  */
-export const supabaseService = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+export const supabaseService = typeof window === 'undefined' && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+  : null;
 
 /**
  * Middleware function to require a specific permission for an API route

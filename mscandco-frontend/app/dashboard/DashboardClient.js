@@ -92,12 +92,31 @@ export default function DashboardClient({ user }) {
     try {
       setLoading(true)
 
-      // Get user profile
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      // Get user profile from API (same as header) to get correct artist_name
+      const profileResponse = await fetch('/api/artist/profile', {
+        credentials: 'include'
+      })
+      
+      let profile = null
+      if (profileResponse.ok) {
+        const profileApiData = await profileResponse.json()
+        // Map API response to profile data structure
+        profile = {
+          ...profileApiData,
+          artist_name: profileApiData.artistName, // Map artistName to artist_name
+          first_name: profileApiData.firstName,
+          last_name: profileApiData.lastName,
+          profile_completed: profileApiData.profileCompleted
+        }
+      } else {
+        // Fallback to direct database query if API fails
+        const { data: dbProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        profile = dbProfile
+      }
 
       setProfileData(profile)
       const role = profile?.role || user?.user_metadata?.role
@@ -180,31 +199,47 @@ export default function DashboardClient({ user }) {
       const hasWildcard = permissions.includes('*:*:*')
 
       // For super_admin or users with wildcard - show platform-wide stats
-      if (role === 'super_admin' || hasWildcard) {
+      if (role === 'super_admin' || role === 'company_admin' || hasWildcard) {
         const [releasesRes, earningsRes, usersRes, requestsRes] = await Promise.all([
           supabase.from('releases').select('*', { count: 'exact', head: true }),
-          supabase.from('earnings').select('amount'),
+          supabase.from('earnings_log').select('amount').eq('status', 'paid'),
           supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('change_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+          supabase.from('artist_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
         ])
 
         const totalEarnings = earningsRes.data?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
 
+        // Get total streams from revenue_reports
+        const { data: revenueData } = await supabase
+          .from('revenue_reports')
+          .select('streams')
+        
+        const totalStreams = revenueData?.reduce((sum, r) => sum + (parseInt(r.streams) || 0), 0) || 0
+
         setStats({
           totalReleases: releasesRes.count || 0,
           totalEarnings: totalEarnings,
-          totalStreams: usersRes.count || 0, // Using users as a placeholder for now
+          totalStreams: totalStreams,
           pendingTasks: requestsRes.count || 0
         })
       }
       // For artists - show their own stats
       else if (permissions.includes('releases:access')) {
         const [releasesRes, earningsRes] = await Promise.all([
-          supabase.from('releases').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('earnings').select('amount').eq('user_id', user.id)
+          supabase.from('releases').select('*', { count: 'exact', head: true }).eq('artist_id', user.id),
+          supabase.from('earnings_log').select('amount').eq('artist_id', user.id).eq('status', 'paid')
         ])
 
         const totalEarnings = earningsRes.data?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
+        
+        // Get streams from revenue_reports
+        const { data: revenueData } = await supabase
+          .from('revenue_reports')
+          .select('streams')
+          .eq('artist_id', user.id)
+        
+        const totalStreams = revenueData?.reduce((sum, r) => sum + (parseInt(r.streams) || 0), 0) || 0
+
         const unreadNotifs = await supabase
           .from('notifications')
           .select('*', { count: 'exact', head: true })
@@ -214,7 +249,7 @@ export default function DashboardClient({ user }) {
         setStats({
           totalReleases: releasesRes.count || 0,
           totalEarnings: totalEarnings,
-          totalStreams: 0, // Would need streams table
+          totalStreams: totalStreams,
           pendingTasks: unreadNotifs.count || 0
         })
       }
@@ -228,25 +263,42 @@ export default function DashboardClient({ user }) {
 
         const artistIds = artists?.map(a => a.id) || []
 
-        const [releasesRes, earningsRes] = await Promise.all([
-          supabase.from('releases').select('*', { count: 'exact', head: true }).in('user_id', artistIds),
-          supabase.from('earnings').select('amount').in('user_id', artistIds)
-        ])
+        if (artistIds.length > 0) {
+          const [releasesRes, earningsRes] = await Promise.all([
+            supabase.from('releases').select('*', { count: 'exact', head: true }).in('artist_id', artistIds),
+            supabase.from('earnings_log').select('amount').in('artist_id', artistIds).eq('status', 'paid')
+          ])
 
-        const totalEarnings = earningsRes.data?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
+          const totalEarnings = earningsRes.data?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
 
-        setStats({
-          totalReleases: releasesRes.count || 0,
-          totalEarnings: totalEarnings,
-          totalStreams: artistIds.length, // Number of artists
-          pendingTasks: 0
-        })
+          // Get streams from revenue_reports
+          const { data: revenueData } = await supabase
+            .from('revenue_reports')
+            .select('streams')
+            .in('artist_id', artistIds)
+          
+          const totalStreams = revenueData?.reduce((sum, r) => sum + (parseInt(r.streams) || 0), 0) || 0
+
+          setStats({
+            totalReleases: releasesRes.count || 0,
+            totalEarnings: totalEarnings,
+            totalStreams: totalStreams,
+            pendingTasks: artistIds.length
+          })
+        } else {
+          setStats({
+            totalReleases: 0,
+            totalEarnings: 0,
+            totalStreams: 0,
+            pendingTasks: 0
+          })
+        }
       }
       // For admin roles with specific permissions
       else if (permissions.includes('admin:usermanagement:access')) {
         const [usersRes, requestsRes] = await Promise.all([
           supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('change_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+          supabase.from('artist_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
         ])
 
         setStats({
@@ -282,10 +334,10 @@ export default function DashboardClient({ user }) {
       const tasks = []
       const hasWildcard = permissions.includes('*:*:*')
 
-      // For super_admin - show pending change requests
-      if (role === 'super_admin' || hasWildcard || permissions.includes('admin:requests:access')) {
+      // For super_admin/company_admin - show pending artist requests
+      if (role === 'super_admin' || role === 'company_admin' || hasWildcard || permissions.includes('admin:requests:access')) {
         const { data: pendingRequests } = await supabase
-          .from('change_requests')
+          .from('artist_requests')
           .select('*')
           .eq('status', 'pending')
           .order('created_at', { ascending: false })
@@ -295,11 +347,30 @@ export default function DashboardClient({ user }) {
           tasks.push({
             id: `request-${req.id}`,
             title: `Review ${req.request_type || 'Profile'} Change Request`,
-            description: `User ${req.user_id} requested changes`,
+            description: `Artist profile update request`,
             priority: 'high',
             link: '/admin/requests'
           })
         })
+      }
+
+      // Check for pending revenue reports (for admins)
+      if (role === 'super_admin' || role === 'company_admin' || hasWildcard) {
+        const { data: pendingRevenue } = await supabase
+          .from('revenue_reports')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .limit(3)
+
+        if (pendingRevenue && pendingRevenue.length > 0) {
+          tasks.push({
+            id: 'revenue-pending',
+            title: `${pendingRevenue.length} Pending Revenue Report${pendingRevenue.length !== 1 ? 's' : ''}`,
+            description: 'Revenue reports awaiting approval',
+            priority: 'high',
+            link: '/admin/earningsmanagement'
+          })
+        }
       }
 
       // Check for incomplete profile
@@ -309,7 +380,7 @@ export default function DashboardClient({ user }) {
           title: 'Complete Your Profile',
           description: 'Add your bio, profile picture, and other details',
           priority: 'medium',
-          link: role === 'artist' ? '/artist/settings' : '/admin/settings'
+          link: role === 'artist' ? '/artist/profile' : '/admin/settings'
         })
       }
 
@@ -343,7 +414,7 @@ export default function DashboardClient({ user }) {
       const hasWildcard = permissions.includes('*:*:*')
 
       // For super_admin or admin - show platform metrics
-      if (role === 'super_admin' || hasWildcard || permissions.includes('admin:usermanagement:access')) {
+      if (role === 'super_admin' || role === 'company_admin' || hasWildcard || permissions.includes('admin:usermanagement:access')) {
         // Get total users count
         const { count: totalUsers } = await supabase
           .from('user_profiles')
@@ -359,13 +430,15 @@ export default function DashboardClient({ user }) {
 
         const userGrowth = totalUsers > 0 ? Math.round((newUsers / totalUsers) * 100) : 0
 
-        metrics.push({
-          icon: Users,
-          title: 'User Growth',
-          description: `+${userGrowth}% new users this month`,
-          color: 'green',
-          trend: 'up'
-        })
+        if (newUsers > 0) {
+          metrics.push({
+            icon: Users,
+            title: 'User Growth',
+            description: `+${userGrowth}% (${newUsers} new) this month`,
+            color: 'green',
+            trend: 'up'
+          })
+        }
 
         // Get total releases
         const { count: totalReleases } = await supabase
@@ -380,9 +453,27 @@ export default function DashboardClient({ user }) {
           trend: 'check'
         })
 
+        // Get total earnings
+        const { data: earningsData } = await supabase
+          .from('earnings_log')
+          .select('amount')
+          .eq('status', 'paid')
+
+        const totalPlatformEarnings = earningsData?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
+
+        if (totalPlatformEarnings > 0) {
+          metrics.push({
+            icon: DollarSign,
+            title: 'Platform Earnings',
+            description: `£${totalPlatformEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total paid`,
+            color: 'green',
+            trend: 'up'
+          })
+        }
+
         // Get pending requests
         const { count: pendingRequests } = await supabase
-          .from('change_requests')
+          .from('artist_requests')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'pending')
 
@@ -401,20 +492,23 @@ export default function DashboardClient({ user }) {
         const { count: myReleases } = await supabase
           .from('releases')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
+          .eq('artist_id', user.id)
 
-        metrics.push({
-          icon: Music,
-          title: 'Your Releases',
-          description: `${myReleases || 0} active releases`,
-          color: 'purple',
-          trend: 'check'
-        })
+        if (myReleases > 0) {
+          metrics.push({
+            icon: Music,
+            title: 'Your Releases',
+            description: `${myReleases} active release${myReleases !== 1 ? 's' : ''}`,
+            color: 'purple',
+            trend: 'check'
+          })
+        }
 
         const { data: earnings } = await supabase
-          .from('earnings')
+          .from('earnings_log')
           .select('amount')
-          .eq('user_id', user.id)
+          .eq('artist_id', user.id)
+          .eq('status', 'paid')
 
         const totalEarnings = earnings?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0
 
@@ -422,8 +516,26 @@ export default function DashboardClient({ user }) {
           metrics.push({
             icon: DollarSign,
             title: 'Total Earnings',
-            description: `£${totalEarnings.toLocaleString()} lifetime`,
+            description: `£${totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lifetime`,
             color: 'green',
+            trend: 'up'
+          })
+        }
+
+        // Get total streams
+        const { data: revenueData } = await supabase
+          .from('revenue_reports')
+          .select('streams')
+          .eq('artist_id', user.id)
+        
+        const totalStreams = revenueData?.reduce((sum, r) => sum + (parseInt(r.streams) || 0), 0) || 0
+
+        if (totalStreams > 0) {
+          metrics.push({
+            icon: Play,
+            title: 'Total Streams',
+            description: `${totalStreams.toLocaleString()} streams`,
+            color: 'blue',
             trend: 'up'
           })
         }
@@ -437,11 +549,12 @@ export default function DashboardClient({ user }) {
   }
 
   const getDisplayName = () => {
-    if (profileData?.first_name && profileData?.last_name) {
-      return `${profileData.first_name} ${profileData.last_name}`
-    }
+    // Priority: Artist Name, then First Name + Last Name, then Role, then Email
     if (profileData?.artist_name) {
       return profileData.artist_name
+    }
+    if (profileData?.first_name && profileData?.last_name) {
+      return `${profileData.first_name} ${profileData.last_name}`
     }
     // Format role name properly (e.g., "super_admin" -> "Super Admin")
     if (userRole) {

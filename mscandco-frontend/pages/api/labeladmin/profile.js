@@ -21,7 +21,36 @@ async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
     
-    return res.status(200).json(profile);
+    // Map snake_case to camelCase for client
+    const mappedProfile = {
+      id: profile.id,
+      firstName: profile.first_name,
+      lastName: profile.last_name,
+      email: profile.email,
+      labelName: profile.artist_name, // Label admins use artist_name field for label name
+      dateOfBirth: profile.date_of_birth,
+      nationality: profile.nationality,
+      country: profile.country,
+      city: profile.city,
+      phone: profile.phone,
+      countryCode: profile.country_code,
+      primaryGenre: profile.primary_genre,
+      secondaryGenre: profile.secondary_genre,
+      yearsActive: profile.years_active,
+      companyName: profile.record_label, // Using record_label field for company name
+      bio: profile.bio,
+      website: profile.website,
+      instagram: profile.instagram,
+      facebook: profile.facebook,
+      twitter: profile.twitter,
+      youtube: profile.youtube,
+      tiktok: profile.tiktok,
+      spotify: profile.spotify,
+      apple_music: profile.apple_music,
+      profile_picture_url: profile.profile_picture_url
+    };
+    
+    return res.status(200).json(mappedProfile);
   }
 
   if (req.method === 'PUT') {
@@ -31,24 +60,36 @@ async function handler(req, res) {
     console.log('👤 Label Admin profile API - Updating profile for:', user.email);
     console.log('📋 Updates received:', updates);
     
-    // Remove locked fields that shouldn't be directly updated (keep only personal info locked)
-    delete updates.first_name;
-    delete updates.last_name;
-    delete updates.email;
-    delete updates.date_of_birth;
-    delete updates.nationality;
-    delete updates.country;
-    delete updates.city;
-    delete updates.phone;
+    // Map camelCase to snake_case for database
+    const dbUpdates = {
+      artist_name: updates.labelName,
+      primary_genre: updates.primaryGenre,
+      secondary_genre: updates.secondaryGenre,
+      years_active: updates.yearsActive,
+      record_label: updates.companyName,
+      bio: updates.bio,
+      website: updates.website,
+      instagram: updates.instagram,
+      facebook: updates.facebook,
+      twitter: updates.twitter,
+      youtube: updates.youtube,
+      tiktok: updates.tiktok,
+      spotify: updates.spotify,
+      apple_music: updates.apple_music
+    };
     
-    // Remove audit data - don't save to database
-    delete updates._audit;
+    // Remove undefined values
+    Object.keys(dbUpdates).forEach(key => {
+      if (dbUpdates[key] === undefined) {
+        delete dbUpdates[key];
+      }
+    });
     
-    console.log('📝 Final updates after filtering:', updates);
+    console.log('📝 Final updates after mapping:', dbUpdates);
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', user.id)
       .select()
       .single();

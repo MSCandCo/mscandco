@@ -16,7 +16,7 @@ import {
   Award
 } from 'lucide-react';
 
-export default function AdminAnalyticsInterface({ artistId, artistName }) {
+export default function AdminAnalyticsInterface({ artistId, artistName, selectedArtistData, onDataUpdated }) {
   const supabase = createClient();
   const [isAdmin, setIsAdmin] = useState(true);
   
@@ -247,54 +247,59 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
   };
 
   // File upload handlers with validation
-  const handleArtworkUpload = (file) => {
+  const handleArtworkUpload = async (file) => {
     if (!file) return;
 
-    // File size limit: 2MB
-    if (file.size > 2 * 1024 * 1024) {
-      // Show error using brand error style
-      const errorDiv = document.createElement('div');
-      errorDiv.innerHTML = `
-        <div style="position: fixed; top: 20px; right: 20px; background: #fef2f2; border-left: 4px solid #991b1b; padding: 16px 24px; color: #991b1b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
-          Artwork file too large. Please use an image under 2MB.
-        </div>
-      `;
-      document.body.appendChild(errorDiv);
-      setTimeout(() => document.body.removeChild(errorDiv), 5000);
+    // File size limit: 10MB (matching the API limit)
+    if (file.size > 10 * 1024 * 1024) {
+      showBrandError('File Too Large', 'Artwork file too large. Please use an image under 10MB.');
       return;
     }
 
     // File type validation
     if (!file.type.startsWith('image/')) {
-      // Show error using brand error style
-      const errorDiv = document.createElement('div');
-      errorDiv.innerHTML = `
-        <div style="position: fixed; top: 20px; right: 20px; background: #fef2f2; border-left: 4px solid #991b1b; padding: 16px 24px; color: #991b1b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
-          File not compatible. Please use JPG, PNG, or WebP images.
-        </div>
-      `;
-      document.body.appendChild(errorDiv);
-      setTimeout(() => document.body.removeChild(errorDiv), 5000);
+      showBrandError('Invalid File Type', 'File not compatible. Please use JPG, PNG, or WebP images.');
       return;
     }
 
-    console.log('Processing artwork:', file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
+    console.log('Uploading artwork to S3:', file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
+    try {
+      // Show temporary preview while uploading
+      const reader = new FileReader();
+      reader.onload = (e) => {
         setLatestRelease(prev => ({ ...prev, artworkUrl: e.target.result }));
-        console.log('✅ Artwork uploaded successfully');
-      } catch (error) {
-        console.error('❌ Artwork processing error:', error);
-        alert('❌ File not compatible. Please use a smaller JPG or PNG image.');
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to S3 via API
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload/artwork', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
       }
-    };
-    reader.onerror = (e) => {
-      console.error('❌ Error reading artwork file:', e);
-      alert('❌ File not compatible. Please try a different image file.');
-    };
-    reader.readAsDataURL(file);
+
+      const data = await response.json();
+      console.log('✅ Artwork uploaded to S3:', data.url);
+
+      // Update with permanent S3 URL
+      setLatestRelease(prev => ({ ...prev, artworkUrl: data.url }));
+      
+      showBrandError('Upload Successful', 'Artwork uploaded successfully!', 'success');
+    } catch (error) {
+      console.error('❌ Artwork upload error:', error);
+      showBrandError('Upload Failed', error.message || 'Failed to upload artwork. Please try again.');
+      // Revert to empty on error
+      setLatestRelease(prev => ({ ...prev, artworkUrl: '' }));
+    }
   };
 
   const handleAudioUpload = (file) => {
@@ -393,6 +398,7 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
       // Use simple save method to bypass table permission issues
       const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
+        credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json'
         },
@@ -408,6 +414,8 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
 
       const result = await response.json();
       console.log('💾 Save result:', result);
+      console.log('💾 Response status:', response.status);
+      console.log('💾 Response ok:', response.ok);
 
       if (result.success) {
         console.log('✅ Basic analytics saved successfully');
@@ -427,18 +435,30 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
         if (onDataUpdated) onDataUpdated();
       } else {
         console.error('❌ Failed to save analytics:', result);
-        // Show error message in platform brand colors
+        console.error('❌ Error details:', {
+          error: result.error,
+          message: result.message,
+          required_permissions: result.required_permissions,
+          user_role: result.user_role
+        });
+        
+        // Show detailed error message
+        const errorMessage = result.message || result.error || 'Unknown error';
         const errorDiv = document.createElement('div');
         errorDiv.innerHTML = `
-          <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center max-w-md">
+            <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
-            Failed to Save: ${result.error || 'Unknown error'}
+            <div>
+              <div class="font-bold">Failed to Save</div>
+              <div class="text-sm">${errorMessage}</div>
+              ${result.user_role ? `<div class="text-xs mt-1">Your role: ${result.user_role}</div>` : ''}
+            </div>
           </div>
         `;
         document.body.appendChild(errorDiv);
-        setTimeout(() => document.body.removeChild(errorDiv), 5000);
+        setTimeout(() => document.body.removeChild(errorDiv), 8000);
       }
     } catch (error) {
       console.error('Error saving basic analytics:', error);
@@ -468,20 +488,65 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
     setSaving(true);
     try {
       console.log('🚀 Starting advanced analytics save for artist:', artistId);
+      
+      // Convert File objects to data URLs for topTracks and allReleases
+      const processedTopTracks = await Promise.all(topTracks.map(async (track) => {
+        const processed = { ...track };
+        
+        // Convert artwork File to data URL
+        if (track.artwork && track.artwork instanceof File) {
+          processed.artwork = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(track.artwork);
+          });
+        }
+        
+        // Convert audioFile to data URL if needed
+        if (track.audioFile && track.audioFile instanceof File) {
+          processed.audioFile = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(track.audioFile);
+          });
+        }
+        
+        return processed;
+      }));
+
+      const processedAllReleases = await Promise.all(allReleases.map(async (release) => {
+        const processed = { ...release };
+        
+        // Convert artwork File to data URL
+        if (release.artwork && release.artwork instanceof File) {
+          processed.artwork = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(release.artwork);
+          });
+        }
+        
+        return processed;
+      }));
+      
       console.log('📊 Advanced data:', {
         artistRanking: artistRanking.length,
         careerSnapshot: careerSnapshot.length,
         audienceSummary: audienceSummary.length,
         topMarkets: topMarkets.length,
         topStatistics: topStatistics.length,
-        topTracks: topTracks.length,
-        allReleases: allReleases.length,
+        topTracks: processedTopTracks.length,
+        allReleases: processedAllReleases.length,
         platformPerformance: platformPerformance.length
       });
 
       // Use the same simple save method that works for Basic Analytics
       const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
+        credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json'
         },
@@ -495,8 +560,8 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
             audienceSummary,
             topMarkets,
             topStatistics,
-            topTracks,
-            allReleases,
+            topTracks: processedTopTracks,
+            allReleases: processedAllReleases,
             platformPerformance
           },
           sectionVisibility: sectionVisibility,
@@ -576,6 +641,7 @@ export default function AdminAnalyticsInterface({ artistId, artistName }) {
         }
 
         const response = await fetch(`/api/admin/analytics/load-data?artistId=${artistId}`, {
+          credentials: 'include', // Include cookies for authentication
           headers: { 'Authorization': `Bearer ${token}` }
         });
 

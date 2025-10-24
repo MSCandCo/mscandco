@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
-import { formatCurrency } from '@/components/shared/CurrencySelector';
+import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import AdminHeader from './AdminHeader';
+import { isPlatformAdmin } from '@/lib/role-config';
+import { usePermissions } from '@/hooks/usePermissions';
 
 function Header({ largeLogo = false }) {
   const { user, session, isLoading, supabase } = useUser();
@@ -17,6 +19,12 @@ function Header({ largeLogo = false }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  
+  // Permissions
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  
+  // Currency sync - loads from database and syncs across components
+  const [selectedCurrency] = useCurrencySync('GBP');
   
   // Wallet balance - only for artists and label admins
   const skipWallet = !profileData?.role || (profileData?.role !== 'artist' && profileData?.role !== 'label_admin');
@@ -50,6 +58,7 @@ function Header({ largeLogo = false }) {
             console.log('📋 Header: Mapped profile:', mappedProfile);
             console.log('📋 Header: artist_name:', mappedProfile.artist_name);
             setProfileData(mappedProfile);
+            console.log('✅ Header: profileData state updated with:', mappedProfile);
           } else {
             console.error('Failed to fetch profile from API:', response.status);
             // Fallback: Use user metadata
@@ -197,6 +206,15 @@ function Header({ largeLogo = false }) {
     return '/settings';
   };
 
+  const getMessagesLink = () => {
+    const role = profileData?.role;
+    if (role === 'artist') return '/artist/messages';
+    if (role === 'label_admin') return '/labeladmin/messages';
+    // All admins (super_admin, company_admin, etc.) go to /admin/messages
+    if (role && (role.includes('admin') || role === 'super_admin')) return '/admin/messages';
+    return '/messages';
+  };
+
   const getRoleBadgeText = () => {
     const role = profileData?.role;
     if (!role) return 'User';
@@ -219,15 +237,48 @@ function Header({ largeLogo = false }) {
     return 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
-  // Define admin roles that should use AdminHeader (all except artist and label_admin)
-  const adminRoles = ['super_admin', 'company_admin', 'analytics_admin', 'distribution_partner', 'requests_admin', 'labeladmin'];
+  // Use single source of truth for role-based header routing
+  // Debug logging
+  console.log('🔍 Header Routing Debug:', {
+    hasUser: !!user,
+    hasProfileData: !!profileData,
+    role: profileData?.role,
+    isPlatformAdminResult: profileData?.role ? isPlatformAdmin(profileData.role) : 'N/A'
+  });
+
+  // Wait for profile data to load before deciding which header to show
+  if (user && !profileData) {
+    console.log('⏳ Header: Showing loading state - waiting for profileData');
+    // Show loading header while profile data is being fetched
+    return (
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            <div className="flex-shrink-0">
+              <Link href="/" className="flex items-center">
+                <img
+                  className={`${largeLogo ? 'h-32 w-32' : 'h-16 w-16 md:h-20 md:w-20'} object-contain`}
+                  src="/logos/MSCandCoLogoV2.svg"
+                  alt="MSC & Co Logo"
+                />
+              </Link>
+            </div>
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              <span className="text-sm">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
   
-  // If user is an admin, use AdminHeader
-  if (user && adminRoles.includes(profileData?.role)) {
+  // If user is a platform admin, use AdminHeader
+  if (user && isPlatformAdmin(profileData?.role)) {
     return <AdminHeader largeLogo={largeLogo} />;
   }
 
-  // Otherwise, use standard header for artists, label_admin, and logged-out users
+  // Otherwise, use standard header for content creators (artists, label_admin) and logged-out users
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -254,22 +305,22 @@ function Header({ largeLogo = false }) {
                 <div className="flex-1"></div>
 
                 {/* Center - Navigation Links - Role Based */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center flex-nowrap space-x-2">
                   {profileData?.role === 'artist' && (
                     <>
-                      <Link href="/artist/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/artist/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <BarChart3 className="w-4 h-4" />
                         Analytics
                       </Link>
-                      <Link href="/artist/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <DollarSign className="w-4 h-4" />
                         Earnings
                       </Link>
-                      <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         Roster
                       </Link>
@@ -278,23 +329,23 @@ function Header({ largeLogo = false }) {
 
                   {profileData?.role === 'label_admin' && (
                     <>
-                      <Link href="/labeladmin/artists" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/artists" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         My Artists
                       </Link>
-                      <Link href="/labeladmin/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/labeladmin/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <BarChart3 className="w-4 h-4" />
                         Analytics
                       </Link>
-                      <Link href="/labeladmin/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <DollarSign className="w-4 h-4" />
                         Earnings
                       </Link>
-                      <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium">
+                      <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         Roster
                       </Link>
@@ -306,7 +357,7 @@ function Header({ largeLogo = false }) {
                 <div className="flex-1 min-w-8"></div>
 
                 {/* Right Actions - Fixed position */}
-                <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-3">
                   {/* Wallet Balance - Only for artists and label admins - Simple style */}
                   {(profileData?.role === 'artist' || profileData?.role === 'label_admin') && (
                     <button
@@ -316,7 +367,7 @@ function Header({ largeLogo = false }) {
                     >
                       <Wallet className="w-4 h-4" />
                       <span className="text-sm font-medium">
-                        {walletLoading ? '...' : formatCurrency(walletBalance, 'GBP')}
+                        {walletLoading ? '...' : formatCurrency(walletBalance, selectedCurrency)}
                       </span>
                     </button>
                   )}
@@ -350,19 +401,19 @@ function Header({ largeLogo = false }) {
                     onMouseEnter={() => setIsDropdownOpen(true)}
                     onMouseLeave={() => setIsDropdownOpen(false)}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
                       {/* Role Badge */}
-                      <div className={`flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getRoleBadgeColor()}`}>
+                      <div className={`flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border whitespace-nowrap ${getRoleBadgeColor()}`}>
                         {getRoleBadgeText()}
                       </div>
 
                       <button
-                        className="flex items-center space-x-3 text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 text-white px-4 py-2 hover:bg-gray-700 transition-colors"
+                        className="flex items-center space-x-2 text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 text-white px-3 py-1.5 hover:bg-gray-700 transition-colors whitespace-nowrap"
                         type="button"
                       >
                         <span className="sr-only">Open user menu</span>
                         Hi, {getButtonDisplayName()}
-                        <ChevronDown className="w-4 h-4 ml-1" />
+                        <ChevronDown className="w-3.5 h-3.5 ml-1" />
                       </button>
                     </div>
 
@@ -393,18 +444,23 @@ function Header({ largeLogo = false }) {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <User className="w-4 h-4 mr-3 text-gray-400" />
-                        Profile
+                        {profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}
                       </Link>
 
-                      {/* Messages */}
-                      <Link
-                        href="/messages"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <User className="w-4 h-4 mr-3 text-gray-400" />
-                        Messages
-                      </Link>
+                      {/* Messages - Permission-gated */}
+                      {!permissionsLoading && (
+                        (profileData?.role === 'label_admin' && hasPermission('labeladmin:messages:access')) ||
+                        (profileData?.role !== 'label_admin' && hasPermission('messages:access'))
+                      ) && (
+                        <Link
+                          href={getMessagesLink()}
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <User className="w-4 h-4 mr-3 text-gray-400" />
+                          Messages
+                        </Link>
+                      )}
 
                       {/* Settings */}
                       <Link
@@ -517,7 +573,7 @@ function Header({ largeLogo = false }) {
                     >
                       <Wallet className="w-5 h-5" />
                       <span className="font-medium">
-                        {walletLoading ? '...' : formatCurrency(walletBalance, 'GBP')}
+                        {walletLoading ? '...' : formatCurrency(walletBalance, selectedCurrency)}
                       </span>
                     </button>
                   )}
@@ -601,7 +657,7 @@ function Header({ largeLogo = false }) {
                     </Link>
                     <Link href={getProfileLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                       <User className="w-5 h-5" />
-                      <span>Profile</span>
+                      <span>{profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}</span>
                     </Link>
                     <Link href={getSettingsLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                       <Settings className="w-5 h-5" />

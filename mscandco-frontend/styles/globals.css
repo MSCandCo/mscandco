@@ -228,7 +228,7 @@ div:has(.text-center:contains("3")) input:first-child {
 
 /* SIMPLE UNIVERSAL FIX: Force ALL inputs to reasonable max-width */
 input[type="text"] {
-  @apply max-w-[200px];
+  @apply max-w-[400px];
 }
 
 /* More specific for track listing contexts */

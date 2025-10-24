@@ -298,18 +298,47 @@ export function CurrencyRange({
 }
 
 // 🔗 Hook for currency synchronization across components
+// Syncs with localStorage AND database for persistence
 export function useCurrencySync(initialCurrency = 'GBP') {
   const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
   const [, forceUpdate] = useState({});
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load from localStorage on mount
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('selectedCurrency');
-      if (saved && CURRENCIES.some(c => c.code === saved)) {
-        setSelectedCurrency(saved);
+    // Load currency preference from database first, then localStorage as fallback
+    const loadCurrencyPreference = async () => {
+      try {
+        const response = await fetch('/api/user/currency-preference', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.currency && CURRENCIES.some(c => c.code === data.currency)) {
+            setSelectedCurrency(data.currency);
+            // Also update localStorage to keep it in sync
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('selectedCurrency', data.currency);
+            }
+            setIsLoaded(true);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading currency preference from database:', error);
       }
-    }
+
+      // Fallback to localStorage if database fetch fails
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('selectedCurrency');
+        if (saved && CURRENCIES.some(c => c.code === saved)) {
+          setSelectedCurrency(saved);
+        }
+      }
+      setIsLoaded(true);
+    };
+
+    loadCurrencyPreference();
 
     // Fetch initial exchange rates
     fetchLiveRates();
@@ -335,15 +364,32 @@ export function useCurrencySync(initialCurrency = 'GBP') {
     }
   }, []);
 
-  const updateCurrency = (newCurrency) => {
+  const updateCurrency = async (newCurrency) => {
     setSelectedCurrency(newCurrency);
+    
+    // Update localStorage immediately for instant feedback
     if (typeof window !== 'undefined') {
       localStorage.setItem('selectedCurrency', newCurrency);
       window.dispatchEvent(new CustomEvent('currencyChange', { 
         detail: { currency: newCurrency } 
       }));
     }
+
+    // Save to database in the background
+    try {
+      await fetch('/api/user/currency-preference', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currency: newCurrency })
+      });
+    } catch (error) {
+      console.error('Error saving currency preference to database:', error);
+      // Don't show error to user - localStorage is still updated
+    }
   };
 
-  return [selectedCurrency, updateCurrency];
+  return [selectedCurrency, updateCurrency, isLoaded];
 }

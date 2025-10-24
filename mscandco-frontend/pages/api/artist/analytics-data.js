@@ -73,10 +73,28 @@ export default async function handler(req, res) {
       relativeDate: milestone.date ? calculateRelativeDate(milestone.date) : 'Recently'
     }));
 
+    // Ensure sectionVisibility has proper defaults
+    const sectionVisibility = analyticsData.sectionVisibility || {};
+    
+    // If no visibility settings exist, default to showing sections that have data
+    const finalVisibility = {
+      latestRelease: sectionVisibility.latestRelease !== undefined ? sectionVisibility.latestRelease : !!analyticsData.latestRelease,
+      milestones: sectionVisibility.milestones !== undefined ? sectionVisibility.milestones : (milestonesWithRelativeDates.length > 0),
+      careerSnapshot: sectionVisibility.careerSnapshot !== undefined ? sectionVisibility.careerSnapshot : !!analyticsData.advancedData?.careerSnapshot,
+      audienceSummary: sectionVisibility.audienceSummary !== undefined ? sectionVisibility.audienceSummary : !!analyticsData.advancedData?.audienceSummary,
+      topMarkets: sectionVisibility.topMarkets !== undefined ? sectionVisibility.topMarkets : !!analyticsData.advancedData?.topMarkets,
+      topStatistics: sectionVisibility.topStatistics !== undefined ? sectionVisibility.topStatistics : !!analyticsData.advancedData?.topStatistics,
+      platformPerformance: sectionVisibility.platformPerformance !== undefined ? sectionVisibility.platformPerformance : !!analyticsData.advancedData?.platformPerformance,
+      artistRanking: sectionVisibility.artistRanking !== undefined ? sectionVisibility.artistRanking : !!analyticsData.advancedData?.artistRanking,
+      topTracks: sectionVisibility.topTracks !== undefined ? sectionVisibility.topTracks : !!(analyticsData.advancedData?.topTracks && analyticsData.advancedData.topTracks.length > 0),
+      allReleases: sectionVisibility.allReleases !== undefined ? sectionVisibility.allReleases : !!(analyticsData.advancedData?.allReleases && analyticsData.advancedData.allReleases.length > 0)
+    };
+
     console.log('Analytics data loaded:', {
       hasLatestRelease: !!analyticsData.latestRelease,
       milestonesCount: milestonesWithRelativeDates.length,
-      lastUpdated: analyticsData.lastUpdated
+      lastUpdated: analyticsData.lastUpdated,
+      visibility: finalVisibility
     });
 
     // Return data in format expected by CleanAnalyticsDisplay
@@ -85,7 +103,7 @@ export default async function handler(req, res) {
       data: {
         latestRelease: analyticsData.latestRelease,
         milestones: milestonesWithRelativeDates,
-        sectionVisibility: analyticsData.sectionVisibility || {},
+        sectionVisibility: finalVisibility,
         advancedData: analyticsData.advancedData || {},
         lastUpdated: analyticsData.lastUpdated || new Date().toISOString(),
         source: 'manual_admin_system'

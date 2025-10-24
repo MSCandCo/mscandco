@@ -295,6 +295,11 @@ export default function AnalyticsManagementClient({ user }) {
                 <AdminAnalyticsInterface 
                   artistId={selectedArtist.id}
                   artistName={selectedArtist.artist_name || `${selectedArtist.first_name} ${selectedArtist.last_name}`}
+                  selectedArtistData={selectedArtist}
+                  onDataUpdated={() => {
+                    console.log('✅ Analytics data updated successfully');
+                    // Optionally reload artist data here if needed
+                  }}
                 />
               </div>
             ) : (

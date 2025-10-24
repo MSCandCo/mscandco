@@ -1,20 +1,32 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { userHasPermission } from '@/lib/permissions'
+import SettingsClient from './SettingsClient'
 
 export default async function ArtistSettingsPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/login')
   
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">⚙️ Artist Settings</h1>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-blue-900">
-          <strong>✅ Page Structure Ready!</strong><br/>
-          Restore settings from original implementation.
-        </p>
-      </div>
-    </div>
-  )
+  if (!session) {
+    redirect('/login')
+  }
+
+  // Check if user has permission to access settings
+  const hasAccess = await userHasPermission(session.user.id, 'artist:settings:access', true)
+  
+  console.log('🔐 Artist Settings Page - Permission Check:', {
+    userId: session.user.id,
+    email: session.user.email,
+    hasAccess,
+    requiredPermission: 'artist:settings:access'
+  })
+
+  if (!hasAccess) {
+    console.log('❌ Access denied - redirecting to dashboard')
+    redirect('/dashboard')
+  }
+
+  console.log('✅ Access granted - rendering SettingsClient')
+  
+  return <SettingsClient />
 }

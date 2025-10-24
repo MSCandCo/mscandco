@@ -1,20 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { userHasPermission } from '@/lib/permissions'
+import MessagesClient from './MessagesClient'
 
 export default async function ArtistMessagesPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/login')
   
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">💬 Artist Messages</h1>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-blue-900">
-          <strong>✅ Page Structure Ready!</strong><br/>
-          Restore messaging from original implementation.
-        </p>
-      </div>
-    </div>
-  )
+  if (!session) {
+    redirect('/login')
+  }
+
+  // Check permissions (useServiceRole = true for server-side)
+  const hasAccess = await userHasPermission(session.user.id, 'artist:messages:access', true)
+  
+  console.log('🔐 Artist Messages Page - Permission Check:', {
+    userId: session.user.id,
+    email: session.user.email,
+    hasAccess,
+    requiredPermission: 'artist:messages:access'
+  })
+  
+  if (!hasAccess) {
+    console.log('❌ Access denied - redirecting to dashboard')
+    redirect('/dashboard')
+  }
+  
+  console.log('✅ Access granted - rendering MessagesClient')
+  return <MessagesClient />
 }

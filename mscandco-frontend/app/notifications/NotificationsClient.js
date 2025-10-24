@@ -22,7 +22,9 @@ const NOTIFICATION_TYPES = {
   earnings: { icon: DollarSign, color: 'green', label: 'Earnings' },
   message: { icon: MessageSquare, color: 'blue', label: 'Message' },
   invitation: { icon: Users, color: 'orange', label: 'Invitation' },
+  invitation_response: { icon: Users, color: 'teal', label: 'Invitation Response' },
   payment: { icon: DollarSign, color: 'emerald', label: 'Payment' },
+  system: { icon: Bell, color: 'indigo', label: 'System' },
   default: { icon: Bell, color: 'gray', label: 'Notification' }
 }
 
@@ -227,51 +229,48 @@ export default function NotificationsClient({ initialNotifications, user }) {
             )}
           </div>
 
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search notifications..."
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
+          {/* Filter Buttons */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            {filterOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedFilter(option.value)}
+                className={`flex items-center px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                  selectedFilter === option.value
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {option.label}
+                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                  selectedFilter === option.value
+                    ? 'bg-orange-500'
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {option.count}
+                </span>
+              </button>
+            ))}
+          </div>
 
-            {/* Filter Buttons */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-              {filterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedFilter(option.value)}
-                  className={`flex items-center px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                    selectedFilter === option.value
-                      ? 'bg-orange-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {option.label}
-                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    selectedFilter === option.value
-                      ? 'bg-orange-500'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {option.count}
-                  </span>
-                </button>
-              ))}
-            </div>
+          {/* Search */}
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search notifications..."
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           {/* Actions */}
