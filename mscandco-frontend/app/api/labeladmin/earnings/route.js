@@ -73,6 +73,23 @@ export async function GET(request) {
       )
     }
 
+    // If no earnings found, return empty state (not an error)
+    if (!sharedEarnings || sharedEarnings.length === 0) {
+      console.log('ℹ️ No earnings found for label admin affiliations')
+      return NextResponse.json({
+        success: true,
+        summary: {
+          totalLabelEarnings: 0,
+          totalArtistEarnings: 0,
+          totalEarnings: 0,
+          artistCount: affiliations.length,
+          entryCount: 0
+        },
+        earningsByArtist: {},
+        recentEarnings: []
+      })
+    }
+
     // Calculate totals
     const totalLabelEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.label_amount || 0), 0)
     const totalArtistEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.artist_amount || 0), 0)
