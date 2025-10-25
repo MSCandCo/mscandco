@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
   TrendingUp,
   Music,

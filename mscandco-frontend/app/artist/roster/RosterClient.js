@@ -23,6 +23,7 @@ import NotificationModal from '@/components/shared/NotificationModal';
 import useModals from '@/hooks/useModals';
 import Avatar from '@/components/shared/Avatar';
 import MSCVideo from '@/components/shared/MSCVideo';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 
 export default function RosterClient({ user }) {

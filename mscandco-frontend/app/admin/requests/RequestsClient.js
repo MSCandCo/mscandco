@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
   Users,
   Clock,

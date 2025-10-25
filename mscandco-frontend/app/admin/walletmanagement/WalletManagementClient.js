@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
   Wallet,
   TrendingUp,

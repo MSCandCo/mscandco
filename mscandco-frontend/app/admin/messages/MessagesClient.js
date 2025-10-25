@@ -6,6 +6,7 @@ import {
   User, Shield, Building2, Music, MessageSquare, Trash2,
   MarkRead, Send, Plus, X
 } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 export default function MessagesClient({ user }) {
   const [loading, setLoading] = useState(true)
