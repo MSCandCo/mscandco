@@ -36,6 +36,9 @@ export default function NotificationsClient({ initialNotifications, user }) {
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [clearAllModalOpen, setClearAllModalOpen] = useState(false)
+  const [notificationToDelete, setNotificationToDelete] = useState(null)
 
   // Calculate unread count
   useEffect(() => {
@@ -136,25 +139,38 @@ export default function NotificationsClient({ initialNotifications, user }) {
   }
 
   const deleteNotification = async (notificationId) => {
-    if (!confirm('Are you sure you want to delete this notification?')) return
+    setDeleteModalOpen(true)
+    setNotificationToDelete(notificationId)
+  }
+
+  const confirmDelete = async () => {
+    if (!notificationToDelete) return
 
     try {
       const { error } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', notificationId)
+        .eq('id', notificationToDelete)
         .eq('user_id', user.id)
 
       if (error) throw error
 
-      setNotifications(prev => prev.filter(n => n.id !== notificationId))
+      setNotifications(prev => prev.filter(n => n.id !== notificationToDelete))
+      setDeleteModalOpen(false)
+      setNotificationToDelete(null)
     } catch (error) {
       console.error('Error deleting notification:', error)
+      setDeleteModalOpen(false)
+      setNotificationToDelete(null)
     }
   }
 
   const clearAllRead = async () => {
-    if (!confirm('Delete all read notifications? This cannot be undone.')) return
+    setClearAllModalOpen(true)
+  }
+
+  const confirmClearAll = async () => {
+    setClearAllModalOpen(false)
 
     try {
       setLoading(true)
@@ -380,6 +396,65 @@ export default function NotificationsClient({ initialNotifications, user }) {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Delete Notification
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this notification?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false)
+                  setNotificationToDelete(null)
+                }}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Confirmation Modal */}
+      {clearAllModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Clear All Read Notifications
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Delete all read notifications? This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setClearAllModalOpen(false)}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClearAll}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

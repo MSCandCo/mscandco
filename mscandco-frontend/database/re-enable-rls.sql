@@ -1,20 +1,9 @@
--- Re-enable RLS now that table permissions are fixed
+-- RE-ENABLE RLS AFTER DEBUGGING
+
+ALTER TABLE label_artist_affiliations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE affiliation_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shared_earnings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE releases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
--- Verify RLS is enabled
-SELECT 
-  schemaname,
-  tablename,
-  rowsecurity as rls_enabled
-FROM pg_tables 
-WHERE tablename = 'user_profiles';
-
--- Verify policies still exist
-SELECT 
-  policyname, 
-  cmd as operation,
-  roles::text
-FROM pg_policies 
-WHERE tablename = 'user_profiles'
-ORDER BY policyname;
-
+SELECT 'RLS re-enabled for all tables' as status;

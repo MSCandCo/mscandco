@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -35,6 +37,22 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js'], // Optimize large package imports
   },
-};
 
-module.exports = nextConfig;
+}
+
+// Sentry options
+const sentryWebpackPluginOptions = {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  
+  // These options are passed to Sentry via the wrapper
+  hideSourceMaps: true,
+  widenClientFileUpload: true,
+}
+
+// Wrap config with Sentry (only if environment variables are set)
+module.exports = (process.env.SENTRY_ORG && process.env.SENTRY_AUTH_TOKEN)
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig

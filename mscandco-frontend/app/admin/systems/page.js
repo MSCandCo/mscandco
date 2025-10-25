@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
-import SystemsClient from './SystemsClient'
+import SystemsDashboardClient from './SystemsDashboardClient'
 
 export const metadata = {
-  title: 'Systems Management | Admin',
-  description: 'Monitor and manage platform systems, security, and performance'
+  title: 'Systems Dashboard | Admin',
+  description: 'Enterprise infrastructure monitoring and management'
 }
 
 export default async function SystemsPage() {
@@ -24,6 +24,6 @@ export default async function SystemsPage() {
     redirect('/dashboard')
   }
 
-  return <SystemsClient />
+  return <SystemsDashboardClient />
 }
 

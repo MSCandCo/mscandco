@@ -1,8 +1,20 @@
 {
   "crons": [
     {
-      "path": "/api/cron/process-renewals",
+      "path": "/api/cron/daily-analytics",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/subscription-renewals",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-old-data",
+      "schedule": "0 2 * * 0"
+    },
+    {
+      "path": "/api/cron/generate-reports",
+      "schedule": "0 1 * * 1"
     }
   ]
 }

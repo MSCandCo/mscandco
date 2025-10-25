@@ -47,6 +47,17 @@ export default function SubscriptionGate({
         userEmail === 'superadmin@mscandco.com'
       );
 
+      const isLabelAdmin = (
+        userRoleFromMetadata === 'label_admin' ||
+        userRole === 'label_admin'
+      );
+
+      // TEMPORARY: Bypass subscription for all artists during development
+      const isArtist = (
+        userRoleFromMetadata === 'artist' ||
+        userRole === 'artist'
+      );
+
       if (isDistributionPartner) {
         console.log('🎯 Distribution Partner detected - bypassing subscription check', {
           userEmail,
@@ -93,6 +104,40 @@ export default function SubscriptionGate({
           status: 'super_admin',
           isPro: true,
           bypassReason: 'Super Admin Access'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isLabelAdmin) {
+        console.log('🎯 Label Admin detected - bypassing subscription check', {
+          userEmail,
+          userRoleFromMetadata,
+          userRole
+        });
+        setSubscriptionStatus({ 
+          hasSubscription: true, 
+          planName: 'Label Admin',
+          status: 'label_admin',
+          isPro: true,
+          bypassReason: 'Label Admin Access'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isArtist) {
+        console.log('🎯 Artist detected - bypassing subscription check (TEMPORARY)', {
+          userEmail,
+          userRoleFromMetadata,
+          userRole
+        });
+        setSubscriptionStatus({ 
+          hasSubscription: true, 
+          planName: 'Artist (Development)',
+          status: 'artist',
+          isPro: true,
+          bypassReason: 'Development Mode - All Artists Bypass'
         });
         setLoading(false);
         return;

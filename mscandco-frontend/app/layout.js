@@ -8,6 +8,8 @@
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
+import PostHogProvider from '@/components/providers/PostHogProvider'
+import RealtimeProvider from '@/components/providers/RealtimeProvider'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 
@@ -15,7 +17,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'MSC & Co - Music Distribution Platform',
-  description: 'Multi-brand music distribution and publishing platform',
+  description: 'Enterprise-grade music distribution and publishing platform with AI-powered features',
 }
 
 export default function RootLayout({ children }) {
@@ -23,11 +25,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <SupabaseProvider>
-          <Header />
-          <main>
-            {children}
-          </main>
-          <Footer />
+          <PostHogProvider>
+            <RealtimeProvider>
+              <Header />
+              <main>
+                {children}
+              </main>
+              <Footer />
+            </RealtimeProvider>
+          </PostHogProvider>
         </SupabaseProvider>
       </body>
     </html>
