@@ -217,7 +217,7 @@ export default function MessagesClient({ user }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <PageLoading message="Loading..." />
           <p className="mt-4 text-gray-600">Loading messages...</p>
         </div>
       </div>
@@ -383,7 +383,7 @@ export default function MessagesClient({ user }) {
                 >
                   {sending ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <PageLoading message="Loading..." />
                       Sending...
                     </>
                   ) : (

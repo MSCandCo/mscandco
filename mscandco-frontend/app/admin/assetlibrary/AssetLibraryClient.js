@@ -20,6 +20,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function AssetLibraryClient({ user }) {
   const supabase = createClient()

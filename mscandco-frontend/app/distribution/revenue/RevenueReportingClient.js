@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
+import { PageLoading } from '@/components/ui/LoadingSpinner';
   TrendingUp,
   DollarSign,
   BarChart3,

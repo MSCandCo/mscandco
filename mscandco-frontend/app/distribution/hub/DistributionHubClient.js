@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FaSearch } from 'react-icons/fa'
 import { Eye, CheckCircle, XCircle, Send, Edit, X, Inbox, RefreshCw } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 const RELEASE_STATUSES = {
   draft: 'Draft',

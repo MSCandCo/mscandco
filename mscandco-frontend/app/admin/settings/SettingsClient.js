@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Lock, Bell, Info, Save, Eye, EyeOff } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function SettingsClient({ user }) {
   const supabase = createClient()
@@ -281,7 +282,7 @@ export default function SettingsClient({ user }) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <PageLoading message="Loading..." />
           <p className="text-gray-700 font-medium">Loading settings...</p>
         </div>
       </div>

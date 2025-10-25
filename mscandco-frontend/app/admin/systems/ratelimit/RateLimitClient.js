@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Clock, Shield, TrendingUp, Plus, Edit, Trash2, Save } from 'lucide-react';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function RateLimitClient() {
   const { hasPermission } = usePermissions();

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Users, Search, Filter, Download, ChevronUp, ChevronDown } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client'
 
 export default function MasterRosterClient({ user }) {
@@ -215,12 +216,7 @@ export default function MasterRosterClient({ user }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Loading master roster...</p>
-        </div>
-      </div>
+      <PageLoading message="Loading roster..." />
     )
   }
 

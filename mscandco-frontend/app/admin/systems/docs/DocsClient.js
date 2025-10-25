@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Book, FileText, Code, Search, ExternalLink, ChevronRight, Folder, File } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function DocsClient() {
   const [docs, setDocs] = useState([])

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
+import { PageLoading } from '@/components/ui/LoadingSpinner';
   Search,
   UserCircle,
   LogIn,

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function LogoutPage() {
   const router = useRouter()

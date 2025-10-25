@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Music, Award, FileText } from 'lucide-react';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 
 export default function ProfileClient() {
@@ -287,7 +288,7 @@ export default function ProfileClient() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <PageLoading message="Loading..." />
       </div>
     );
   }

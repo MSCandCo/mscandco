@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@/components/providers/SupabaseProvider'
 import { Mail, Bell, CheckCircle, XCircle, TrendingUp, DollarSign } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function MessagesClient() {
   const { user, session } = useUser()
@@ -243,7 +244,7 @@ export default function MessagesClient() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <PageLoading message="Loading..." />
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">

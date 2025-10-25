@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { AlertTriangle, TrendingDown, TrendingUp, Filter, Download, RefreshCw, Eye, Trash2, CheckCircle } from 'lucide-react';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function ErrorTrackingClient() {
   const { hasPermission } = usePermissions();
