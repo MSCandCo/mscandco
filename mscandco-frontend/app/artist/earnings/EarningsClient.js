@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
 import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
 import { useCurrencySync } from '@/components/shared/CurrencySelector';
-import {
 import { PageLoading } from '@/components/ui/LoadingSpinner';
+import {
   TrendingUp,
   DollarSign,
   Calendar,
