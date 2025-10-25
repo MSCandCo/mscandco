@@ -14,6 +14,7 @@ import {
   Crown,
   Lock
 } from 'lucide-react';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function AnalyticsClient({ user: serverUser }) {
   const router = useRouter();
@@ -76,9 +77,7 @@ export default function AnalyticsClient({ user: serverUser }) {
   if (subscriptionLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
-        </div>
+        <PageLoading message="Loading analytics..." />
       </Layout>
     );
   }
