@@ -113,12 +113,23 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
+      // Main wallet properties (matching client expectations)
+      available_balance: totalPaid, // Only paid earnings are available for withdrawal
+      pending_balance: totalPending, // Pending earnings
+      total_earned: totalEarned,
+      total_withdrawn: totalSpent,
+      minimum_payout: 50, // Minimum payout threshold
+      last_updated: new Date().toISOString(),
+      currency: 'GBP',
+      
+      // Legacy properties for backward compatibility
       balance: totalBalance,
       totalEarned,
       totalSpent,
       totalPaid,
       totalPending,
-      currency: 'GBP', // Default currency
+      
+      // Summary data
       summary: {
         totalBalance,
         totalEarned,
@@ -129,20 +140,38 @@ export async function GET(request) {
         creditCount: credits.length,
         debitCount: debits.length
       },
+      
+      // Breakdowns
       breakdowns: {
         byType: Object.values(earningsByType),
         byPlatform: Object.values(earningsByPlatform),
         byStatus: Object.values(earningsByStatus)
       },
-      recentTransactions: earnings.slice(0, 20).map(earning => ({
+      
+      // Recent transactions
+      recent_history: earnings.slice(0, 20).map(earning => ({
         id: earning.id,
         amount: parseFloat(earning.amount || 0),
-        type: earning.earning_type || 'other',
+        earning_type: earning.earning_type || 'other',
         platform: earning.platform || 'Unknown',
         status: earning.status || 'pending',
-        date: earning.payment_date || earning.created_at,
+        payment_date: earning.payment_date || earning.created_at,
         description: earning.notes || `${earning.earning_type || 'Earning'} from ${earning.platform || 'Platform'}`,
-        currency: earning.currency || 'GBP'
+        currency: earning.currency || 'GBP',
+        created_at: earning.created_at
+      })),
+      
+      // Pending entries
+      pending_entries: pendingEarnings.map(earning => ({
+        id: earning.id,
+        amount: parseFloat(earning.amount || 0),
+        earning_type: earning.earning_type || 'other',
+        platform: earning.platform || 'Unknown',
+        status: 'pending',
+        payment_date: earning.payment_date || earning.created_at,
+        description: earning.notes || `${earning.earning_type || 'Earning'} from ${earning.platform || 'Platform'}`,
+        currency: earning.currency || 'GBP',
+        created_at: earning.created_at
       }))
     })
 
