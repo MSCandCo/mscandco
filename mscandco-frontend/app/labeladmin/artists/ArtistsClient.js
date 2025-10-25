@@ -8,6 +8,7 @@ import {
   Users, Plus, Search, Send, CheckCircle, XCircle, Clock,
   AlertTriangle, User, Mail, Calendar, TrendingUp
 } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -167,14 +168,7 @@ export default function ArtistsClient() {
   }
 
   if (dataLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading your artists and requests...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading your artists and requests..." />
   }
 
   return (
