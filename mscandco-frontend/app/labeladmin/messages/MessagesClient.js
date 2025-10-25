@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { Mail, Bell, CheckCircle, Users, TrendingUp, DollarSign } from 'lucide-react';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function LabelAdminMessagesClient() {
   const { user, supabase } = useUser();
@@ -110,8 +111,8 @@ export default function LabelAdminMessagesClient() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12 bg-white rounded-lg shadow-sm">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="flex items-center justify-center py-12">
+            <PageLoading message="Loading messages..." />
           </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">

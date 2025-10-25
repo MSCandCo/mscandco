@@ -6,6 +6,7 @@ import { useUser } from '@/components/providers/SupabaseProvider'
 import { createClient } from '@supabase/supabase-js'
 import { BarChart3, TrendingUp, Users, Crown, Lock, Music, DollarSign, Globe } from 'lucide-react'
 import CleanManualDisplay from '@/components/analytics/CleanManualDisplay'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -127,14 +128,7 @@ export default function AnalyticsClient() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading analytics...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading analytics..." />
   }
 
   if (error) {

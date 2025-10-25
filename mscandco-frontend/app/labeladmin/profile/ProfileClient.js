@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { Lock, Edit, Save, X, Upload, User, Mail, Phone, Globe, Calendar, MapPin, Music, Award, FileText, Building2 } from 'lucide-react';
 import ProfilePictureUpload from '@/components/ProfilePictureUpload';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function LabelAdminProfileClient() {
   const { user, session, supabase } = useUser();
@@ -265,11 +266,7 @@ export default function LabelAdminProfileClient() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <PageLoading message="Loading profile..." />;
   }
 
   if (!profile) {

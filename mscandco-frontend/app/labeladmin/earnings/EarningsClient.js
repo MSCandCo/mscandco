@@ -19,6 +19,7 @@ import {
   Users,
   Music
 } from 'lucide-react'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -183,14 +184,7 @@ export default function EarningsClient() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading earnings...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading earnings..." />
   }
 
   if (error) {

@@ -12,6 +12,7 @@ import { FaPlus, FaFilter, FaSearch, FaCalendar, FaChartBar, FaList, FaEye, FaEd
 import { Send, Eye, FileText, CheckCircle, Play, Pause, Check, X, Volume2, VolumeX, Music } from 'lucide-react';
 import FinalReleaseForm from '@/components/releases/FinalReleaseForm';
 import ViewReleaseDetailsModal from '@/components/releases/ViewReleaseDetailsModal';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 import {
   RELEASE_STATUSES,
   RELEASE_STATUS_LABELS,
@@ -729,14 +730,7 @@ export default function ReleasesClient({ user: userProp }) {
   };
 
   if (isLoading || isLoadingData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your releases...</p>
-        </div>
-      </div>
-    );
+    return <PageLoading message="Loading your releases..." />;
   }
 
   // Role check temporarily disabled - TODO: Fix role system
