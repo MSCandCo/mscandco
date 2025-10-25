@@ -43,8 +43,9 @@ export default function CleanManualDisplay({ artistId, showAdvanced = false }) {
           return;
         }
 
-        // Call analytics data API
-        const response = await fetch('/api/artist/analytics-data', {
+        // Call analytics data API (with artistId for label admins)
+        const url = artistId ? `/api/artist/analytics-data?artistId=${artistId}` : '/api/artist/analytics-data';
+        const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 

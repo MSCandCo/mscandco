@@ -9,8 +9,10 @@ const supabase = createClient(
 )
 
 /**
- * GET /api/artist/analytics-data
+ * GET /api/artist/analytics-data?artistId=xxx (optional)
  * Fetch artist analytics data from user_profiles table
+ * If artistId is provided (for label admins), fetch that artist's data
+ * Otherwise, fetch the logged-in user's data
  */
 export async function GET(request) {
   try {
@@ -22,7 +24,12 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const artistId = user.id
+    // Check if artistId is provided in query params (for label admins viewing artist analytics)
+    const { searchParams } = new URL(request.url)
+    const requestedArtistId = searchParams.get('artistId')
+    
+    // Use requested artistId if provided, otherwise use logged-in user's ID
+    const artistId = requestedArtistId || user.id
     console.log('📊 Fetching analytics data for artist:', artistId)
 
     // Fetch analytics data from user_profiles table
