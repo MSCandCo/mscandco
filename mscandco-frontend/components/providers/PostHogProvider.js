@@ -1,17 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { initPostHog, trackPageView } from '@/lib/analytics/posthog-client'
 
-export default function PostHogProvider({ children }) {
+function PostHogPageView() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  // Initialize PostHog on mount
-  useEffect(() => {
-    initPostHog()
-  }, [])
 
   // Track page views on route change
   useEffect(() => {
@@ -24,6 +19,22 @@ export default function PostHogProvider({ children }) {
     }
   }, [pathname, searchParams])
 
-  return <>{children}</>
+  return null
+}
+
+export default function PostHogProvider({ children }) {
+  // Initialize PostHog on mount
+  useEffect(() => {
+    initPostHog()
+  }, [])
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <PostHogPageView />
+      </Suspense>
+      {children}
+    </>
+  )
 }
 
