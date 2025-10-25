@@ -159,7 +159,7 @@ export default function EarningsClient() {
           artist_amount: earning.artist_amount,
           description: `${earning.earning_type || 'Earnings'} from ${earning.platform || 'Platform'}`,
           status: 'paid', // TODO: Add status tracking
-          artistName: earning.label_artist_affiliations?.user_profiles?.artist_name || 'Unknown',
+          artistName: earning.affiliation?.user_profiles?.artist_name || 'Unknown',
           platform: earning.platform,
           earning_type: earning.earning_type
         }))

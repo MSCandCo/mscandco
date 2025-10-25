@@ -25,33 +25,44 @@ export async function GET(request) {
     const labelAdminId = user.id
     console.log('💰 Fetching label admin earnings:', labelAdminId)
 
-    // Get all shared earnings for this label admin
+    // First, get all affiliations for this label admin
+    const { data: affiliations, error: affiliationsError } = await supabase
+      .from('label_artist_affiliations')
+      .select('id, label_percentage, artist_id, user_profiles!label_artist_affiliations_artist_id_fkey (id, artist_name, first_name, last_name, email)')
+      .eq('label_admin_id', labelAdminId)
+      .eq('status', 'active')
+
+    if (affiliationsError) {
+      console.error('❌ Error fetching affiliations:', affiliationsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch affiliations', details: affiliationsError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!affiliations || affiliations.length === 0) {
+      console.log('ℹ️ No affiliations found for label admin')
+      return NextResponse.json({
+        success: true,
+        summary: {
+          totalLabelEarnings: 0,
+          totalArtistEarnings: 0,
+          totalEarnings: 0,
+          artistCount: 0,
+          entryCount: 0
+        },
+        earningsByArtist: {},
+        recentEarnings: []
+      })
+    }
+
+    const affiliationIds = affiliations.map(a => a.id)
+
+    // Get all shared earnings for these affiliations
     const { data: sharedEarnings, error } = await supabase
       .from('shared_earnings')
-      .select(`
-        id,
-        artist_amount,
-        label_amount,
-        total_amount,
-        platform,
-        earning_type,
-        currency,
-        created_at,
-        affiliation_id,
-        label_artist_affiliations!shared_earnings_affiliation_id_fkey (
-          id,
-          label_percentage,
-          artist_id,
-          user_profiles!label_artist_affiliations_artist_id_fkey (
-            id,
-            artist_name,
-            first_name,
-            last_name,
-            email
-          )
-        )
-      `)
-      .eq('label_artist_affiliations.label_admin_id', labelAdminId)
+      .select('id, artist_amount, label_amount, total_amount, platform, earning_type, currency, created_at, affiliation_id')
+      .in('affiliation_id', affiliationIds)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -67,11 +78,20 @@ export async function GET(request) {
     const totalArtistEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.artist_amount || 0), 0)
     const totalEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.total_amount || 0), 0)
 
+    // Create a map of affiliations for easy lookup
+    const affiliationMap = {}
+    affiliations.forEach(aff => {
+      affiliationMap[aff.id] = aff
+    })
+
     // Group by artist
     const earningsByArtist = {}
     
     sharedEarnings.forEach(earning => {
-      const artist = earning.label_artist_affiliations?.user_profiles
+      const affiliation = affiliationMap[earning.affiliation_id]
+      if (!affiliation) return
+
+      const artist = affiliation.user_profiles
       const artistName = artist?.artist_name || 
                         `${artist?.first_name || ''} ${artist?.last_name || ''}`.trim() ||
                         'Unknown Artist'
@@ -84,7 +104,7 @@ export async function GET(request) {
           totalEarnings: 0,
           labelShare: 0,
           artistShare: 0,
-          percentage: earning.label_artist_affiliations?.label_percentage || 0,
+          percentage: affiliation.label_percentage || 0,
           entries: []
         }
       }
@@ -92,7 +112,10 @@ export async function GET(request) {
       earningsByArtist[artistName].totalEarnings += earning.total_amount || 0
       earningsByArtist[artistName].labelShare += earning.label_amount || 0
       earningsByArtist[artistName].artistShare += earning.artist_amount || 0
-      earningsByArtist[artistName].entries.push(earning)
+      earningsByArtist[artistName].entries.push({
+        ...earning,
+        affiliation
+      })
     })
 
     console.log(`✅ Label admin earnings loaded: ${totalLabelEarnings.toFixed(2)} from ${Object.keys(earningsByArtist).length} artists`)
