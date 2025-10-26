@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -371,6 +371,17 @@ function Header({ largeLogo = false }) {
                       </span>
                     </button>
                   )}
+
+                  {/* Acceber AI Toggle */}
+                  <Link href="/ai" title="Try Acceber Intelligence - AI Assistant">
+                    <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors group relative">
+                      <Sparkles className="h-5 w-5" />
+                      <span className="absolute -bottom-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                      </span>
+                    </button>
+                  </Link>
 
                   {/* Notifications Bell */}
                   <Link href="/notifications" className="relative">
