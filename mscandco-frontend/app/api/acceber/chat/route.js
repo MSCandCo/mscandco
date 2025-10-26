@@ -1,5 +1,5 @@
 /**
- * MSC AI Assistant - Chat API
+ * Apollo Intelligence - Chat API
  * Handles conversational AI with OpenAI function calling
  */
 

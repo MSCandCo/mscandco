@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * MSC AI Assistant - Landing Page
+ * Apollo Intelligence - Landing Page
  * Introduction to AI-powered music distribution
  */
 
@@ -11,7 +11,7 @@ import { PageLoading } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function MSCAILandingPage() {
+export default function ApolloAILandingPage() {
   const { user } = useUser();
   const router = useRouter();
   
@@ -86,7 +86,7 @@ export default function MSCAILandingPage() {
             
             {/* Title */}
             <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">
-              MSC AI Assistant
+              Apollo Intelligence
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -123,7 +123,7 @@ export default function MSCAILandingPage() {
                   <Music className="w-6 h-6 text-gray-900" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">MSC AI Assistant</h3>
+                  <h3 className="font-semibold text-white">Apollo AI</h3>
                   <p className="text-sm text-gray-400">Your music distribution assistant</p>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function MSCAILandingPage() {
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
                     <p className="text-gray-700">
-                      Hey! 👋 I'm your MSC AI Assistant. How can I help you today?
+                      Hey! 👋 I'm Apollo, your AI music assistant. How can I help you today?
                     </p>
                     <p className="text-xs text-gray-500 mt-2">Just now</p>
                   </div>
@@ -187,7 +187,7 @@ export default function MSCAILandingPage() {
       {/* Features Grid */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
-          What Can MSC AI Do?
+          What Can Apollo Do?
         </h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -212,7 +212,7 @@ export default function MSCAILandingPage() {
       {/* Example Conversations */}
       <div className="max-w-4xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
-          See MSC AI in Action
+          See Apollo in Action
         </h2>
         
         <div className="space-y-6">
@@ -288,13 +288,13 @@ export default function MSCAILandingPage() {
             Ready to Experience the Future?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join the revolution in music distribution. Start chatting with MSC AI now.
+            Join the revolution in music distribution. Start chatting with Apollo now.
           </p>
           <button
             onClick={() => router.push('/ai/chat')}
             className="px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold text-lg hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
-            Launch MSC AI Assistant
+            Launch Apollo Intelligence
             <Sparkles size={20} />
           </button>
         </div>

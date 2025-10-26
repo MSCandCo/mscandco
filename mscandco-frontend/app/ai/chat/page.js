@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * MSC AI Assistant - Chat Interface
+ * Apollo Intelligence - Chat Interface
  * Beautiful conversational AI for music distribution
  */
 
@@ -11,7 +11,7 @@ import { Send, Mic, MicOff, Sparkles, ArrowLeft, Music } from 'lucide-react';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 
-export default function MSCAIChatPage() {
+export default function ApolloAIChatPage() {
   const { user } = useUser();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -166,7 +166,7 @@ export default function MSCAIChatPage() {
   }, []);
   
   if (!user) {
-    return <PageLoading message="Loading MSC AI Assistant..." />;
+    return <PageLoading message="Loading Apollo Intelligence..." />;
   }
   
   return (
@@ -180,7 +180,7 @@ export default function MSCAIChatPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                MSC AI Assistant
+                Apollo Intelligence
               </h1>
               <p className="text-sm text-gray-600">Your AI music distribution assistant</p>
             </div>
@@ -288,7 +288,7 @@ export default function MSCAIChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder="Ask MSC AI anything..."
+              placeholder="Ask Apollo anything..."
               disabled={isLoading}
               className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             />

@@ -372,8 +372,8 @@ function Header({ largeLogo = false }) {
                     </button>
                   )}
 
-                  {/* MSC AI Toggle */}
-                  <Link href="/ai" title="Try MSC AI Assistant">
+                  {/* Apollo AI Toggle */}
+                  <Link href="/ai" title="Try Apollo Intelligence">
                     <button className="p-2 text-gray-900 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors group relative">
                       <Sparkles className="h-5 w-5" />
                       <span className="absolute -bottom-1 -right-1 flex h-3 w-3">
