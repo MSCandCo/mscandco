@@ -1,5 +1,5 @@
 /**
- * Acceber Intelligence - Chat API
+ * MSC AI Assistant - Chat API
  * Handles conversational AI with OpenAI function calling
  */
 

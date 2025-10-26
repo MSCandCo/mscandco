@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * Acceber Intelligence - Chat Interface
+ * MSC AI Assistant - Chat Interface
  * Beautiful conversational AI for music distribution
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { Send, Mic, MicOff, Sparkles, ArrowLeft } from 'lucide-react';
+import { Send, Mic, MicOff, Sparkles, ArrowLeft, Music } from 'lucide-react';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 
-export default function AcceberChatPage() {
+export default function MSCAIChatPage() {
   const { user } = useUser();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -166,21 +166,21 @@ export default function AcceberChatPage() {
   }, []);
   
   if (!user) {
-    return <PageLoading message="Loading Acceber Intelligence..." />;
+    return <PageLoading message="Loading MSC AI Assistant..." />;
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b px-6 py-4 shadow-sm">
+      <div className="bg-white border-b px-6 py-4 shadow-sm">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center shadow-lg">
+              <Music className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Acceber Intelligence
+              <h1 className="text-2xl font-bold text-gray-900">
+                MSC AI Assistant
               </h1>
               <p className="text-sm text-gray-600">Your AI music distribution assistant</p>
             </div>
@@ -207,7 +207,7 @@ export default function AcceberChatPage() {
               <div
                 className={`max-w-2xl rounded-2xl px-6 py-4 shadow-md ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-white border border-gray-200'
                 }`}
               >
@@ -227,7 +227,7 @@ export default function AcceberChatPage() {
                       {msg.tool_calls.map((tool, i) => (
                         <div
                           key={i}
-                          className="text-xs bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg px-3 py-1.5 font-medium text-gray-700"
+                          className="text-xs bg-gray-100 rounded-lg px-3 py-1.5 font-medium text-gray-700"
                         >
                           {formatToolName(tool.name)}
                         </div>
@@ -250,11 +250,11 @@ export default function AcceberChatPage() {
               <div className="bg-white border rounded-2xl px-6 py-4 shadow-md">
                 <div className="flex items-center gap-2">
                   <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div className="w-2 h-2 bg-gray-900 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                   </div>
-                  <span className="text-sm text-gray-500">Acceber is thinking...</span>
+                  <span className="text-sm text-gray-500">AI is thinking...</span>
                 </div>
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function AcceberChatPage() {
       </div>
       
       {/* Input */}
-      <div className="bg-white/80 backdrop-blur-sm border-t px-6 py-4">
+      <div className="bg-white border-t px-6 py-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex space-x-3">
             {/* Voice button */}
@@ -288,16 +288,16 @@ export default function AcceberChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder="Ask Acceber anything..."
+              placeholder="Ask MSC AI anything..."
               disabled={isLoading}
-              className="flex-1 px-6 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             
             {/* Send button */}
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              className="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
               <Send size={20} />
             </button>

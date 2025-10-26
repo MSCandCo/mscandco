@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * Acceber Intelligence - Landing Page
+ * MSC AI Assistant - Landing Page
  * Introduction to AI-powered music distribution
  */
 
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { Sparkles, MessageSquare, TrendingUp, DollarSign, Calendar, Zap, ArrowRight } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, DollarSign, Calendar, Zap, ArrowRight, Music } from 'lucide-react';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function AcceberLandingPage() {
+export default function MSCAILandingPage() {
   const { user } = useUser();
   const router = useRouter();
   
@@ -23,8 +23,8 @@ export default function AcceberLandingPage() {
     {
       icon: MessageSquare,
       title: 'Natural Conversation',
-      description: 'Talk to Acceber like a colleague. Ask questions in plain English and get instant, intelligent answers.',
-      color: 'from-blue-600 to-blue-700',
+      description: 'Talk to your AI assistant like a colleague. Ask questions in plain English and get instant, intelligent answers.',
+      color: 'from-gray-800 to-gray-900',
     },
     {
       icon: DollarSign,
@@ -74,26 +74,22 @@ export default function AcceberLandingPage() {
   ];
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10" />
-        
+      <div className="relative overflow-hidden bg-white border-b">
         <div className="relative max-w-7xl mx-auto px-6 py-16">
           <div className="text-center mb-12">
             {/* Logo */}
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full shadow-2xl mb-6">
-              <Sparkles className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-900 rounded-full shadow-2xl mb-6">
+              <Music className="w-10 h-10 text-white" />
             </div>
             
             {/* Title */}
-            <h1 className="text-5xl md:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Acceber Intelligence
-              </span>
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">
+              MSC AI Assistant
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               The world's first AI assistant for music distribution.
               <br />
               Talk to your platform. Get instant insights. Make smarter decisions.
@@ -103,29 +99,84 @@ export default function AcceberLandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={() => router.push('/ai/chat')}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:shadow-2xl transition-all flex items-center gap-2 group"
+                className="px-8 py-4 bg-gray-900 text-white rounded-xl font-semibold text-lg hover:bg-gray-800 hover:shadow-2xl transition-all flex items-center gap-2 group"
               >
-                Start Chatting with Acceber
+                Start Chatting with AI
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
               </button>
               
               <Link
                 href="/dashboard"
-                className="px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold text-lg hover:shadow-lg transition-all border border-gray-200"
+                className="px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold text-lg hover:shadow-lg transition-all border-2 border-gray-900"
               >
                 Use Regular Version
               </Link>
             </div>
           </div>
           
-          {/* Demo Video Placeholder */}
+          {/* Chat Interface Preview */}
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl p-2">
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl aspect-video flex items-center justify-center">
-                <div className="text-center text-white">
-                  <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg opacity-75">Chat interface preview</p>
-                  <p className="text-sm opacity-50 mt-2">Click "Start Chatting" above to try it!</p>
+            <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-200 overflow-hidden">
+              {/* Chat Header */}
+              <div className="bg-gray-900 px-6 py-4 flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                  <Music className="w-6 h-6 text-gray-900" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">MSC AI Assistant</h3>
+                  <p className="text-sm text-gray-400">Your music distribution assistant</p>
+                </div>
+              </div>
+              
+              {/* Chat Messages Preview */}
+              <div className="bg-gray-50 p-6 space-y-4 min-h-[400px]">
+                {/* AI Message */}
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
+                    <p className="text-gray-700">
+                      Hey! 👋 I'm your MSC AI Assistant. How can I help you today?
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">Just now</p>
+                  </div>
+                </div>
+                
+                {/* User Message */}
+                <div className="flex justify-end">
+                  <div className="bg-gray-900 text-white rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
+                    <p>Which platform pays me the most?</p>
+                    <p className="text-xs text-gray-400 mt-2">Just now</p>
+                  </div>
+                </div>
+                
+                {/* AI Response */}
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
+                    <p className="text-gray-700">
+                      Spotify is your top earner at £847 this month (62%), followed by Apple Music at £312 (23%). Your Spotify performance is really strong! 📈
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                        <Sparkles size={12} />
+                        Actions taken:
+                      </p>
+                      <div className="text-xs bg-gray-100 rounded-lg px-3 py-1.5 font-medium text-gray-700">
+                        📊 Analyzed earnings
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Just now</p>
+                  </div>
+                </div>
+                
+                {/* Input Preview */}
+                <div className="pt-4">
+                  <div className="flex space-x-3">
+                    <div className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-400">
+                      Ask me anything...
+                    </div>
+                    <button className="px-6 py-3 bg-gray-900 text-white rounded-xl">
+                      <ArrowRight size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -136,7 +187,7 @@ export default function AcceberLandingPage() {
       {/* Features Grid */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
-          What Can Acceber Do?
+          What Can MSC AI Do?
         </h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -161,7 +212,7 @@ export default function AcceberLandingPage() {
       {/* Example Conversations */}
       <div className="max-w-4xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
-          See Acceber in Action
+          See MSC AI in Action
         </h2>
         
         <div className="space-y-6">
@@ -232,18 +283,18 @@ export default function AcceberLandingPage() {
       
       {/* Final CTA */}
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 shadow-2xl">
+        <div className="bg-gray-900 rounded-2xl p-12 shadow-2xl">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Experience the Future?
           </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Join the revolution in music distribution. Start chatting with Acceber now.
+          <p className="text-xl text-gray-300 mb-8">
+            Join the revolution in music distribution. Start chatting with MSC AI now.
           </p>
           <button
             onClick={() => router.push('/ai/chat')}
-            className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:shadow-2xl transition-all inline-flex items-center gap-2"
+            className="px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold text-lg hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
-            Launch Acceber Intelligence
+            Launch MSC AI Assistant
             <Sparkles size={20} />
           </button>
         </div>
