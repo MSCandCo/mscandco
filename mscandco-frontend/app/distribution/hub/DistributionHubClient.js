@@ -53,33 +53,61 @@ export default function DistributionHubClient({ user }) {
 
   const loadReleases = async () => {
     try {
-      const { data, error } = await supabase
-        .from('releases')
-        .select('*')
-        .in('status', ['submitted', 'in_review', 'completed', 'live'])
-        .order('updated_at', { ascending: false })
+      console.log('🔄 Fetching queue releases from API...')
+      const response = await fetch('/api/distribution/releases?type=queue')
 
-      if (error) throw error
+      console.log(`📡 Response status: ${response.status} ${response.statusText}`)
 
-      setReleases(data || [])
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API response not OK: ${response.status}`, errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log('📦 Queue API response:', result)
+
+      if (result.success) {
+        console.log(`✅ Loaded ${result.releases?.length || 0} queue releases`)
+        setReleases(result.releases || [])
+      } else {
+        console.error('❌ API returned error:', result.error)
+        throw new Error(result.error || 'Failed to load releases')
+      }
     } catch (error) {
-      console.error('Error loading releases:', error)
+      console.error('❌ Error loading releases:', error)
+      console.error('❌ Error stack:', error.stack)
+      setReleases([])
     }
   }
 
   const loadRevisions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('releases')
-        .select('*')
-        .eq('status', 'revision')
-        .order('updated_at', { ascending: false })
+      console.log('🔄 Fetching revisions from API...')
+      const response = await fetch('/api/distribution/releases?type=revisions')
 
-      if (error) throw error
+      console.log(`📡 Response status: ${response.status} ${response.statusText}`)
 
-      setRevisions(data || [])
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API response not OK: ${response.status}`, errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log('📦 Revisions API response:', result)
+
+      if (result.success) {
+        console.log(`✅ Loaded ${result.releases?.length || 0} revisions`)
+        setRevisions(result.releases || [])
+      } else {
+        console.error('❌ API returned error:', result.error)
+        throw new Error(result.error || 'Failed to load revisions')
+      }
     } catch (error) {
-      console.error('Error loading revisions:', error)
+      console.error('❌ Error loading revisions:', error)
+      console.error('❌ Error stack:', error.stack)
+      setRevisions([])
     }
   }
 
@@ -373,7 +401,7 @@ export default function DistributionHubClient({ user }) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {release.artist_name}
+                      {release.artist_name || 'Unknown Artist'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(release.status)}`}>
@@ -491,7 +519,7 @@ export default function DistributionHubClient({ user }) {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {release.artist_name}
+                        {release.artist_name || 'Unknown Artist'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(release.updated_at).toLocaleDateString()}

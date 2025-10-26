@@ -9,17 +9,17 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 export async function GET(request) {
   try {
     const supabase = await createClient()
-    
+
     // Get the user from the session
     const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Use service role to bypass RLS
     const serviceSupabase = await createServiceRoleClient()
-    
+
     // Get user's currency preference
     const { data, error } = await serviceSupabase
       .from('user_profiles')
@@ -29,21 +29,24 @@ export async function GET(request) {
 
     if (error) {
       console.error('Error fetching currency preference:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch currency preference' },
-        { status: 500 }
-      )
+      // Return default currency instead of 500 error
+      // This prevents the app from crashing due to RLS permission issues
+      return NextResponse.json({
+        currency: 'GBP',
+        defaulted: true
+      })
     }
 
-    return NextResponse.json({ 
-      currency: data?.preferred_currency || 'GBP' 
+    return NextResponse.json({
+      currency: data?.preferred_currency || 'GBP'
     })
   } catch (error) {
     console.error('Currency preference GET error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    // Return default currency instead of crashing
+    return NextResponse.json({
+      currency: 'GBP',
+      defaulted: true
+    })
   }
 }
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
-import { PageLoading } from '@/components/ui/LoadingSpinner';
   Bell, Mail, AlertTriangle, CheckCircle, Clock,
   User, Shield, Building2, Music, MessageSquare, Trash2,
   MarkRead, ArrowRight

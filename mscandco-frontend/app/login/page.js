@@ -40,8 +40,8 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Redirect to dashboard (App Router)
-        router.push('/dashboard')
+        // Force redirect with window.location for more reliable navigation after login
+        window.location.href = '/dashboard'
       }
     } catch (err) {
       setError('An unexpected error occurred')

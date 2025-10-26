@@ -460,16 +460,16 @@ export default function ReleasesClient({ user: userProp }) {
         
         const result = await response.json();
         
-        if (result.success) {
+        if (result.success && result.data) {
           setSubscriptionStatus(result.data);
           // Update user plan based on real subscription
           const plan = result.data.isPro ? 'pro' : 'starter';
           setUserPlan(plan);
-          console.log('Real Subscription Status:', { 
-            plan, 
+          console.log('Real Subscription Status:', {
+            plan,
             isPro: result.data.isPro,
             planName: result.data.planName,
-            tier: result.data.planId 
+            tier: result.data.planId
           });
         } else {
           // Set default starter plan

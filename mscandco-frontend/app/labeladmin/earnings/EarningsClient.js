@@ -1,36 +1,36 @@
 'use client'
 
-// LABEL ADMIN EARNINGS - Combined earnings from all accepted artists
-import { useState, useEffect } from 'react'
-import { useUser } from '@/components/providers/SupabaseProvider'
-import { createClient } from '@supabase/supabase-js'
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Calendar, 
+import { useState, useEffect } from 'react';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { useRouter } from 'next/navigation';
+import PayoutRequestModal from '@/components/modals/PayoutRequestModal';
+import { useCurrencyConversion, fetchLiveExchangeRates } from '@/lib/currency-service';
+import { useCurrencySync } from '@/components/shared/CurrencySelector';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
+import {
+  TrendingUp,
+  DollarSign,
+  Calendar,
   Download,
   Eye,
   EyeOff,
   ChevronDown,
+  ChevronUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  CurrencyPound,
   Wallet,
   Clock,
   CheckCircle,
   AlertCircle,
-  Users,
-  Music
-} from 'lucide-react'
-import { PageLoading } from '@/components/ui/LoadingSpinner'
+  CreditCard,
+  ArrowRight
+} from 'lucide-react';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
+// Comprehensive currency selector component
+const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-// Currency selector component
-const CurrencySelector = ({ selectedCurrency, onCurrencyChange }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  
   const currencies = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -41,379 +41,636 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange }) => {
     { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
     { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
     { code: 'ZMW', symbol: 'ZK', name: 'Zambian Kwacha' }
-  ]
+  ];
 
-  const selectedCurr = currencies.find(c => c.code === selectedCurrency) || currencies[0]
+  const selectedCurr = currencies.find(c => c.code === selectedCurrency) || currencies[0];
 
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
-      >
-        <span>{selectedCurr.symbol}</span>
-        <span>{selectedCurr.code}</span>
-        <ChevronDown className="w-4 h-4" />
-      </button>
-      
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[180px] max-h-64 overflow-y-auto">
-          {currencies.map(currency => (
-            <button
-              key={currency.code}
-              onClick={() => {
-                onCurrencyChange(currency.code)
-                setIsOpen(false)
-              }}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm first:rounded-t-lg last:rounded-b-lg"
-            >
-              <span className="font-medium">{currency.symbol} {currency.code}</span>
-              <span className="text-gray-500 text-xs ml-2">{currency.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+  if (compact) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center space-x-2 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700"
+        >
+          <span>{selectedCurr.symbol}</span>
+          <span>{selectedCurr.code}</span>
+          <ChevronDown className="w-4 h-4 text-slate-600" />
+        </button>
 
-export default function EarningsClient() {
-  const { user, session } = useUser()
-  const [acceptedArtists, setAcceptedArtists] = useState([])
-  const [combinedEarnings, setCombinedEarnings] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [selectedCurrency, setSelectedCurrency] = useState('GBP')
-  const [showAmounts, setShowAmounts] = useState(true)
-  const [selectedPeriod, setSelectedPeriod] = useState('all_time')
-
-  const currencySymbols = {
-    'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$',
-    'NGN': '₦', 'GHS': '₵', 'KES': 'KSh', 'ZAR': 'R', 'ZMW': 'ZK'
+        {isOpen && (
+          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[120px] max-h-64 overflow-y-auto">
+            {currencies.map(currency => (
+              <button
+                key={currency.code}
+                onClick={() => {
+                  onCurrencyChange(currency.code);
+                  setIsOpen(false);
+                }}
+                className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm first:rounded-t-lg last:rounded-b-lg text-slate-700 hover:text-slate-900"
+              >
+                <span className="font-medium">{currency.symbol} {currency.code}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
-  const formatAmount = (amount) => {
-    if (!showAmounts) return '••••••'
-    const symbol = currencySymbols[selectedCurrency] || selectedCurrency
-    return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
+  return null;
+};
 
+
+export default function EarningsClient({ user: serverUser }) {
+  const router = useRouter();
+  const { user, session } = useUser();
+  const currentUser = user || serverUser;
+  const isLoading = false; // User is provided as prop from server component
+  const [walletData, setWalletData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useCurrencySync('GBP'); // Synced with settings and header
+  const [showAmounts, setShowAmounts] = useState(true);
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('all_time');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+
+  // Permission check - redirect if no access
+
+  // Use currency conversion hook
+  const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);
+
+  // Time period options
   const timePeriods = [
     { value: 'last_7_days', label: 'Last 7 Days' },
     { value: 'last_30_days', label: 'Last 30 Days' },
     { value: 'last_90_days', label: 'Last 3 Months' },
     { value: 'last_365_days', label: 'Last 12 Months' },
-    { value: 'all_time', label: 'All Time' }
-  ]
+    { value: 'all_time', label: 'All Time' },
+    { value: 'custom', label: 'Custom Date Range' }
+  ];
+
+  // Calculate metrics based on selected period
+  const calculatePeriodMetrics = () => {
+    if (!walletData?.recent_history) return null;
+
+    const now = new Date();
+    let startDate = new Date();
+
+    switch(selectedPeriod) {
+      case 'last_7_days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'last_30_days':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'last_90_days':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case 'last_365_days':
+        startDate.setDate(now.getDate() - 365);
+        break;
+      case 'custom':
+        if (customStartDate) {
+          startDate = new Date(customStartDate);
+        } else {
+          startDate = new Date('2020-01-01'); // Fallback to all time if no custom date
+        }
+        break;
+      default:
+        startDate = new Date('2020-01-01'); // All time
+    }
+
+    // Apply end date filter for custom range
+    let endDate = now;
+    if (selectedPeriod === 'custom' && customEndDate) {
+      endDate = new Date(customEndDate);
+      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+    }
+
+    const periodEntries = walletData.recent_history.filter(entry => {
+      const entryDate = new Date(entry.created_at);
+      return entryDate >= startDate && entryDate <= endDate && entry.amount > 0; // Only positive earnings
+    });
+
+    const periodEarnings = periodEntries.reduce((sum, entry) => sum + entry.amount, 0);
+
+    // Calculate previous period for growth comparison
+    const previousStartDate = new Date(startDate);
+    const previousEndDate = new Date(startDate);
+    const periodDays = (now - startDate) / (24 * 60 * 60 * 1000);
+    previousStartDate.setDate(previousStartDate.getDate() - periodDays);
+
+    const previousPeriodEntries = walletData.recent_history.filter(entry => {
+      const entryDate = new Date(entry.created_at);
+      return entryDate >= previousStartDate && entryDate < previousEndDate && entry.amount > 0;
+    });
+
+    const previousPeriodEarnings = previousPeriodEntries.reduce((sum, entry) => sum + entry.amount, 0);
+
+    // Calculate growth percentage
+    const growthPercentage = previousPeriodEarnings > 0
+      ? ((periodEarnings - previousPeriodEarnings) / previousPeriodEarnings) * 100
+      : periodEarnings > 0 ? 100 : 0;
+
+    return {
+      periodEarnings,
+      previousPeriodEarnings,
+      growthPercentage,
+      entryCount: periodEntries.length,
+      averagePerEntry: periodEntries.length > 0 ? periodEarnings / periodEntries.length : 0
+    };
+  };
+
+  const periodMetrics = calculatePeriodMetrics();
 
   useEffect(() => {
-    if (user && session) {
-      loadEarningsData()
+    if (session) {
+      fetchWalletData();
+      // Fetch live exchange rates on component mount
+      fetchLiveExchangeRates();
     }
-  }, [user, session])
+  }, [session]);
 
-  const loadEarningsData = async () => {
+  // Listen for currency updates and refresh rates
+  useEffect(() => {
+    const handleRateUpdate = () => {
+      // Force re-render when rates update
+      setWalletData(prev => ({ ...prev }));
+    };
+
+    window.addEventListener('exchangeRatesUpdated', handleRateUpdate);
+    return () => window.removeEventListener('exchangeRatesUpdated', handleRateUpdate);
+  }, []);
+
+  const fetchWalletData = async () => {
     try {
-      setLoading(true)
-      
-      const token = session?.access_token
-      if (!token) {
-        throw new Error('Authentication required')
+      setLoading(true);
+
+      // Get authentication token from context
+      if (!session) {
+        throw new Error('Authentication required. Please log in again.');
       }
 
-      // Fetch label admin earnings (their split from shared_earnings table)
+      const token = session.access_token;
+
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
       const response = await fetch('/api/labeladmin/earnings', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to load earnings')
+        throw new Error('Failed to fetch wallet data');
       }
 
-      const data = await response.json()
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to load earnings')
-      }
-
-      // Transform the data for display
-      const combined = {
-        totalEarned: data.summary.totalLabelEarnings, // Only label admin's share
-        totalPending: 0, // TODO: Add status tracking to shared_earnings
-        totalPaidOut: data.summary.totalLabelEarnings, // Assume all paid for now
-        transactionCount: data.summary.entryCount,
-        artistBreakdown: Object.values(data.earningsByArtist).map(artist => ({
-          artistId: artist.artistId,
-          artistName: artist.artistName,
-          totalEarned: artist.totalEarnings, // Total from this artist
-          labelShare: artist.labelShare, // Label admin's share
-          artistShare: artist.artistShare, // Artist's share
-          percentage: artist.percentage,
-          transactionCount: artist.entries.length
-        })),
-        recentTransactions: data.recentEarnings.map(earning => ({
-          id: earning.id,
-          created_at: earning.created_at,
-          amount: earning.label_amount, // Show label admin's share
-          total_amount: earning.total_amount,
-          artist_amount: earning.artist_amount,
-          description: `${earning.earning_type || 'Earnings'} from ${earning.platform || 'Platform'}`,
-          status: 'paid', // TODO: Add status tracking
-          artistName: earning.affiliation?.user_profiles?.artist_name || 'Unknown',
-          platform: earning.platform,
-          earning_type: earning.earning_type
-        }))
-      }
-
-      setCombinedEarnings(combined)
-
-      // Set accepted artists from earnings data
-      const artists = Object.values(data.earningsByArtist).map(artist => ({
-        artistId: artist.artistId,
-        artistName: artist.artistName,
-        artistEmail: artist.artistEmail
-      }))
-      setAcceptedArtists(artists)
-
+      const data = await response.json();
+      console.log('💰 Label admin wallet data loaded:', data);
+      setWalletData(data);
     } catch (error) {
-      console.error('Error loading earnings:', error)
-      setError(error.message)
+      console.error('Error loading wallet:', error);
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const updateCurrency = (currency) => {
+    setSelectedCurrency(currency);
+  };
+
+  const displayAmount = (gbpAmount) => {
+    if (!showAmounts) return '••••';
+    return formatAmount(gbpAmount);
+  };
+
+  const toggleAmountVisibility = () => {
+    setShowAmounts(!showAmounts);
+  };
+
+  const handlePayoutRequest = () => {
+    setShowPayoutModal(true);
+  };
+
+  const handlePayoutSuccess = (request) => {
+    // Refresh wallet data to reflect any changes
+    fetchWalletData();
+  };
 
   if (loading) {
-    return <PageLoading message="Loading earnings..." />
-  }
-
-  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" style={{background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)'}}>
         <div className="text-center">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-            <h3 className="text-red-900 font-semibold mb-2">Error Loading Earnings</h3>
-            <p className="text-red-700">{error}</p>
-          </div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
+          <p style={{color: '#64748b'}}>Loading your earnings...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (acceptedArtists.length === 0) {
+  if (error || !walletData) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Artists Connected</h3>
-            <p className="text-gray-600 mb-6">
-              You need to have accepted artists before viewing earnings.
-            </p>
-            <button
-              onClick={() => window.location.href = '/labeladmin/artists'}
-              className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-            >
-              Manage Artists
-            </button>
+      <div className="min-h-screen flex items-center justify-center" style={{background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)'}}>
+        <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-red-200">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
+          <h2 className="text-xl font-bold mb-2" style={{color: '#991b1b'}}>Error Loading Earnings</h2>
+          <p className="mb-4" style={{color: '#64748b'}}>{error || 'Unable to load earnings data'}</p>
+          <button
+            onClick={fetchWalletData}
+            className="px-4 py-2 text-white rounded-lg font-medium transition-all"
+            style={{background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'}}
+          >
+            Try Again
+          </button>
         </div>
       </div>
-    )
+    );
   }
+
+  // walletData contains wallet properties directly (not nested under 'wallet' key)
+  const wallet = {
+    available_balance: walletData.available_balance || 0,
+    pending_balance: walletData.pending_balance || 0,
+    total_earned: walletData.total_earned || 0,
+    total_withdrawn: walletData.total_withdrawn || 0,
+    minimum_payout: walletData.minimum_payout || 50,
+    last_updated: walletData.last_updated || new Date().toISOString(),
+    currency: walletData.currency || 'GBP'
+  };
+  const pending_entries = walletData.pending_entries || [];
+  const recent_history = walletData.recent_history || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <Wallet className="h-8 w-8" />
-                Label Earnings
+    <div className="min-h-screen" style={{background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)'}}>
+      {/* Header */}
+      <div className="text-white" style={{background: 'linear-gradient(135deg, #0f172a 0%, #1f2937 50%, #374151 100%)'}}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div className="mb-6 md:mb-0">
+              <h1 className="text-4xl font-bold mb-4">
+                Label Earnings & Wallet
               </h1>
-              <p className="text-gray-600 mt-2">
-                Combined earnings from {acceptedArtists.length} artists
+              <p className="text-xl text-white max-w-3xl">
+                Your earnings from artist splits - track revenue, manage payouts, and view earnings history
               </p>
+              {selectedCurrency !== 'GBP' && (
+                <p className="text-sm text-white opacity-75 mt-2">
+                  💱 Live rates: 1 GBP = {symbol}{convertAmount(1).toFixed(selectedCurrency === 'NGN' || selectedCurrency === 'KES' || selectedCurrency === 'ZMW' ? 0 : 2)}
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-4">
               <button
-                onClick={() => setShowAmounts(!showAmounts)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-                title={showAmounts ? 'Hide amounts' : 'Show amounts'}
+                onClick={toggleAmountVisibility}
+                className="flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg text-sm font-medium transition-all backdrop-blur-sm"
               >
-                {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                {showAmounts ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span>{showAmounts ? 'Hide' : 'Show'} Amounts</span>
               </button>
-              <CurrencySelector 
+              <CurrencySelector
                 selectedCurrency={selectedCurrency}
-                onCurrencyChange={setSelectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
               />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Earned</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {formatAmount(combinedEarnings?.totalEarned || 0)}
-                </p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* Wallet Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Available Balance - Highlighted */}
+          <div className="text-white p-6 rounded-2xl shadow-lg relative overflow-hidden" style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)'
+          }}>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm opacity-90">Available Balance</h3>
+                <Wallet className="w-5 h-5 opacity-70" />
               </div>
-              <DollarSign className="h-10 w-10 text-green-500" />
+              <h1 className="text-4xl font-bold mb-3">{displayAmount(wallet.available_balance)}</h1>
+              <p className="text-sm opacity-90 mb-4">Ready for withdrawal</p>
+              <button
+                className="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-all w-full"
+                onClick={handlePayoutRequest}
+              >
+                Request Payout
+              </button>
+              <p className="text-xs mt-2 opacity-75">
+                Min: {displayAmount(wallet.minimum_payout || 50)}
+              </p>
             </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-8 translate-x-8"></div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {formatAmount(combinedEarnings?.totalPending || 0)}
-                </p>
-              </div>
-              <Clock className="h-10 w-10 text-yellow-500" />
+          {/* Pending Income */}
+          <div className="p-6 rounded-2xl shadow-lg" style={{
+            background: 'linear-gradient(145deg, #ffffff 0%, #f9fafb 100%)',
+            border: '1px solid rgba(31, 41, 55, 0.08)'
+          }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Pending Income</h3>
+              <Clock className="w-5 h-5" style={{color: '#d97706'}} />
             </div>
+            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>{displayAmount(wallet.pending_balance)}</h2>
+            <p className="text-sm" style={{color: '#64748b'}}>
+              {pending_entries.length} pending {pending_entries.length === 1 ? 'entry' : 'entries'}
+            </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Paid Out</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {formatAmount(combinedEarnings?.totalPaidOut || 0)}
-                </p>
-              </div>
-              <CheckCircle className="h-10 w-10 text-blue-500" />
+          {/* Active Platforms */}
+          <div className="p-6 rounded-2xl shadow-lg" style={{
+            background: 'linear-gradient(145deg, #ffffff 0%, #f9fafb 100%)',
+            border: '1px solid rgba(31, 41, 55, 0.08)'
+          }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Active Platforms</h3>
+              <TrendingUp className="w-5 h-5" style={{color: '#065f46'}} />
             </div>
+            <h2 className="text-3xl font-bold mb-3" style={{color: '#1f2937'}}>
+              {[...new Set([...pending_entries.map(e => e.platform), ...recent_history.filter(e => e.amount > 0).map(e => e.platform)])].length}
+            </h2>
+            <p className="text-sm" style={{color: '#64748b'}}>Earning sources</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          {/* Last Updated */}
+          <div className="p-6 rounded-2xl shadow-lg" style={{
+            background: 'linear-gradient(145deg, #ffffff 0%, #f9fafb 100%)',
+            border: '1px solid rgba(31, 41, 55, 0.08)'
+          }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium" style={{color: '#64748b'}}>Last Updated</h3>
+              <Calendar className="w-5 h-5" style={{color: '#475569'}} />
+            </div>
+            <h2 className="text-lg font-bold mb-3" style={{color: '#1f2937'}}>
+              {new Date(wallet.last_updated).toLocaleDateString()}
+            </h2>
+            <p className="text-sm" style={{color: '#64748b'}}>
+              {new Date(wallet.last_updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        </div>
+
+
+        {/* Wallet Summary - 3 Core Cards */}
+        <div className="mb-6 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Available Balance */}
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f0fdf4', border: '1px solid #bbf7d0'}}>
               <div>
-                <p className="text-sm text-gray-600">Transactions</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {combinedEarnings?.transactionCount || 0}
-                </p>
+                <p className="text-sm font-medium" style={{color: '#065f46'}}>Available Balance</p>
+                <p className="text-xl font-bold" style={{color: '#065f46'}}>{displayAmount(wallet.available_balance)}</p>
+                <p className="text-xs mt-1" style={{color: '#065f46'}}>Ready for withdrawal</p>
               </div>
-              <TrendingUp className="h-10 w-10 text-purple-500" />
+              <CheckCircle className="w-8 h-8" style={{color: '#065f46'}} />
+            </div>
+
+            {/* Total Lifetime Value (CORRECTED) */}
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#fef3c7', border: '1px solid #fcd34d'}}>
+              <div>
+                <p className="text-sm font-medium" style={{color: '#78350f'}}>Total Lifetime Earnings</p>
+                <p className="text-xl font-bold" style={{color: '#78350f'}}>
+                  {displayAmount((wallet.available_balance || 0) + (wallet.pending_balance || 0) + (recent_history.filter(e => e.status === 'paid' && e.earning_type !== 'payout_request' && e.amount > 0).reduce((sum, e) => sum + e.amount, 0)))}
+                </p>
+                <p className="text-xs mt-1" style={{color: '#78350f'}}>Paid + Available + Pending</p>
+              </div>
+              <DollarSign className="w-8 h-8" style={{color: '#d97706'}} />
+            </div>
+
+            {/* Pending Payouts */}
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #e2e8f0'}}>
+              <div>
+                <p className="text-sm font-medium" style={{color: '#475569'}}>Pending Payouts</p>
+                <p className="text-xl font-bold" style={{color: '#475569'}}>
+                  {(() => {
+                    const pendingPayouts = recent_history.filter(entry => entry.earning_type === 'payout_request' && entry.status === 'pending');
+                    const count = pendingPayouts.length;
+                    const totalAmount = pendingPayouts.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+                    return count > 0 ? `${count} - ${displayAmount(totalAmount)}` : '0';
+                  })()}
+                </p>
+                <p className="text-xs mt-1" style={{color: '#475569'}}>Withdrawal requests</p>
+              </div>
+              <Clock className="w-8 h-8" style={{color: '#475569'}} />
             </div>
           </div>
         </div>
 
-        {/* Artist Breakdown */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Earnings by Artist
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">Your share from each artist based on split agreement</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Artist</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Split %</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Earned</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Your Share</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Artist Share</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {combinedEarnings?.artistBreakdown.map((artist) => (
-                  <tr key={artist.artistId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {artist.artistName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                      {artist.percentage}%
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                      {formatAmount(artist.totalEarned)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600 font-semibold">
-                      {formatAmount(artist.labelShare)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                      {formatAmount(artist.artistShare)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
-                      {artist.transactionCount}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* Period Analytics - Separate Row */}
+        <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-bold" style={{color: '#1f2937'}}>Performance Analytics</h3>
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium" style={{color: '#64748b'}}>Period:</label>
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  style={{color: '#1f2937'}}
+                >
+                  {timePeriods.map(period => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
 
-        {/* Recent Transactions */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Recent Transactions
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Artist</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {combinedEarnings?.recentTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                      No transactions yet
-                    </td>
-                  </tr>
-                ) : (
-                  combinedEarnings?.recentTransactions.map((transaction, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(transaction.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction.artistName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {transaction.description || 'Earnings'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                        {formatAmount(transaction.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          transaction.status === 'paid' 
-                            ? 'bg-green-100 text-green-800'
-                            : transaction.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {transaction.status || 'pending'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                {/* Custom Date Range Inputs */}
+                {selectedPeriod === 'custom' && (
+                  <div className="flex items-center space-x-3 ml-4">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium" style={{color: '#64748b'}}>From:</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                        style={{color: '#1f2937'}}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium" style={{color: '#64748b'}}>To:</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                        style={{color: '#1f2937'}}
+                      />
+                    </div>
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+            </div>
+            {periodMetrics && periodMetrics.growthPercentage !== 0 && (
+              <div className="flex items-center space-x-2">
+                {periodMetrics.growthPercentage > 0 ? (
+                  <>
+                    <ArrowUpRight className="w-4 h-4" style={{color: '#065f46'}} />
+                    <span className="text-sm font-medium" style={{color: '#065f46'}}>
+                      +{periodMetrics.growthPercentage.toFixed(1)}% vs previous period
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownRight className="w-4 h-4" style={{color: '#991b1b'}} />
+                    <span className="text-sm font-medium" style={{color: '#991b1b'}}>
+                      {periodMetrics.growthPercentage.toFixed(1)}% vs previous period
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Period Earnings</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? displayAmount(periodMetrics.periodEarnings) : displayAmount(0)}
+              </p>
+            </div>
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Transactions</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? periodMetrics.entryCount : 0}
+              </p>
+            </div>
+            <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+              <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Average per Transaction</p>
+              <p className="text-2xl font-bold" style={{color: '#1f2937'}}>
+                {periodMetrics ? displayAmount(periodMetrics.averagePerEntry) : displayAmount(0)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Pending Income Breakdown */}
+        {pending_entries && pending_entries.length > 0 && (
+          <div className="mb-8 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold" style={{color: '#1f2937'}}>Pending Income</h2>
+              <div className="flex items-center space-x-2 px-3 py-1 rounded-full" style={{background: '#fef3c7', color: '#78350f'}}>
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">{pending_entries.length} Pending</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {pending_entries.map(entry => (
+                <div key={entry.id} className="flex items-center justify-between p-4 rounded-lg hover:bg-slate-50 transition-all" style={{
+                  border: '1px solid rgba(31, 41, 55, 0.08)'
+                }}>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-1">
+                      <p className="font-semibold" style={{color: '#1f2937'}}>{entry.platform}</p>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
+                        background: '#fef3c7', color: '#78350f'
+                      }}>
+                        {entry.earning_type}
+                      </span>
+                    </div>
+                    <p className="text-sm" style={{color: '#64748b'}}>{entry.description}</p>
+                    {entry.notes && (
+                      <p className="text-xs mt-1" style={{color: '#9ca3af'}}>{entry.notes}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-lg" style={{color: '#1f2937'}}>{displayAmount(entry.amount)}</p>
+                    <div className="flex items-center space-x-1">
+                      <Clock className="w-3 h-3" style={{color: '#d97706'}} />
+                      <span className="text-sm font-medium" style={{color: '#d97706'}}>Pending</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Earnings History */}
+        <div className="bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold" style={{color: '#1f2937'}}>Earnings History</h2>
+            <div className="flex items-center space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm font-medium transition-all">
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {recent_history && recent_history.length > 0 ? recent_history.map(entry => (
+              <div key={entry.id} className="flex items-center justify-between p-4 rounded-lg hover:bg-slate-50 transition-all" style={{
+                border: '1px solid rgba(31, 41, 55, 0.08)'
+              }}>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-1">
+                    <p className="font-semibold" style={{color: '#1f2937'}}>{entry.platform}</p>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
+                      background: entry.status === 'paid' ? '#f0fdf4' : '#fef3c7',
+                      color: entry.status === 'paid' ? '#065f46' : '#78350f'
+                    }}>
+                      {entry.earning_type}
+                    </span>
+                  </div>
+                  <p className="text-sm" style={{color: '#64748b'}}>
+                    {entry.description}
+                    {entry.payment_date && ` • Paid ${new Date(entry.payment_date).toLocaleDateString()}`}
+                  </p>
+                  {entry.notes && (
+                    <p className="text-xs mt-1" style={{color: '#9ca3af'}}>{entry.notes}</p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg" style={{color: '#1f2937'}}>{displayAmount(Math.abs(entry.amount))}</p>
+                  <div className="flex items-center justify-end space-x-1">
+                    {entry.status === 'paid' ? (
+                      <>
+                        <CheckCircle className="w-3 h-3" style={{color: '#065f46'}} />
+                        <span className="text-sm font-medium" style={{color: '#065f46'}}>
+                          {entry.earning_type === 'payout_request' ? 'Approved' : 'Paid'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="w-3 h-3" style={{color: '#d97706'}} />
+                        <span className="text-sm font-medium" style={{color: '#d97706'}}>Pending</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-12">
+                <Wallet className="w-16 h-16 mx-auto mb-4" style={{color: '#9ca3af'}} />
+                <p className="text-lg font-medium mb-2" style={{color: '#64748b'}}>No earnings history yet</p>
+                <p className="text-sm" style={{color: '#9ca3af'}}>Your earnings from artist splits will appear here once payments are processed</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  )
-}
 
+      {/* Payout Request Modal */}
+      <PayoutRequestModal
+        isOpen={showPayoutModal}
+        onClose={() => setShowPayoutModal(false)}
+        availableBalance={convertAmount(wallet?.available_balance || 0)}
+        minimumPayout={convertAmount(wallet?.minimum_payout || 50)}
+        currency={selectedCurrency}
+        onSuccess={handlePayoutSuccess}
+      />
+    </div>
+  );
+}

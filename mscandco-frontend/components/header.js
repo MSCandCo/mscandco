@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -447,8 +447,8 @@ function Header({ largeLogo = false }) {
                         {profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}
                       </Link>
 
-                      {/* Messages - Permission-gated */}
-                      {!permissionsLoading && (
+                      {/* Messages - Permission-gated with optimistic rendering */}
+                      {(permissionsLoading ||
                         (profileData?.role === 'label_admin' && hasPermission('labeladmin:messages:access')) ||
                         (profileData?.role !== 'label_admin' && hasPermission('messages:access'))
                       ) && (
@@ -457,7 +457,7 @@ function Header({ largeLogo = false }) {
                           onClick={() => setIsDropdownOpen(false)}
                           className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                          <User className="w-4 h-4 mr-3 text-gray-400" />
+                          <Mail className="w-4 h-4 mr-3 text-gray-400" />
                           Messages
                         </Link>
                       )}

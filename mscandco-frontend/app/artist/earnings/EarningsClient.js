@@ -294,7 +294,18 @@ export default function EarningsClient({ user: serverUser }) {
     );
   }
 
-  const { wallet, pending_entries = [], recent_history = [] } = walletData;
+  // walletData contains wallet properties directly (not nested under 'wallet' key)
+  const wallet = {
+    available_balance: walletData.available_balance || 0,
+    pending_balance: walletData.pending_balance || 0,
+    total_earned: walletData.total_earned || 0,
+    total_withdrawn: walletData.total_withdrawn || 0,
+    minimum_payout: walletData.minimum_payout || 50,
+    last_updated: walletData.last_updated || new Date().toISOString(),
+    currency: walletData.currency || 'GBP'
+  };
+  const pending_entries = walletData.pending_entries || [];
+  const recent_history = walletData.recent_history || [];
 
   return (
     <div className="min-h-screen" style={{background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)'}}>

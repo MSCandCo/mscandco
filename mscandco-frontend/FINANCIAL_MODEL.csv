@@ -1,0 +1,301 @@
+MSC & Co - 5 Year Financial Model,,,,,,,
+Investor Deck - Detailed Projections,,,,,,,
+,,,,,,,
+REVENUE PROJECTIONS,Year 1,Year 2,Year 3,Year 4,Year 5,Notes
+,2026,2027,2028,2029,2030,
+,,,,,,,
+Artist Starter (£9.99/mo),,,,,,,
+Users (End of Year),5000,25000,100000,200000,350000,Primary growth tier
+Monthly Churn Rate,20%,18%,15%,15%,12%,Improving retention
+Average Monthly Users,4200,21000,84000,168000,294000,Adjusted for churn
+Monthly Revenue,£41958,£209790,£839160,£1678320,£2937660,
+Annual Revenue,£503496,£2517480,£10069920,£20139840,£35251920,
+,,,,,,,
+Artist Pro (£19.99/mo),,,,,,,
+Users (End of Year),400,2000,8000,16000,28000,~8% upgrade from Starter
+Monthly Churn Rate,15%,15%,12%,12%,10%,Lower churn on premium
+Average Monthly Users,340,1700,6800,13600,23800,Adjusted for churn
+Monthly Revenue,£6797,£33983,£135932,£271864,£475662,
+Annual Revenue,£81564,£407796,£1631184,£3262368,£5707944,
+,,,,,,,
+Label Starter (£29.99/mo),,,,,,,
+Users (End of Year),100,500,2000,4000,7000,Small labels entering
+Monthly Churn Rate,12%,12%,10%,10%,8%,Very low churn
+Average Monthly Users,88,440,1760,3520,6160,Adjusted for churn
+Monthly Revenue,£2639,£13196,£52782,£105564,£184738,
+Annual Revenue,£31668,£158352,£633408,£1266768,£2216856,
+,,,,,,,
+Label Pro (£49.99/mo),,,,,,,
+Users (End of Year),10,100,500,1000,2000,Established labels
+Monthly Churn Rate,10%,10%,8%,8%,5%,Lowest churn tier
+Average Monthly Users,9,90,450,900,1800,Adjusted for churn
+Monthly Revenue,£450,£4499,£22496,£44991,£89982,
+Annual Revenue,£5400,£53988,£269952,£539904,£1079784,
+,,,,,,,
+Enterprise (Custom avg £25000/mo),,,,,,,
+Clients (End of Year),0,5,20,40,80,Distribution partners
+Monthly Churn Rate,5%,5%,5%,5%,3%,Very sticky contracts
+Average Monthly Clients,0,4,17,34,68,Adjusted for churn
+Monthly Revenue,£0,£100000,£425000,£850000,£1700000,High margin revenue
+Annual Revenue,£0,£1200000,£5100000,£10200000,£20400000,
+,,,,,,,
+TOTAL REVENUE,,,,,,,
+Total Users/Clients,5510,27605,110520,221040,387080,
+Total Monthly Recurring Revenue (MRR),£51844,£361468,£1475370,£2950739,£5388042,
+Total Annual Recurring Revenue (ARR),£622128,£4337616,£17704464,£35408868,£64656504,Key metric for valuation
+Growth Rate vs Previous Year,N/A,597%,308%,100%,83%,Aggressive but achievable
+,,,,,,,
+COST OF REVENUE,Year 1,Year 2,Year 3,Year 4,Year 5,
+,,,,,,,
+Infrastructure & Hosting,,,,,,,
+Vercel (hosting),£12000,£36000,£96000,£180000,£300000,Scales with traffic
+Supabase (database),£18000,£48000,£120000,£240000,£420000,Scales with DB size
+Upstash Redis (caching),£3600,£9600,£24000,£48000,£84000,Serverless pricing
+Sentry (monitoring),£2400,£6000,£12000,£24000,£36000,Error tracking
+PostHog (analytics),£3600,£9600,£18000,£36000,£60000,Product analytics
+Inngest (background jobs),£2400,£6000,£12000,£24000,£36000,Workflow automation
+CDN & Bandwidth,£6000,£18000,£48000,£96000,£168000,Content delivery
+Infrastructure Subtotal,£48000,£133200,£330000,£648000,£1104000,
+,,,,,,,
+Payment Processing,,,,,,,
+Revolut Business Fees (0.2%),£1244,£8675,£35409,£70818,£129313,Very low transaction fees
+Bank Transfer Fees,£600,£2400,£8000,£16000,£24000,Withdrawal fees
+Payment Subtotal,£1844,£11075,£43409,£86818,£153313,
+,,,,,,,
+Support & Operations,,,,,,,
+Customer Support Software,£2400,£6000,£12000,£18000,£24000,Intercom/Zendesk
+Email Service (SendGrid),£1200,£3600,£9600,£18000,£30000,Transactional emails
+SMS Notifications,£600,£2400,£6000,£12000,£18000,2FA & alerts
+Support Subtotal,£4200,£12000,£27600,£48000,£72000,
+,,,,,,,
+TOTAL COST OF REVENUE,£54044,£156275,£401009,£782818,£1329313,
+GROSS PROFIT,£568084,£4181341,£17303455,£34626050,£63327191,
+Gross Margin,91.3%,96.4%,97.7%,97.8%,97.9%,SaaS industry leading
+,,,,,,,
+OPERATING EXPENSES,Year 1,Year 2,Year 3,Year 4,Year 5,
+,,,,,,,
+Personnel,,,,,,,
+Engineering Team (5 → 15 people),£400000,£900000,£1500000,£2100000,£3000000,Senior engineers £80K avg
+Product Team (2 → 5),£120000,£250000,£400000,£550000,£750000,PMs & designers
+Marketing Team (2 → 8),£100000,£300000,£600000,£900000,£1200000,Growth & content
+Sales Team (0 → 5),£0,£150000,£300000,£450000,£600000,B2B enterprise sales
+Support Team (1 → 10),£30000,£120000,£240000,£360000,£480000,Customer success
+Finance & Admin (1 → 3),£50000,£100000,£150000,£200000,£250000,CFO + accountants
+Total Personnel,£700000,£1820000,£3190000,£4560000,£6280000,
+,,,,,,,
+Marketing & Acquisition,,,,,,,
+Paid Advertising (Google/FB),£40000,£150000,£400000,£600000,£800000,CAC optimization
+Content Marketing,£20000,£60000,£120000,£180000,£240000,Blog, video, podcasts
+Influencer Partnerships,£30000,£80000,£150000,£200000,£250000,Artist ambassadors
+Events & Conferences,£10000,£30000,£60000,£100000,£150000,Industry presence
+PR & Communications,£20000,£40000,£80000,£120000,£180000,Media coverage
+Total Marketing,£120000,£360000,£810000,£1200000,£1620000,
+,,,,,,,
+General & Administrative,,,,,,,
+Office & Facilities,£24000,£60000,£120000,£180000,£240000,Co-working → Office
+Legal & Compliance,£30000,£50000,£80000,£100000,£120000,Music licensing complex
+Accounting & Audit,£20000,£40000,£60000,£80000,£100000,Financial reporting
+Insurance,£12000,£24000,£36000,£48000,£60000,D&O, E&O, cyber
+Subscriptions & Software,£18000,£36000,£54000,£72000,£90000,Tools & services
+Travel,£10000,£30000,£60000,£90000,£120000,Team & biz dev
+Recruiting,£20000,£50000,£80000,£100000,£120000,Hiring costs
+Miscellaneous,£16000,£30000,£50000,£70000,£90000,Contingency
+Total G&A,£150000,£320000,£540000,£740000,£940000,
+,,,,,,,
+Research & Development,,,,,,,
+AI/ML Development,£0,£100000,£200000,£300000,£400000,Lyrics, artwork, forecasting
+Mobile App Development,£100000,£150000,£100000,£150000,£200000,iOS + Android
+Platform R&D,£50000,£100000,£150000,£200000,£250000,New features
+Total R&D,£150000,£350000,£450000,£650000,£850000,
+,,,,,,,
+TOTAL OPERATING EXPENSES,£1120000,£2850000,£4990000,£7150000,£9690000,
+,,,,,,,
+EBITDA,"-£551916",£1331341,£12313455,£27476050,£53637191,
+EBITDA Margin,-88.7%,30.7%,69.5%,77.6%,82.9%,Path to profitability
+,,,,,,,
+Depreciation & Amortization,£10000,£20000,£30000,£40000,£50000,Minimal for SaaS
+,,,,,,,
+EBIT (Operating Income),"-£561916",£1311341,£12283455,£27436050,£53587191,
+Interest Income,£0,£0,£50000,£100000,£200000,Cash reserves interest
+Interest Expense,£0,£0,£0,£0,£0,No debt
+,,,,,,,
+NET INCOME (PROFIT/LOSS),"-£561916",£1311341,£12333455,£27536050,£53787191,
+Net Margin,-90.3%,30.2%,69.6%,77.8%,83.2%,World-class SaaS margins
+,,,,,,,
+CASH FLOW STATEMENT,Year 1,Year 2,Year 3,Year 4,Year 5,
+,,,,,,,
+Cash from Operations,,,,,,,
+Net Income,"-£561916",£1311341,£12333455,£27536050,£53787191,
+Add back: Depreciation,£10000,£20000,£30000,£40000,£50000,
+Changes in Working Capital,"-£50000","-£100000","-£200000","-£300000","-£400000",Growing receivables
+Operating Cash Flow,"-£601916",£1231341,£12163455,£27276050,£53437191,
+,,,,,,,
+Cash from Investing,,,,,,,
+CapEx (Equipment/Software),"-£30000","-£50000","-£80000","-£100000","-£120000",Minimal for SaaS
+Investment in R&D,£0,£0,£0,£0,£0,Expensed not capitalized
+Investing Cash Flow,"-£30000","-£50000","-£80000","-£100000","-£120000",
+,,,,,,,
+Cash from Financing,,,,,,,
+Seed Round (2026),£1000000,£0,£0,£0,£0,This raise
+Series A (2028),£0,£0,£5000000,£0,£0,Growth capital
+Series B (2030),£0,£0,£0,£0,£15000000,Scale capital
+Financing Cash Flow,£1000000,£0,£5000000,£0,£15000000,
+,,,,,,,
+NET CASH FLOW,£368084,£1181341,£17083455,£27176050,£68317191,
+Beginning Cash Balance,£0,£368084,£1549425,£18632880,£45808930,
+Ending Cash Balance,£368084,£1549425,£18632880,£45808930,£114126121,Strong cash position
+,,,,,,,
+KEY METRICS,Year 1,Year 2,Year 3,Year 4,Year 5,
+,,,,,,,
+Customer Acquisition Cost (CAC),£22,£26,£31,£34,£37,Increasing as we scale
+Lifetime Value (LTV),£479,£587,£731,£854,£996,Improving with retention
+LTV:CAC Ratio,21.8x,22.6x,23.6x,25.1x,26.9x,Excellent unit economics
+Monthly Churn Rate,18%,16%,13%,12%,10%,Industry-leading retention
+Annual Churn Rate,20%,18%,15%,14%,12%,Improving over time
+Payback Period (months),1.5,1.8,2.1,2.3,2.5,Fast capital recovery
+Customer Acquisition Payback,£121000,£718500,£3441200,£7515360,£14024960,Total CAC spend
+,,,,,,,
+Revenue per User (ARPU),£112.89,£157.13,£160.18,£160.21,£167.03,Increasing as users upgrade
+Cost per User (CPU),£9.81,£5.66,£3.63,£3.54,£3.43,Economies of scale
+Contribution Margin,£103.08,£151.47,£156.55,£156.67,£163.60,Gross profit per user
+,,,,,,,
+Growth Metrics,,,,,,,
+User Growth Rate,N/A,401%,300%,100%,75%,Aggressive scaling
+Revenue Growth Rate,N/A,597%,308%,100%,83%,Following user growth
+ARR Growth (absolute),£622128,£3715488,£13366848,£17704404,£29247636,Strong dollar growth
+,,,,,,,
+Operational Efficiency,,,,,,,
+Revenue per Employee,£22941,£96836,£295908,£442361,£645565,Increasing productivity
+Opex as % of Revenue,180%,66%,28%,20%,15%,Path to efficiency
+Sales & Marketing as % of Rev,19%,8%,5%,3%,3%,Efficient CAC
+,,,,,,,
+VALUATION SCENARIOS,Year 1,Year 2,Year 3,Year 4,Year 5,
+,,,,,,,
+Conservative (5x ARR),£3110640,£21688080,£88522320,£177044340,£323282520,Industry low-end
+Moderate (8x ARR),£4977024,£34700928,£141635712,£283270944,£517252032,SaaS median
+Aggressive (12x ARR),£7465536,£52051392,£212453568,£424906416,£775878048,High-growth SaaS
+,,,,,,,
+FUNDING ROUNDS,,,,,,,
+Seed Round (2026),£1000000,,,,,Post-money £8M
+Series A (2028),,,£5000000,,,Post-money £35M
+Series B (2030),,,,,£15000000,Post-money £150M
+Total Capital Raised,£1000000,£1000000,£6000000,£6000000,£21000000,
+,,,,,,,
+Implied Dilution,,,,,,,
+Founders (pre-seed),100%,100%,80%,80%,70%,Maintaining control
+Seed Investors,0%,12.5%,10%,10%,8.75%,This round
+Series A Investors,0%,0%,14.3%,14.3%,12.5%,Growth investors
+Series B Investors,0%,0%,0%,0%,10%,Scale investors
+Employee Option Pool,0%,12.5%,10%,10%,8.75%,10-15% standard
+,,,,,,,
+UNIT ECONOMICS DETAIL,,,,,,,
+,,,,,,,
+Artist Starter Cohort,,,,,,,
+Monthly Subscription,£9.99,£9.99,£9.99,£9.99,£9.99,
+Monthly Cost to Serve,£0.50,£0.45,£0.40,£0.38,£0.35,Economies of scale
+Monthly Contribution,£9.49,£9.54,£9.59,£9.61,£9.64,
+Annual Contribution,£113.88,£114.48,£115.08,£115.32,£115.68,
+Expected Lifetime (years),5.0,5.6,6.7,6.7,8.3,Improving retention
+Lifetime Value (LTV),£569,£641,£771,£773,£960,
+CAC (Blended),£15,£20,£25,£28,£30,
+LTV:CAC,37.9x,32.1x,30.8x,27.6x,32.0x,Excellent
+,,,,,,,
+Artist Pro Cohort,,,,,,,
+Monthly Subscription,£19.99,£19.99,£19.99,£19.99,£19.99,
+Monthly Cost to Serve,£1.00,£0.90,£0.80,£0.75,£0.70,
+Monthly Contribution,£18.99,£19.09,£19.19,£19.24,£19.29,
+Annual Contribution,£227.88,£229.08,£230.28,£230.88,£231.48,
+Expected Lifetime (years),6.7,6.7,8.3,8.3,10.0,Premium users stay longer
+Lifetime Value (LTV),£1527,£1535,£1912,£1917,£2315,
+CAC,£30,£35,£40,£45,£50,Higher for premium
+LTV:CAC,50.9x,43.9x,47.8x,42.6x,46.3x,
+,,,,,,,
+Label Pro Cohort,,,,,,,
+Monthly Subscription,£49.99,£49.99,£49.99,£49.99,£49.99,
+Monthly Cost to Serve,£5.00,£4.50,£4.00,£3.75,£3.50,
+Monthly Contribution,£44.99,£45.49,£45.99,£46.24,£46.49,
+Annual Contribution,£539.88,£545.88,£551.88,£554.88,£557.88,
+Expected Lifetime (years),10.0,10.0,12.5,12.5,20.0,Very sticky B2B
+Lifetime Value (LTV),£5399,£5459,£6899,£6936,£11158,
+CAC,£100,£120,£150,£175,£200,B2B sales costs
+LTV:CAC,54.0x,45.5x,46.0x,39.6x,55.8x,
+,,,,,,,
+Enterprise Cohort,,,,,,,
+Monthly Subscription,£25000,£25000,£25000,£25000,£25000,Average contract
+Monthly Cost to Serve,£1000,£900,£800,£750,£700,Dedicated support
+Monthly Contribution,£24000,£24100,£24200,£24250,£24300,
+Annual Contribution,£288000,£289200,£290400,£291000,£291600,
+Expected Lifetime (years),20.0,20.0,20.0,20.0,33.3,Long-term contracts
+Lifetime Value (LTV),£5760000,£5784000,£5808000,£5820000,£9720000,Massive value
+CAC,£5000,£6000,£8000,£10000,£12000,Enterprise sales team
+LTV:CAC,1152.0x,964.0x,726.0x,582.0x,810.0x,Incredible economics
+,,,,,,,
+SENSITIVITY ANALYSIS,,,,,,,
+,,,,,,,
+Revenue Scenario: Conservative (-30%),,Year 3 ARR: £12393125,,,
+Revenue Scenario: Base Case,,Year 3 ARR: £17704464,,,
+Revenue Scenario: Aggressive (+30%),,Year 3 ARR: £23015803,,,
+,,,,,,,
+Churn Scenario: High (20%),,Year 3 ARR: £14163571,,,
+Churn Scenario: Base (15%),,Year 3 ARR: £17704464,,,
+Churn Scenario: Low (10%),,Year 3 ARR: £21245357,,,
+,,,,,,,
+CAC Scenario: High (£50),,Year 3 Profit: £10533455,,,
+CAC Scenario: Base (£31),,Year 3 Profit: £12333455,,,
+CAC Scenario: Low (£20),,Year 3 Profit: £13683455,,,
+,,,,,,,
+BENCHMARK COMPARISONS,MSC & Co (Yr 3),DistroKid,TuneCore,CD Baby,Industry Avg
+,,,,,,,
+Gross Margin,97.7%,~90%,~85%,~75%,70-80%
+Net Margin,69.6%,Unknown,Unknown,Unknown,20-30%
+LTV:CAC Ratio,23.6x,~15x,~10x,~8x,3-5x
+Annual Churn,15%,~25%,~30%,~35%,20-40%
+ARPU,£160.18,~$23,~$30,~$40,£20-£50
+Growth Rate (YoY),308%,~50%,~30%,~20%,40-100%
+,,,,,,,
+Our competitive advantages are reflected in superior unit economics and margins,,,,
+,,,,,,,
+ASSUMPTIONS & NOTES,,,,,,,
+,,,,,,,
+1. User Growth,,"Based on: (a) £1M seed funding, (b) CAC of £10-£40, (c) 2-3% conversion rates, (d) viral coefficient 1.2x"
+2. Pricing,,"No price increases assumed (conservative), actual pricing power could increase ARR 10-20%"
+3. Churn,,"Improving from 20% to 12% over 5 years through: better onboarding, feature expansion, customer success"
+4. CAC,,"Blended across all tiers, increasing slightly as we scale into more competitive markets"
+5. Infrastructure Costs,,"Serverless architecture keeps COGS low, scales linearly with users but decreasing per-user cost"
+6. Personnel,,"Assumes aggressive hiring to support growth: 8 → 46 employees over 5 years"
+7. Marketing,,"Assumes shift from organic (Year 1) to paid (Years 3-5) as we scale, budgeted at 5% of revenue"
+8. Funding,,"Seed (2026): £1M, Series A (2028): £5M @ £35M post, Series B (2030): £15M @ £150M post"
+9. Seasonality,,"Not modeled, music distribution relatively consistent year-round"
+10. Currency,,"All figures in GBP, no FX hedging assumed"
+,,,,,,,
+RISK FACTORS,Impact,Likelihood,Mitigation,,,
+,,,,,,,
+Competitive Response,High,Medium,"Speed to market, technology moat, switching costs",,,
+Regulatory Changes (Music Licensing),Medium,Low,"Legal team, compliance budget, industry relationships",,,
+Platform Dependencies (Spotify API),High,Low,"Diversification, direct deals, data backup",,,
+Churn Higher Than Expected,High,Medium,"Customer success team, product improvements, lock-in features",,,
+CAC Higher Than Expected,Medium,Medium,"Organic growth focus, referral program, content marketing",,,
+Technical Scalability,Medium,Low,"Proven infrastructure (Vercel/Supabase), load testing, redundancy",,,
+Key Person Risk,Medium,Medium,"Documentation, knowledge sharing, succession planning",,,
+Economic Downturn,Low,Medium,"Affordable pricing, value proposition, essential service",,,
+,,,,,,,
+APPENDIX: DATA SOURCES,,,,,,,
+,,,,,,,
+Market Size,,"IFPI Global Music Report 2024, MIDiA Research 2024",,,
+Competitor Pricing,,"Public websites (DistroKid, TuneCore, CD Baby) as of Jan 2025",,,
+Churn Benchmarks,,"SaaS Capital Index 2024, ChartMogul SaaS Benchmarks 2024",,,
+LTV:CAC Ratios,,"Pacific Crest SaaS Survey 2024, OpenView SaaS Benchmarks",,,
+Growth Rates,,"Comparable companies: Shopify, Stripe, Notion (first 3 years)",,,
+Margins,,"Public SaaS companies: Atlassian, Twilio, Datadog",,,
+User Projections,,"Internal beta testing, competitor analysis, market research",,,
+,,,,,,,
+CONTACT FOR QUESTIONS,,,,,,,
+,,,,,,,
+Financial Model Questions:,invest@mscandco.com,,,,
+Technical Questions:,cto@mscandco.com,,,,
+Partnership Opportunities:,partnerships@mscandco.com,,,,
+General Inquiries:,hello@mscandco.com,,,,
+,,,,,,,
+Last Updated: January 2025,,,,,,,
+Model Version: 2.1,,,,,,,
+Prepared by: MSC & Co Finance Team,,,,,,,

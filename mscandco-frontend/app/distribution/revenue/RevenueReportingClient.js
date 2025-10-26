@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
-import { PageLoading } from '@/components/ui/LoadingSpinner';
   TrendingUp,
   DollarSign,
   BarChart3,
@@ -48,17 +48,27 @@ export default function RevenueReportingClient({ user }) {
   const loadReleases = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('releases')
-        .select('*')
-        .eq('status', 'live')
-        .order('release_date', { ascending: false })
+      console.log('💰 Fetching live releases from API...')
 
-      if (error) throw error
+      const response = await fetch('/api/distribution/revenue')
 
-      setReleases(data || [])
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API response not OK: ${response.status}`, errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log('💰 Revenue API response:', result)
+
+      if (result.success) {
+        console.log(`✅ Loaded ${result.releases?.length || 0} live releases`)
+        setReleases(result.releases || [])
+      } else {
+        throw new Error(result.error || 'Failed to load releases')
+      }
     } catch (error) {
-      console.error('Error loading releases:', error)
+      console.error('❌ Error loading releases:', error)
       showNotification('Failed to load releases', 'error')
     } finally {
       setLoading(false)
@@ -67,23 +77,39 @@ export default function RevenueReportingClient({ user }) {
 
   const handleUpdateEarnings = async (releaseId, earnings, streams) => {
     try {
-      const { error } = await supabase
-        .from('releases')
-        .update({
-          partner_earnings: earnings,
-          partner_streams: streams,
-          updated_at: new Date().toISOString()
+      console.log('💰 Updating earnings via API:', { releaseId, earnings, streams })
+
+      const response = await fetch('/api/distribution/revenue', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          releaseId,
+          earnings,
+          streams
         })
-        .eq('id', releaseId)
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API response not OK: ${response.status}`, errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
 
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update earnings')
+      }
+
+      console.log('✅ Earnings updated successfully')
       loadReleases()
       setEditingEarnings(null)
       setEditingStreams(null)
       showNotification('Earnings and analytics updated successfully', 'success')
     } catch (error) {
-      console.error('Error updating earnings:', error)
+      console.error('❌ Error updating earnings:', error)
       showNotification('Failed to update earnings', 'error')
     }
   }

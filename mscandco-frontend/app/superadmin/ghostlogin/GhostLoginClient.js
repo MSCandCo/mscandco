@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
-import { PageLoading } from '@/components/ui/LoadingSpinner';
   Search,
   UserCircle,
   LogIn,

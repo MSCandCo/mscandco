@@ -43,8 +43,9 @@ import SubscriptionGate from '@/components/auth/SubscriptionGate';
 
 export default function ReleasesClient({ user: userProp }) {
   const router = useRouter();
-  const { user, session, supabase } = useUser(); // Get user, session AND supabase from provider
-  const isLoading = false; // User is provided as prop from server component
+  const { user: hookUser, session, supabase } = useUser(); // Get user, session AND supabase from provider
+  const user = userProp || hookUser; // Prefer prop user, fallback to hook user
+  const isLoading = !user; // Loading if no user available
     const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [releases, setReleases] = useState([]);
   const [profileData, setProfileData] = useState(null);
@@ -369,20 +370,25 @@ export default function ReleasesClient({ user: userProp }) {
       try {
         console.log('🔍 Starting data load, user:', user?.email);
         console.log('🔐 Session from provider:', { hasSession: !!session, hasToken: !!session?.access_token });
-        
-        // Use session from provider context - THIS IS THE FIX!
-        const token = session?.access_token;
-        
+
+        // Get session - try from provider first, then fetch fresh
+        let token = session?.access_token;
+
         if (!token) {
-          console.error('❌ No access token available! Trying to refresh...');
-          // Try to get a fresh session
-          const { data: { session: freshSession } } = await supabase.auth.refreshSession();
+          console.error('❌ No access token available! Trying to get session...');
+          // Get a fresh session directly
+          const { data: { session: freshSession } } = await supabase.auth.getSession();
           if (freshSession?.access_token) {
-            console.log('✅ Got fresh token from refresh');
-            // Use the fresh token
-            const freshToken = freshSession.access_token;
+            console.log('✅ Got fresh token from getSession');
+            token = freshSession.access_token;
           } else {
-            console.error('❌ Failed to refresh session');
+            console.error('❌ Failed to get session');
+            // Try refresh as last resort
+            const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+            if (refreshedSession?.access_token) {
+              console.log('✅ Got token from refresh');
+              token = refreshedSession.access_token;
+            }
           }
         }
         
@@ -408,15 +414,22 @@ export default function ReleasesClient({ user: userProp }) {
         console.log('📡 API Response status:', releasesResponse.status);
         
         if (releasesResponse.ok) {
-          const artistReleases = await releasesResponse.json();
-          console.log(`✅ Loaded ${artistReleases.length} releases from database`);
-          setReleases(artistReleases);
+          const responseData = await releasesResponse.json();
+          console.log('📦 Raw API Response:', responseData);
+          // API returns { success: true, releases: [...] }, extract the releases array
+          const releasesArray = Array.isArray(responseData.releases)
+            ? responseData.releases
+            : (Array.isArray(responseData) ? responseData : []);
+          console.log(`✅ Loaded ${releasesArray.length} releases from database`);
+          console.log('📋 Releases data:', releasesArray);
+          setReleases(releasesArray);
         } else {
           const errorText = await releasesResponse.text();
           console.error('❌ Failed to load releases from database:', releasesResponse.status, errorText);
           // Fallback to mock data if API fails
           const artistReleases = getReleasesByArtist('msc_co');
-          setReleases(artistReleases);
+          const releasesArray = Array.isArray(artistReleases) ? artistReleases : [];
+          setReleases(releasesArray);
         }
 
         // Simple plan check - One source of truth
@@ -430,7 +443,8 @@ export default function ReleasesClient({ user: userProp }) {
         console.error('Error loading data:', error);
         // Fallback to mock data on any error
         const artistReleases = getReleasesByArtist('msc_co');
-        setReleases(artistReleases);
+        const releasesArray = Array.isArray(artistReleases) ? artistReleases : [];
+        setReleases(releasesArray);
         setIsLoadingData(false);
       }
     };
@@ -459,17 +473,17 @@ export default function ReleasesClient({ user: userProp }) {
         });
         
         const result = await response.json();
-        
-        if (result.success) {
+
+        if (result.success && result.data) {
           setSubscriptionStatus(result.data);
           // Update user plan based on real subscription
           const plan = result.data.isPro ? 'pro' : 'starter';
           setUserPlan(plan);
-          console.log('Real Subscription Status:', { 
-            plan, 
+          console.log('Real Subscription Status:', {
+            plan,
             isPro: result.data.isPro,
             planName: result.data.planName,
-            tier: result.data.planId 
+            tier: result.data.planId
           });
         } else {
           // Set default starter plan
@@ -497,7 +511,8 @@ export default function ReleasesClient({ user: userProp }) {
   // Calculate release counts for starter plan limits
   const releaseCount = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    const releasesThisYear = releases.filter(release => {
+    const releasesArray = Array.isArray(releases) ? releases : [];
+    const releasesThisYear = releasesArray.filter(release => {
       const releaseDate = new Date(release.releaseDate);
       return releaseDate.getFullYear() === currentYear;
     }).length;
@@ -515,8 +530,8 @@ export default function ReleasesClient({ user: userProp }) {
 
   // Advanced filtering system
   const filteredReleases = useMemo(() => {
-
-    let filtered = releases;
+    const releasesArray = Array.isArray(releases) ? releases : [];
+    let filtered = releasesArray;
 
     // Status filter
     if (statusFilter !== 'all') {
@@ -549,16 +564,17 @@ export default function ReleasesClient({ user: userProp }) {
 
   // Statistics calculation
   const stats = useMemo(() => {
+    const releasesArray = Array.isArray(releases) ? releases : [];
     return {
-      total: releases.length,
-      draft: releases.filter(r => r.status === RELEASE_STATUSES.DRAFT).length,
-      submitted: releases.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length,
-      inReview: releases.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length,
-      revision: releases.filter(r => r.status === RELEASE_STATUSES.REVISION).length,
-      completed: releases.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length,
-      live: releases.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
+      total: releasesArray.length,
+      draft: releasesArray.filter(r => r.status === RELEASE_STATUSES.DRAFT).length,
+      submitted: releasesArray.filter(r => r.status === RELEASE_STATUSES.SUBMITTED).length,
+      inReview: releasesArray.filter(r => r.status === RELEASE_STATUSES.IN_REVIEW).length,
+      revision: releasesArray.filter(r => r.status === RELEASE_STATUSES.REVISION).length,
+      completed: releasesArray.filter(r => r.status === RELEASE_STATUSES.COMPLETED).length,
+      live: releasesArray.filter(r => r.status === RELEASE_STATUSES.LIVE).length,
 
-      totalStreams: releases.reduce((sum, r) => sum + (r.streams || 0), 0)
+      totalStreams: releasesArray.reduce((sum, r) => sum + (r.streams || 0), 0)
     };
   }, [releases]);
 
@@ -984,7 +1000,7 @@ export default function ReleasesClient({ user: userProp }) {
           ) : filteredReleases.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border">
               {releases.length === 0 ? (
-                <EmptyReleases 
+                <EmptyReleases
                   onCreateRelease={() => setIsCreateModalOpen(true)}
                   userRole="artist"
                 />

@@ -10,7 +10,8 @@ const supabase = createClient(
 
 /**
  * GET /api/labeladmin/earnings
- * Fetch label admin earnings from shared_earnings table (their split from artists)
+ * Fetch label admin earnings from earnings_log table (deposits from artist splits)
+ * Works exactly like artist earnings - just reads from earnings_log for the label admin user
  */
 export async function GET(request) {
   try {
@@ -23,131 +24,159 @@ export async function GET(request) {
     }
 
     const labelAdminId = user.id
-    console.log('💰 Fetching label admin earnings:', labelAdminId)
+    console.log('💰 Fetching label admin wallet data:', labelAdminId)
 
-    // First, get all affiliations for this label admin
-    const { data: affiliations, error: affiliationsError } = await supabase
-      .from('label_artist_affiliations')
-      .select('id, label_percentage, artist_id, user_profiles!label_artist_affiliations_artist_id_fkey (id, artist_name, first_name, last_name, email)')
-      .eq('label_admin_id', labelAdminId)
-      .eq('status', 'active')
-
-    if (affiliationsError) {
-      console.error('❌ Error fetching affiliations:', affiliationsError)
-      return NextResponse.json(
-        { error: 'Failed to fetch affiliations', details: affiliationsError.message },
-        { status: 500 }
-      )
-    }
-
-    if (!affiliations || affiliations.length === 0) {
-      console.log('ℹ️ No affiliations found for label admin')
-      return NextResponse.json({
-        success: true,
-        summary: {
-          totalLabelEarnings: 0,
-          totalArtistEarnings: 0,
-          totalEarnings: 0,
-          artistCount: 0,
-          entryCount: 0
-        },
-        earningsByArtist: {},
-        recentEarnings: []
-      })
-    }
-
-    const affiliationIds = affiliations.map(a => a.id)
-
-    // Get all shared earnings for these affiliations
-    const { data: sharedEarnings, error } = await supabase
-      .from('shared_earnings')
-      .select('id, artist_amount, label_amount, total_amount, platform, earning_type, currency, created_at, affiliation_id')
-      .in('affiliation_id', affiliationIds)
+    // Fetch all earnings from earnings_log (same as artist earnings)
+    const { data: earnings, error } = await supabase
+      .from('earnings_log')
+      .select('*')
+      .eq('artist_id', labelAdminId) // artist_id column is used for both artists and label admins
+      .neq('status', 'cancelled')
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('❌ Error fetching shared earnings:', error)
+      console.error('❌ Error fetching earnings:', error)
       return NextResponse.json(
         { error: 'Failed to fetch earnings', details: error.message },
         { status: 500 }
       )
     }
 
-    // If no earnings found, return empty state (not an error)
-    if (!sharedEarnings || sharedEarnings.length === 0) {
-      console.log('ℹ️ No earnings found for label admin affiliations')
-      return NextResponse.json({
-        success: true,
-        summary: {
-          totalLabelEarnings: 0,
-          totalArtistEarnings: 0,
-          totalEarnings: 0,
-          artistCount: affiliations.length,
-          entryCount: 0
-        },
-        earningsByArtist: {},
-        recentEarnings: []
-      })
-    }
+    // Ensure earnings is an array (could be null if no results)
+    const earningsArray = earnings || []
 
-    // Calculate totals
-    const totalLabelEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.label_amount || 0), 0)
-    const totalArtistEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.artist_amount || 0), 0)
-    const totalEarnings = sharedEarnings.reduce((sum, earning) => sum + (earning.total_amount || 0), 0)
+    // Calculate balance from earnings_log
+    const totalBalance = earningsArray.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0)
 
-    // Create a map of affiliations for easy lookup
-    const affiliationMap = {}
-    affiliations.forEach(aff => {
-      affiliationMap[aff.id] = aff
-    })
+    // Separate positive (credits) and negative (debits) transactions
+    const credits = earningsArray.filter(e => parseFloat(e.amount) > 0)
+    const debits = earningsArray.filter(e => parseFloat(e.amount) < 0)
 
-    // Group by artist
-    const earningsByArtist = {}
-    
-    sharedEarnings.forEach(earning => {
-      const affiliation = affiliationMap[earning.affiliation_id]
-      if (!affiliation) return
+    const totalEarned = credits.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0)
+    const totalSpent = Math.abs(debits.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0))
 
-      const artist = affiliation.user_profiles
-      const artistName = artist?.artist_name || 
-                        `${artist?.first_name || ''} ${artist?.last_name || ''}`.trim() ||
-                        'Unknown Artist'
-      
-      if (!earningsByArtist[artistName]) {
-        earningsByArtist[artistName] = {
-          artistId: artist?.id,
-          artistName,
-          artistEmail: artist?.email,
-          totalEarnings: 0,
-          labelShare: 0,
-          artistShare: 0,
-          percentage: affiliation.label_percentage || 0,
+    // Group earnings by type
+    const earningsByType = {}
+    credits.forEach(earning => {
+      const type = earning.earning_type || 'other'
+      if (!earningsByType[type]) {
+        earningsByType[type] = {
+          type,
+          total: 0,
+          count: 0,
           entries: []
         }
       }
-      
-      earningsByArtist[artistName].totalEarnings += earning.total_amount || 0
-      earningsByArtist[artistName].labelShare += earning.label_amount || 0
-      earningsByArtist[artistName].artistShare += earning.artist_amount || 0
-      earningsByArtist[artistName].entries.push({
-        ...earning,
-        affiliation
-      })
+      earningsByType[type].total += parseFloat(earning.amount || 0)
+      earningsByType[type].count += 1
+      earningsByType[type].entries.push(earning)
     })
 
-    console.log(`✅ Label admin earnings loaded: ${totalLabelEarnings.toFixed(2)} from ${Object.keys(earningsByArtist).length} artists`)
+    // Group earnings by platform
+    const earningsByPlatform = {}
+    credits.forEach(earning => {
+      const platform = earning.platform || 'Unknown'
+      if (!earningsByPlatform[platform]) {
+        earningsByPlatform[platform] = {
+          platform,
+          total: 0,
+          count: 0,
+          entries: []
+        }
+      }
+      earningsByPlatform[platform].total += parseFloat(earning.amount || 0)
+      earningsByPlatform[platform].count += 1
+      earningsByPlatform[platform].entries.push(earning)
+    })
+
+    // Group earnings by status
+    const earningsByStatus = {}
+    earningsArray.forEach(earning => {
+      const status = earning.status || 'pending'
+      if (!earningsByStatus[status]) {
+        earningsByStatus[status] = {
+          status,
+          total: 0,
+          count: 0,
+          entries: []
+        }
+      }
+      earningsByStatus[status].total += parseFloat(earning.amount || 0)
+      earningsByStatus[status].count += 1
+      earningsByStatus[status].entries.push(earning)
+    })
+
+    // Calculate pending vs paid
+    const paidEarnings = earningsArray.filter(e => e.status === 'paid')
+    const pendingEarnings = earningsArray.filter(e => e.status === 'pending')
+
+    const totalPaid = paidEarnings.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0)
+    const totalPending = pendingEarnings.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0)
+
+    console.log(`✅ Label admin wallet data loaded: Balance ${totalBalance.toFixed(2)}, Earned ${totalEarned.toFixed(2)}, Spent ${totalSpent.toFixed(2)}`)
 
     return NextResponse.json({
       success: true,
+      // Main wallet properties (matching client expectations)
+      available_balance: totalPaid, // Only paid earnings are available for withdrawal
+      pending_balance: totalPending, // Pending earnings
+      total_earned: totalEarned,
+      total_withdrawn: totalSpent,
+      minimum_payout: 50, // Minimum payout threshold
+      last_updated: new Date().toISOString(),
+      currency: 'GBP',
+
+      // Legacy properties for backward compatibility
+      balance: totalBalance,
+      totalEarned,
+      totalSpent,
+      totalPaid,
+      totalPending,
+
+      // Summary data
       summary: {
-        totalLabelEarnings,
-        totalArtistEarnings,
-        totalEarnings,
-        artistCount: Object.keys(earningsByArtist).length,
-        entryCount: sharedEarnings.length
+        totalBalance,
+        totalEarned,
+        totalSpent,
+        totalPaid,
+        totalPending,
+        transactionCount: earningsArray.length,
+        creditCount: credits.length,
+        debitCount: debits.length
       },
-      earningsByArtist,
-      recentEarnings: sharedEarnings.slice(0, 20)
+
+      // Breakdowns
+      breakdowns: {
+        byType: Object.values(earningsByType),
+        byPlatform: Object.values(earningsByPlatform),
+        byStatus: Object.values(earningsByStatus)
+      },
+
+      // Recent transactions
+      recent_history: earningsArray.slice(0, 20).map(earning => ({
+        id: earning.id,
+        amount: parseFloat(earning.amount || 0),
+        earning_type: earning.earning_type || 'other',
+        platform: earning.platform || 'Unknown',
+        status: earning.status || 'pending',
+        payment_date: earning.payment_date || earning.created_at,
+        description: earning.notes || `${earning.earning_type || 'Earning'} from ${earning.platform || 'Platform'}`,
+        currency: earning.currency || 'GBP',
+        created_at: earning.created_at
+      })),
+
+      // Pending entries
+      pending_entries: pendingEarnings.map(earning => ({
+        id: earning.id,
+        amount: parseFloat(earning.amount || 0),
+        earning_type: earning.earning_type || 'other',
+        platform: earning.platform || 'Unknown',
+        status: 'pending',
+        payment_date: earning.payment_date || earning.created_at,
+        description: earning.notes || `${earning.earning_type || 'Earning'} from ${earning.platform || 'Platform'}`,
+        currency: earning.currency || 'GBP',
+        created_at: earning.created_at
+      }))
     })
 
   } catch (error) {

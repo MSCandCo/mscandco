@@ -1,27 +1,47 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function LogoutPage() {
   const router = useRouter()
+  const [hasRun, setHasRun] = useState(false)
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasRun) return
+
     const handleLogout = async () => {
-      const supabase = createClient()
+      try {
+        const supabase = createClient()
 
-      // Sign out
-      await supabase.auth.signOut()
+        console.log('Logging out user...')
 
-      // Redirect to home page
-      router.push('/')
-      router.refresh()
+        // Sign out
+        const { error } = await supabase.auth.signOut()
+
+        if (error) {
+          console.error('Logout error:', error)
+        } else {
+          console.log('Successfully logged out')
+        }
+
+        // Mark as run
+        setHasRun(true)
+
+        // Force redirect with window.location for more reliable navigation
+        window.location.href = '/'
+      } catch (error) {
+        console.error('Logout error:', error)
+        // Still redirect even if there's an error
+        window.location.href = '/'
+      }
     }
 
     handleLogout()
-  }, [router])
+  }, [hasRun])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
