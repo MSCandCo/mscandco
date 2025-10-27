@@ -31,10 +31,30 @@ export async function POST(request) {
     // Get user context for personalization
     const userContext = await getUserContext(userId);
     
+    // Detect repeated issues (user complaining about same thing multiple times)
+    const recentMessages = messages.slice(-6); // Last 6 messages (3 exchanges)
+    const userComplaints = recentMessages.filter(m => 
+      m.role === 'user' && (
+        m.content.toLowerCase().includes('not working') ||
+        m.content.toLowerCase().includes('still not') ||
+        m.content.toLowerCase().includes("it's not") ||
+        m.content.toLowerCase().includes("not showing") ||
+        m.content.toLowerCase().includes("not visible") ||
+        m.content.toLowerCase().includes("doesn't work") ||
+        m.content.toLowerCase().includes("not there")
+      )
+    );
+    
+    // Add escalation context if user has complained 2+ times
+    const shouldEscalate = userComplaints.length >= 2;
+    
     // Create system message with user context
     const systemMessage = {
       role: 'system',
-      content: getSystemPrompt(userContext),
+      content: getSystemPrompt(userContext) + (shouldEscalate ? 
+        '\n\n⚠️ ESCALATION ALERT: User has reported the same issue multiple times. Follow the Escalation Protocol - DO NOT repeat the same action. Provide alternative solutions and escalate to human support.' : 
+        ''
+      ),
     };
     
     // Call OpenAI with function calling
