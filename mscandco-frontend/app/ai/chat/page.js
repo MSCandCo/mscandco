@@ -18,6 +18,8 @@ export default function ApolloAIChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
+  const [insights, setInsights] = useState([]);
+  const [insightsLoaded, setInsightsLoaded] = useState(false);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   
@@ -55,10 +57,57 @@ export default function ApolloAIChatPage() {
     loadGreeting();
   }, [loadGreeting]);
   
+  // Load insights on mount
+  const loadInsights = useCallback(async () => {
+    if (!user || insightsLoaded) return;
+    
+    try {
+      const response = await fetch(`/api/acceber/insights?userId=${user.id}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setInsights(data.insights || []);
+        setInsightsLoaded(true);
+      }
+    } catch (error) {
+      console.error('Failed to load insights:', error);
+      setInsightsLoaded(true);
+    }
+  }, [user, insightsLoaded]);
+  
+  useEffect(() => {
+    loadInsights();
+  }, [loadInsights]);
+  
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  
+  // Handle insight action
+  const handleInsightAction = async (insight) => {
+    if (!insight.action) return;
+    
+    // Send insight as a message to Apollo
+    const insightMessage = `${insight.message} (Action: ${insight.action})`;
+    setInput(insightMessage);
+    await sendMessage();
+  };
+  
+  // Dismiss insight
+  const dismissInsight = async (insightId) => {
+    try {
+      await fetch('/api/acceber/insights', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ insightId, userId: user.id }),
+      });
+      
+      setInsights(insights.filter(i => i.id !== insightId));
+    } catch (error) {
+      console.error('Failed to dismiss insight:', error);
+    }
+  };
   
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -202,6 +251,58 @@ export default function ApolloAIChatPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         <div className="max-w-4xl mx-auto space-y-6">
+          
+          {/* Proactive Insights */}
+          {insights.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600">
+                <Sparkles size={16} className="text-gray-900" />
+                Apollo's Insights for You
+              </div>
+              
+              {insights.map((insight) => (
+                <div
+                  key={insight.id}
+                  className={`bg-gradient-to-r ${
+                    insight.priority === 'high' 
+                      ? 'from-blue-50 to-purple-50 border-blue-200' 
+                      : insight.priority === 'medium'
+                      ? 'from-green-50 to-teal-50 border-green-200'
+                      : 'from-gray-50 to-slate-50 border-gray-200'
+                  } border-2 rounded-2xl p-4 shadow-sm`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl flex-shrink-0">{insight.icon}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {insight.title}
+                      </h3>
+                      <p className="text-sm text-gray-700 mb-3">
+                        {insight.message}
+                      </p>
+                      
+                      <div className="flex items-center gap-2">
+                        {insight.action && (
+                          <button
+                            onClick={() => handleInsightAction(insight)}
+                            className="px-4 py-1.5 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+                          >
+                            Take Action
+                          </button>
+                        )}
+                        <button
+                          onClick={() => dismissInsight(insight.id)}
+                          className="px-4 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {messages.map((msg, idx) => (
             <div
               key={idx}
