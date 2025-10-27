@@ -42,7 +42,7 @@ export async function POST(request) {
       ...ACCEBER_CONFIG,
       messages: [systemMessage, ...messages],
       tools: MVP_TOOLS,
-      tool_choice: 'auto', // Let AI decide when to use tools
+      tool_choice: 'auto', // Let Apollo decide when to use tools
     });
     
     const assistantMessage = response.choices[0].message;

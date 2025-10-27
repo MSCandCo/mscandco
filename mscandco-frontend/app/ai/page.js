@@ -23,7 +23,7 @@ export default function ApolloAILandingPage() {
     {
       icon: MessageSquare,
       title: 'Natural Conversation',
-      description: 'Talk to your AI assistant like a colleague. Ask questions in plain English and get instant, intelligent answers.',
+      description: 'Talk to Apollo like a colleague. Ask questions in plain English and get instant, intelligent answers.',
       color: 'from-gray-800 to-gray-900',
     },
     {
@@ -35,7 +35,7 @@ export default function ApolloAILandingPage() {
     {
       icon: TrendingUp,
       title: 'Performance Analytics',
-      description: 'Understand your music\'s performance with AI-powered insights and trend analysis.',
+      description: 'Understand your music\'s performance with Apollo-powered insights and trend analysis.',
       color: 'from-purple-600 to-purple-700',
     },
     {
@@ -90,7 +90,7 @@ export default function ApolloAILandingPage() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              The world's first AI assistant for music distribution.
+              The world's first Apollo-powered assistant for music distribution.
               <br />
               Talk to your platform. Get instant insights. Make smarter decisions.
             </p>
@@ -101,7 +101,7 @@ export default function ApolloAILandingPage() {
                 onClick={() => router.push('/ai/chat')}
                 className="px-8 py-4 bg-gray-900 text-white rounded-xl font-semibold text-lg hover:bg-gray-800 hover:shadow-2xl transition-all flex items-center gap-2 group"
               >
-                Start Chatting with AI
+                Start Chatting with Apollo
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
               </button>
               
@@ -130,11 +130,11 @@ export default function ApolloAILandingPage() {
               
               {/* Chat Messages Preview */}
               <div className="bg-gray-50 p-6 space-y-4 min-h-[400px]">
-                {/* AI Message */}
+                {/* Apollo Message */}
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
                     <p className="text-gray-700">
-                      Hey! 👋 I'm Apollo, your AI music assistant. How can I help you today?
+                      Hey! 👋 I'm Apollo, your music intelligence assistant. How can I help you today?
                     </p>
                     <p className="text-xs text-gray-500 mt-2">Just now</p>
                   </div>
@@ -148,7 +148,7 @@ export default function ApolloAILandingPage() {
                   </div>
                 </div>
                 
-                {/* AI Response */}
+                {/* Apollo Response */}
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
                     <p className="text-gray-700">
@@ -223,7 +223,7 @@ export default function ApolloAILandingPage() {
                 <p className="text-white font-medium">{example.question}</p>
               </div>
               
-              {/* AI Answer */}
+              {/* Apollo Answer */}
               <div className="p-4 bg-gray-50">
                 <p className="text-gray-700">{example.answer}</p>
               </div>
@@ -263,9 +263,9 @@ export default function ApolloAILandingPage() {
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-purple-600">2</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">AI Analyzes</h3>
+            <h3 className="text-xl font-bold mb-2">Apollo Analyzes</h3>
             <p className="text-gray-600">
-              Acceber understands your question, accesses your real data, and analyzes it instantly.
+              Apollo understands your question, accesses your real data, and analyzes it instantly.
             </p>
           </div>
           

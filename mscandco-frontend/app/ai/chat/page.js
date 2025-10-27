@@ -5,7 +5,7 @@
  * Beautiful conversational AI for music distribution
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { Send, Mic, MicOff, Sparkles, ArrowLeft, Music } from 'lucide-react';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
@@ -17,22 +17,14 @@ export default function ApolloAIChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [greetingLoaded, setGreetingLoaded] = useState(false);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   
-  // Load greeting on mount
-  useEffect(() => {
-    if (user) {
-      loadGreeting();
-    }
-  }, [user]);
-  
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  
-  const loadGreeting = async () => {
+  // Load greeting on mount (memoized)
+  const loadGreeting = useCallback(async () => {
+    if (!user || greetingLoaded) return;
+    
     try {
       const response = await fetch('/api/acceber/greeting', {
         method: 'POST',
@@ -47,15 +39,26 @@ export default function ApolloAIChatPage() {
         content: data.greeting,
         timestamp: new Date(),
       }]);
+      setGreetingLoaded(true);
     } catch (error) {
       console.error('Failed to load greeting:', error);
       setMessages([{
         role: 'assistant',
-        content: "Hi! 👋 I'm Acceber, your AI music assistant. How can I help you today?",
+        content: "Hi! 👋 I'm Apollo, your music intelligence assistant. How can I help you today?",
         timestamp: new Date(),
       }]);
+      setGreetingLoaded(true);
     }
-  };
+  }, [user, greetingLoaded]);
+  
+  useEffect(() => {
+    loadGreeting();
+  }, [loadGreeting]);
+  
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
   
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -182,7 +185,7 @@ export default function ApolloAIChatPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Apollo Intelligence
               </h1>
-              <p className="text-sm text-gray-600">Your AI music distribution assistant</p>
+              <p className="text-sm text-gray-600">Your music intelligence assistant</p>
             </div>
           </div>
           
@@ -254,7 +257,7 @@ export default function ApolloAIChatPage() {
                     <div className="w-2 h-2 bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
                     <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                   </div>
-                  <span className="text-sm text-gray-500">AI is thinking...</span>
+                  <span className="text-sm text-gray-500">Apollo is thinking...</span>
                 </div>
               </div>
             </div>
