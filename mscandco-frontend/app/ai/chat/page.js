@@ -334,6 +334,8 @@ function formatToolName(toolName) {
     suggest_release_timing: '📅 Suggested timing',
     create_release_draft: '✨ Created draft',
     request_payout: '💸 Requested payout',
+    update_profile: '✏️ Updated profile',
+    get_profile: '👤 Retrieved profile',
   };
   
   return names[toolName] || `🔧 ${toolName}`;
