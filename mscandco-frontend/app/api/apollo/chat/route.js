@@ -4,10 +4,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { openai, ACCEBER_CONFIG } from '@/lib/acceber/client';
-import { MVP_TOOLS } from '@/lib/acceber/tools-mvp';
-import { getSystemPrompt } from '@/lib/acceber/prompts';
-import { executeToolCall } from '@/lib/acceber/tool-executor';
+import { openai, APOLLO_CONFIG } from '@/lib/apollo/client';
+import { MVP_TOOLS } from '@/lib/apollo/tools-mvp';
+import { getSystemPrompt } from '@/lib/apollo/prompts';
+import { executeToolCall } from '@/lib/apollo/tool-executor';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -26,7 +26,7 @@ export async function POST(request) {
       );
     }
     
-    console.log('💬 Acceber chat request from user:', userId);
+    console.log('💬 Apollo chat request from user:', userId);
     
     // Get user context for personalization
     const userContext = await getUserContext(userId);
@@ -59,7 +59,7 @@ export async function POST(request) {
     
     // Call OpenAI with function calling
     const response = await openai.chat.completions.create({
-      ...ACCEBER_CONFIG,
+      ...APOLLO_CONFIG,
       messages: [systemMessage, ...messages],
       tools: MVP_TOOLS,
       tool_choice: 'auto', // Let Apollo decide when to use tools
@@ -110,7 +110,7 @@ export async function POST(request) {
       
       // Get final response with tool results
       const finalResponse = await openai.chat.completions.create({
-        ...ACCEBER_CONFIG,
+        ...APOLLO_CONFIG,
         messages: [
           systemMessage,
           ...messages,
@@ -138,7 +138,7 @@ export async function POST(request) {
     });
     
   } catch (error) {
-    console.error('❌ Acceber chat error:', error);
+    console.error('❌ Apollo chat error:', error);
     
     return NextResponse.json(
       {

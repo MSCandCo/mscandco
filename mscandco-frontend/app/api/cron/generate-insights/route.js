@@ -8,7 +8,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { generateInsights } from '@/lib/acceber/insights-engine';
+import { generateInsights } from '@/lib/apollo/insights-engine';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,

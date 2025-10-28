@@ -28,7 +28,7 @@ export default function ApolloAIChatPage() {
     if (!user || greetingLoaded) return;
     
     try {
-      const response = await fetch('/api/acceber/greeting', {
+      const response = await fetch('/api/apollo/greeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
@@ -62,7 +62,7 @@ export default function ApolloAIChatPage() {
     if (!user || insightsLoaded) return;
     
     try {
-      const response = await fetch(`/api/acceber/insights?userId=${user.id}`);
+      const response = await fetch(`/api/apollo/insights?userId=${user.id}`);
       const data = await response.json();
       
       if (data.success) {
@@ -97,7 +97,7 @@ export default function ApolloAIChatPage() {
   // Dismiss insight
   const dismissInsight = async (insightId) => {
     try {
-      await fetch('/api/acceber/insights', {
+      await fetch('/api/apollo/insights', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ insightId, userId: user.id }),
@@ -123,7 +123,7 @@ export default function ApolloAIChatPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/acceber/chat', {
+      const response = await fetch('/api/apollo/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

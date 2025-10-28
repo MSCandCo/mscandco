@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { openai, ACCEBER_CONFIG } from '@/lib/acceber/client';
+import { openai, APOLLO_CONFIG } from '@/lib/apollo/client';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -99,7 +99,7 @@ export async function POST(request) {
     const systemPrompt = getOnboardingPrompt(stage, profile, progress);
     
     const response = await openai.chat.completions.create({
-      ...ACCEBER_CONFIG,
+      ...APOLLO_CONFIG,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
