@@ -1,5 +1,5 @@
 {
-  "name": "@msc-co/mcp-server",
+  "name": "@mscandco/mcp-server",
   "version": "1.0.0",
   "description": "MCP server for MSC & Co music distribution platform - AI-powered music management",
   "type": "module",
