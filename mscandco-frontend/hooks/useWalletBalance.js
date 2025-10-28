@@ -73,9 +73,10 @@ export function useWalletBalance(skip = false) {
         throw new Error(data.error || 'Failed to fetch wallet data');
       }
 
-      const balance = data.wallet?.available_balance || 0;
+      // API returns available_balance at root level (from earnings_log)
+      const balance = data.available_balance || 0;
       setWalletBalance(balance);
-      console.log('Wallet balance fetched from API:', balance);
+      console.log('[useWalletBalance] Balance fetched from earnings_log:', balance, 'GBP');
 
     } catch (err) {
       console.error('Error fetching wallet balance:', err);
