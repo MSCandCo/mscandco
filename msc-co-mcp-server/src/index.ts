@@ -253,8 +253,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case "get_releases": {
+        const params = args as any || {};
         const data = await apiCall(
-          `/api/artist/releases-simple?status=${args.status || "all"}&limit=${args.limit || 50}`
+          `/api/artist/releases-simple?status=${params.status || "all"}&limit=${params.limit || 50}`
         );
         return {
           content: [
@@ -267,9 +268,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "get_earnings": {
+        const params = args as any || {};
         const data = await apiCall(
-          `/api/artist/wallet-simple?timeframe=${args.timeframe || "month"}&currency=${args.currency || "GBP"}`
-        );
+          `/api/artist/wallet-simple?timeframe=${params.timeframe || "month"}&currency=${params.currency || "GBP"}`
+        ) as any;
         return {
           content: [
             {
@@ -281,9 +283,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "get_wallet_balance": {
+        const params = args as any || {};
         const data = await apiCall(
-          `/api/artist/wallet-simple?currency=${args.currency || "GBP"}`
-        );
+          `/api/artist/wallet-simple?currency=${params.currency || "GBP"}`
+        ) as any;
         return {
           content: [
             {
@@ -292,7 +295,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 available: data.wallet_balance,
                 pending: data.total_pending,
                 total_earned: data.total_paid,
-                currency: args.currency || "GBP",
+                currency: params.currency || "GBP",
               }, null, 2),
             },
           ],
@@ -300,8 +303,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "get_analytics": {
+        const params = args as any || {};
         const data = await apiCall(
-          `/api/artist/analytics-data?timeframe=${args.timeframe || "month"}${args.metric ? `&metric=${args.metric}` : ""}`
+          `/api/artist/analytics-data?timeframe=${params.timeframe || "month"}${params.metric ? `&metric=${params.metric}` : ""}`
         );
         return {
           content: [
@@ -314,13 +318,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "create_release": {
+        const params = args as any || {};
         const data = await apiCall("/api/releases", {
           method: "POST",
           body: JSON.stringify({
-            title: args.title,
-            release_type: args.release_type,
-            genre: args.genre,
-            release_date: args.release_date,
+            title: params.title,
+            release_type: params.release_type,
+            genre: params.genre,
+            release_date: params.release_date,
             status: "draft",
           }),
         });
@@ -330,7 +335,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               type: "text",
               text: JSON.stringify({
                 success: true,
-                message: `Draft release created for "${args.title}". You can complete it at ${API_BASE_URL}/artist/releases`,
+                message: `Draft release created for "${params.title}". You can complete it at ${API_BASE_URL}/artist/releases`,
                 release: data,
               }, null, 2),
             },
@@ -357,14 +362,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           apiCall("/api/artist/analytics-data"),
         ]);
 
+        const releasesData = releases as any;
+        const earningsData = earnings as any;
+        const analyticsData = analytics as any;
+
         const stats = {
-          total_releases: releases.releases?.length || 0,
-          live_releases: releases.releases?.filter((r: any) => r.status === "live").length || 0,
-          total_earned: earnings.total_paid,
-          pending_earnings: earnings.total_pending,
-          wallet_balance: earnings.wallet_balance,
-          total_streams: analytics.total_streams || 0,
-          top_platform: analytics.top_platform || "N/A",
+          total_releases: releasesData.releases?.length || 0,
+          live_releases: releasesData.releases?.filter((r: any) => r.status === "live").length || 0,
+          total_earned: earningsData.total_paid,
+          pending_earnings: earningsData.total_pending,
+          wallet_balance: earningsData.wallet_balance,
+          total_streams: analyticsData.total_streams || 0,
+          top_platform: analyticsData.top_platform || "N/A",
         };
 
         return {
@@ -378,7 +387,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "get_release_details": {
-        const data = await apiCall(`/api/releases/${args.release_id}`);
+        const params = args as any || {};
+        const data = await apiCall(`/api/releases/${params.release_id}`);
         return {
           content: [
             {
@@ -390,7 +400,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "search_releases": {
-        const data = await apiCall(`/api/artist/releases-simple?search=${encodeURIComponent(args.query)}`);
+        const params = args as any || {};
+        const data = await apiCall(`/api/artist/releases-simple?search=${encodeURIComponent(params.query || "")}`);
         return {
           content: [
             {
@@ -402,8 +413,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "get_notifications": {
+        const params = args as any || {};
         const data = await apiCall(
-          `/api/notifications?unread=${args.unread_only || false}&limit=${args.limit || 20}`
+          `/api/notifications?unread=${params.unread_only || false}&limit=${params.limit || 20}`
         );
         return {
           content: [
@@ -435,7 +447,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   console.error("🎵 MSC & Co MCP Server starting...");
   console.error(`📡 API: ${API_BASE_URL}`);
-  console.error(`🔑 API Key: ${API_KEY.substring(0, 8)}...`);
+  console.error(`🔑 API Key: ${API_KEY?.substring(0, 8)}...`);
   console.error("✅ Server ready!");
 
   const transport = new StdioServerTransport();
