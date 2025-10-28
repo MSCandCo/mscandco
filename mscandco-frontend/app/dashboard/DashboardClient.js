@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
+import ApolloOnboarding from '@/components/ApolloOnboarding'
 import {
   TrendingUp,
   Music,
@@ -44,6 +45,7 @@ export default function DashboardClient({ user }) {
   const [pendingTasks, setPendingTasks] = useState([])
   const [quickActions, setQuickActions] = useState([])
   const [performanceMetrics, setPerformanceMetrics] = useState([])
+  const [onboardingComplete, setOnboardingComplete] = useState(false)
 
 
   useEffect(() => {
@@ -718,6 +720,15 @@ export default function DashboardClient({ user }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Apollo Onboarding Modal */}
+      <ApolloOnboarding 
+        user={user} 
+        onComplete={() => {
+          setOnboardingComplete(true);
+          loadDashboardData(); // Reload dashboard after onboarding
+        }}
+      />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Header */}
         <div className="mb-8">
