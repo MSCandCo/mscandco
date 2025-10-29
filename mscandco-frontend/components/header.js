@@ -532,18 +532,32 @@ function Header({ largeLogo = false }) {
           </div>
 
           {/* Mobile - Right side */}
-          <div className="md:hidden flex items-center space-x-4 ml-auto">
+          <div className="md:hidden flex items-center space-x-2 ml-auto">
             {user && (
-              <Link href="/notifications" className="relative">
-                <button className="p-2 text-gray-500 hover:text-gray-700">
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-orange-600 rounded-full">
-                      {unreadCount}
+              <>
+                {/* Apollo AI Button - Mobile */}
+                <Link href="/ai" title="Try Apollo Intelligence">
+                  <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors relative">
+                    <Sparkles className="h-5 w-5" />
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-600"></span>
                     </span>
-                  )}
-                </button>
-              </Link>
+                  </button>
+                </Link>
+
+                {/* Notifications Bell */}
+                <Link href="/notifications" className="relative">
+                  <button className="p-2 text-gray-500 hover:text-gray-700">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-orange-600 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </Link>
+              </>
             )}
             
             {/* Hamburger Menu Button */}

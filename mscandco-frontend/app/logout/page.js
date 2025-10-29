@@ -16,19 +16,18 @@ export default function LogoutPage() {
       try {
         const supabase = createClient()
 
-        // Sign out (don't wait for response)
-        supabase.auth.signOut()
+        // Sign out
+        await supabase.auth.signOut()
 
         // Mark as run
         setHasRun(true)
 
-        // Immediate redirect - don't wait for signOut to complete
-        router.push('/')
-        router.refresh()
+        // Hard redirect to clear all state and cache
+        window.location.href = '/'
       } catch (error) {
         console.error('Logout error:', error)
         // Still redirect even if there's an error
-        router.push('/')
+        window.location.href = '/'
       }
     }
 
