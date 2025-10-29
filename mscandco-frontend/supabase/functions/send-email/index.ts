@@ -63,6 +63,10 @@ async function sendEmail(
         to: [to],
         subject: subject,
         html: html,
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@mscandco.com>',
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       }),
     })
 
