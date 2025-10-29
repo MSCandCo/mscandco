@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function LogoutPage() {
   const router = useRouter()
@@ -17,31 +16,24 @@ export default function LogoutPage() {
       try {
         const supabase = createClient()
 
-        console.log('Logging out user...')
-
-        // Sign out
-        const { error } = await supabase.auth.signOut()
-
-        if (error) {
-          console.error('Logout error:', error)
-        } else {
-          console.log('Successfully logged out')
-        }
+        // Sign out (don't wait for response)
+        supabase.auth.signOut()
 
         // Mark as run
         setHasRun(true)
 
-        // Force redirect with window.location for more reliable navigation
-        window.location.href = '/'
+        // Immediate redirect - don't wait for signOut to complete
+        router.push('/')
+        router.refresh()
       } catch (error) {
         console.error('Logout error:', error)
         // Still redirect even if there's an error
-        window.location.href = '/'
+        router.push('/')
       }
     }
 
     handleLogout()
-  }, [hasRun])
+  }, [hasRun, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

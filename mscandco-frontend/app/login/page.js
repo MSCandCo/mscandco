@@ -40,8 +40,9 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Force redirect with window.location for more reliable navigation after login
-        window.location.href = '/dashboard'
+        // Immediate redirect - no waiting
+        router.push('/dashboard')
+        router.refresh() // Force router refresh for instant navigation
       }
     } catch (err) {
       setError('An unexpected error occurred')
