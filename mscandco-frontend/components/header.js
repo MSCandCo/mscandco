@@ -654,6 +654,10 @@ function Header({ largeLogo = false }) {
                   )}
 
                   <div className="border-t border-gray-200 pt-3 mt-3">
+                    <Link href="/ai" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-purple-600 hover:text-purple-700 font-semibold">
+                      <Sparkles className="w-5 h-5" />
+                      <span>Apollo AI</span>
+                    </Link>
                     <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                       <Info className="w-5 h-5" />
                       <span>About</span>

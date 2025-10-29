@@ -129,7 +129,7 @@ const AIEnhancedReleaseForm = ({ onReleaseCreated, onClose }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      // Get Acceber Intelligence AI insights for release timing and revenue potential
+      // Get Apollo Intelligence AI insights for release timing and revenue potential
       const response = await fetch('/api/ai/release-insights', {
         method: 'POST',
         headers: {
@@ -511,7 +511,7 @@ const AIEnhancedReleaseForm = ({ onReleaseCreated, onClose }) => {
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-4">
                 <Sparkles className="w-5 h-5 text-purple-600" />
-                <h4 className="font-semibold text-gray-900">Acceber AI Insights</h4>
+                <h4 className="font-semibold text-gray-900">Apollo AI Insights</h4>
               </div>
 
               {aiInsights.timing_insights && (

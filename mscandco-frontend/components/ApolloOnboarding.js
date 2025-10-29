@@ -30,7 +30,7 @@ export default function ApolloOnboarding({ user, onComplete }) {
   
   const checkOnboardingStatus = async () => {
     try {
-      const response = await fetch(`/api/acceber/onboarding?userId=${user.id}`);
+      const response = await fetch(`/api/apollo/onboarding?userId=${user.id}`);
       const data = await response.json();
       
       if (data.success && data.progress) {
@@ -65,7 +65,7 @@ export default function ApolloOnboarding({ user, onComplete }) {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/acceber/onboarding', {
+      const response = await fetch('/api/apollo/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
