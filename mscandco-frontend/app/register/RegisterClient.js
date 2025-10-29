@@ -47,6 +47,8 @@ export default function RegisterClient() {
     setLoading(true)
 
     try {
+      console.log('🔄 Starting registration for:', email, 'Role:', role)
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -58,19 +60,42 @@ export default function RegisterClient() {
         },
       })
 
+      console.log('📊 Registration response:', { data, error })
+
       if (error) {
+        console.error('❌ Registration error:', error)
         setError(error.message)
         setLoading(false)
         return
       }
 
       if (data.user) {
+        console.log('✅ User created successfully:', data.user.id)
+        
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Verify profile was created
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id, email, role')
+          .eq('id', data.user.id)
+          .single()
+        
+        if (profileError) {
+          console.error('⚠️ Profile verification failed:', profileError)
+          // Don't fail registration, just log it
+        } else {
+          console.log('✅ Profile verified:', profile)
+        }
+        
         // Show success message
         setSuccess(true)
         setLoading(false)
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      console.error('❌ Unexpected registration error:', err)
+      setError(err.message || 'An unexpected error occurred')
       setLoading(false)
     }
   }
