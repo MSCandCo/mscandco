@@ -2,7 +2,6 @@
 // This handles all non-auth emails (release-approved, payment-received, etc.)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { SmtpClient } from 'https://deno.land/x/smtp@v0.7.0/mod.ts'
 import { loadEmailTemplate, replaceTemplateVariables } from './templates.ts'
 
 // Email type definitions
@@ -36,7 +35,8 @@ interface EmailResponse {
 }
 
 /**
- * Send email via SMTP
+ * Send email via Resend API
+ * Resend provides better deliverability, monitoring, and modern API
  */
 async function sendEmail(
   to: string,
@@ -44,42 +44,39 @@ async function sendEmail(
   html: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const client = new SmtpClient()
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'MSC & Co <noreply@mscandco.com>'
 
-    // Get SMTP configuration from environment
-    const smtpHost = Deno.env.get('SMTP_HOST') || 'smtp.gmail.com'
-    const smtpPort = parseInt(Deno.env.get('SMTP_PORT') || '587')
-    const smtpUser = Deno.env.get('SMTP_USER')
-    const smtpPass = Deno.env.get('SMTP_PASS')
-    const smtpFrom = Deno.env.get('SMTP_FROM') || 'MSC & Co <noreply@mscandco.com>'
-
-    if (!smtpUser || !smtpPass) {
-      throw new Error('SMTP credentials not configured')
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY not configured')
     }
 
-    // Connect to SMTP server
-    await client.connectTLS({
-      hostname: smtpHost,
-      port: smtpPort,
-      username: smtpUser,
-      password: smtpPass,
+    // Send email via Resend API
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [to],
+        subject: subject,
+        html: html,
+      }),
     })
 
-    // Send email
-    await client.send({
-      from: smtpFrom,
-      to: to,
-      subject: subject,
-      content: html,
-      html: html,
-    })
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Resend API error: ${errorData.message || response.statusText}`)
+    }
 
-    // Close connection
-    await client.close()
+    const data = await response.json()
+    console.log('Email sent successfully via Resend:', data.id)
 
     return { success: true }
   } catch (error) {
-    console.error('Error sending email:', error)
+    console.error('Error sending email via Resend:', error)
     return { success: false, error: error.message }
   }
 }
