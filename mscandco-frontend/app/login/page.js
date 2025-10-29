@@ -113,14 +113,24 @@ export default function LoginPage() {
           <div className="flex flex-col items-center">
             <form className="space-y-8 w-full max-w-2xl" onSubmit={handleLogin}>
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
-                  <p className="text-red-800 text-sm text-center">{error}</p>
+                <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-5 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-amber-900 text-sm font-medium">{error}</p>
+                      {isEmailNotConfirmed && (
+                        <p className="text-amber-700 text-xs mt-1">
+                          Please check your inbox or request a new confirmation email below.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   {isEmailNotConfirmed && (
                     <button
                       type="button"
                       onClick={handleResendConfirmation}
                       disabled={resendingEmail}
-                      className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full bg-[#1f2937] text-white border border-[#1f2937] rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition-all duration-300 hover:bg-white hover:text-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#1f2937] disabled:hover:text-white flex items-center justify-center gap-2"
                     >
                       <RefreshCw className={`h-4 w-4 ${resendingEmail ? 'animate-spin' : ''}`} />
                       {resendingEmail ? 'Sending...' : 'Resend Confirmation Email'}
@@ -130,10 +140,13 @@ export default function LoginPage() {
               )}
 
               {resendSuccess && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-green-800 text-sm text-center">
-                    ✓ Confirmation email sent! Please check your inbox and spam folder.
-                  </p>
+                <div className="bg-emerald-50 border-l-4 border-emerald-400 rounded-lg p-5">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                    <p className="text-emerald-900 text-sm font-medium">
+                      Confirmation email sent! Please check your inbox and spam folder.
+                    </p>
+                  </div>
                 </div>
               )}
 
