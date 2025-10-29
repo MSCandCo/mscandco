@@ -12,9 +12,9 @@ export async function loadEmailTemplate(templateName: string): Promise<string> {
     //   .from('email-templates')
     //   .download(`${templateName}.html`)
 
-    // Option 2: Load from deployed app (better for Edge Functions)
+    // Option 2: Load from deployed app API route (better for Edge Functions)
     const appUrl = Deno.env.get('APP_URL') || 'http://localhost:3013'
-    const response = await fetch(`${appUrl}/email-templates/${templateName}.html`)
+    const response = await fetch(`${appUrl}/api/email-templates/${templateName}`)
 
     if (!response.ok) {
       throw new Error(`Failed to load template: ${templateName}`)
