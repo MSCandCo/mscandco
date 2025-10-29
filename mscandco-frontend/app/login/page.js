@@ -10,7 +10,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,14 +18,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [resendingEmail, setResendingEmail] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   const supabase = createClient()
   const router = useRouter()
+
+  // Check if the error is about unconfirmed email
+  const isEmailNotConfirmed = error && (
+    error.toLowerCase().includes('email not confirmed') ||
+    error.toLowerCase().includes('email confirmation')
+  )
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setResendSuccess(false)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -47,6 +56,36 @@ export default function LoginPage() {
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
+    }
+  }
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address first')
+      return
+    }
+
+    setResendingEmail(true)
+    setResendSuccess(false)
+    setError('')
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      })
+
+      if (error) {
+        setError('Failed to resend confirmation email. Please try again.')
+        setResendingEmail(false)
+        return
+      }
+
+      setResendSuccess(true)
+      setResendingEmail(false)
+    } catch (err) {
+      setError('An unexpected error occurred while resending the email')
+      setResendingEmail(false)
     }
   }
 
@@ -74,8 +113,27 @@ export default function LoginPage() {
           <div className="flex flex-col items-center">
             <form className="space-y-8 w-full max-w-2xl" onSubmit={handleLogin}>
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
                   <p className="text-red-800 text-sm text-center">{error}</p>
+                  {isEmailNotConfirmed && (
+                    <button
+                      type="button"
+                      onClick={handleResendConfirmation}
+                      disabled={resendingEmail}
+                      className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${resendingEmail ? 'animate-spin' : ''}`} />
+                      {resendingEmail ? 'Sending...' : 'Resend Confirmation Email'}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {resendSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-800 text-sm text-center">
+                    ✓ Confirmation email sent! Please check your inbox and spam folder.
+                  </p>
                 </div>
               )}
 
