@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your MSC & Co Account</title>
+  <title>Payment Received - MSC & Co</title>
   <style>
     * {
       margin: 0;
@@ -56,12 +56,29 @@
     .content {
       padding: 48px 40px;
     }
+    .status-badge {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 24px;
+      border-radius: 20px;
+      display: inline-block;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
     .greeting {
       font-size: 28px;
       font-weight: 700;
       color: #1A1A1A;
       margin-bottom: 24px;
       line-height: 1.3;
+      text-align: center;
     }
     .message {
       font-size: 16px;
@@ -72,6 +89,104 @@
     .message strong {
       color: #1A1A1A;
       font-weight: 600;
+    }
+    .amount-card {
+      background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+      color: #FFFFFF;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      margin: 32px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .amount-label {
+      font-size: 14px;
+      color: #B8B8B8;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .amount-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: #FFD700;
+      margin-bottom: 8px;
+    }
+    .amount-currency {
+      font-size: 16px;
+      color: #B8B8B8;
+      letter-spacing: 1px;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #E0E0E0, transparent);
+      margin: 40px 0;
+    }
+    .payment-details {
+      background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 32px;
+      margin: 32px 0;
+    }
+    .payment-details-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      font-size: 14px;
+      color: #6A6A6A;
+      font-weight: 500;
+    }
+    .detail-value {
+      font-size: 14px;
+      color: #1A1A1A;
+      font-weight: 600;
+      text-align: right;
+    }
+    .info-box {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%);
+      border-left: 4px solid #3B82F6;
+      padding: 20px 24px;
+      margin: 32px 0;
+      border-radius: 8px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .info-icon {
+      font-size: 24px;
+      min-width: 28px;
+    }
+    .info-content {
+      flex: 1;
+    }
+    .info-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1E40AF;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .info-text {
+      font-size: 14px;
+      color: #1E3A8A;
+      line-height: 1.6;
     }
     .cta-container {
       text-align: center;
@@ -96,122 +211,6 @@
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
       transform: translateY(-2px);
       background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
-    }
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #E0E0E0, transparent);
-      margin: 40px 0;
-    }
-    .features-section {
-      background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
-      border: 2px solid #F0F0F0;
-      border-radius: 12px;
-      padding: 32px;
-      margin: 32px 0;
-    }
-    .features-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1A1A1A;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .feature-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .feature-item {
-      padding: 16px 0;
-      border-bottom: 1px solid #F0F0F0;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    .feature-item:last-child {
-      border-bottom: none;
-    }
-    .feature-icon {
-      font-size: 24px;
-      min-width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%);
-      color: #FFFFFF;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-    .feature-content {
-      flex: 1;
-    }
-    .feature-heading {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1A1A1A;
-      margin-bottom: 4px;
-    }
-    .feature-description {
-      font-size: 14px;
-      color: #6A6A6A;
-      line-height: 1.5;
-    }
-    .security-banner {
-      background: linear-gradient(135deg, #FFF9E6 0%, #FFFBF0 100%);
-      border-left: 4px solid #FFD700;
-      padding: 20px 24px;
-      margin: 32px 0;
-      border-radius: 8px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-    .security-icon {
-      font-size: 24px;
-      min-width: 28px;
-    }
-    .security-content {
-      flex: 1;
-    }
-    .security-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #996A00;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .security-text {
-      font-size: 14px;
-      color: #7A5400;
-      line-height: 1.6;
-    }
-    .link-section {
-      background-color: #F8F9FA;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 32px 0;
-    }
-    .link-label {
-      font-size: 13px;
-      color: #6A6A6A;
-      margin-bottom: 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .link-url {
-      font-size: 13px;
-      color: #4A4A4A;
-      word-break: break-all;
-      font-family: 'Courier New', monospace;
-      background-color: #FFFFFF;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #E0E0E0;
     }
     .footer {
       background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
@@ -282,13 +281,26 @@
       .greeting {
         font-size: 24px;
       }
+      .amount-card {
+        padding: 32px 24px;
+      }
+      .amount-value {
+        font-size: 40px;
+      }
+      .payment-details {
+        padding: 24px;
+      }
+      .detail-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .detail-value {
+        text-align: left;
+      }
       .cta-button {
         display: block;
         padding: 16px 32px;
         font-size: 15px;
-      }
-      .features-section {
-        padding: 24px;
       }
       .footer {
         padding: 32px 24px;
@@ -313,83 +325,81 @@
 
       <!-- Content -->
       <div class="content">
-        <div class="greeting">Verify Your Account</div>
+        <!-- Status Badge -->
+        <div class="status-badge">
+          <div class="badge">✓ Payment Confirmed</div>
+        </div>
+
+        <div class="greeting">Payment Received Successfully</div>
 
         <p class="message">
-          Thank you for registering with <strong>MSC & Co</strong>. We're pleased to welcome you to our professional music distribution platform.
+          We've received your payment and it has been successfully processed. Thank you for your business with <strong>MSC & Co</strong>.
         </p>
 
-        <p class="message">
-          To activate your account and begin using our services, please verify your email address by clicking the button below.
-        </p>
+        <!-- Amount Card -->
+        <div class="amount-card">
+          <div class="amount-label">Total Amount Paid</div>
+          <div class="amount-value">{{ .Amount }}</div>
+          <div class="amount-currency">{{ .Currency }}</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Payment Details -->
+        <div class="payment-details">
+          <div class="payment-details-title">
+            <span>Payment Details</span>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Transaction ID</div>
+            <div class="detail-value">{{ .TransactionID }}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Payment Date</div>
+            <div class="detail-value">{{ .PaymentDate }}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Payment Method</div>
+            <div class="detail-value">{{ .PaymentMethod }}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Description</div>
+            <div class="detail-value">{{ .Description }}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value" style="color: #10B981;">Completed</div>
+          </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+          <div class="info-icon">i</div>
+          <div class="info-content">
+            <div class="info-title">Payment Receipt</div>
+            <div class="info-text">
+              A detailed receipt has been sent to your email and is also available in your account dashboard under Payment History.
+            </div>
+          </div>
+        </div>
 
         <!-- CTA Button -->
         <div class="cta-container">
-          <a href="{{ .ConfirmationURL }}" class="cta-button">
-            VERIFY EMAIL ADDRESS
+          <a href="{{ .DashboardURL }}" class="cta-button">
+            VIEW PAYMENT HISTORY
           </a>
         </div>
 
         <div class="divider"></div>
 
-        <!-- Features Section -->
-        <div class="features-section">
-          <div class="features-title">
-            <span>Your Platform Access Includes</span>
-          </div>
-          <ul class="feature-list">
-            <li class="feature-item">
-              <div class="feature-icon">♪</div>
-              <div class="feature-content">
-                <div class="feature-heading">Global Music Distribution</div>
-                <div class="feature-description">Distribute your releases to major streaming platforms including Spotify, Apple Music, and more</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">◆</div>
-              <div class="feature-content">
-                <div class="feature-heading">Advanced Analytics Dashboard</div>
-                <div class="feature-description">Real-time insights into streams, revenue, and audience demographics across all platforms</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">$</div>
-              <div class="feature-content">
-                <div class="feature-heading">Financial Management</div>
-                <div class="feature-description">Track earnings, manage payouts, and access detailed transaction history</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">AI</div>
-              <div class="feature-content">
-                <div class="feature-heading">Apollo AI Assistant</div>
-                <div class="feature-description">Intelligent recommendations and insights powered by advanced AI technology</div>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Security Banner -->
-        <div class="security-banner">
-          <div class="security-icon">⚠</div>
-          <div class="security-content">
-            <div class="security-title">Security Notice</div>
-            <div class="security-text">
-              This verification link will expire in <strong>24 hours</strong> for your security. If you did not create an account with MSC & Co, please disregard this email. No action is required, and your email address will not be used.
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Alternative Link Section -->
-        <div class="link-section">
-          <div class="link-label">Alternative Verification Method</div>
-          <div class="link-url">{{ .ConfirmationURL }}</div>
-        </div>
-
-        <p class="message" style="font-size: 14px; color: #6A6A6A;">
-          If you're experiencing issues with verification, please contact our support team at <a href="mailto:support@mscandco.com" style="color: #1A1A1A; font-weight: 600;">support@mscandco.com</a>
+        <p class="message" style="text-align: center; font-size: 14px; color: #6A6A6A;">
+          Questions about this payment?<br>
+          <a href="mailto:billing@mscandco.com" style="color: #1A1A1A; font-weight: 600; text-decoration: none;">Contact our billing team</a>
         </p>
       </div>
 
@@ -422,4 +432,3 @@
   </div>
 </body>
 </html>
-

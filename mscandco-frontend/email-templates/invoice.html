@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice - MSC & Co</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #F8F9FA;
+      color: #1A1A1A;
+      line-height: 1.6;
+    }
+    .email-wrapper {
+      background-color: #F8F9FA;
+      padding: 40px 20px;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .header {
+      background: linear-gradient(135deg, #000000 0%, #1A1A1A 100%);
+      padding: 48px 40px;
+      border-bottom: 3px solid #FFD700;
+    }
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .logo-section {
+      flex: 1;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .tagline {
+      font-size: 12px;
+      color: #B8B8B8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .invoice-label {
+      text-align: right;
+      color: #FFD700;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .content {
+      padding: 48px 40px;
+    }
+    .invoice-info-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    .info-block {
+      background-color: #F8F9FA;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .info-block-title {
+      font-size: 12px;
+      color: #6A6A6A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .info-block-content {
+      font-size: 14px;
+      color: #1A1A1A;
+      line-height: 1.6;
+    }
+    .invoice-meta {
+      background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 32px 0;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .meta-row:last-child {
+      border-bottom: none;
+    }
+    .meta-label {
+      font-size: 14px;
+      color: #6A6A6A;
+      font-weight: 500;
+    }
+    .meta-value {
+      font-size: 14px;
+      color: #1A1A1A;
+      font-weight: 600;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #E0E0E0, transparent);
+      margin: 40px 0;
+    }
+    .items-section {
+      margin: 32px 0;
+    }
+    .items-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #1A1A1A;
+    }
+    .item-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 12px 16px;
+      background-color: #F8F9FA;
+      border-radius: 8px 8px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6A6A6A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .item-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+      border-bottom: 1px solid #F0F0F0;
+      align-items: center;
+    }
+    .item-row:last-child {
+      border-bottom: none;
+    }
+    .item-name {
+      font-size: 14px;
+      color: #1A1A1A;
+      font-weight: 600;
+    }
+    .item-description {
+      font-size: 12px;
+      color: #6A6A6A;
+      margin-top: 4px;
+    }
+    .item-value {
+      font-size: 14px;
+      color: #4A4A4A;
+      text-align: right;
+    }
+    .totals-section {
+      background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+      padding: 32px;
+      border-radius: 12px;
+      margin: 32px 0;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      color: #FFFFFF;
+    }
+    .total-row.subtotal {
+      border-bottom: 1px solid #3A3A3A;
+    }
+    .total-row.grand-total {
+      border-top: 2px solid #FFD700;
+      padding-top: 16px;
+      margin-top: 8px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .total-label {
+      font-size: 14px;
+      color: #B8B8B8;
+    }
+    .total-row.grand-total .total-label {
+      font-size: 18px;
+      color: #FFD700;
+    }
+    .total-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .total-row.grand-total .total-value {
+      font-size: 24px;
+      color: #FFD700;
+    }
+    .payment-info {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%);
+      border-left: 4px solid #3B82F6;
+      padding: 24px;
+      margin: 32px 0;
+      border-radius: 8px;
+    }
+    .payment-info-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1E40AF;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .payment-info-text {
+      font-size: 14px;
+      color: #1E3A8A;
+      line-height: 1.6;
+    }
+    .cta-container {
+      text-align: center;
+      margin: 40px 0;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%);
+      color: #FFFFFF !important;
+      text-decoration: none;
+      padding: 16px 40px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      border: 2px solid #000000;
+    }
+    .cta-button:hover {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+    }
+    .cta-button.secondary {
+      background: transparent;
+      color: #1A1A1A !important;
+      border: 2px solid #1A1A1A;
+      box-shadow: none;
+    }
+    .cta-button.secondary:hover {
+      background-color: #F8F9FA;
+    }
+    .footer {
+      background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+      padding: 40px;
+      text-align: center;
+      border-top: 3px solid #FFD700;
+    }
+    .footer-brand {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      letter-spacing: 1.5px;
+    }
+    .footer-tagline {
+      font-size: 13px;
+      color: #B8B8B8;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .footer-company-info {
+      font-size: 12px;
+      color: #8A8A8A;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .footer-separator {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #3A3A3A, transparent);
+      margin: 24px 0;
+    }
+    .footer-links {
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-link {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      letter-spacing: 0.5px;
+    }
+    .footer-link:hover {
+      color: #FFD700;
+    }
+    .footer-copyright {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #6A6A6A;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-wrapper {
+        padding: 20px 10px;
+      }
+      .header {
+        padding: 32px 24px;
+      }
+      .header-content {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .invoice-label {
+        text-align: left;
+      }
+      .content {
+        padding: 32px 24px;
+      }
+      .invoice-info-section {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .item-header,
+      .item-row {
+        grid-template-columns: 2fr 1fr;
+        font-size: 12px;
+      }
+      .item-header .qty,
+      .item-row .qty,
+      .item-header .rate,
+      .item-row .rate {
+        display: none;
+      }
+      .totals-section {
+        padding: 24px;
+      }
+      .cta-container {
+        flex-direction: column;
+      }
+      .cta-button {
+        display: block;
+        padding: 14px 32px;
+      }
+      .footer {
+        padding: 32px 24px;
+      }
+      .footer-links {
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <div class="logo-section">
+            <div class="logo">MSC & CO</div>
+            <div class="tagline">Music Distribution</div>
+          </div>
+          <div class="invoice-label">INVOICE</div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Invoice Info Section -->
+        <div class="invoice-info-section">
+          <div class="info-block">
+            <div class="info-block-title">Bill To</div>
+            <div class="info-block-content">
+              <strong>{{ .ClientName }}</strong><br>
+              {{ .ClientEmail }}<br>
+              {{ .ClientAddress }}
+            </div>
+          </div>
+
+          <div class="info-block">
+            <div class="info-block-title">From</div>
+            <div class="info-block-content">
+              <strong>MSC & Co Limited</strong><br>
+              billing@mscandco.com<br>
+              London, United Kingdom
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Meta -->
+        <div class="invoice-meta">
+          <div class="meta-row">
+            <div class="meta-label">Invoice Number</div>
+            <div class="meta-value">{{ .InvoiceNumber }}</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Invoice Date</div>
+            <div class="meta-value">{{ .InvoiceDate }}</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Due Date</div>
+            <div class="meta-value">{{ .DueDate }}</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Status</div>
+            <div class="meta-value" style="color: #F59E0B;">{{ .Status }}</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Items Section -->
+        <div class="items-section">
+          <div class="items-title">Invoice Items</div>
+
+          <div class="item-header">
+            <div>Description</div>
+            <div class="qty" style="text-align: right;">Qty</div>
+            <div class="rate" style="text-align: right;">Rate</div>
+            <div style="text-align: right;">Amount</div>
+          </div>
+
+          <!-- Sample Item Row - This would be repeated for each item -->
+          <div class="item-row">
+            <div>
+              <div class="item-name">{{ .ItemName }}</div>
+              <div class="item-description">{{ .ItemDescription }}</div>
+            </div>
+            <div class="qty item-value">{{ .Quantity }}</div>
+            <div class="rate item-value">{{ .Rate }}</div>
+            <div class="item-value"><strong>{{ .ItemTotal }}</strong></div>
+          </div>
+        </div>
+
+        <!-- Totals Section -->
+        <div class="totals-section">
+          <div class="total-row subtotal">
+            <div class="total-label">Subtotal</div>
+            <div class="total-value">{{ .Subtotal }}</div>
+          </div>
+
+          <div class="total-row">
+            <div class="total-label">Tax ({{ .TaxRate }}%)</div>
+            <div class="total-value">{{ .Tax }}</div>
+          </div>
+
+          <div class="total-row grand-total">
+            <div class="total-label">Total Amount Due</div>
+            <div class="total-value">{{ .Total }}</div>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="payment-info">
+          <div class="payment-info-title">
+            <span>Payment Information</span>
+          </div>
+          <div class="payment-info-text">
+            Payment is due within <strong>{{ .PaymentTerms }}</strong> from the invoice date. You can pay securely through your account dashboard or by clicking the "Pay Now" button below. For questions regarding this invoice, please contact our billing team.
+          </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="cta-container">
+          <a href="{{ .PaymentURL }}" class="cta-button">
+            PAY NOW
+          </a>
+          <a href="{{ .DownloadURL }}" class="cta-button secondary">
+            DOWNLOAD PDF
+          </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <p style="text-align: center; font-size: 14px; color: #6A6A6A; line-height: 1.6;">
+          Questions about this invoice?<br>
+          <a href="mailto:billing@mscandco.com" style="color: #1A1A1A; font-weight: 600; text-decoration: none;">billing@mscandco.com</a>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-brand">MSC & CO</div>
+        <div class="footer-tagline">Professional Music Distribution</div>
+
+        <div class="footer-company-info">
+          MSC & Co Limited<br>
+          Company Registration: [Number]<br>
+          VAT Number: [Number]<br>
+          Registered in England and Wales<br>
+          London, United Kingdom
+        </div>
+
+        <div class="footer-separator"></div>
+
+        <div class="footer-links">
+          <a href="https://mscandco.com" class="footer-link">Home</a>
+          <a href="https://mscandco.com/about" class="footer-link">About Us</a>
+          <a href="https://mscandco.com/support" class="footer-link">Support Center</a>
+          <a href="https://mscandco.com/terms" class="footer-link">Terms of Service</a>
+          <a href="https://mscandco.com/privacy" class="footer-link">Privacy Policy</a>
+        </div>
+
+        <div class="footer-copyright">
+          © 2025 MSC & Co. All rights reserved.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
