@@ -94,11 +94,13 @@ export default function DashboardClient({ user }) {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
+      console.log('🔄 Dashboard: Starting to load data...')
 
       // Get user profile from API (same as header) to get correct artist_name
       const profileResponse = await fetch('/api/artist/profile', {
         credentials: 'include'
       })
+      console.log('✅ Dashboard: Profile API response:', profileResponse.status)
       
       let profile = null
       if (profileResponse.ok) {
@@ -124,25 +126,31 @@ export default function DashboardClient({ user }) {
       setProfileData(profile)
       const role = profile?.role || user?.user_metadata?.role
       setUserRole(role)
+      console.log('✅ Dashboard: Role set:', role)
 
       // Fetch user permissions
-      const { data: permissions } = await supabase
+      const { data: permissions, error: permError } = await supabase
         .from('user_permissions')
         .select('permission:permissions(name)')
         .eq('user_id', user.id)
 
+      if (permError) {
+        console.error('❌ Dashboard: Permissions error:', permError)
+      }
+
       const permissionNames = permissions?.map(p => p.permission?.name).filter(Boolean) || []
       setUserPermissions(permissionNames)
-
-      console.log('Dashboard: User role:', role)
-      console.log('Dashboard: User permissions:', permissionNames)
+      console.log('✅ Dashboard: Permissions loaded:', permissionNames.length)
 
       // Load quick actions - use most visited or fall back to permission-based defaults
       const topVisited = getTopVisitedPages(permissionNames)
       setQuickActions(topVisited || getPermissionBasedQuickActions(permissionNames))
+      console.log('✅ Dashboard: Quick actions set')
 
       // Load REAL stats from database based on role and permissions
+      console.log('🔄 Dashboard: Loading stats...')
       await loadRealStats(role, permissionNames)
+      console.log('✅ Dashboard: Stats loaded')
 
       // Load recent notifications from database (user_id field exists in notifications table)
       const { data: recentNotifs, error: notifsError } = await supabase
@@ -167,14 +175,21 @@ export default function DashboardClient({ user }) {
       }
 
       // Load REAL pending tasks from database
+      console.log('🔄 Dashboard: Loading pending tasks...')
       await loadRealPendingTasks(role, permissionNames)
+      console.log('✅ Dashboard: Pending tasks loaded')
 
       // Load REAL performance metrics
+      console.log('🔄 Dashboard: Loading performance metrics...')
       await loadPerformanceMetrics(role, permissionNames)
+      console.log('✅ Dashboard: Performance metrics loaded')
+
+      console.log('✅✅✅ Dashboard: ALL DATA LOADED SUCCESSFULLY ✅✅✅')
     } catch (error) {
-      console.error('Error loading dashboard:', error)
+      console.error('❌❌❌ Dashboard: CRITICAL ERROR:', error)
     } finally {
       setLoading(false)
+      console.log('🏁 Dashboard: Loading state set to false')
     }
   }
 
