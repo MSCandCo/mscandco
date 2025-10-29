@@ -7,17 +7,14 @@
  */
 export async function loadEmailTemplate(templateName: string): Promise<string> {
   try {
-    // Option 1: Load from Supabase Storage
-    // const { data } = await supabaseClient.storage
-    //   .from('email-templates')
-    //   .download(`${templateName}.html`)
+    // Load from Supabase Storage (best practice for static assets)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://fzqpoayhdisusgrotyfg.supabase.co'
+    const storageUrl = `${supabaseUrl}/storage/v1/object/public/email-templates/email-templates/${templateName}.html`
 
-    // Option 2: Load from deployed app API route (better for Edge Functions)
-    const appUrl = Deno.env.get('APP_URL') || 'http://localhost:3013'
-    const response = await fetch(`${appUrl}/api/email-templates/${templateName}`)
+    const response = await fetch(storageUrl)
 
     if (!response.ok) {
-      throw new Error(`Failed to load template: ${templateName}`)
+      throw new Error(`Failed to load template: ${templateName} (HTTP ${response.status})`)
     }
 
     return await response.text()
