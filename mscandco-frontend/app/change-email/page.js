@@ -7,12 +7,12 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Mail, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react'
 
-export default function ChangeEmailPage() {
+function ChangeEmailPageContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -234,3 +234,12 @@ export default function ChangeEmailPage() {
 
   return null
 }
+
+export default function ChangeEmailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div></div>}>
+      <ChangeEmailPageContent />
+    </Suspense>
+  )
+}
+
