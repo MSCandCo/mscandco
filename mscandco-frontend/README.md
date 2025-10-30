@@ -1,46 +1,100 @@
 # MSC & Co - Multi-Brand Music Distribution Platform
 
-A comprehensive music distribution and publishing platform supporting multiple brands under the MSC & Co umbrella.
+A comprehensive, enterprise-grade music distribution and publishing platform supporting multiple brands under the MSC & Co umbrella, built with Next.js 15 (App Router), Supabase, and modern web technologies.
 
-## Brand Architecture
+## 🎯 Platform Overview
+
+MSC & Co provides a complete music distribution ecosystem that empowers artists, labels, and publishers to distribute their music globally while managing royalties, analytics, and business operations in one unified platform.
+
+### Brand Architecture
 
 - **MSC & Co** - Parent company and main platform
 - **MSC & Co MSC** - Gospel and Christian music distribution & publishing
 - **Audio MSC** - General music distribution & licensing for film/TV/media
 
-## Features
+## ✨ Core Features
 
-### Multi-Brand Support
+### 🎨 Multi-Brand Support
 - Brand selection during artist onboarding
 - Brand-specific features and services
 - Separate branding in emails, dashboards, and project views
+- Dynamic theming and brand customization
 
-### Artist Portal
-- Complete artist profile management
+### 👥 Role-Based Access Control (RBAC)
+- Comprehensive permission system with granular controls
+- Support for multiple role types: Artist, Label Admin, Admin, SuperAdmin
+- Permission inheritance and override capabilities
+- Ghost mode for admin user impersonation
+
+### 🎵 Artist Portal
+- Complete artist profile management with change request workflow
 - Project and release management
-- Analytics and royalty tracking
-- Contract management
+- Real-time analytics and royalty tracking
+- Contract management and digital signature support
+- Wallet integration with Revolut
 
-### Distribution Services
+### 📊 Distribution Services
 - Global music distribution to 150+ platforms
 - Professional publishing and royalty collection
 - Sync licensing opportunities
 - Real-time analytics and revenue tracking
+- Automated royalty splits and payouts
 
-## Getting Started
+### 🤖 AI Integration
+- Apollo AI assistant for platform guidance
+- Intelligent help and support system
+- Context-aware recommendations
+
+### 📧 Enterprise Email System
+- 10+ professional email templates
+- Supabase-native email with Resend integration
+- Branded authentication emails
+- Transactional and marketing email support
+
+## 🏗️ Technical Stack
+
+### Frontend
+- **Framework**: Next.js 15 (App Router)
+- **UI Library**: React 18.2
+- **Styling**: TailwindCSS with custom brand theming
+- **Component Libraries**:
+  - Radix UI (accessible components)
+  - Flowbite React
+  - Heroicons
+- **State Management**: React Context + SWR for data fetching
+- **Forms**: Formik with validation
+- **Charts**: Chart.js, Recharts
+
+### Backend & Infrastructure
+- **Database**: PostgreSQL via Supabase
+- **Authentication**: Supabase Auth with email/password
+- **File Storage**: Supabase Storage
+- **Real-time**: Supabase Realtime subscriptions
+- **Background Jobs**: Inngest
+- **Payments**: Revolut Business API
+- **Email**: Resend + Supabase Edge Functions
+
+### DevOps & Monitoring
+- **Hosting**: Vercel
+- **Error Tracking**: Sentry
+- **Analytics**: PostHog
+- **Caching**: Upstash Redis
+- **Testing**: Playwright (E2E)
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
-- Auth0 account configured
-- Strapi backend running
+- Supabase account
+- Vercel account (for deployment)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd msc-co-platform
+cd mscandco-frontend
 ```
 
 2. Install dependencies:
@@ -50,27 +104,38 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp env.example .env.local
+cp .env.example .env.local
 ```
 
-4. Configure your environment variables in `.env.local`:
+4. Configure your `.env.local` with required variables:
 ```bash
-# Auth0 Configuration
-AUTH0_DOMAIN=your-auth0-domain
-AUTH0_CLIENT_ID=your-auth0-client-id
-AUTH0_SECRET=your-auth0-secret
-AUTH0_BASE_URL=http://localhost:3001
-AUTH0_ISSUER_BASE_URL=https://your-auth0-domain
-AUTH0_CLIENT_SECRET=your-client-secret
-AUTH0_MANAGEMENT_TOKEN=your-management-api-token
+# Supabase Configuration (REQUIRED)
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Strapi Configuration
-NEXT_PUBLIC_STRAPI=http://localhost:1337
-STRAPI_API_TOKEN=your-strapi-api-token
+# Application URLs
+NEXT_PUBLIC_BASE_URL=http://localhost:3013
 
-# Email Service (Optional)
-SENDGRID_API_KEY=your-sendgrid-api-key
-EMAIL_FROM=noreply@mscandco.com
+# Revolut Payment Integration (OPTIONAL)
+REVOLUT_ENVIRONMENT=sandbox
+REVOLUT_API_KEY=your-api-key
+REVOLUT_WEBHOOK_SECRET=your-webhook-secret
+
+# Admin Configuration
+SUPER_ADMIN_USER_ID=your-user-id
+
+# Sentry (Error Tracking)
+NEXT_PUBLIC_SENTRY_DSN=your-dsn
+SENTRY_AUTH_TOKEN=your-auth-token
+
+# PostHog (Analytics)
+NEXT_PUBLIC_POSTHOG_KEY=your-key
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
+# Inngest (Background Jobs)
+INNGEST_EVENT_KEY=your-event-key
+INNGEST_SIGNING_KEY=your-signing-key
 ```
 
 5. Run the development server:
@@ -78,76 +143,182 @@ EMAIL_FROM=noreply@mscandco.com
 npm run dev
 ```
 
-6. Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+6. Open [http://localhost:3013](http://localhost:3013) in your browser.
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-├── components/          # React components
-│   ├── auth/           # Authentication components
-│   ├── layouts/        # Layout components
-│   └── ui/             # UI components
-├── lib/                # Utility functions and configurations
-│   ├── brand-config.js # Multi-brand configuration
-│   └── constants.js    # Platform constants
-├── pages/              # Next.js pages
-│   ├── api/           # API routes
-│   ├── dashboard/     # Dashboard pages
-│   └── distribution/  # Distribution and publishing pages
-└── public/            # Static assets
+mscandco-frontend/
+├── app/                      # Next.js App Router
+│   ├── api/                 # API routes
+│   │   ├── admin/          # Admin API endpoints
+│   │   ├── artist/         # Artist API endpoints
+│   │   ├── auth/           # Authentication endpoints
+│   │   ├── distribution/   # Distribution service endpoints
+│   │   └── wallet/         # Wallet/payment endpoints
+│   ├── admin/              # Admin dashboard pages
+│   ├── artist/             # Artist portal pages
+│   ├── labeladmin/         # Label admin pages
+│   ├── superadmin/         # Super admin pages
+│   └── auth/               # Authentication pages
+├── components/              # React components
+│   ├── admin/              # Admin-specific components
+│   ├── artist/             # Artist-specific components
+│   ├── auth/               # Authentication components
+│   ├── layouts/            # Layout components
+│   └── ui/                 # Reusable UI components
+├── lib/                     # Utility libraries
+│   ├── supabase/           # Supabase client configurations
+│   │   ├── client.js       # Browser client
+│   │   ├── server.js       # Server component client
+│   │   ├── service-role.js # Service role client
+│   │   └── middleware.js   # Auth middleware
+│   ├── rbac/               # RBAC implementation
+│   ├── permissions.js      # Permission utilities
+│   └── api-auth.js         # API authentication helpers
+├── email-templates/         # Email template HTML/React
+├── database/               # Database scripts and migrations
+├── docs/                   # Documentation
+├── hooks/                  # Custom React hooks
+├── public/                 # Static assets
+├── styles/                 # Global styles
+└── supabase/              # Supabase configuration
+    └── functions/         # Edge Functions
 ```
 
-## Brand Configuration
+## 🔐 Permission System
 
-The platform supports multiple brands through the `lib/brand-config.js` file:
+The platform implements a comprehensive RBAC system with:
 
-- **MSC & Co MSC**: Gospel and Christian music focus
-- **Audio MSC**: General music and licensing focus
+- **Permission Format**: `resource:action:scope` (e.g., `user:read:own`)
+- **Wildcard Support**: `*:*:*` for super admin, `user:*:*` for all user permissions
+- **Permission Inheritance**: Roles inherit permissions, users can have overrides
+- **Deny Permissions**: Explicit permission denial for fine-grained control
 
-Each brand has its own:
-- Color scheme and branding
-- Service offerings
-- Email templates
-- Dashboard customization
+### Role Hierarchy
+1. **SuperAdmin** - Full platform access (`*:*:*`)
+2. **Admin** - Administrative functions, user management
+3. **Label Admin** - Manage their label's artists and releases
+4. **Artist** - Manage own profile, releases, and earnings
 
-## Development
+See `docs/RBAC_IMPLEMENTATION.md` for detailed documentation.
+
+## 🎨 Brand Configuration
+
+Multi-brand support is configured in `lib/brand-config.js`:
+
+```javascript
+{
+  "msc": {
+    name: "MSC & Co MSC",
+    primaryColor: "#1e40af",
+    features: ["distribution", "publishing", "gospel-focus"],
+    // ...
+  },
+  "audio": {
+    name: "Audio MSC",
+    primaryColor: "#7c3aed",
+    features: ["distribution", "sync-licensing", "film-tv"],
+    // ...
+  }
+}
+```
+
+## 🧪 Development
+
+### Running Tests
+```bash
+# E2E tests with Playwright
+npm run test:e2e
+
+# Run tests in UI mode
+npm run test:e2e:ui
+
+# Debug mode
+npm run test:e2e:debug
+```
+
+### Code Quality
+```bash
+# Linting
+npm run lint
+
+# Build check
+npm run build
+```
 
 ### Adding New Features
-1. Create feature branch from main
-2. Implement feature with brand-aware components
-3. Test across different brand configurations
-4. Submit pull request
+1. Create feature branch from `main`
+2. Implement with App Router conventions
+3. Add permission checks if needed
+4. Update documentation
+5. Add tests
+6. Submit pull request to `mscandco` branch
 
-### Brand-Specific Development
-- Use `getBrandByUser()` to get user's brand
-- Use brand configuration for styling and content
-- Test features with different brand contexts
+## 🚢 Deployment
 
-## Deployment
+### Vercel Deployment
+The platform is optimized for Vercel:
 
-### Production Environment
-- Update Auth0 settings for production domain
-- Configure environment variables for production
-- Set up SSL certificates
-- Configure CDN for static assets
+```bash
+# Deploy to production
+vercel --prod
 
-### Brand Domains
-- Main platform: mscandco.com
-- MSC & Co MSC: yhwh-msc.mscandco.com
-- Audio MSC: audio-msc.mscandco.com
+# Environment variables
+# Configure in Vercel dashboard or via CLI
+```
 
-## Contributing
+### Environment Configuration
+- **Development**: `http://localhost:3013`
+- **Staging**: `staging.mscandco.com`
+- **Production**: `mscandco.com`
+
+### Database Migrations
+```bash
+# Run database migrations via scripts
+node database/run-migration.js
+```
+
+## 📚 Documentation
+
+- [RBAC Implementation](docs/RBAC_IMPLEMENTATION.md)
+- [Security Fixes](docs/SECURITY_FIXES_FINAL.md)
+- [Deployment Checklist](docs/RBAC_DEPLOYMENT_CHECKLIST.md)
+- [Public Routes Security](docs/PUBLIC_ROUTES_SECURITY_REVIEW.md)
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow the code style and conventions
+4. Add tests for new functionality
+5. Update documentation as needed
+6. Commit your changes with descriptive messages
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request to `mscandco` branch
 
-## License
+### Commit Message Format
+Follow Conventional Commits:
+```
+feat(scope): add new feature
+fix(scope): fix bug
+docs(scope): update documentation
+style(scope): formatting changes
+refactor(scope): code refactoring
+test(scope): add tests
+chore(scope): maintenance tasks
+```
 
-This project is proprietary software owned by MSC & Co.
+## 📄 License
 
-## Support
+This project is proprietary software owned by MSC & Co. All rights reserved.
 
-For support, email support@mscandco.com or visit our documentation at docs.mscandco.com.
+## 💬 Support
+
+- **Email**: support@mscandco.com
+- **Documentation**: docs.mscandco.com
+- **Issues**: Internal issue tracker
+
+## 🙏 Acknowledgments
+
+Built with modern web technologies and best practices for scalability, security, and developer experience.

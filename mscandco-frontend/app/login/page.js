@@ -7,10 +7,10 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -20,9 +20,24 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [resendingEmail, setResendingEmail] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [emailVerified, setEmailVerified] = useState(false)
 
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check for email verification success
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      setEmailVerified(true)
+      // Auto-hide after 10 seconds
+      setTimeout(() => setEmailVerified(false), 10000)
+    }
+
+    if (searchParams.get('error') === 'verification_failed') {
+      setError('Email verification failed. Please try again or contact support.')
+    }
+  }, [searchParams])
 
   // Check if the error is about unconfirmed email
   const isEmailNotConfirmed = error && (
@@ -112,6 +127,29 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl py-8 px-12 border border-gray-200 mx-auto max-w-5xl">
           <div className="flex flex-col items-center">
             <form className="space-y-8 w-full max-w-2xl" onSubmit={handleLogin}>
+              {/* Email Verified Success Message */}
+              {emailVerified && (
+                <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-6 shadow-sm animate-fade-in">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-green-900 text-lg font-bold mb-2">
+                        Email Verified Successfully!
+                      </h3>
+                      <p className="text-green-800 text-sm mb-3">
+                        Your email address has been verified. You can now log in to access your account and start distributing your music.
+                      </p>
+                      <div className="flex items-center gap-2 text-green-700 text-xs">
+                        <div className="h-1.5 w-1.5 rounded-full bg-green-600"></div>
+                        <span>Enter your credentials below to continue</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-5 space-y-4">
                   <div className="flex items-start gap-3">

@@ -114,50 +114,6 @@
       font-weight: 700;
       color: #1A1A1A;
       margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .feature-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .feature-item {
-      padding: 16px 0;
-      border-bottom: 1px solid #F0F0F0;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    .feature-item:last-child {
-      border-bottom: none;
-    }
-    .feature-icon {
-      font-size: 24px;
-      min-width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%);
-      color: #FFFFFF;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-    .feature-content {
-      flex: 1;
-    }
-    .feature-heading {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1A1A1A;
-      margin-bottom: 4px;
-    }
-    .feature-description {
-      font-size: 14px;
-      color: #6A6A6A;
-      line-height: 1.5;
     }
     .security-banner {
       background: linear-gradient(135deg, #FFF9E6 0%, #FFFBF0 100%);
@@ -386,36 +342,68 @@
           <div class="features-title">
             <span>What You'll Get Access To</span>
           </div>
-          <ul class="feature-list">
-            <li class="feature-item">
-              <div class="feature-icon">♪</div>
-              <div class="feature-content">
-                <div class="feature-heading">Global Music Distribution</div>
-                <div class="feature-description">Distribute your releases to Spotify, Apple Music, Amazon Music, and 150+ streaming platforms worldwide</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">◆</div>
-              <div class="feature-content">
-                <div class="feature-heading">Real-Time Analytics</div>
-                <div class="feature-description">Track streams, revenue, and audience demographics with advanced analytics dashboards</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">$</div>
-              <div class="feature-content">
-                <div class="feature-heading">Financial Management</div>
-                <div class="feature-description">Transparent earnings tracking, automated royalty splits, and flexible payout options</div>
-              </div>
-            </li>
-            <li class="feature-item">
-              <div class="feature-icon">AI</div>
-              <div class="feature-content">
-                <div class="feature-heading">Apollo AI Assistant</div>
-                <div class="feature-description">AI-powered insights, recommendations, and intelligent assistance for your music career</div>
-              </div>
-            </li>
-          </ul>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+            <tr>
+              <td style="padding-bottom: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="width: 40px; padding-right: 16px; vertical-align: top;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%); color: #FFD700; border-radius: 8px; text-align: center; line-height: 32px; font-weight: bold; font-size: 18px;">♪</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <div style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px;">Global Music Distribution</div>
+                      <div style="font-size: 14px; color: #6A6A6A; line-height: 1.5;">Distribute your releases to Spotify, Apple Music, Amazon Music, and 150+ streaming platforms worldwide</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-bottom: 20px; border-top: 1px solid #F0F0F0; padding-top: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="width: 40px; padding-right: 16px; vertical-align: top;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%); color: #FFD700; border-radius: 8px; text-align: center; line-height: 32px; font-weight: bold; font-size: 18px;">◆</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <div style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px;">Real-Time Analytics</div>
+                      <div style="font-size: 14px; color: #6A6A6A; line-height: 1.5;">Track streams, revenue, and audience demographics with advanced analytics dashboards</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-bottom: 20px; border-top: 1px solid #F0F0F0; padding-top: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="width: 40px; padding-right: 16px; vertical-align: top;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%); color: #FFD700; border-radius: 8px; text-align: center; line-height: 32px; font-weight: bold; font-size: 18px;">$</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <div style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px;">Financial Management</div>
+                      <div style="font-size: 14px; color: #6A6A6A; line-height: 1.5;">Transparent earnings tracking, automated royalty splits, and flexible payout options</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="border-top: 1px solid #F0F0F0; padding-top: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="width: 40px; padding-right: 16px; vertical-align: top;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #2A2A2A 100%); color: #FFD700; border-radius: 8px; text-align: center; line-height: 32px; font-weight: bold; font-size: 14px;">AI</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <div style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px;">Apollo AI Assistant</div>
+                      <div style="font-size: 14px; color: #6A6A6A; line-height: 1.5;">AI-powered insights, recommendations, and intelligent assistance for your music career</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </div>
 
         <!-- Security Banner -->
