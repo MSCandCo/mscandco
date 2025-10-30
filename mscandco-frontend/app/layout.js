@@ -16,8 +16,8 @@ import Footer from '@/components/footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'MSC & Co - Music Distribution Platform',
-  description: 'Enterprise-grade music distribution and publishing platform with AI-powered features',
+  title: 'MSC & Co - AI-Native Music Distribution Platform',
+  description: 'The first and only AI-native music distribution platform. Manage releases, track earnings, and grow your career through AI-powered insights. Built for gospel, Christian, and general music creators.',
 }
 
 export default function RootLayout({ children }) {

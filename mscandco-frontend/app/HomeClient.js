@@ -88,11 +88,22 @@ export default function HomeClient() {
                 />
               </div>
               <h1 className="text-4xl font-bold mb-4">
-                Multi-Brand Music Distribution & Publishing
+                AI-Native Music Distribution & Publishing
               </h1>
               <h3 className="text-xl font-normal mb-8">
-                MSC & Co - Discover highly curated roster of label-quality musicians and composers across gospel, christian, and general music licensing.
+                The first and only AI-native music distribution platform. Manage your releases, track your earnings, and grow your career through AI-powered insights. Purpose-built for gospel, Christian, and general music creators.
               </h3>
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-6">
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
+                  AI-Powered
+                </span>
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
+                  Global Distribution
+                </span>
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
+                  Instant Analytics
+                </span>
+              </div>
               <button
                 className="bg-transparent text-[#1f2937] border border-[#1f2937] md:text-white md:border-white rounded-xl px-8 py-3 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white md:hover:bg-white md:hover:text-[#1f2937] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937] md:focus:ring-white mx-auto md:ml-0"
                 onClick={() => window.location.href = '/register'}
@@ -279,7 +290,7 @@ export default function HomeClient() {
             From Studio to Streams. From Vision to Revenue.
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Empowering artists and labels to reach the world with their music.
+            Empowering artists and labels with AI-powered insights to reach the world with their music.
           </p>
           <button
             onClick={() => window.location.href = '/register'}
@@ -298,7 +309,7 @@ export default function HomeClient() {
               Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600">
-              Professional tools for independent artists and labels
+              AI-powered tools built for the modern music creator
             </p>
           </div>
 
@@ -316,16 +327,17 @@ export default function HomeClient() {
               </p>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+            {/* Feature 2 - AI Analytics */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                AI-POWERED
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Real-Time Analytics</h3>
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">AI-Powered Analytics</h3>
               <p className="text-gray-600">
-                Track your streams, audience demographics, and earnings with comprehensive analytics dashboards.
+                Get intelligent insights and predictions about your releases, audience growth, and revenue opportunities powered by advanced AI.
               </p>
             </div>
 
