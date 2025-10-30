@@ -50,6 +50,7 @@ This documentation repository contains comprehensive technical and business docu
 |----------|-------------|----------|
 | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Complete deployment procedures and environment setup | DevOps, System administrators |
 | [EMAIL_SYSTEM.md](EMAIL_SYSTEM.md) | Email infrastructure, templates, and delivery | DevOps, Developers |
+| [EMAIL_DELIVERABILITY.md](EMAIL_DELIVERABILITY.md) | Email deliverability, spam prevention, and authentication setup | DevOps, Developers |
 | [SUPABASE_EMAIL_CONFIGURATION.md](SUPABASE_EMAIL_CONFIGURATION.md) | Supabase email authentication redirect URLs and setup | Developers, DevOps |
 
 #### Project Management
@@ -77,6 +78,7 @@ This documentation repository contains comprehensive technical and business docu
 **Deployment:**
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Deploy to production
 - [EMAIL_SYSTEM.md](EMAIL_SYSTEM.md) - Configure email delivery
+- [EMAIL_DELIVERABILITY.md](EMAIL_DELIVERABILITY.md) - Fix spam issues and improve deliverability
 - [SUPABASE_EMAIL_CONFIGURATION.md](SUPABASE_EMAIL_CONFIGURATION.md) - Configure Supabase auth emails
 
 ### For DevOps/System Administrators
@@ -84,8 +86,9 @@ This documentation repository contains comprehensive technical and business docu
 **Infrastructure Setup:**
 1. [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Complete deployment process
 2. [EMAIL_SYSTEM.md](EMAIL_SYSTEM.md) - Email system configuration
-3. [SUPABASE_EMAIL_CONFIGURATION.md](SUPABASE_EMAIL_CONFIGURATION.md) - Supabase auth setup
-4. [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) - Architecture overview
+3. [EMAIL_DELIVERABILITY.md](EMAIL_DELIVERABILITY.md) - Email authentication and spam prevention
+4. [SUPABASE_EMAIL_CONFIGURATION.md](SUPABASE_EMAIL_CONFIGURATION.md) - Supabase auth setup
+5. [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) - Architecture overview
 
 **Security:**
 - [SECURITY_FIXES_FINAL.md](SECURITY_FIXES_FINAL.md) - Security measures
