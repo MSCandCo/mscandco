@@ -104,8 +104,7 @@ export default function MfaChallengeModal({
             <p className="mt-2 text-sm text-gray-500 text-center">
               {useRecoveryCode
                 ? '8 characters (letters and numbers)'
-                : code.length}/6 digits
-              }
+                : `${code.length}/6 digits`}
             </p>
           </div>
 
