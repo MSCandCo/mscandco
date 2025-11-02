@@ -10,30 +10,34 @@ CREATE TABLE IF NOT EXISTS onboarding_progress (
   
   -- Onboarding stages
   stage TEXT NOT NULL DEFAULT 'welcome' CHECK (stage IN (
-    'welcome',           -- Initial greeting
-    'personal_info',     -- First name, last name
-    'artist_info',       -- Artist name, genre
-    'contact_info',      -- Phone, location
-    'identity_info',     -- Date of birth
-    'music_goals',       -- What they want to achieve
-    'payment_setup',     -- Payment details
-    'completed'          -- Onboarding finished
+    'welcome',                  -- Initial greeting + first name
+    'personal_info_last',       -- Last name
+    'personal_info_dob',        -- Date of birth
+    'personal_info_nationality',-- Nationality
+    'personal_info_city',       -- City
+    'personal_info_postal',     -- Postal code
+    'personal_info_phone',      -- Phone number
+    'artist_info',              -- Artist name
+    'music_genre',              -- Primary genre
+    'music_bio',                -- Artist bio
+    'completed'                 -- Onboarding finished
   )),
-  
+
   -- Completion tracking
   is_completed BOOLEAN DEFAULT FALSE,
   completed_at TIMESTAMP WITH TIME ZONE,
-  
+
   -- Required fields tracking
   has_first_name BOOLEAN DEFAULT FALSE,
   has_last_name BOOLEAN DEFAULT FALSE,
+  has_dob BOOLEAN DEFAULT FALSE,
+  has_nationality BOOLEAN DEFAULT FALSE,
+  has_city BOOLEAN DEFAULT FALSE,
+  has_postal BOOLEAN DEFAULT FALSE,
+  has_phone BOOLEAN DEFAULT FALSE,
   has_artist_name BOOLEAN DEFAULT FALSE,
   has_genre BOOLEAN DEFAULT FALSE,
-  has_phone BOOLEAN DEFAULT FALSE,
-  has_location BOOLEAN DEFAULT FALSE,
-  has_dob BOOLEAN DEFAULT FALSE,
   has_bio BOOLEAN DEFAULT FALSE,
-  has_payment_info BOOLEAN DEFAULT FALSE,
   
   -- Profile completion percentage
   completion_percentage INTEGER DEFAULT 0,
@@ -105,22 +109,24 @@ CREATE TRIGGER update_onboarding_updated_at
 CREATE OR REPLACE FUNCTION calculate_onboarding_completion(user_uuid UUID)
 RETURNS INTEGER AS $$
 DECLARE
-  total_fields INTEGER := 8;
+  total_fields INTEGER := 10;
   completed_fields INTEGER := 0;
 BEGIN
-  SELECT 
+  SELECT
     (CASE WHEN has_first_name THEN 1 ELSE 0 END) +
     (CASE WHEN has_last_name THEN 1 ELSE 0 END) +
+    (CASE WHEN has_dob THEN 1 ELSE 0 END) +
+    (CASE WHEN has_nationality THEN 1 ELSE 0 END) +
+    (CASE WHEN has_city THEN 1 ELSE 0 END) +
+    (CASE WHEN has_postal THEN 1 ELSE 0 END) +
+    (CASE WHEN has_phone THEN 1 ELSE 0 END) +
     (CASE WHEN has_artist_name THEN 1 ELSE 0 END) +
     (CASE WHEN has_genre THEN 1 ELSE 0 END) +
-    (CASE WHEN has_phone THEN 1 ELSE 0 END) +
-    (CASE WHEN has_location THEN 1 ELSE 0 END) +
-    (CASE WHEN has_dob THEN 1 ELSE 0 END) +
     (CASE WHEN has_bio THEN 1 ELSE 0 END)
   INTO completed_fields
   FROM onboarding_progress
   WHERE user_id = user_uuid;
-  
+
   RETURN (completed_fields * 100 / total_fields);
 END;
 $$ LANGUAGE plpgsql;
@@ -132,21 +138,23 @@ BEGIN
   NEW.completion_percentage := (
     (CASE WHEN NEW.has_first_name THEN 1 ELSE 0 END) +
     (CASE WHEN NEW.has_last_name THEN 1 ELSE 0 END) +
+    (CASE WHEN NEW.has_dob THEN 1 ELSE 0 END) +
+    (CASE WHEN NEW.has_nationality THEN 1 ELSE 0 END) +
+    (CASE WHEN NEW.has_city THEN 1 ELSE 0 END) +
+    (CASE WHEN NEW.has_postal THEN 1 ELSE 0 END) +
+    (CASE WHEN NEW.has_phone THEN 1 ELSE 0 END) +
     (CASE WHEN NEW.has_artist_name THEN 1 ELSE 0 END) +
     (CASE WHEN NEW.has_genre THEN 1 ELSE 0 END) +
-    (CASE WHEN NEW.has_phone THEN 1 ELSE 0 END) +
-    (CASE WHEN NEW.has_location THEN 1 ELSE 0 END) +
-    (CASE WHEN NEW.has_dob THEN 1 ELSE 0 END) +
     (CASE WHEN NEW.has_bio THEN 1 ELSE 0 END)
-  ) * 12.5; -- 8 fields, each worth 12.5%
-  
-  -- Mark as completed if all required fields are filled (87.5% = 7/8 fields)
-  IF NEW.completion_percentage >= 87 THEN
+  ) * 10; -- 10 fields, each worth 10%
+
+  -- Mark as completed if all required fields are filled
+  IF NEW.completion_percentage >= 100 THEN
     NEW.is_completed := TRUE;
     NEW.completed_at := NOW();
     NEW.stage := 'completed';
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

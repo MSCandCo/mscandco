@@ -109,10 +109,10 @@ export default function ApolloOnboarding({ user, onComplete }) {
   };
   
   if (!isOpen) return null;
-  
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-3">

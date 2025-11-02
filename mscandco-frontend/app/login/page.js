@@ -26,7 +26,7 @@ function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Check for email verification success
+  // Check for email verification success and session expiration
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       setEmailVerified(true)
@@ -36,6 +36,14 @@ function LoginPageContent() {
 
     if (searchParams.get('error') === 'verification_failed') {
       setError('Email verification failed. Please try again or contact support.')
+    }
+
+    if (searchParams.get('session_expired') === 'true') {
+      setError('Your session has expired. Please log in again.')
+    }
+
+    if (searchParams.get('reason') === 'inactivity') {
+      setError('You were logged out due to inactivity. Please log in again.')
     }
   }, [searchParams])
 

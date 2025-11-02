@@ -153,7 +153,9 @@ export async function POST(request) {
  * Get onboarding prompt based on stage
  */
 function getOnboardingPrompt(stage, profile, progress) {
-  const basePrompt = `You are Apollo, the AI assistant for MSC & Co music distribution platform. You're guiding a new user through onboarding.
+  const basePrompt = `You are Apollo, the AI assistant for MSC & Co music distribution platform. You're guiding a new user through their one-time onboarding.
+
+IMPORTANT: This is a ONE-TIME opportunity to collect personal information. After onboarding, these fields will be LOCKED and can only be changed through a profile change request.
 
 Be warm, friendly, and conversational. Keep responses SHORT (2-3 sentences max). Ask ONE question at a time.
 
@@ -170,61 +172,101 @@ User's current info:
 STAGE: Welcome
 This is the user's FIRST interaction with the platform.
 
-Say: "Hey! 👋 I'm Apollo, your AI music assistant. I'm here to help you get started with MSC & Co. 
+Say: "Hey! 👋 I'm Apollo, your AI music assistant. Welcome to MSC & Co!
 
-Before we dive in, I need to know a bit about you. Let's start with the basics - what's your first name?"
+I'm going to help you set up your profile. This is important - the personal information you provide will be locked for security, so make sure everything is accurate. Ready to get started?
 
-Be warm and welcoming!`,
+What's your first name?"
 
-    personal_info: `${basePrompt}
-STAGE: Personal Info
-You're collecting their first and last name.
+Be warm and welcoming, but emphasize the importance!`,
 
-If they just gave you their first name, say: "Nice to meet you, ${profile?.first_name || 'you'}! 😊
+    personal_info_last: `${basePrompt}
+STAGE: Personal Info - Last Name
+You're collecting their last name.
 
-And what's your last name?"
+Say: "Nice to meet you, ${profile?.first_name || 'you'}! 😊
 
-Keep it friendly and conversational!`,
+What's your last name?"
+
+Keep it friendly!`,
+
+    personal_info_dob: `${basePrompt}
+STAGE: Personal Info - Date of Birth
+You're collecting date of birth for age verification and KYC.
+
+Say: "Thanks! Now I need your date of birth for verification and compliance.
+
+Please enter it as DD/MM/YYYY (for example: 15/03/1995)"
+
+Be respectful and professional.`,
+
+    personal_info_nationality: `${basePrompt}
+STAGE: Personal Info - Nationality
+You're collecting their nationality.
+
+Say: "Great! What's your nationality?
+
+(This is required for royalty payments and tax purposes)"
+
+Be professional.`,
+
+    personal_info_city: `${basePrompt}
+STAGE: Personal Info - City
+You're collecting their city.
+
+Say: "What city do you currently live in?
+
+(We need this for your payment information)"
+
+Keep it conversational.`,
+
+    personal_info_postal: `${basePrompt}
+STAGE: Personal Info - Postal Code
+You're collecting their postal/zip code.
+
+Say: "And what's your postal code or zip code?"
+
+Keep it brief!`,
+
+    personal_info_phone: `${basePrompt}
+STAGE: Personal Info - Phone
+You're collecting their phone number.
+
+Say: "Almost done with the essentials! What's your phone number?
+
+(Include country code if outside the UK, e.g., +1 555-1234)"
+
+Be encouraging!`,
 
     artist_info: `${basePrompt}
 STAGE: Artist Info
 You're collecting their artist name and music genre.
 
-Say: "Perfect! Now, what should your fans call you? What's your artist name or stage name?
+Say: "Perfect! Now for the fun part - what should your fans call you? What's your artist name or stage name?
 
 (This is the name that will appear on all your releases)"
 
-Be encouraging!`,
+Be encouraging and exciting!`,
 
-    contact_info: `${basePrompt}
-STAGE: Contact Info
-You're collecting phone number and location.
+    music_genre: `${basePrompt}
+STAGE: Music Genre
+You're collecting their primary music genre.
 
-If they just gave you their artist name, say: "Love it! ${profile?.artist_name || 'That name'} sounds great! 🎵
+Say: "Love it! ${profile?.artist_name || 'That name'} sounds great! 🎵
 
-Now I need your phone number so we can reach you about important updates. What's the best number to contact you?"
+What genre of music do you create? (e.g., Gospel, Afrobeats, Hip-Hop, R&B, Pop, etc.)"
 
-Be professional but friendly.`,
+Be enthusiastic!`,
 
-    identity_info: `${basePrompt}
-STAGE: Identity Info
-You're collecting date of birth for age verification.
+    music_bio: `${basePrompt}
+STAGE: Music Bio
+You're collecting their artist bio.
 
-Say: "Great! One more thing for verification - what's your date of birth?
+Say: "Almost there! Tell me about your music journey in a few sentences.
 
-(Format: DD/MM/YYYY or MM/DD/YYYY)"
+(This will be your artist bio - make it compelling! 🎵)"
 
-Be respectful and explain it's for age verification.`,
-
-    music_goals: `${basePrompt}
-STAGE: Music Goals
-You're understanding what they want to achieve and collecting their bio.
-
-Say: "Almost there! Tell me about your music journey. What genre do you create, and what brings you to MSC & Co?
-
-(This will be your artist bio - make it good! 🎵)"
-
-Be enthusiastic about their goals!`,
+Be enthusiastic about their story!`,
 
     completed: `${basePrompt}
 STAGE: Completed
@@ -232,9 +274,11 @@ Onboarding is done!
 
 Say: "That's it! 🎉 You're all set up, ${profile?.artist_name || profile?.first_name}!
 
-Your profile is complete and you now have full access to the platform. Ready to upload your first release or explore your dashboard?"
+Your personal information is now secured and locked. If you ever need to update it, you'll submit a profile change request that our team will review.
 
-Celebrate their completion!`,
+Ready to upload your first release or explore your dashboard?"
+
+Celebrate their completion and remind them about the locked fields!`,
   };
 
   return stagePrompts[stage] || stagePrompts.welcome;
@@ -247,95 +291,110 @@ async function extractProfileUpdates(message, stage, profile) {
   const profileUpdates = {};
   const progressUpdates = {};
   let nextStage = stage;
-  
+
   switch (stage) {
     case 'welcome':
       // Extract first name
       if (message && message.trim().length > 0) {
-        profileUpdates.first_name = message.trim();
+        profileUpdates.firstName = message.trim();
         progressUpdates.has_first_name = true;
-        nextStage = 'personal_info';
+        nextStage = 'personal_info_last';
       }
       break;
-      
-    case 'personal_info':
+
+    case 'personal_info_last':
       // Extract last name
       if (message && message.trim().length > 0) {
-        profileUpdates.last_name = message.trim();
+        profileUpdates.lastName = message.trim();
         progressUpdates.has_last_name = true;
+        nextStage = 'personal_info_dob';
+      }
+      break;
+
+    case 'personal_info_dob':
+      // Extract date of birth
+      if (message && message.trim().length > 0) {
+        profileUpdates.dateOfBirth = message.trim();
+        progressUpdates.has_dob = true;
+        nextStage = 'personal_info_nationality';
+      }
+      break;
+
+    case 'personal_info_nationality':
+      // Extract nationality
+      if (message && message.trim().length > 0) {
+        profileUpdates.nationality = message.trim();
+        progressUpdates.has_nationality = true;
+        nextStage = 'personal_info_city';
+      }
+      break;
+
+    case 'personal_info_city':
+      // Extract city
+      if (message && message.trim().length > 0) {
+        profileUpdates.city = message.trim();
+        progressUpdates.has_city = true;
+        nextStage = 'personal_info_postal';
+      }
+      break;
+
+    case 'personal_info_postal':
+      // Extract postal code
+      if (message && message.trim().length > 0) {
+        profileUpdates.postalCode = message.trim();
+        progressUpdates.has_postal = true;
+        nextStage = 'personal_info_phone';
+      }
+      break;
+
+    case 'personal_info_phone':
+      // Extract phone
+      if (message && message.trim().length > 0) {
+        profileUpdates.phone = message.trim();
+        progressUpdates.has_phone = true;
         nextStage = 'artist_info';
       }
       break;
-      
+
     case 'artist_info':
       // Extract artist name
       if (message && message.trim().length > 0) {
-        profileUpdates.artist_name = message.trim();
+        profileUpdates.artistName = message.trim();
         progressUpdates.has_artist_name = true;
-        nextStage = 'contact_info';
+        nextStage = 'music_genre';
       }
       break;
-      
-    case 'contact_info':
-      // Extract phone and location
+
+    case 'music_genre':
+      // Extract primary genre
       if (message && message.trim().length > 0) {
-        // If message contains country/location keywords, extract it
-        // For now, just store phone
-        profileUpdates.phone = message.trim();
-        progressUpdates.has_phone = true;
-        
-        // Ask for location next time or move to next stage
-        // For simplicity, we'll ask for location separately
-        if (!profile.location) {
-          profileUpdates.location = 'To be updated'; // Placeholder
-          progressUpdates.has_location = true;
-        }
-        nextStage = 'identity_info';
+        profileUpdates.primaryGenre = message.trim();
+        progressUpdates.has_genre = true;
+        nextStage = 'music_bio';
       }
       break;
-      
-    case 'identity_info':
-      // Extract date of birth
-      if (message && message.trim().length > 0) {
-        profileUpdates.date_of_birth = message.trim();
-        progressUpdates.has_dob = true;
-        nextStage = 'music_goals';
-      }
-      break;
-      
-    case 'music_goals':
-      // Extract bio/goals and genre
+
+    case 'music_bio':
+      // Extract bio
       if (message && message.trim().length > 0) {
         profileUpdates.bio = message.trim();
         progressUpdates.has_bio = true;
-        
-        // Try to extract genre from bio
-        const genreKeywords = ['gospel', 'afrobeats', 'hip-hop', 'hip hop', 'r&b', 'rnb', 'pop', 'rock', 'jazz', 'reggae', 'dancehall', 'amapiano'];
-        const lowerMessage = message.toLowerCase();
-        for (const genre of genreKeywords) {
-          if (lowerMessage.includes(genre)) {
-            profileUpdates.genre = genre.charAt(0).toUpperCase() + genre.slice(1);
-            progressUpdates.has_genre = true;
-            break;
-          }
-        }
-        
-        // If no genre detected, mark as completed anyway
-        if (!progressUpdates.has_genre) {
-          progressUpdates.has_genre = true;
-          profileUpdates.genre = 'Other';
-        }
-        
+        progressUpdates.is_completed = true;
+        progressUpdates.completed_at = new Date().toISOString();
+
+        // LOCK the personal information
+        profileUpdates.immutableDataLocked = true;
+
         nextStage = 'completed';
       }
       break;
   }
-  
+
   // Update stage
   if (nextStage !== stage) {
     progressUpdates.stage = nextStage;
   }
-  
+
   return { profileUpdates, progressUpdates, nextStage };
 }
 

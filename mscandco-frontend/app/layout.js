@@ -10,6 +10,8 @@ import { Inter } from 'next/font/google'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
 import PostHogProvider from '@/components/providers/PostHogProvider'
 import RealtimeProvider from '@/components/providers/RealtimeProvider'
+import { SessionValidator } from '@/components/auth/SessionValidator'
+import { InactivityLogout } from '@/components/auth/InactivityLogout'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 
@@ -27,6 +29,8 @@ export default function RootLayout({ children }) {
         <SupabaseProvider>
           <PostHogProvider>
             <RealtimeProvider>
+              <SessionValidator />
+              <InactivityLogout timeoutMinutes={30} warningMinutes={5} />
               <Header />
               <main>
                 {children}
