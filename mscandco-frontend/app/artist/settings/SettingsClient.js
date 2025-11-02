@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import DeleteAccount from '@/components/settings/DeleteAccount';
 import ExportData from '@/components/settings/ExportData';
 import TwoFactorAuth from '@/components/settings/TwoFactorAuth';
+import EmailPreferences from '@/components/settings/EmailPreferences';
 
 // Comprehensive language list
 const LANGUAGES = [
@@ -446,7 +447,7 @@ const SettingsClient = () => {
             </TabsTrigger>
             <TabsTrigger value="notifications">
               <Bell className="w-4 h-4 mr-2" />
-              Notifications
+              Email Preferences
             </TabsTrigger>
             <TabsTrigger value="security">
               <Shield className="w-4 h-4 mr-2" />
@@ -588,129 +589,9 @@ const SettingsClient = () => {
             </div>
           </TabsContent>
 
-          {/* Tab 2: Notifications */}
+          {/* Tab 2: Email Preferences */}
           <TabsContent value="notifications" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h2>
-              <p className="text-sm text-gray-600 mb-6">Manage how you receive notifications</p>
-
-              <div className="space-y-4">
-                {/* Email Notifications */}
-                <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Email Notifications</h3>
-                    <p className="text-xs text-gray-600">Receive notifications via email</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.emailNotifications}
-                      onChange={(e) => setNotifications(prev => ({ ...prev, emailNotifications: e.target.checked }))}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
-                {/* Push Notifications */}
-                <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Push Notifications</h3>
-                    <p className="text-xs text-gray-600">Receive push notifications in your browser</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.pushNotifications}
-                      onChange={(e) => setNotifications(prev => ({ ...prev, pushNotifications: e.target.checked }))}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
-                {/* Notification Preferences */}
-                <div className="pt-4">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Notification Preferences</h3>
-
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={notifications.releaseStatus}
-                        onChange={(e) => setNotifications(prev => ({ ...prev, releaseStatus: e.target.checked }))}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Release status updates</span>
-                    </label>
-
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={notifications.earnings}
-                        onChange={(e) => setNotifications(prev => ({ ...prev, earnings: e.target.checked }))}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Earnings updates</span>
-                    </label>
-
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={notifications.messages}
-                        onChange={(e) => setNotifications(prev => ({ ...prev, messages: e.target.checked }))}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">New messages</span>
-                    </label>
-
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={notifications.announcements}
-                        onChange={(e) => setNotifications(prev => ({ ...prev, announcements: e.target.checked }))}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Platform announcements</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Frequency */}
-                <div className="pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notification Frequency</label>
-                  <select
-                    value={notifications.frequency}
-                    onChange={(e) => setNotifications(prev => ({ ...prev, frequency: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="immediate">Immediate</option>
-                    <option value="daily">Daily digest</option>
-                    <option value="weekly">Weekly digest</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <Button
-                  onClick={saveNotifications}
-                  disabled={isSaving}
-                  className="bg-gray-900 hover:bg-gray-800"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Notification Settings
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            <EmailPreferences />
           </TabsContent>
 
           {/* Tab 3: Privacy & Security */}

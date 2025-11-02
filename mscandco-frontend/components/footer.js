@@ -100,8 +100,10 @@ function Footer() {
             <StyledLink href="/">{COMPANY_INFO.copyright}</StyledLink>
             <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-6 justify-center lg:gap-8">
               <StyledLink href="/privacy-policy">Privacy Policy</StyledLink>
+              <StyledLink href="/cookie-policy">Cookie Policy</StyledLink>
               <StyledLink href="/license-terms">License Terms</StyledLink>
               <StyledLink href="/terms-of-use">Terms of Use</StyledLink>
+              <StyledLink href="/refund-policy">Refund Policy</StyledLink>
               <StyledLink href="/dmca-policy">DMCA Policy</StyledLink>
             </div>
           </div>
