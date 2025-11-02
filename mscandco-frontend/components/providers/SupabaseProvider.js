@@ -71,12 +71,27 @@ export function SupabaseProvider({ children }) {
     }
   }
 
+  const verifyMfaChallenge = async (factorId, code) => {
+    try {
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+        factorId,
+        code
+      })
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error verifying MFA:', error)
+      return { data: null, error }
+    }
+  }
+
   const value = {
     user,
     session,
     loading,
     signOut,
     signIn,
+    verifyMfaChallenge,
     supabase
   }
 

@@ -11,6 +11,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle } from 'lucide-react'
+import MfaChallengeModal from '@/components/auth/MfaChallengeModal'
+import bcrypt from 'bcryptjs'
 
 function LoginPageContent() {
   const [email, setEmail] = useState('')
@@ -21,6 +23,12 @@ function LoginPageContent() {
   const [resendingEmail, setResendingEmail] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
+
+  // MFA Challenge state
+  const [showMfaChallenge, setShowMfaChallenge] = useState(false)
+  const [mfaFactorId, setMfaFactorId] = useState(null)
+  const [mfaError, setMfaError] = useState('')
+  const [mfaLoading, setMfaLoading] = useState(false)
 
   const supabase = createClient()
   const router = useRouter()
@@ -70,23 +78,119 @@ function LoginPageContent() {
       })
 
       if (error) {
+        // Check if MFA is required
+        if (error.message?.includes('MFA') || error.message?.includes('factor')) {
+          // Get MFA factors
+          const { data: factorsData } = await supabase.auth.mfa.listFactors()
+          if (factorsData?.totp && factorsData.totp.length > 0) {
+            setMfaFactorId(factorsData.totp[0].id)
+            setShowMfaChallenge(true)
+            setLoading(false)
+            return
+          }
+        }
+
         setError(error.message)
         setLoading(false)
         return
       }
 
       if (data.user) {
-        // Check if there was a redirect target
-        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        // Check if MFA is enabled but not yet challenged
+        const { data: factorsData } = await supabase.auth.mfa.listFactors()
+        if (factorsData?.totp && factorsData.totp.length > 0) {
+          // MFA is enabled, show challenge
+          setMfaFactorId(factorsData.totp[0].id)
+          setShowMfaChallenge(true)
+          setLoading(false)
+          return
+        }
 
-        // Immediate redirect - no waiting
+        // No MFA or already verified - proceed to dashboard
+        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
         router.push(redirectTo)
-        router.refresh() // Force router refresh for instant navigation
+        router.refresh()
       }
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
     }
+  }
+
+  const handleMfaVerify = async (code, isRecoveryCode) => {
+    setMfaLoading(true)
+    setMfaError('')
+
+    try {
+      if (isRecoveryCode) {
+        // Handle recovery code verification
+        const codeHash = bcrypt.hashSync(code, 10)
+
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setMfaError('Session expired. Please log in again.')
+          setShowMfaChallenge(false)
+          setMfaLoading(false)
+          return
+        }
+
+        // Verify recovery code via database function
+        const { data: verifyResult, error: verifyError } = await supabase.rpc(
+          'verify_recovery_code',
+          {
+            p_user_id: user.id,
+            p_code_hash: codeHash
+          }
+        )
+
+        if (verifyError || !verifyResult?.valid) {
+          setMfaError(verifyResult?.message || 'Invalid recovery code')
+          setMfaLoading(false)
+          return
+        }
+
+        // Recovery code valid - log security event and redirect
+        await supabase.rpc('log_security_event', {
+          p_user_id: user.id,
+          p_event_type: 'login_with_recovery_code',
+          p_event_category: '2fa',
+          p_severity: 'warning',
+          p_success: true
+        })
+
+        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        router.push(redirectTo)
+        router.refresh()
+      } else {
+        // Handle TOTP verification
+        const { error } = await supabase.auth.mfa.challengeAndVerify({
+          factorId: mfaFactorId,
+          code: code
+        })
+
+        if (error) {
+          setMfaError(error.message || 'Invalid verification code')
+          setMfaLoading(false)
+          return
+        }
+
+        // Success! Redirect to dashboard
+        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        router.push(redirectTo)
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('MFA verification error:', err)
+      setMfaError('An unexpected error occurred')
+      setMfaLoading(false)
+    }
+  }
+
+  const handleMfaCancel = () => {
+    setShowMfaChallenge(false)
+    setMfaError('')
+    setMfaFactorId(null)
+    setLoading(false)
   }
 
   const handleResendConfirmation = async () => {
@@ -288,7 +392,16 @@ function LoginPageContent() {
             🔒 Secure authentication powered by Supabase
           </p>
         </div>
-      </div>
+      
+        {/* MFA Challenge Modal */}
+        <MfaChallengeModal
+          isOpen={showMfaChallenge}
+          onVerify={handleMfaVerify}
+          onCancel={handleMfaCancel}
+          loading={mfaLoading}
+          error={mfaError}
+        />
+</div>
     </div>
   )
 }

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Shield, ShieldCheck, QrCode, Copy, Check, Loader2, AlertTriangle } from 'lucide-react'
+import { Shield, ShieldCheck, QrCode, Copy, Check, Loader2, AlertTriangle, Key, Download } from 'lucide-react'
 import QRCode from 'qrcode'
+import bcrypt from 'bcryptjs'
 
 /**
  * TwoFactorAuth Component
@@ -33,6 +34,11 @@ export default function TwoFactorAuth() {
   const [verificationCode, setVerificationCode] = useState('')
   const [factorId, setFactorId] = useState('')
   const [copied, setCopied] = useState(false)
+
+  // Recovery codes state
+  const [recoveryCodes, setRecoveryCodes] = useState([])
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
+  const [recoveryCodesDownloaded, setRecoveryCodesDownloaded] = useState(false)
 
   const supabase = createClient()
 
@@ -67,7 +73,59 @@ export default function TwoFactorAuth() {
     }
   }
 
-  const startEnrollment = async () => {
+
+  const generateRecoveryCodes = () => {
+    const codes = []
+    for (let i = 0; i < 10; i++) {
+      // Generate random 8-character alphanumeric code
+      const code = Math.random().toString(36).substring(2, 10).toUpperCase()
+      codes.push(code)
+    }
+    return codes
+  }
+
+  const saveRecoveryCodes = async (codes) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Hash each code before storing
+      const codeHashes = codes.map(code => bcrypt.hashSync(code, 10))
+
+      // Save to database
+      const { error } = await supabase.rpc('generate_recovery_codes', {
+        p_user_id: user.id,
+        p_code_hashes: codeHashes
+      })
+
+      if (error) throw error
+    } catch (err) {
+      console.error('Error saving recovery codes:', err)
+    }
+  }
+
+  const downloadRecoveryCodes = () => {
+    const text = `MSC & Co - Two-Factor Authentication Recovery Codes\n\n` +
+      `Generated: ${new Date().toLocaleString()}\n\n` +
+      `IMPORTANT: Save these codes in a safe place. Each code can only be used once.\n\n` +
+      recoveryCodes.map((code, i) => `${i + 1}. ${code}`).join('\n') +
+      `\n\n` +
+      `These codes can be used to log in if you lose access to your authenticator app.\n` +
+      `After using a code, it will no longer work.`
+
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `mscandco-recovery-codes-${Date.now()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setRecoveryCodesDownloaded(true)
+  }
+
+    const startEnrollment = async () => {
     try {
       setEnrolling(true)
       setError('')
@@ -113,11 +171,19 @@ export default function TwoFactorAuth() {
 
       if (verifyError) throw verifyError
 
-      // Success!
+      // Success! Generate recovery codes
+      const codes = generateRecoveryCodes()
+      setRecoveryCodes(codes)
+
+      // Save codes to database
+      await saveRecoveryCodes(codes)
+
       setSuccess('Two-factor authentication enabled successfully!')
       setIsMfaEnabled(true)
       setShowEnrollment(false)
       setVerificationCode('')
+      setShowRecoveryCodes(true) // Show recovery codes
+      setRecoveryCodesDownloaded(false)
 
       // Refresh MFA status
       await checkMfaStatus()
@@ -365,6 +431,61 @@ export default function TwoFactorAuth() {
               <li>1Password (Cross-platform)</li>
               <li>Microsoft Authenticator (iOS/Android)</li>
             </ul>
+          
+
+        {/* Recovery Codes Display */}
+        {showRecoveryCodes && recoveryCodes.length > 0 && (
+          <div className="mt-6 p-6 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+            <div className="flex items-start gap-4 mb-4">
+              <Key className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900 mb-2">Save Your Recovery Codes</h4>
+                <p className="text-sm text-gray-700 mb-4">
+                  Store these codes in a safe place. You can use them to log in if you lose access to your authenticator app. Each code works only once.
+                </p>
+
+                {/* Recovery Codes Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4 p-4 bg-white rounded border border-yellow-300">
+                  {recoveryCodes.map((code, index) => (
+                    <div key={index} className="font-mono text-sm p-2 bg-gray-50 rounded border border-gray-200 text-center">
+                      {index + 1}. {code}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Download Button */}
+                <button
+                  onClick={downloadRecoveryCodes}
+                  className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors mb-3"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Recovery Codes
+                </button>
+
+                {recoveryCodesDownloaded && (
+                  <p className="text-sm text-green-700 font-medium mb-3">
+                    ✓ Recovery codes downloaded!
+                  </p>
+                )}
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowRecoveryCodes(false)}
+                  disabled={!recoveryCodesDownloaded}
+                  className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  title={!recoveryCodesDownloaded ? 'Please download your recovery codes first' : ''}
+                >
+                  {recoveryCodesDownloaded ? 'Done - I\'ve Saved My Codes' : 'Download Codes First'}
+                </button>
+
+                <p className="text-xs text-gray-600 mt-3">
+                  ⚠️ You won\'t be able to see these codes again. Make sure to download and save them securely.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
           </div>
         </div>
       </div>
