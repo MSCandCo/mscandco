@@ -2,22 +2,32 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * DELETE /api/user/delete-account
+ * POST /api/user/delete-account
  *
- * Permanently deletes a user account and all associated data
+ * Soft deletes a user account while preserving financial records
  *
  * GDPR Compliance: Users have the right to delete their data
+ * Financial Compliance: Earnings records preserved for audit/claims
  *
  * Security:
  * - Requires authentication
  * - User can only delete their own account
- * - Requires confirmation via password
+ * - Requires password verification
+ * - Requires explicit "DELETE MY ACCOUNT" text confirmation
  * - Logs deletion for audit trail
  *
- * What gets deleted:
- * - User profile from user_profiles table
- * - Auth account from auth.users
- * - Associated data (cascading deletes via FK constraints)
+ * What happens:
+ * - User marked as deleted in user_profiles (deleted_at timestamp)
+ * - Complete audit record created in deleted_users_audit table
+ * - Financial snapshot preserved (wallet balance, earnings)
+ * - Auth account removed from auth.users
+ * - User cannot log in again
+ * - Admins can still see financial records for claims/disputes
+ *
+ * What is preserved:
+ * - earnings_log records (for financial audit trail)
+ * - Final wallet balance and pending earnings
+ * - User metadata in deleted_users_audit table
  */
 export async function POST(request) {
   try {
@@ -69,37 +79,39 @@ export async function POST(request) {
     // Log the deletion attempt for audit
     console.log(`🗑️ Account deletion requested by user: ${user.id} (${user.email})`)
 
-    // Delete user profile first (will cascade to related data)
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .delete()
-      .eq('id', user.id)
+    // Use soft delete function to preserve financial records
+    const { data: softDeleteResult, error: softDeleteError } = await supabase.rpc(
+      'soft_delete_user_account',
+      {
+        p_user_id: user.id,
+        p_deletion_reason: 'User requested account deletion',
+        p_deleted_by: user.id,
+        p_deletion_method: 'self'
+      }
+    )
 
-    if (profileError) {
-      console.error('Error deleting user profile:', profileError)
+    if (softDeleteError) {
+      console.error('Error soft deleting user account:', softDeleteError)
       return NextResponse.json(
-        { error: 'Failed to delete profile data', details: profileError.message },
+        { error: 'Failed to delete account', details: softDeleteError.message },
         { status: 500 }
       )
     }
 
-    // Delete the auth user account
-    // Note: This requires admin privileges, so we use the auth admin API
+    // Delete the auth user account (but profile data is preserved in deleted_users_audit)
     const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id)
 
     if (deleteError) {
       console.error('Error deleting auth user:', deleteError)
-
-      // If auth deletion fails but profile was deleted, log critical error
-      console.error('⚠️ CRITICAL: Profile deleted but auth account remains for user:', user.id)
-
       return NextResponse.json(
         { error: 'Failed to delete account', details: deleteError.message },
         { status: 500 }
       )
     }
 
-    console.log(`✅ Account successfully deleted: ${user.id} (${user.email})`)
+    console.log(`✅ Account successfully soft deleted: ${user.id} (${user.email})`)
+    console.log(`   Final wallet balance: £${softDeleteResult?.wallet_balance || 0}`)
+    console.log(`   Pending earnings: £${softDeleteResult?.pending_earnings || 0}`)
 
     // Sign out the user
     await supabase.auth.signOut()
