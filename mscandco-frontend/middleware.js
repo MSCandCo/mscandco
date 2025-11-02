@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/middleware';
+import { createAdminClient } from '@/lib/supabase/middleware-admin';
 
 export async function middleware(req) {
   const { supabase, response } = createClient(req);
@@ -36,7 +37,9 @@ export async function middleware(req) {
   // Skip role checks for /dashboard to prevent redirect loops
   if (session && isProtectedPath && !req.nextUrl.pathname.startsWith('/dashboard')) {
     // Get user profile for role-based access control
-    const { data: profile, error: profileError } = await supabase
+    // Use admin client to bypass RLS policies for authorization checks
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
