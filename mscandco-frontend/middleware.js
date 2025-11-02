@@ -53,41 +53,62 @@ export async function middleware(req) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Protect /superadmin/* routes - SuperAdmin only
+    // Get user role (already lowercase with underscores in database)
+    const userRole = profile.role?.toLowerCase();
+
+    // Protect /superadmin/* routes - super_admin only
     if (req.nextUrl.pathname.startsWith('/superadmin')) {
-      if (profile.role !== 'SuperAdmin') {
+      if (userRole !== 'super_admin') {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
-    // Protect /admin/* routes - Admin and SuperAdmin only
+    // Protect /admin/* routes - various admin roles
     if (req.nextUrl.pathname.startsWith('/admin')) {
-      const allowedRoles = ['Admin', 'SuperAdmin'];
-      if (!allowedRoles.includes(profile.role)) {
+      const allowedRoles = [
+        'super_admin',
+        'company_admin',
+        'analytics_admin',
+        'requests_admin'
+      ];
+      if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
-    // Protect /labeladmin/* routes - LabelAdmin, Admin, and SuperAdmin
+    // Protect /labeladmin/* routes - label_admin and above
     if (req.nextUrl.pathname.startsWith('/labeladmin')) {
-      const allowedRoles = ['LabelAdmin', 'Admin', 'SuperAdmin'];
-      if (!allowedRoles.includes(profile.role)) {
+      const allowedRoles = [
+        'label_admin',
+        'company_admin',
+        'super_admin'
+      ];
+      if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
-    // Protect /artist/* routes - Artist and above
+    // Protect /artist/* routes - artist and above
     if (req.nextUrl.pathname.startsWith('/artist')) {
-      const allowedRoles = ['Artist', 'LabelAdmin', 'Admin', 'SuperAdmin'];
-      if (!allowedRoles.includes(profile.role)) {
+      const allowedRoles = [
+        'artist',
+        'label_admin',
+        'company_admin',
+        'super_admin'
+      ];
+      if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
-    // Protect /distribution/* routes - DistributionPartner, Admin, SuperAdmin
+    // Protect /distribution/* routes - distribution_partner and admins
     if (req.nextUrl.pathname.startsWith('/distribution')) {
-      const allowedRoles = ['DistributionPartner', 'Admin', 'SuperAdmin'];
-      if (!allowedRoles.includes(profile.role)) {
+      const allowedRoles = [
+        'distribution_partner',
+        'company_admin',
+        'super_admin'
+      ];
+      if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
