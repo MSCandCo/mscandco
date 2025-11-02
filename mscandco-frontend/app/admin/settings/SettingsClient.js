@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Lock, Bell, Info, Save, Eye, EyeOff } from 'lucide-react'
 import { PageLoading } from '@/components/ui/LoadingSpinner';
+import DeleteAccount from '@/components/settings/DeleteAccount';
 
 export default function SettingsClient({ user }) {
   const supabase = createClient()
@@ -616,6 +617,11 @@ export default function SettingsClient({ user }) {
                 <Lock size={18} />
                 <span>{saving ? 'Updating...' : 'Update Password'}</span>
               </button>
+
+              {/* Delete Account Section */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <DeleteAccount />
+              </div>
             </form>
           )}
 

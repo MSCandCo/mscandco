@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import DeleteAccount from '@/components/settings/DeleteAccount';
 
 // Comprehensive language list
 const LANGUAGES = [
@@ -830,6 +831,11 @@ const LabelAdminSettingsClient = () => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              {/* Delete Account Section */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <DeleteAccount />
               </div>
             </div>
           </TabsContent>

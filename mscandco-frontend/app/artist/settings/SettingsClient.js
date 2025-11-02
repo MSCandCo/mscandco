@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import DeleteAccount from '@/components/settings/DeleteAccount';
 
 // Comprehensive language list
 const LANGUAGES = [
@@ -787,7 +788,7 @@ const SettingsClient = () => {
               </div>
 
               {/* Login History */}
-              <div>
+              <div className="mb-8">
                 <h3 className="text-md font-medium text-gray-900 mb-4">Login History</h3>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -821,6 +822,9 @@ const SettingsClient = () => {
                 </div>
               </div>
             </div>
+
+            {/* Delete Account Section */}
+            <DeleteAccount />
           </TabsContent>
 
           {/* Tab 4: Billing & Subscription */}
