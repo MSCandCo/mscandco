@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import CreateUserModal from '@/components/admin/CreateUserModal'
 import EditUserModal from '@/components/admin/EditUserModal'
+import DeletedUsersSection from '@/components/admin/DeletedUsersSection'
 import { useRoles } from '@/hooks/useRoles'
 
 export default function UserManagementClient({ user }) {
@@ -635,6 +636,11 @@ export default function UserManagementClient({ user }) {
           </span>
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
         </div>
+      </div>
+
+      {/* Deleted Users Section */}
+      <div className="mt-12 pt-12 border-t-2 border-gray-200">
+        <DeletedUsersSection />
       </div>
 
       {/* Modals */}
