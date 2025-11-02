@@ -33,10 +33,11 @@ export async function POST(request) {
     }
 
     // Search for existing artist by artist_name using direct PostgreSQL
+    // Exclude deleted users (deleted_at IS NOT NULL)
     const searchResult = await query(
-      `SELECT id, artist_name, email, first_name, last_name 
-       FROM user_profiles 
-       WHERE artist_name = $1 AND role = $2
+      `SELECT id, artist_name, email, first_name, last_name
+       FROM user_profiles
+       WHERE artist_name = $1 AND role = $2 AND deleted_at IS NULL
        LIMIT 1`,
       [artistName, 'artist']
     )

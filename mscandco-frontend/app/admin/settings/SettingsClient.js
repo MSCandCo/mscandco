@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Lock, Bell, Info, Save, Eye, EyeOff } from 'lucide-react'
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 import DeleteAccount from '@/components/settings/DeleteAccount';
+import ExportData from '@/components/settings/ExportData';
 
+import TwoFactorAuth from '@/components/settings/TwoFactorAuth';
 export default function SettingsClient({ user }) {
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState('profile')
@@ -620,6 +622,8 @@ export default function SettingsClient({ user }) {
 
               {/* Delete Account Section */}
               <div className="mt-8 pt-8 border-t border-gray-200">
+          <ExportData />
+
                 <DeleteAccount />
               </div>
             </form>

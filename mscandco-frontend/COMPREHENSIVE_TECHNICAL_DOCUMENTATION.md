@@ -142,40 +142,34 @@ MSC & Co is an **enterprise-grade multi-brand music distribution and publishing 
 
 The platform uses **PostgreSQL 17** hosted on Supabase with the following core table categories:
 
-#### Core Tables (50+ tables)
+#### Core Database Tables (50+ tables)
 
-**User Management:**
-- `user_profiles` - Extended user information beyond Supabase Auth
-- `roles` - Role definitions (artist, label_admin, company_admin, super_admin, distribution_partner)
-- `permissions` - Granular permission definitions (200+ permissions)
-- `role_permissions` - Role-to-permission mapping
-- `user_permissions` - User-specific permission overrides
-
-**Content Management:**
-- `releases` - Music releases/albums
-- `tracks` - Individual songs
-- `artists` - Artist roster
-- `labels` - Record label information
-- `playlists` - Curated playlists
-
-**Financial:**
-- `wallet_transactions` - All financial transactions
-- `earnings` - Royalty earnings records
-- `revenue_reports` - Aggregated revenue data
-- `subscriptions` - User subscription plans
-- `split_configurations` - Revenue split rules
-
-**Analytics:**
-- `analytics_events` - User activity tracking
-- `stream_stats` - Streaming platform statistics
-- `dashboard_widgets` - Custom dashboard configurations
-
-**System:**
-- `notifications` - In-app notifications
-- `audit_logs` - System activity audit trail
-- `ghost_sessions` - Admin impersonation sessions
-- `profile_change_requests` - Approval workflow for profile changes
-- `webhook_logs` - External webhook event logs
+| Category | Table Name | Purpose | Key Features |
+|----------|------------|---------|--------------|
+| **User Management** | `user_profiles` | Extended user info (locked fields after onboarding) | Personal data, KYC/AML compliance |
+| | `roles` | Role definitions | 5 roles: Artist, LabelAdmin, Admin, SuperAdmin, DistributionPartner |
+| | `permissions` | Granular permissions | 200+ permission definitions |
+| | `role_permissions` | Role-to-permission mapping | RBAC system foundation |
+| | `user_permissions` | User-specific overrides | Individual permission grants/revokes |
+| **Content Management** | `releases` | Music releases/albums | Status workflow, RLS policies |
+| | `tracks` | Individual songs | ISRC codes, duration, lyrics |
+| | `artists` | Artist roster | Profiles, affiliations |
+| | `labels` | Record label info | Label-artist relationships |
+| | `playlists` | Curated playlists | User-created collections |
+| **Financial** | `wallet_transactions` | All financial transactions | DECIMAL precision, audit trail |
+| | `earnings` | Royalty earnings | Platform-specific breakdown |
+| | `revenue_reports` | Aggregated revenue | Monthly/quarterly reports |
+| | `subscriptions` | Subscription plans | 4 tiers: Free, Basic, Pro, Enterprise |
+| | `split_configurations` | Revenue split rules | Label-artist partnerships |
+| **Analytics** | `analytics_events` | User activity tracking | PostHog integration |
+| | `stream_stats` | Streaming statistics | Real-time platform data |
+| | `dashboard_widgets` | Custom dashboards | User-configurable views |
+| **System** | `notifications` | In-app notifications | Real-time via Supabase Realtime |
+| | `audit_logs` | System activity trail | Security & compliance |
+| | `ghost_sessions` | Admin impersonation | Support mode tracking |
+| | `profile_change_requests` | Profile change approvals | Admin review workflow |
+| | `onboarding_progress` | Apollo AI onboarding | Step-by-step tracking |
+| | `webhook_logs` | External webhooks | Integration event logs |
 
 ### Row-Level Security (RLS) Implementation
 
