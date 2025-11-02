@@ -51,6 +51,7 @@ export function SessionValidator() {
 
       if (event === 'SIGNED_OUT') {
         console.log('👋 User signed out')
+        // Don't show "session expired" for manual logout
         router.push('/login')
       }
 
@@ -62,8 +63,8 @@ export function SessionValidator() {
         console.log('👤 User updated')
       }
 
-      // If session becomes null while on protected page
-      if (!session && !publicPaths.includes(pathname)) {
+      // If session becomes null while on protected page (but not from manual signout)
+      if (!session && !publicPaths.includes(pathname) && event !== 'SIGNED_OUT') {
         console.log('❌ Session lost on protected page')
         router.push('/login?session_expired=true')
       }

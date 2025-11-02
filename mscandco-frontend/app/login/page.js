@@ -38,6 +38,10 @@ function LoginPageContent() {
       setError('Email verification failed. Please try again or contact support.')
     }
 
+    if (searchParams.get('error') === 'profile_not_found') {
+      setError('Your profile could not be found. Please contact support.')
+    }
+
     if (searchParams.get('session_expired') === 'true') {
       setError('Your session has expired. Please log in again.')
     }
@@ -72,8 +76,11 @@ function LoginPageContent() {
       }
 
       if (data.user) {
+        // Check if there was a redirect target
+        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+
         // Immediate redirect - no waiting
-        router.push('/dashboard')
+        router.push(redirectTo)
         router.refresh() // Force router refresh for instant navigation
       }
     } catch (err) {
