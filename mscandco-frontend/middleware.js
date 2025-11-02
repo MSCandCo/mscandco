@@ -32,63 +32,60 @@ export async function middleware(req) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Check if route requires authentication (legacy check for distribution)
-  if (req.nextUrl.pathname.startsWith('/distribution')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    // Get user role
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    const allowedRoles = ['DistributionPartner', 'Admin', 'SuperAdmin'];
-
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-  }
-
   // For authenticated users on protected paths, verify role-based access
-  if (session && isProtectedPath) {
+  // Skip role checks for /dashboard to prevent redirect loops
+  if (session && isProtectedPath && !req.nextUrl.pathname.startsWith('/dashboard')) {
     // Get user profile for role-based access control
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
       .single();
+
+    // If profile query fails, redirect to login (session might be corrupted)
+    if (profileError || !profile) {
+      console.error('Profile query failed:', profileError);
+      const redirectUrl = new URL('/login', req.url);
+      redirectUrl.searchParams.set('error', 'profile_not_found');
+      return NextResponse.redirect(redirectUrl);
+    }
 
     // Protect /superadmin/* routes - SuperAdmin only
     if (req.nextUrl.pathname.startsWith('/superadmin')) {
-      if (!profile || profile.role !== 'SuperAdmin') {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+      if (profile.role !== 'SuperAdmin') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
     // Protect /admin/* routes - Admin and SuperAdmin only
     if (req.nextUrl.pathname.startsWith('/admin')) {
       const allowedRoles = ['Admin', 'SuperAdmin'];
-      if (!profile || !allowedRoles.includes(profile.role)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+      if (!allowedRoles.includes(profile.role)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
     // Protect /labeladmin/* routes - LabelAdmin, Admin, and SuperAdmin
     if (req.nextUrl.pathname.startsWith('/labeladmin')) {
       const allowedRoles = ['LabelAdmin', 'Admin', 'SuperAdmin'];
-      if (!profile || !allowedRoles.includes(profile.role)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+      if (!allowedRoles.includes(profile.role)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
 
     // Protect /artist/* routes - Artist and above
     if (req.nextUrl.pathname.startsWith('/artist')) {
       const allowedRoles = ['Artist', 'LabelAdmin', 'Admin', 'SuperAdmin'];
-      if (!profile || !allowedRoles.includes(profile.role)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+      if (!allowedRoles.includes(profile.role)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
+    }
+
+    // Protect /distribution/* routes - DistributionPartner, Admin, SuperAdmin
+    if (req.nextUrl.pathname.startsWith('/distribution')) {
+      const allowedRoles = ['DistributionPartner', 'Admin', 'SuperAdmin'];
+      if (!allowedRoles.includes(profile.role)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
   }
