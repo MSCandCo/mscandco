@@ -37,11 +37,38 @@ function LoginPageContent() {
   useEffect(() => {
     // Check if user is already logged in - redirect to dashboard
     const checkExistingSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        console.log('✅ User already logged in, redirecting to dashboard')
-        router.push('/dashboard')
-        return
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          console.log('✅ User already logged in, fetching role for redirect...')
+          
+          // Fetch user role for proper redirect
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle()
+          
+          const userRole = profile?.role || session.user.user_metadata?.role
+          
+          // Determine redirect based on role
+          let redirectTo = '/dashboard'
+          if (userRole === 'label_admin') {
+            redirectTo = '/labeladmin/dashboard'
+          } else if (userRole === 'super_admin') {
+            redirectTo = '/superadmin/dashboard'
+          } else if (userRole === 'company_admin' || userRole === 'admin') {
+            redirectTo = '/admin/dashboard'
+          }
+          
+          console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
+          // Use window.location.href for hard redirect (works on staging)
+          window.location.href = redirectTo
+          return
+        }
+      } catch (error) {
+        console.error('Error checking session:', error)
+        // Don't redirect on error, let user stay on login page
       }
     }
     

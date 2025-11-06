@@ -1,8 +1,14 @@
 const { withSentryConfig } = require('@sentry/nextjs')
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+
+  // Enable gzip compression
+  compress: true,
 
   // Performance optimizations
   compiler: {
@@ -30,12 +36,44 @@ const nextConfig = {
         protocol: "https",
         hostname: "mscandco.com",
       },
+      {
+        protocol: "https",
+        hostname: "fzqpoayhdisusgrotyfg.supabase.co",
+      },
     ],
+    // Enable modern image formats
+    formats: ['image/avif', 'image/webp'],
+    // Optimize image loading
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
 
   // Experimental features for better performance
   experimental: {
-    optimizePackageImports: ['lucide-react', '@supabase/supabase-js'], // Optimize large package imports
+    optimizePackageImports: [
+      'lucide-react',
+      '@supabase/supabase-js',
+      '@headlessui/react',
+      '@heroicons/react',
+      'recharts',
+      'chart.js',
+      'react-chartjs-2',
+    ],
+  },
+
+  // Webpack optimizations
+  webpack: (config, { isServer }) => {
+    // Optimize for production
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    return config
   },
 
 }
@@ -52,7 +90,12 @@ const sentryWebpackPluginOptions = {
   widenClientFileUpload: true,
 }
 
-// Wrap config with Sentry (only if environment variables are set)
-module.exports = (process.env.SENTRY_ORG && process.env.SENTRY_AUTH_TOKEN)
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig
+// Wrap config with Bundle Analyzer and Sentry
+let config = withBundleAnalyzer(nextConfig)
+
+// Apply Sentry only if environment variables are set
+if (process.env.SENTRY_ORG && process.env.SENTRY_AUTH_TOKEN) {
+  config = withSentryConfig(config, sentryWebpackPluginOptions)
+}
+
+module.exports = config

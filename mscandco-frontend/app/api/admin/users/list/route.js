@@ -8,6 +8,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -75,11 +76,11 @@ export async function GET(request) {
       }
     })
 
-    return NextResponse.json({
+    return cachedJsonResponse({
       success: true,
       users,
       total: users.length
-    })
+    }, CACHE_HEADERS.LIST_DATA)
 
   } catch (error) {
     console.error('Error in users/list:', error)

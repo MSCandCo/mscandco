@@ -96,6 +96,12 @@ export default function DashboardClient({ user }) {
       setLoading(true)
       console.log('🔄 Dashboard: Starting to load data...')
 
+      if (!user) {
+        console.warn('⚠️ Dashboard: No user provided, redirecting to login')
+        window.location.href = '/login'
+        return
+      }
+
       // Get user profile from API (same as header) to get correct artist_name
       const profileResponse = await fetch('/api/artist/profile', {
         credentials: 'include'
@@ -115,12 +121,20 @@ export default function DashboardClient({ user }) {
         }
       } else {
         // Fallback to direct database query if API fails
-        const { data: dbProfile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-        profile = dbProfile
+        try {
+          const { data: dbProfile, error: dbError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle()
+          
+          if (dbError) {
+            console.error('❌ Dashboard: Database profile error:', dbError)
+          }
+          profile = dbProfile
+        } catch (dbErr) {
+          console.error('❌ Dashboard: Fallback profile fetch failed:', dbErr)
+        }
       }
 
       setProfileData(profile)
@@ -129,64 +143,76 @@ export default function DashboardClient({ user }) {
       console.log('✅ Dashboard: Role set:', role)
 
       // Fetch user permissions
-      const { data: permissions, error: permError } = await supabase
-        .from('user_permissions')
-        .select('permission:permissions(name)')
-        .eq('user_id', user.id)
+      try {
+        const { data: permissions, error: permError } = await supabase
+          .from('user_permissions')
+          .select('permission:permissions(name)')
+          .eq('user_id', user.id)
 
-      if (permError) {
-        console.error('❌ Dashboard: Permissions error:', permError)
+        if (permError) {
+          console.error('❌ Dashboard: Permissions error:', permError)
+        }
+
+        const permissionNames = permissions?.map(p => p.permission?.name).filter(Boolean) || []
+        setUserPermissions(permissionNames)
+        console.log('✅ Dashboard: Permissions loaded:', permissionNames.length)
+
+        // Load quick actions - use most visited or fall back to permission-based defaults
+        const topVisited = getTopVisitedPages(permissionNames)
+        setQuickActions(topVisited || getPermissionBasedQuickActions(permissionNames))
+        console.log('✅ Dashboard: Quick actions set')
+
+        // Load REAL stats from database based on role and permissions
+        console.log('🔄 Dashboard: Loading stats...')
+        await loadRealStats(role, permissionNames)
+        console.log('✅ Dashboard: Stats loaded')
+
+        // Load recent notifications from database (user_id field exists in notifications table)
+        try {
+          const { data: recentNotifs, error: notifsError } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5)
+
+          if (recentNotifs && !notifsError) {
+            // Transform notifications to activity format
+            const activityItems = recentNotifs.map(notif => ({
+              id: notif.id,
+              type: notif.type || 'message',
+              message: notif.message || notif.title,
+              time: formatTimeAgo(notif.created_at)
+            }))
+            setRecentActivity(activityItems)
+          } else {
+            // Fallback to empty if no notifications
+            setRecentActivity([])
+          }
+        } catch (notifErr) {
+          console.error('❌ Dashboard: Notifications error:', notifErr)
+          setRecentActivity([])
+        }
+
+        // Load REAL pending tasks from database
+        console.log('🔄 Dashboard: Loading pending tasks...')
+        await loadRealPendingTasks(role, permissionNames)
+        console.log('✅ Dashboard: Pending tasks loaded')
+
+        // Load REAL performance metrics
+        console.log('🔄 Dashboard: Loading performance metrics...')
+        await loadPerformanceMetrics(role, permissionNames)
+        console.log('✅ Dashboard: Performance metrics loaded')
+
+        console.log('✅✅✅ Dashboard: ALL DATA LOADED SUCCESSFULLY ✅✅✅')
+      } catch (permErr) {
+        console.error('❌ Dashboard: Error loading permissions or data:', permErr)
+        // Continue with default permissions
+        setUserPermissions([])
       }
-
-      const permissionNames = permissions?.map(p => p.permission?.name).filter(Boolean) || []
-      setUserPermissions(permissionNames)
-      console.log('✅ Dashboard: Permissions loaded:', permissionNames.length)
-
-      // Load quick actions - use most visited or fall back to permission-based defaults
-      const topVisited = getTopVisitedPages(permissionNames)
-      setQuickActions(topVisited || getPermissionBasedQuickActions(permissionNames))
-      console.log('✅ Dashboard: Quick actions set')
-
-      // Load REAL stats from database based on role and permissions
-      console.log('🔄 Dashboard: Loading stats...')
-      await loadRealStats(role, permissionNames)
-      console.log('✅ Dashboard: Stats loaded')
-
-      // Load recent notifications from database (user_id field exists in notifications table)
-      const { data: recentNotifs, error: notifsError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (recentNotifs && !notifsError) {
-        // Transform notifications to activity format
-        const activityItems = recentNotifs.map(notif => ({
-          id: notif.id,
-          type: notif.type || 'message',
-          message: notif.message || notif.title,
-          time: formatTimeAgo(notif.created_at)
-        }))
-        setRecentActivity(activityItems)
-      } else {
-        // Fallback to empty if no notifications
-        setRecentActivity([])
-      }
-
-      // Load REAL pending tasks from database
-      console.log('🔄 Dashboard: Loading pending tasks...')
-      await loadRealPendingTasks(role, permissionNames)
-      console.log('✅ Dashboard: Pending tasks loaded')
-
-      // Load REAL performance metrics
-      console.log('🔄 Dashboard: Loading performance metrics...')
-      await loadPerformanceMetrics(role, permissionNames)
-      console.log('✅ Dashboard: Performance metrics loaded')
-
-      console.log('✅✅✅ Dashboard: ALL DATA LOADED SUCCESSFULLY ✅✅✅')
     } catch (error) {
       console.error('❌❌❌ Dashboard: CRITICAL ERROR:', error)
+      // Don't redirect on error, just show empty dashboard
     } finally {
       setLoading(false)
       console.log('🏁 Dashboard: Loading state set to false')

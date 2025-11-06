@@ -8,6 +8,7 @@
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
+import { QueryProvider } from '@/components/providers/QueryProvider'
 import PostHogProvider from '@/components/providers/PostHogProvider'
 import RealtimeProvider from '@/components/providers/RealtimeProvider'
 import { SessionValidator } from '@/components/auth/SessionValidator'
@@ -16,7 +17,12 @@ import CookieConsentBanner from '@/components/CookieConsentBanner'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap', // Prevents invisible text flash
+  preload: true,
+  variable: '--font-inter',
+})
 
 export const metadata = {
   title: 'MSC & Co - AI-Native Music Distribution Platform',
@@ -27,20 +33,22 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SupabaseProvider>
-          <PostHogProvider>
-            <RealtimeProvider>
-              <SessionValidator />
-              <InactivityLogout timeoutMinutes={30} warningMinutes={5} />
-              <Header />
-              <main>
-                {children}
-              </main>
-              <Footer />
-              <CookieConsentBanner />
-            </RealtimeProvider>
-          </PostHogProvider>
-        </SupabaseProvider>
+        <QueryProvider>
+          <SupabaseProvider>
+            <PostHogProvider>
+              <RealtimeProvider>
+                <SessionValidator />
+                <InactivityLogout timeoutMinutes={30} warningMinutes={5} />
+                <Header />
+                <main>
+                  {children}
+                </main>
+                <Footer />
+                <CookieConsentBanner />
+              </RealtimeProvider>
+            </PostHogProvider>
+          </SupabaseProvider>
+        </QueryProvider>
       </body>
     </html>
   )

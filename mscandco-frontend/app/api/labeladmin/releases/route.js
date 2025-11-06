@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { query } from '@/lib/db/postgres'
+import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
 
 /**
  * GET /api/labeladmin/releases
@@ -54,7 +55,7 @@ export async function GET(request) {
 
     console.log(`✅ Loaded ${releases.length} releases from all affiliated artists`)
 
-    return NextResponse.json(releases)
+    return cachedJsonResponse(releases, CACHE_HEADERS.RELEASES)
 
   } catch (error) {
     console.error('❌ Label admin releases API error:', error)

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -127,7 +128,7 @@ export async function GET(request) {
 
     console.log(`✅ Aggregated ${contributors.length} unique contributors from ${releaseIds.length} releases`)
 
-    return NextResponse.json({
+    return cachedJsonResponse({
       success: true,
       contributors,
       summary: {
@@ -135,7 +136,7 @@ export async function GET(request) {
         totalReleases: releaseIds.length,
         totalArtists: artistIds.length
       }
-    })
+    }, CACHE_HEADERS.LIST_DATA)
 
   } catch (error) {
     console.error('❌ Label admin roster API error:', error)

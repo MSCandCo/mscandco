@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
 
 // Use service role to bypass RLS
 const supabase = createClient(
@@ -25,10 +26,10 @@ export async function GET(request) {
     const artistId = user.id
     console.log('🎵 Fetching releases for artist:', artistId)
 
-    // Fetch all releases for this artist
+    // Fetch all releases for this artist (optimized: select only needed fields)
     const { data: releases, error } = await supabase
       .from('releases')
-      .select('*')
+      .select('id, title, artist_id, status, release_date, artwork_url, upc, created_at, updated_at')
       .eq('artist_id', artistId)
       .order('created_at', { ascending: false })
 
@@ -53,12 +54,12 @@ export async function GET(request) {
 
     console.log(`✅ Found ${releases.length} releases for artist`)
 
-    return NextResponse.json({
+    return cachedJsonResponse({
       success: true,
       releases: releases || [],
       statusCounts,
       total: releases.length
-    })
+    }, CACHE_HEADERS.RELEASES)
 
   } catch (error) {
     console.error('❌ Releases API error:', error)
