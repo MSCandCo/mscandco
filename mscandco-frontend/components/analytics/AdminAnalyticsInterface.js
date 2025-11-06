@@ -396,11 +396,15 @@ export default function AdminAnalyticsInterface({ artistId, artistName, selected
       console.log('🏆 Milestones data:', milestones);
 
       // Use simple save method to bypass table permission issues
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
         credentials: 'include', // Include cookies for authentication
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           artistId: artistId,
@@ -436,8 +440,11 @@ export default function AdminAnalyticsInterface({ artistId, artistName, selected
       } else {
         console.error('❌ Failed to save analytics:', result);
         console.error('❌ Error details:', {
+          status: response.status,
           error: result.error,
           message: result.message,
+          details: result.details,
+          hint: result.hint,
           required_permissions: result.required_permissions,
           user_role: result.user_role
         });
@@ -544,11 +551,15 @@ export default function AdminAnalyticsInterface({ artistId, artistName, selected
       });
 
       // Use the same simple save method that works for Basic Analytics
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const response = await fetch('/api/admin/analytics/simple-save', {
         method: 'POST',
         credentials: 'include', // Include cookies for authentication
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           artistId: artistId,

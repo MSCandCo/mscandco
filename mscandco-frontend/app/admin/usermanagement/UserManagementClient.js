@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Users, Search, Loader2, XCircle, RefreshCw, AlertTriangle, UserCircle,
+  Users, Search, XCircle, RefreshCw, AlertTriangle, UserCircle,
   Mail, Calendar, CheckCircle, Clock, UserCheck, UserX, ArrowUpDown,
   ArrowUp, ArrowDown, Edit2, Trash2, Plus
 } from 'lucide-react'
@@ -368,7 +368,7 @@ export default function UserManagementClient({ user }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-700 mx-auto mb-4" />
+          <div className="w-8 h-8 border-b-2 rounded-full animate-spin mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
           <p className="text-gray-600">Loading users...</p>
         </div>
       </div>

@@ -72,6 +72,7 @@ export default function SettingsClient({ user }) {
       }
 
       const response = await fetch('/api/admin/settings', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import {
   Bell, Mail, AlertTriangle, CheckCircle, Clock,
   User, Shield, Building2, Music, MessageSquare, Trash2,
@@ -9,6 +10,7 @@ import {
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 export default function MessagesClient({ user }) {
+  const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [messages, setMessages] = useState([])
   const [filter, setFilter] = useState('all') // all, unread, notifications, alerts
@@ -27,63 +29,51 @@ export default function MessagesClient({ user }) {
   useEffect(() => {
     if (user) {
       loadMessages()
+    }
+  }, [user, filter, showArchived])
+
+  const loadMessages = async () => {
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) {
+        console.error('No auth token available')
+        setLoading(false)
+        return
+      }
+
+      const params = new URLSearchParams({
+        filter: filter,
+        archived: showArchived.toString()
+      })
+
+      const response = await fetch(`/api/admin/messages?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load messages')
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        setMessages(data.messages || [])
+      }
+    } catch (err) {
+      console.error('Error loading messages:', err)
+      // Fallback to empty array on error
+      setMessages([])
+    } finally {
       setLoading(false)
     }
-  }, [user])
-
-  const loadMessages = () => {
-    // Mock data for now - will be replaced with real API
-    const mockMessages = [
-      {
-        id: 1,
-        from: 'system@mscandco.com',
-        fromName: 'MSC & Co System',
-        subject: 'New Artist Registration Requires Approval',
-        body: 'A new artist "John Doe" has registered and is awaiting approval.',
-        type: 'notification',
-        read: false,
-        archived: false,
-        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        priority: 'medium'
-      },
-      {
-        id: 2,
-        from: 'security@mscandco.com',
-        fromName: 'Security Alert',
-        subject: 'Failed Login Attempts Detected',
-        body: 'Multiple failed login attempts detected for user info@htay.co.uk. Please review security logs.',
-        type: 'alert',
-        read: false,
-        archived: false,
-        created_at: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        priority: 'high'
-      },
-      {
-        id: 3,
-        from: 'releases@mscandco.com',
-        fromName: 'Release System',
-        subject: 'Release "My New Song" Submitted for Review',
-        body: 'Artist Sarah Smith has submitted "My New Song" for distribution approval.',
-        type: 'notification',
-        read: true,
-        archived: false,
-        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        priority: 'medium'
-      },
-      {
-        id: 4,
-        from: 'payments@mscandco.com',
-        fromName: 'Payment System',
-        subject: 'Monthly Revenue Report Available',
-        body: 'The monthly revenue report for October 2024 is now available for review.',
-        type: 'notification',
-        read: true,
-        archived: false,
-        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        priority: 'low'
-      }
-    ]
-    setMessages(mockMessages)
   }
 
   const filteredMessages = messages.filter(message => {
@@ -96,10 +86,29 @@ export default function MessagesClient({ user }) {
     return message.type === filter
   })
 
-  const markAsRead = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, read: true } : msg
-    ))
+  const markAsRead = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, read: true })
+      })
+
+      if (response.ok) {
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error marking message as read:', err)
+    }
   }
 
   const deleteMessage = (messageId) => {
@@ -107,21 +116,59 @@ export default function MessagesClient({ user }) {
     setSelectedMessage(null)
   }
 
-  const archiveMessage = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, archived: true } : msg
-    ))
-    setSelectedMessage(null)
+  const archiveMessage = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, archived: true })
+      })
+
+      if (response.ok) {
+        setSelectedMessage(null)
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error archiving message:', err)
+    }
   }
 
-  const unarchiveMessage = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, archived: false } : msg
-    ))
-    setSelectedMessage(null)
+  const unarchiveMessage = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, archived: false })
+      })
+
+      if (response.ok) {
+        setSelectedMessage(null)
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error unarchiving message:', err)
+    }
   }
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.recipient || !newMessage.subject || !newMessage.body) {
       alert('Please fill in all required fields')
       return
@@ -129,35 +176,53 @@ export default function MessagesClient({ user }) {
 
     setSending(true)
 
-    // Simulate sending delay
-    setTimeout(() => {
-      const message = {
-        id: messages.length + 1,
-        from: user?.email || 'admin@mscandco.com',
-        fromName: 'Admin',
-        subject: newMessage.subject,
-        body: newMessage.body,
-        type: newMessage.type,
-        read: false,
-        archived: false,
-        created_at: new Date(),
-        priority: newMessage.priority
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) {
+        showNotification('Authentication error. Please log in again.', 'error')
+        setSending(false)
+        return
       }
 
-      setMessages([message, ...messages])
-      setNewMessage({
-        recipient: '',
-        subject: '',
-        body: '',
-        type: 'notification',
-        priority: 'medium'
+      const response = await fetch('/api/admin/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          recipient: newMessage.recipient,
+          subject: newMessage.subject,
+          body: newMessage.body,
+          type: newMessage.type,
+          priority: newMessage.priority
+        })
       })
-      setShowCompose(false)
-      setSending(false)
 
-      // Show success notification
-      showNotification('Message sent successfully!', 'success')
-    }, 500)
+      if (response.ok) {
+        setNewMessage({
+          recipient: '',
+          subject: '',
+          body: '',
+          type: 'notification',
+          priority: 'medium'
+        })
+        setShowCompose(false)
+        showNotification('Message sent successfully!', 'success')
+        await loadMessages()
+      } else {
+        const errorData = await response.json()
+        showNotification(errorData.error || 'Failed to send message', 'error')
+      }
+    } catch (err) {
+      console.error('Error sending message:', err)
+      showNotification('Network error. Please try again.', 'error')
+    } finally {
+      setSending(false)
+    }
   }
 
   const showNotification = (message, type = 'success') => {

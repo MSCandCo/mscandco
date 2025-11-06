@@ -12,7 +12,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LogIn, Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle } from 'lucide-react'
 import MfaChallengeModal from '@/components/auth/MfaChallengeModal'
-import bcrypt from 'bcryptjs'
 
 function LoginPageContent() {
   const [email, setEmail] = useState('')
@@ -36,6 +35,18 @@ function LoginPageContent() {
 
   // Check for email verification success and session expiration
   useEffect(() => {
+    // Check if user is already logged in - redirect to dashboard
+    const checkExistingSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        console.log('✅ User already logged in, redirecting to dashboard')
+        router.push('/dashboard')
+        return
+      }
+    }
+    
+    checkExistingSession()
+
     if (searchParams.get('verified') === 'true') {
       setEmailVerified(true)
       // Auto-hide after 10 seconds
@@ -57,7 +68,7 @@ function LoginPageContent() {
     if (searchParams.get('reason') === 'inactivity') {
       setError('You were logged out due to inactivity. Please log in again.')
     }
-  }, [searchParams])
+  }, [searchParams, supabase, router])
 
   // Check if the error is about unconfirmed email
   const isEmailNotConfirmed = error && (
@@ -106,10 +117,41 @@ function LoginPageContent() {
           return
         }
 
+        // Verify session is established before redirecting
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+          console.error('❌ Session not available after login')
+          setError('Session could not be established. Please try again.')
+          setLoading(false)
+          return
+        }
+
+        console.log('✅ Login successful, session confirmed, redirecting...')
+        
         // No MFA or already verified - proceed to dashboard
         const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
-        router.push(redirectTo)
-        router.refresh()
+        
+        // Small delay to ensure SupabaseProvider updates state
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        // Reset loading state before redirect (in case redirect fails)
+        setLoading(false)
+        
+        // Use window.location.href for full page reload with fresh session
+        // This ensures a clean redirect without React state issues
+        window.location.href = redirectTo
+        
+        // Fallback: If redirect doesn't happen within 2 seconds, try router.push
+        setTimeout(() => {
+          if (window.location.pathname === '/login') {
+            console.warn('⚠️ Redirect timeout, using router.push as fallback')
+            router.push(redirectTo)
+          }
+        }, 2000)
+      } else {
+        setError('Login failed. Please try again.')
+        setLoading(false)
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -124,43 +166,11 @@ function LoginPageContent() {
     try {
       if (isRecoveryCode) {
         // Handle recovery code verification
-        const codeHash = bcrypt.hashSync(code, 10)
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          setMfaError('Session expired. Please log in again.')
-          setShowMfaChallenge(false)
-          setMfaLoading(false)
-          return
-        }
-
-        // Verify recovery code via database function
-        const { data: verifyResult, error: verifyError } = await supabase.rpc(
-          'verify_recovery_code',
-          {
-            p_user_id: user.id,
-            p_code_hash: codeHash
-          }
-        )
-
-        if (verifyError || !verifyResult?.valid) {
-          setMfaError(verifyResult?.message || 'Invalid recovery code')
-          setMfaLoading(false)
-          return
-        }
-
-        // Recovery code valid - log security event and redirect
-        await supabase.rpc('log_security_event', {
-          p_user_id: user.id,
-          p_event_type: 'login_with_recovery_code',
-          p_event_category: '2fa',
-          p_severity: 'warning',
-          p_success: true
-        })
-
-        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
-        router.push(redirectTo)
-        router.refresh()
+        // Recovery codes should be verified via a server-side API endpoint
+        // For now, show an error that recovery codes need to be implemented server-side
+        setMfaError('Recovery code verification is not yet available. Please use your authenticator app.')
+        setMfaLoading(false)
+        return
       } else {
         // Handle TOTP verification
         const { error } = await supabase.auth.mfa.challengeAndVerify({
@@ -174,10 +184,26 @@ function LoginPageContent() {
           return
         }
 
+        // Verify session is established
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+          console.error('❌ Session not available after MFA verification')
+          setMfaError('Session could not be established. Please try again.')
+          setMfaLoading(false)
+          return
+        }
+
+        console.log('✅ MFA verified, session confirmed, redirecting...')
+        
         // Success! Redirect to dashboard
         const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
-        router.push(redirectTo)
-        router.refresh()
+        
+        // Small delay to ensure SupabaseProvider updates state
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        // Use window.location.href for full page reload with fresh session
+        window.location.href = redirectTo
       }
     } catch (err) {
       console.error('MFA verification error:', err)
@@ -408,7 +434,7 @@ function LoginPageContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{borderColor: '#1f2937'}}></div></div>}>
       <LoginPageContent />
     </Suspense>
   )

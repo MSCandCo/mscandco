@@ -46,20 +46,34 @@ export async function GET(request) {
     }
 
     // Get permission counts for each role
+    // Try role_permission_assignments first, then role_permissions
     const rolesWithCounts = await Promise.all(
       roles.map(async (role) => {
-        const { count, error: countError } = await supabaseAdmin
-          .from('role_permissions')
+        let count = 0
+        
+        // Try role_permission_assignments table first
+        const { count: count1, error: countError1 } = await supabaseAdmin
+          .from('role_permission_assignments')
           .select('*', { count: 'exact', head: true })
           .eq('role_id', role.id)
 
-        if (countError) {
-          console.error(`Error counting permissions for role ${role.id}:`, countError)
+        if (!countError1 && count1 !== null) {
+          count = count1
+        } else {
+          // Fallback to role_permissions table
+          const { count: count2, error: countError2 } = await supabaseAdmin
+            .from('role_permissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('role_id', role.id)
+
+          if (!countError2 && count2 !== null) {
+            count = count2
+          }
         }
 
         return {
           ...role,
-          permission_count: count || 0
+          permission_count: count
         }
       })
     )

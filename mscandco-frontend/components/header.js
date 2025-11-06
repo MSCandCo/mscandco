@@ -81,6 +81,10 @@ function Header({ largeLogo = false }) {
             artist_name: user.user_metadata?.artist_name
           });
         }
+      } else {
+        // Clear profile data when user logs out
+        console.log('🧹 Header: Clearing profile data - user logged out');
+        setProfileData(null);
       }
     };
 
@@ -104,6 +108,9 @@ function Header({ largeLogo = false }) {
         } catch (err) {
           console.error('Error fetching unread count:', err)
         }
+      } else {
+        // Clear unread count when user logs out
+        setUnreadCount(0)
       }
     }
 
@@ -298,7 +305,7 @@ function Header({ largeLogo = false }) {
           </div>
 
           {/* Desktop Navigation - Centered Layout */}
-          <div className="hidden md:flex items-center flex-1 ml-8">
+          <div className="hidden lg:flex items-center flex-1 ml-8">
             {user ? (
               <>
                 {/* Left Spacer */}
@@ -532,7 +539,7 @@ function Header({ largeLogo = false }) {
           </div>
 
           {/* Mobile - Right side */}
-          <div className="md:hidden flex items-center space-x-2 ml-auto">
+          <div className="lg:hidden flex items-center space-x-2 ml-auto">
             {user && (
               <>
                 {/* Apollo AI Button - Mobile */}
@@ -577,7 +584,7 @@ function Header({ largeLogo = false }) {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="lg:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-3 space-y-3">
               {user ? (
                 <>

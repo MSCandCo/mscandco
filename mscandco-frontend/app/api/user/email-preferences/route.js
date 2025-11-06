@@ -1,13 +1,36 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 // GET - Retrieve user's email preferences
 export async function GET(request) {
   try {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value
+          },
+          set(name, value, options) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name, options) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
+    console.log('📧 Email preferences GET - User:', user?.id, 'Auth error:', authError)
+
     if (authError || !user) {
+      console.error('❌ Email preferences - Not authenticated:', authError)
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -20,16 +43,20 @@ export async function GET(request) {
       .eq('user_id', user.id)
       .single()
 
+    console.log('📧 Query result - Preferences:', preferences, 'Error:', error)
+
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Error fetching email preferences:', error)
+      console.error('❌ Error fetching email preferences:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch preferences' },
+        { error: 'Failed to fetch preferences', details: error.message },
         { status: 500 }
       )
     }
 
     // If no preferences exist, create default ones
     if (!preferences) {
+      console.log('📧 No preferences found, creating defaults for user:', user.id)
+
       const { data: newPreferences, error: createError } = await supabase
         .from('email_preferences')
         .insert({
@@ -42,14 +69,17 @@ export async function GET(request) {
         .select()
         .single()
 
+      console.log('📧 Create result - Preferences:', newPreferences, 'Error:', createError)
+
       if (createError) {
-        console.error('Error creating email preferences:', createError)
+        console.error('❌ Error creating email preferences:', createError)
         return NextResponse.json(
-          { error: 'Failed to create preferences' },
+          { error: 'Failed to create preferences', details: createError.message },
           { status: 500 }
         )
       }
 
+      console.log('✅ Created email preferences successfully')
       return NextResponse.json({ success: true, preferences: newPreferences })
     }
 
@@ -67,7 +97,26 @@ export async function GET(request) {
 // POST - Update user's email preferences
 export async function POST(request) {
   try {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value
+          },
+          set(name, value, options) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name, options) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
@@ -128,7 +177,26 @@ export async function POST(request) {
 // DELETE - Unsubscribe from all non-essential emails
 export async function DELETE(request) {
   try {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value
+          },
+          set(name, value, options) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name, options) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {

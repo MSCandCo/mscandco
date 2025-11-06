@@ -67,68 +67,96 @@ export async function GET(request) {
       .single()
 
     // Get all artists with custom splits
-    const { data: artistSplits } = await supabaseAdmin
+    const { data: artistSplits, error: artistSplitsError } = await supabaseAdmin
       .from('revenue_splits')
-      .select(`
-        artist_id,
-        artist_percentage,
-        artist:artist_id (
-          email,
-          first_name,
-          last_name,
-          artist_name,
-          display_name
-        )
-      `)
+      .select('id, artist_id, artist_percentage, label_percentage, is_active')
       .not('artist_id', 'is', null)
       .eq('is_active', true)
 
+    if (artistSplitsError) {
+      console.error('❌ Error fetching artist splits:', artistSplitsError)
+    } else {
+      console.log(`✅ Found ${artistSplits?.length || 0} artist overrides`)
+    }
+
     // Get all label admins with custom splits
-    const { data: labelSplits } = await supabaseAdmin
+    const { data: labelSplits, error: labelSplitsError } = await supabaseAdmin
       .from('revenue_splits')
-      .select(`
-        label_admin_id,
-        label_percentage,
-        label:label_admin_id (
-          email,
-          first_name,
-          last_name,
-          label_name,
-          display_name
-        )
-      `)
+      .select('id, label_admin_id, label_percentage, artist_percentage, is_active')
       .not('label_admin_id', 'is', null)
       .eq('is_active', true)
 
+    if (labelSplitsError) {
+      console.error('❌ Error fetching label splits:', labelSplitsError)
+    } else {
+      console.log(`✅ Found ${labelSplits?.length || 0} label overrides`)
+    }
+
+    // Fetch user data separately for artists
+    const artistIds = (artistSplits || []).map(s => s.artist_id).filter(Boolean)
+    let artistUsers = {}
+    if (artistIds.length > 0) {
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, email, first_name, last_name, artist_name, display_name')
+        .in('id', artistIds)
+      
+      if (!usersError && users) {
+        users.forEach(user => {
+          artistUsers[user.id] = user
+        })
+      }
+    }
+
+    // Fetch user data separately for label admins
+    const labelIds = (labelSplits || []).map(s => s.label_admin_id).filter(Boolean)
+    let labelUsers = {}
+    if (labelIds.length > 0) {
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, email, first_name, last_name, label_name, display_name')
+        .in('id', labelIds)
+      
+      if (!usersError && users) {
+        users.forEach(user => {
+          labelUsers[user.id] = user
+        })
+      }
+    }
+
     // Process artist overrides
-    const artistOverrides = artistSplits?.map(split => {
-      const name = split.artist?.artist_name ||
-                   split.artist?.display_name ||
-                   `${split.artist?.first_name || ''} ${split.artist?.last_name || ''}`.trim() ||
+    const artistOverrides = (artistSplits || []).map(split => {
+      const artistData = artistUsers[split.artist_id] || {}
+      const name = artistData.artist_name ||
+                   artistData.display_name ||
+                   `${artistData.first_name || ''} ${artistData.last_name || ''}`.trim() ||
                    'Unknown Artist'
 
       return {
         user_id: split.artist_id,
         user_name: name,
-        user_email: split.artist?.email || '',
+        user_email: artistData.email || '',
         percentage: parseFloat(split.artist_percentage) || 80
       }
-    }) || []
+    })
 
     // Process label overrides
-    const labelOverrides = labelSplits?.map(split => {
-      const name = split.label?.label_name ||
-                   split.label?.display_name ||
-                   `${split.label?.first_name || ''} ${split.label?.last_name || ''}`.trim() ||
+    const labelOverrides = (labelSplits || []).map(split => {
+      const labelData = labelUsers[split.label_admin_id] || {}
+      const name = labelData.label_name ||
+                   labelData.display_name ||
+                   `${labelData.first_name || ''} ${labelData.last_name || ''}`.trim() ||
                    'Unknown Label'
 
       return {
         user_id: split.label_admin_id,
         user_name: name,
-        user_email: split.label?.email || '',
+        user_email: labelData.email || '',
         percentage: parseFloat(split.label_percentage) || 20
       }
-    }) || []
+    })
+
+    console.log(`📊 Processed ${artistOverrides.length} artist overrides and ${labelOverrides.length} label overrides`)
 
     const superLabelName = superLabel?.label_name ||
                            superLabel?.display_name ||
@@ -206,31 +234,61 @@ export async function PUT(request) {
       super_label_percentage
     } = body
 
-    // Validate percentages
-    if (artist_percentage + label_percentage !== 100) {
+    // Validate percentages (use tolerance for floating point precision)
+    const total = parseFloat(artist_percentage) + parseFloat(label_percentage)
+    if (Math.abs(total - 100) > 0.01) {
       return NextResponse.json({
-        error: 'Artist and label percentages must total 100%'
+        error: 'Artist and label percentages must total 100%',
+        details: `Current total: ${total}%`
       }, { status: 400 })
     }
 
-    // Update global configuration
-    const { error: updateError } = await supabaseAdmin
+    // Check if config exists
+    const { data: existingConfig } = await supabaseAdmin
       .from('revenue_split_config')
-      .update({
-        company_admin_percentage: company_percentage || super_label_percentage,
-        artist_percentage: artist_percentage,
-        label_admin_percentage: label_percentage,
-        updated_by_user_id: session.user.id,
-        updated_by_email: session.user.email,
-        updated_at: new Date().toISOString()
-      })
+      .select('company_id')
       .eq('company_id', 'msc-co')
+      .single()
 
-    if (updateError) {
-      console.error('❌ Error updating config:', updateError)
+    const updateData = {
+      company_admin_percentage: company_percentage || super_label_percentage,
+      artist_percentage: parseFloat(artist_percentage),
+      label_admin_percentage: parseFloat(label_percentage),
+      updated_by_user_id: session.user.id,
+      updated_by_email: session.user.email,
+      updated_at: new Date().toISOString()
+    }
+
+    let result
+    if (existingConfig) {
+      // Update existing config
+      const { data, error: updateError } = await supabaseAdmin
+        .from('revenue_split_config')
+        .update(updateData)
+        .eq('company_id', 'msc-co')
+        .select()
+      
+      result = { data, error: updateError }
+    } else {
+      // Insert new config
+      const { data, error: insertError } = await supabaseAdmin
+        .from('revenue_split_config')
+        .insert({
+          company_id: 'msc-co',
+          ...updateData
+        })
+        .select()
+      
+      result = { data, error: insertError }
+    }
+
+    if (result.error) {
+      console.error('❌ Error saving config:', result.error)
       return NextResponse.json({
         error: 'Failed to update configuration',
-        details: updateError.message
+        details: result.error.message,
+        hint: result.error.hint,
+        code: result.error.code
       }, { status: 500 })
     }
 

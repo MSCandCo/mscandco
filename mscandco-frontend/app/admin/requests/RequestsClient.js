@@ -147,6 +147,9 @@ export default function RequestsClient() {
   }
 
   const formatFieldName = (fieldName) => {
+    if (!fieldName || typeof fieldName !== 'string') {
+      return 'Unknown Field'
+    }
     return fieldName.split(/(?=[A-Z])/).join(' ').replace(/^\w/, c => c.toUpperCase())
   }
 

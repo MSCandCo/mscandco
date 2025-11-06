@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { supabase } from '@/lib/supabase';
+import { useUser } from '@/components/providers/SupabaseProvider';
 import { Upload, Camera, X, Check, RotateCw } from 'lucide-react';
 
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
@@ -24,6 +24,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
 }
 
 export default function ProfilePictureUpload({ currentImage, onUploadSuccess, onUploadError }) {
+  const { session } = useUser();
   const [showCropModal, setShowCropModal] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
@@ -340,8 +341,7 @@ export default function ProfilePictureUpload({ currentImage, onUploadSuccess, on
         'cropped-profile-picture.jpg',
       );
 
-      // Create FormData for upload
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check for authenticated session
       if (!session) {
         onUploadError?.('Authentication required');
         return;

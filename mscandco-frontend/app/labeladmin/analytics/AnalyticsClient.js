@@ -26,12 +26,17 @@ export default function AnalyticsClient() {
   useEffect(() => {
     if (user && session) {
       loadConnectedArtists()
+    } else if (!user && !session) {
+      // User is not logged in - stop loading
+      setLoading(false)
+      setError('Please log in to view analytics')
     }
   }, [user, session])
 
   const loadConnectedArtists = async () => {
     try {
       setLoading(true)
+      setError(null)
       
       const token = session?.access_token
       if (!token) {
@@ -44,7 +49,8 @@ export default function AnalyticsClient() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to load accepted artists')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || errorData.message || 'Failed to load accepted artists')
       }
 
       const data = await response.json()
@@ -55,7 +61,7 @@ export default function AnalyticsClient() {
       
     } catch (error) {
       console.error('Error loading accepted artists:', error)
-      setError(error.message)
+      setError(error.message || 'Failed to load analytics')
     } finally {
       setLoading(false)
     }
@@ -63,16 +69,34 @@ export default function AnalyticsClient() {
 
   const loadSummaryData = async (artists) => {
     try {
+      // If no artists, set empty summary data
+      if (!artists || artists.length === 0) {
+        setSummaryData({
+          totalStreams: 0,
+          totalReleases: 0,
+          totalArtists: 0,
+          topGenres: {},
+          topPlatforms: {},
+          recentMilestones: []
+        })
+        return
+      }
+
       // Fetch analytics for all artists and combine
       const analyticsPromises = artists.map(async (artist) => {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('analytics_data')
-          .eq('id', artist.artistId)
-          .maybeSingle()
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('analytics_data')
+            .eq('id', artist.artistId)
+            .maybeSingle()
 
-        if (error || !data || !data.analytics_data) return null
-        return { ...data.analytics_data, artistName: artist.artistName }
+          if (error || !data || !data.analytics_data) return null
+          return { ...data.analytics_data, artistName: artist.artistName }
+        } catch (err) {
+          console.error(`Error fetching analytics for artist ${artist.artistId}:`, err)
+          return null
+        }
       })
 
       const allAnalytics = await Promise.all(analyticsPromises)
@@ -124,6 +148,15 @@ export default function AnalyticsClient() {
       setSummaryData(combined)
     } catch (error) {
       console.error('Error loading summary data:', error)
+      // Set empty summary data on error instead of leaving it null
+      setSummaryData({
+        totalStreams: 0,
+        totalReleases: 0,
+        totalArtists: artists?.length || 0,
+        topGenres: {},
+        topPlatforms: {},
+        recentMilestones: []
+      })
     }
   }
 

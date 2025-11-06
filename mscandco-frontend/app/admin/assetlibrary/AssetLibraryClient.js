@@ -98,8 +98,25 @@ export default function AssetLibraryClient({ user }) {
       }
 
       const data = await response.json()
+      
+      console.log('📦 Asset Library API Response:', {
+        success: data.success,
+        filesCount: data.files?.length || 0,
+        message: data.message,
+        bucket_checked: data.bucket_checked
+      })
+      
+      if (data.message) {
+        console.warn('⚠️ Asset Library Message:', data.message)
+      }
+      
       setFiles(data.files || [])
       setPagination(prev => ({ ...prev, ...data.pagination }))
+      
+      if (data.files && data.files.length === 0 && data.message) {
+        // Show message if bucket is empty or not found
+        console.warn('Asset library is empty or bucket not found:', data.message)
+      }
 
       setLoading(false)
     } catch (error) {
@@ -332,7 +349,7 @@ export default function AssetLibraryClient({ user }) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
           <p className="text-gray-700 font-medium">Loading Asset Library...</p>
         </div>
       </div>
@@ -481,6 +498,9 @@ export default function AssetLibraryClient({ user }) {
                     </div>
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Bucket
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Uploaded By
                   </th>
                   <th
@@ -500,10 +520,24 @@ export default function AssetLibraryClient({ user }) {
               <tbody>
                 {files.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
-                      <AlertCircle size={48} className="mx-auto mb-4 text-gray-400" />
-                      <p className="text-lg font-medium">No files found</p>
-                      <p className="text-sm mt-2">Try adjusting your search term</p>
+                    <td colSpan="8" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center">
+                        <HardDrive className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-900 text-lg font-semibold mb-2">No files found</p>
+                        <p className="text-gray-500 text-sm max-w-md mb-4">
+                          The asset library is currently empty. Files uploaded to Supabase Storage will appear here.
+                        </p>
+                        <p className="text-gray-400 text-xs mt-2">
+                          The asset library shows files from all storage buckets:
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-center mt-2">
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">release-audio</code>
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">release-artwork</code>
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">profile-pictures</code>
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">email-templates</code>
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">asset-library</code>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -570,6 +604,11 @@ export default function AssetLibraryClient({ user }) {
                       </td>
                       <td className="px-6 py-4 text-gray-700">
                         {formatFileSize(file.file_size)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800">
+                          {file.bucket_name || 'unknown'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-gray-700">
                         {file.owner_email || 'System'}

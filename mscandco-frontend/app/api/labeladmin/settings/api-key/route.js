@@ -38,7 +38,7 @@ export async function GET() {
     // Get API key from database
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('api_key, api_usage')
+      .select('api_key, api_usage_stats')
       .eq('id', user.id)
       .single();
 
@@ -46,7 +46,7 @@ export async function GET() {
       throw error;
     }
 
-    const usage = data?.api_usage || {};
+    const usage = data?.api_usage_stats || {};
 
     return NextResponse.json({
       success: true,

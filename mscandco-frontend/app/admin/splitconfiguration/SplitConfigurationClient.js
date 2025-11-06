@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   DollarSign, Save, User, Building2, Users, AlertCircle,
-  Search, X, Check, Loader2, Percent
+  Search, X, Check, Percent
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import ConfirmationModal from '@/components/shared/ConfirmationModal'
 
 export default function SplitConfigurationClient({ user }) {
   const supabase = createClient()
@@ -38,6 +39,10 @@ export default function SplitConfigurationClient({ user }) {
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
 
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null) // { userId, type }
+
   // Loading and error state
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -48,24 +53,32 @@ export default function SplitConfigurationClient({ user }) {
     loadConfiguration()
   }, [])
 
-  // Search for users
+  // Search for users (filtered by role based on which modal is open)
   useEffect(() => {
     if (searchTerm.length < 2) {
       setSearchResults([])
       return
     }
 
+    // Determine role filter based on which modal is open
+    const roleFilter = showArtistModal ? 'artist' : (showLabelModal ? 'label_admin' : '')
+
     const timeoutId = setTimeout(async () => {
       setSearching(true)
       try {
-        const response = await fetch(`/api/admin/users/search?q=${encodeURIComponent(searchTerm)}`, {
+        const url = `/api/admin/users/search?q=${encodeURIComponent(searchTerm)}${roleFilter ? `&role=${roleFilter}` : ''}`
+        const response = await fetch(url, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         })
 
         if (response.ok) {
           const data = await response.json()
-          setSearchResults(data.users || [])
+          // Filter results client-side as well (double-check)
+          const filtered = roleFilter 
+            ? (data.users || []).filter(user => user.role === roleFilter)
+            : (data.users || [])
+          setSearchResults(filtered)
         }
       } catch (err) {
         console.error('Search error:', err)
@@ -75,7 +88,7 @@ export default function SplitConfigurationClient({ user }) {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [searchTerm])
+  }, [searchTerm, showArtistModal, showLabelModal])
 
   const loadConfiguration = async () => {
     setLoading(true)
@@ -147,8 +160,17 @@ export default function SplitConfigurationClient({ user }) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save configuration')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ API Error Response:', errorData)
+        const errorMessage = errorData.error || errorData.message || errorData.details || 'Failed to save configuration'
+        throw new Error(errorMessage)
       }
+
+      const result = await response.json()
+      console.log('✅ Save result:', result)
+
+      // Reload configuration to reflect changes
+      await loadConfiguration()
 
       setSuccessMessage('Default splits saved successfully')
       setTimeout(() => setSuccessMessage(''), 3000)
@@ -189,7 +211,10 @@ export default function SplitConfigurationClient({ user }) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add override')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ API Error Response:', errorData)
+        const errorMessage = errorData.message || errorData.error || errorData.details || 'Failed to add override'
+        throw new Error(errorMessage)
       }
 
       // Reset modal state
@@ -215,8 +240,14 @@ export default function SplitConfigurationClient({ user }) {
   }
 
   const handleRemoveOverride = async (userId, type) => {
-    if (!confirm('Remove this override?')) return
+    setDeleteTarget({ userId, type })
+    setShowDeleteModal(true)
+  }
 
+  const confirmDeleteOverride = async () => {
+    if (!deleteTarget) return
+
+    setShowDeleteModal(false)
     setSaving(true)
     setError(null)
 
@@ -226,8 +257,8 @@ export default function SplitConfigurationClient({ user }) {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
-          type: type
+          user_id: deleteTarget.userId,
+          type: deleteTarget.type
         })
       })
 
@@ -239,6 +270,7 @@ export default function SplitConfigurationClient({ user }) {
 
       setSuccessMessage('Override removed successfully')
       setTimeout(() => setSuccessMessage(''), 3000)
+      setDeleteTarget(null)
 
     } catch (err) {
       console.error('Error removing override:', err)
@@ -252,7 +284,7 @@ export default function SplitConfigurationClient({ user }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="w-8 h-8 border-b-2 rounded-full animate-spin mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
           <p className="text-gray-600">Loading split configuration...</p>
         </div>
       </div>
@@ -262,10 +294,10 @@ export default function SplitConfigurationClient({ user }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="bg-gradient-to-r from-msc-blue-600 via-indigo-600 to-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">
               Split Configuration
             </h1>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto">
@@ -302,7 +334,7 @@ export default function SplitConfigurationClient({ user }) {
           {/* Default Splits */}
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
             <div className="flex items-center mb-6">
-              <DollarSign className="w-6 h-6 text-blue-600 mr-3" />
+              <DollarSign className="w-6 h-6 text-msc-blue-600 mr-3" />
               <h2 className="text-xl font-semibold text-gray-900">Default Split Percentages</h2>
             </div>
 
@@ -397,11 +429,11 @@ export default function SplitConfigurationClient({ user }) {
               <Button
                 onClick={handleSaveDefaults}
                 disabled={saving}
-                className="w-full"
+                className="w-full bg-msc-blue-600 hover:bg-msc-blue-700 text-white"
               >
                 {saving ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin mr-2"></div>
                     Saving...
                   </>
                 ) : (
@@ -465,6 +497,7 @@ export default function SplitConfigurationClient({ user }) {
               <Button
                 onClick={() => setShowArtistModal(true)}
                 size="sm"
+                className="bg-msc-blue-600 hover:bg-msc-blue-700 text-white"
               >
                 Add Override
               </Button>
@@ -511,6 +544,7 @@ export default function SplitConfigurationClient({ user }) {
               <Button
                 onClick={() => setShowLabelModal(true)}
                 size="sm"
+                className="bg-msc-blue-600 hover:bg-msc-blue-700 text-white"
               >
                 Add Override
               </Button>
@@ -575,7 +609,7 @@ export default function SplitConfigurationClient({ user }) {
                   Search Artist
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
                   <Input
                     type="text"
                     placeholder="Search by name or email..."
@@ -584,7 +618,9 @@ export default function SplitConfigurationClient({ user }) {
                     className="pl-10"
                   />
                   {searching && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
+                    <div className="absolute right-3 inset-y-0 flex items-center">
+                      <div className="w-4 h-4 border-b-2 rounded-full animate-spin" style={{borderColor: '#1f2937'}}></div>
+                    </div>
                   )}
                 </div>
 
@@ -611,7 +647,7 @@ export default function SplitConfigurationClient({ user }) {
 
               {/* Selected User */}
               {selectedUser && (
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-3 bg-msc-blue-50 rounded-lg border border-msc-blue-200">
                   <p className="font-medium text-gray-900">{selectedUser.name}</p>
                   <p className="text-sm text-gray-600">{selectedUser.email}</p>
                 </div>
@@ -640,11 +676,11 @@ export default function SplitConfigurationClient({ user }) {
               <Button
                 onClick={() => handleAddOverride('artist')}
                 disabled={!selectedUser || !overridePercentage || saving}
-                className="w-full"
+                className="w-full bg-msc-blue-600 hover:bg-msc-blue-700 text-white"
               >
                 {saving ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin mr-2"></div>
                     Adding...
                   </>
                 ) : (
@@ -682,7 +718,7 @@ export default function SplitConfigurationClient({ user }) {
                   Search Label
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
                   <Input
                     type="text"
                     placeholder="Search by name or email..."
@@ -691,7 +727,9 @@ export default function SplitConfigurationClient({ user }) {
                     className="pl-10"
                   />
                   {searching && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
+                    <div className="absolute right-3 inset-y-0 flex items-center">
+                      <div className="w-4 h-4 border-b-2 rounded-full animate-spin" style={{borderColor: '#1f2937'}}></div>
+                    </div>
                   )}
                 </div>
 
@@ -718,7 +756,7 @@ export default function SplitConfigurationClient({ user }) {
 
               {/* Selected User */}
               {selectedUser && (
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-3 bg-msc-blue-50 rounded-lg border border-msc-blue-200">
                   <p className="font-medium text-gray-900">{selectedUser.name}</p>
                   <p className="text-sm text-gray-600">{selectedUser.email}</p>
                 </div>
@@ -747,11 +785,11 @@ export default function SplitConfigurationClient({ user }) {
               <Button
                 onClick={() => handleAddOverride('label')}
                 disabled={!selectedUser || !overridePercentage || saving}
-                className="w-full"
+                className="w-full bg-msc-blue-600 hover:bg-msc-blue-700 text-white"
               >
                 {saving ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin mr-2"></div>
                     Adding...
                   </>
                 ) : (
@@ -762,6 +800,23 @@ export default function SplitConfigurationClient({ user }) {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setDeleteTarget(null)
+        }}
+        onConfirm={confirmDeleteOverride}
+        title="Remove Override?"
+        message="Are you sure you want to remove this override? This action cannot be undone."
+        confirmText="Remove"
+        cancelText="Cancel"
+        type="warning"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+        isLoading={saving}
+      />
     </div>
   )
 }

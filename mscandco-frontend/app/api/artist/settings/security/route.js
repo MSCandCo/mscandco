@@ -37,7 +37,7 @@ export async function GET() {
     // Get security data from database
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('two_factor_enabled, login_history')
+      .select('two_factor_enabled')
       .eq('id', user.id)
       .single();
 
@@ -49,7 +49,7 @@ export async function GET() {
       success: true,
       data: {
         twoFactorEnabled: data?.two_factor_enabled || false,
-        loginHistory: data?.login_history || []
+        loginHistory: [] // Feature not yet implemented
       }
     });
   } catch (error) {

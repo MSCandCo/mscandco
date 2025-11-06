@@ -65,12 +65,12 @@ export async function GET(request) {
       query = query.or(`email.ilike.%${search}%,artist_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,display_name.ilike.%${search}%,label_name.ilike.%${search}%`)
     }
 
+    // Order by created_at descending (we'll sort by balance after calculating from earnings_log)
+    query = query.order('created_at', { ascending: false })
+
     // Pagination
     const offset = (page - 1) * per_page
     query = query.range(offset, offset + per_page - 1)
-
-    // Order by balance descending
-    query = query.order('wallet_balance', { ascending: false, nullsFirst: false })
 
     const { data: wallets, error, count } = await query
 
@@ -84,10 +84,59 @@ export async function GET(request) {
 
     // Get transaction counts for each wallet
     const walletIds = wallets.map(w => w.id)
-    const { data: txCounts } = await supabaseAdmin
-      .from('wallet_transactions')
-      .select('user_id')
-      .in('user_id', walletIds)
+    
+    // Calculate balances from earnings_log (single source of truth)
+    let earningsData = []
+    let earningsError = null
+    
+    if (walletIds.length > 0) {
+      const earningsResult = await supabaseAdmin
+        .from('earnings_log')
+        .select('artist_id, amount, status, currency')
+        .in('artist_id', walletIds)
+        .neq('status', 'cancelled')
+      
+      earningsData = earningsResult.data || []
+      earningsError = earningsResult.error
+    }
+
+    if (earningsError) {
+      console.error('❌ Error fetching earnings:', earningsError)
+    }
+
+    // Calculate balance per user from earnings_log
+    const balanceMap = {}
+    earningsData?.forEach(earning => {
+      const userId = earning.artist_id
+      if (!balanceMap[userId]) {
+        balanceMap[userId] = {
+          total: 0,
+          paid: 0,
+          pending: 0,
+          currency: earning.currency || 'GBP'
+        }
+      }
+      const amount = parseFloat(earning.amount) || 0
+      balanceMap[userId].total += amount
+      if (earning.status === 'paid') {
+        balanceMap[userId].paid += amount
+      } else if (earning.status === 'pending') {
+        balanceMap[userId].pending += amount
+      }
+    })
+
+    // Get transaction counts from wallet_transactions (if table exists)
+    let txCounts = null
+    try {
+      const { data } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('user_id')
+        .in('user_id', walletIds)
+      txCounts = data
+    } catch (err) {
+      // wallet_transactions table might not exist, that's okay
+      console.log('ℹ️ wallet_transactions table not available, using earnings_log for transaction counts')
+    }
 
     // Count transactions per user
     const txCountMap = {}
@@ -95,7 +144,7 @@ export async function GET(request) {
       txCountMap[tx.user_id] = (txCountMap[tx.user_id] || 0) + 1
     })
 
-    // Enrich wallet data
+    // Enrich wallet data with calculated balances from earnings_log
     const enrichedWallets = wallets.map(wallet => {
       const name = wallet.artist_name ||
                    wallet.label_name ||
@@ -103,19 +152,30 @@ export async function GET(request) {
                    `${wallet.first_name || ''} ${wallet.last_name || ''}`.trim() ||
                    wallet.email
 
+      // Use calculated balance from earnings_log, fallback to wallet_balance if no earnings
+      const calculatedBalance = balanceMap[wallet.id]?.total || 0
+      const storedBalance = parseFloat(wallet.wallet_balance) || 0
+      // Use the maximum of both to ensure no money is lost during migration
+      const finalBalance = Math.max(calculatedBalance, storedBalance)
+
       return {
         id: wallet.id,
         name,
         email: wallet.email,
         role: wallet.role,
-        balance: parseFloat(wallet.wallet_balance) || 0,
-        currency: wallet.wallet_currency || 'GBP',
-        transaction_count: txCountMap[wallet.id] || 0,
+        balance: finalBalance,
+        paid_balance: balanceMap[wallet.id]?.paid || 0,
+        pending_balance: balanceMap[wallet.id]?.pending || 0,
+        currency: balanceMap[wallet.id]?.currency || wallet.wallet_currency || 'GBP',
+        transaction_count: txCountMap[wallet.id] || (earningsData?.filter(e => e.artist_id === wallet.id).length || 0),
         created_at: wallet.created_at
       }
     })
 
-    console.log(`✅ Found ${wallets.length} wallets`)
+    // Re-sort by calculated balance
+    enrichedWallets.sort((a, b) => b.balance - a.balance)
+
+    console.log(`✅ Found ${wallets.length} wallets with balances calculated from earnings_log`)
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Users, BarChart3, Music, Search, Loader2, TrendingUp, Eye, Download,
+  Users, BarChart3, Music, Search, TrendingUp, Eye, Download,
   Calendar, DollarSign, AlertTriangle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -104,7 +104,7 @@ export default function AnalyticsManagementClient({ user }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="w-8 h-8 border-b-2 rounded-full animate-spin mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
           <p className="text-gray-600">Loading analytics...</p>
         </div>
       </div>
@@ -171,7 +171,9 @@ export default function AnalyticsManagementClient({ user }) {
                     className="pl-10"
                   />
                   {searching && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
+                    <div className="absolute right-3 inset-y-0 flex items-center">
+                      <div className="w-4 h-4 border-b-2 rounded-full animate-spin" style={{borderColor: '#1f2937'}}></div>
+                    </div>
                   )}
                 </div>
                 

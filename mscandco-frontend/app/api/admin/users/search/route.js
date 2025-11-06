@@ -27,6 +27,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
+    const role = searchParams.get('role') || '' // Optional role filter: 'artist' or 'label_admin'
 
     if (query.length < 2) {
       return NextResponse.json({
@@ -35,14 +36,22 @@ export async function GET(request) {
       })
     }
 
-    console.log('🔍 Searching users with query:', query)
+    console.log('🔍 Searching users with query:', query, role ? `(role: ${role})` : '')
 
-    // Search users by email, first_name, last_name, artist_name, or label_name
-    const { data: users, error } = await supabaseAdmin
+    // Build query
+    let userQuery = supabaseAdmin
       .from('user_profiles')
       .select('id, email, first_name, last_name, artist_name, label_name, display_name, role')
       .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%,artist_name.ilike.%${query}%,label_name.ilike.%${query}%,display_name.ilike.%${query}%`)
-      .limit(50)
+
+    // Filter by role if specified
+    if (role === 'artist') {
+      userQuery = userQuery.eq('role', 'artist')
+    } else if (role === 'label_admin') {
+      userQuery = userQuery.eq('role', 'label_admin')
+    }
+
+    const { data: users, error } = await userQuery.limit(50)
 
     if (error) {
       console.error('❌ Error searching users:', error)

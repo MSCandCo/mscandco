@@ -31,15 +31,43 @@ export default function ProfileClient({ user }) {
   const loadProfile = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
 
-      if (error) throw error
+      if (!token) {
+        setError('No authentication token available')
+        setLoading(false)
+        return
+      }
+
+      const response = await fetch('/api/admin/settings', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load profile')
+      }
+
+      const data = await response.json()
       
-      setProfile({...profile, ...data})
+      if (data.success) {
+        setProfile({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          email: data.email || user?.email || '',
+          phone: data.phone || '',
+          address: data.address || '',
+          city: data.city || '',
+          country: data.country || '',
+          bio: data.bio || ''
+        })
+      }
     } catch (err) {
       console.error('Error loading profile:', err)
       setError(err.message)
@@ -54,15 +82,35 @@ export default function ProfileClient({ user }) {
     setSuccess(false)
 
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update(profile)
-        .eq('id', user.id)
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
 
-      if (error) throw error
+      if (!token) {
+        setError('No authentication token available')
+        setSaving(false)
+        return
+      }
 
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      const response = await fetch('/api/admin/settings/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(profile)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save profile')
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 3000)
+      }
     } catch (err) {
       console.error('Error saving profile:', err)
       setError(err.message)

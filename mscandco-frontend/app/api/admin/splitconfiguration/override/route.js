@@ -60,10 +60,11 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    // Check if override already exists
+    // Check if override already exists (including inactive ones)
+    // We want to find ANY existing override for this user, regardless of active status
     let query = supabaseAdmin
       .from('revenue_splits')
-      .select('id')
+      .select('id, is_active, artist_id, label_admin_id')
 
     if (type === 'artist') {
       query = query.eq('artist_id', user_id)
@@ -75,24 +76,49 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    const { data: existing } = await query.single()
+    // Get all existing overrides (there should only be one, but handle multiple)
+    const { data: existingRows, error: queryError } = await query
+
+    if (queryError && queryError.code !== 'PGRST116') {
+      // Log the full error for debugging
+      console.error('❌ Error checking for existing override:', {
+        error: queryError,
+        code: queryError.code,
+        message: queryError.message,
+        details: queryError.details,
+        hint: queryError.hint,
+        type: type,
+        user_id: user_id
+      })
+      
+      return NextResponse.json({
+        error: 'Failed to check for existing override',
+        message: queryError.message || 'Unknown error',
+        details: queryError.details,
+        hint: queryError.hint,
+        code: queryError.code
+      }, { status: 500 })
+    }
+
+    // Get the first existing override (or null if none exists)
+    const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null
 
     if (existing) {
       // Update existing override
       const updateData = {
         is_active: true,
-        created_by: session.user.id,
-        updated_at: new Date().toISOString()
+        created_by: session.user.id
+        // Don't manually set updated_at - let the trigger handle it
       }
 
       if (type === 'artist') {
-        updateData.artist_percentage = percentage
+        updateData.artist_percentage = Math.round(percentage * 100) / 100  // Round to 2 decimal places
         // Calculate complementary label percentage
-        updateData.label_percentage = 100 - percentage
+        updateData.label_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       } else {
-        updateData.label_percentage = percentage
+        updateData.label_percentage = Math.round(percentage * 100) / 100  // Round to 2 decimal places
         // Calculate complementary artist percentage
-        updateData.artist_percentage = 100 - percentage
+        updateData.artist_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       }
 
       const { error: updateError } = await supabaseAdmin
@@ -102,9 +128,19 @@ export async function POST(request) {
 
       if (updateError) {
         console.error('❌ Error updating override:', updateError)
+        console.error('❌ Update data:', updateData)
+        console.error('❌ Existing ID:', existing.id)
+        console.error('❌ Error code:', updateError.code)
+        console.error('❌ Error message:', updateError.message)
+        console.error('❌ Error details:', updateError.details)
+        console.error('❌ Error hint:', updateError.hint)
+        
         return NextResponse.json({
           error: 'Failed to update override',
-          details: updateError.message
+          message: updateError.message || 'Unknown error',
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
         }, { status: 500 })
       }
     } else {
@@ -117,12 +153,14 @@ export async function POST(request) {
 
       if (type === 'artist') {
         insertData.artist_id = user_id
-        insertData.artist_percentage = percentage
-        insertData.label_percentage = 100 - percentage
+        insertData.label_admin_id = null  // Explicitly set to null
+        insertData.artist_percentage = Math.round(percentage * 100) / 100  // Round to 2 decimal places
+        insertData.label_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       } else {
         insertData.label_admin_id = user_id
-        insertData.label_percentage = percentage
-        insertData.artist_percentage = 100 - percentage
+        insertData.artist_id = null  // Explicitly set to null
+        insertData.label_percentage = Math.round(percentage * 100) / 100  // Round to 2 decimal places
+        insertData.artist_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       }
 
       const { error: insertError } = await supabaseAdmin
@@ -131,9 +169,18 @@ export async function POST(request) {
 
       if (insertError) {
         console.error('❌ Error creating override:', insertError)
+        console.error('❌ Insert data:', insertData)
+        console.error('❌ Error code:', insertError.code)
+        console.error('❌ Error message:', insertError.message)
+        console.error('❌ Error details:', insertError.details)
+        console.error('❌ Error hint:', insertError.hint)
+        
         return NextResponse.json({
           error: 'Failed to create override',
-          details: insertError.message
+          message: insertError.message || 'Unknown error',
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
         }, { status: 500 })
       }
     }

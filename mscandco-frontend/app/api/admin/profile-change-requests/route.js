@@ -98,7 +98,8 @@ export async function PUT(request) {
         status: status,
         reviewed_by: session.user.id,
         reviewed_at: new Date().toISOString(),
-        admin_notes: adminNotes
+        admin_notes: adminNotes,
+        updated_at: new Date().toISOString()
       })
       .eq('id', requestId)
       .select()
@@ -106,7 +107,19 @@ export async function PUT(request) {
 
     if (error) {
       console.error('❌ Error updating profile change request:', error)
-      return NextResponse.json({ error: 'Failed to update request' }, { status: 500 })
+      return NextResponse.json({ 
+        success: false,
+        error: 'Failed to update request', 
+        message: error.message,
+        details: error 
+      }, { status: 500 })
+    }
+
+    if (!data) {
+      return NextResponse.json({ 
+        success: false,
+        error: 'Request not found' 
+      }, { status: 404 })
     }
 
     console.log(`✅ Profile change request ${action}d:`, data.id)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 import {
   Bell, Mail, AlertTriangle, CheckCircle, Clock,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react'
 
 export default function SuperadminMessagesClient({ user }) {
+  const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [messages, setMessages] = useState([])
   const [filter, setFilter] = useState('all') // all, unread, notifications, alerts
@@ -18,11 +20,71 @@ export default function SuperadminMessagesClient({ user }) {
   useEffect(() => {
     if (user) {
       loadMessages()
+    }
+  }, [user, filter, showArchived])
+
+  const loadMessages = async () => {
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) {
+        console.error('No auth token available')
+        setLoading(false)
+        return
+      }
+
+      const params = new URLSearchParams({
+        filter: filter,
+        archived: showArchived.toString(),
+        superadmin: 'true' // Flag to get all platform messages
+      })
+
+      const response = await fetch(`/api/admin/messages?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load messages')
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Transform API response to match expected format
+        const transformedMessages = (data.messages || []).map(msg => ({
+          id: msg.id,
+          from: msg.from || msg.from_user_id || 'system@mscandco.com',
+          fromName: msg.fromName || msg.from_name || 'System',
+          to: msg.to || msg.user_id || '',
+          toName: msg.toName || msg.to_name || 'Unknown',
+          subject: msg.subject || msg.title || 'Notification',
+          body: msg.body || msg.message || '',
+          type: msg.type || 'notification',
+          read: msg.read || false,
+          archived: msg.archived || false,
+          created_at: new Date(msg.created_at),
+          priority: msg.priority || 'medium'
+        }))
+        setMessages(transformedMessages)
+      }
+    } catch (err) {
+      console.error('Error loading messages:', err)
+      // Fallback to empty array on error
+      setMessages([])
+    } finally {
       setLoading(false)
     }
-  }, [user])
+  }
 
-  const loadMessages = () => {
+  // Keep old mock data as fallback (commented out)
+  const loadMessagesOld = () => {
     // Mock data showing messages between users across the platform
     // This is an audit trail - superadmin can see ALL platform messages
     const mockMessages = [
@@ -124,10 +186,29 @@ export default function SuperadminMessagesClient({ user }) {
     return message.type === filter
   })
 
-  const markAsRead = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, read: true } : msg
-    ))
+  const markAsRead = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, read: true })
+      })
+
+      if (response.ok) {
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error marking message as read:', err)
+    }
   }
 
   const deleteMessage = (messageId) => {
@@ -135,18 +216,56 @@ export default function SuperadminMessagesClient({ user }) {
     setSelectedMessage(null)
   }
 
-  const archiveMessage = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, archived: true } : msg
-    ))
-    setSelectedMessage(null)
+  const archiveMessage = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, archived: true })
+      })
+
+      if (response.ok) {
+        setSelectedMessage(null)
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error archiving message:', err)
+    }
   }
 
-  const unarchiveMessage = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId ? { ...msg, archived: false } : msg
-    ))
-    setSelectedMessage(null)
+  const unarchiveMessage = async (messageId) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) return
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, archived: false })
+      })
+
+      if (response.ok) {
+        setSelectedMessage(null)
+        await loadMessages()
+      }
+    } catch (err) {
+      console.error('Error unarchiving message:', err)
+    }
   }
 
   const getPriorityColor = (priority) => {
@@ -181,7 +300,7 @@ export default function SuperadminMessagesClient({ user }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{borderColor: '#1f2937'}}></div>
           <p className="mt-4 text-gray-600">Loading platform messages...</p>
         </div>
       </div>

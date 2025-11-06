@@ -39,7 +39,7 @@ const ConfirmationModal = ({
       case 'success':
         return 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
       case 'info':
-        return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
+        return 'bg-msc-blue-600 hover:bg-msc-blue-700 focus:ring-msc-blue-500';
       default:
         return 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500';
     }
@@ -105,7 +105,7 @@ const ConfirmationModal = ({
             </button>
             <button
               type="button"
-              className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-msc-blue-500 transition-colors sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
               onClick={onClose}
               disabled={isLoading}
             >

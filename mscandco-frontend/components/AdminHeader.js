@@ -1,6 +1,7 @@
 'use client'
 
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { createClient } from '@/lib/supabase/client';
 import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Users, Shield, BarChart3, DollarSign, Database, Music, Inbox, FileText, MessageSquare, Eye, Wallet, TrendingUp, PieChart, Server, AlertTriangle, Activity, HardDrive, Globe, Lock, Zap, Mail, Book } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -246,7 +247,7 @@ function AdminHeader({ largeLogo = false }) {
             </div>
             {/* Loading indicator */}
             <div className="flex items-center gap-2 text-gray-500">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{borderColor: '#1f2937'}}></div>
               <span className="text-sm">Loading...</span>
             </div>
           </div>
@@ -784,9 +785,31 @@ function AdminHeader({ largeLogo = false }) {
 
                     {/* Logout - Always visible */}
                     <button
-                      onClick={() => {
-                        setIsUserDropdownOpen(false);
-                        router.push('/logout');
+                      onClick={async () => {
+                        setIsUserDropdownOpen(false)
+                        // Sign out immediately and redirect
+                        try {
+                          const supabase = createClient()
+                          // Clear ghost mode if active
+                          if (typeof window !== 'undefined') {
+                            sessionStorage.removeItem('ghost_mode')
+                            sessionStorage.removeItem('ghost_session')
+                            sessionStorage.removeItem('original_admin_user')
+                            sessionStorage.removeItem('ghost_target_user')
+                          }
+                          // Sign out (non-blocking)
+                          supabase.auth.signOut().catch(console.error)
+                          // Clear storage
+                          if (typeof window !== 'undefined') {
+                            localStorage.clear()
+                            sessionStorage.clear()
+                          }
+                          // Immediate redirect to login
+                          window.location.href = '/login'
+                        } catch (error) {
+                          console.error('Logout error:', error)
+                          window.location.href = '/login'
+                        }
                       }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     >

@@ -27,30 +27,40 @@ export default function PlatformAnalyticsClient({ user }) {
   const loadStats = async () => {
     setLoading(true)
     try {
-      const [usersRes, earningsRes] = await Promise.all([
-        supabase.from('user_profiles').select('id, role_id, created_at'),
-        supabase.from('earnings').select('amount')
-      ])
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
 
-      if (usersRes.error) throw usersRes.error
-      if (earningsRes.error) throw earningsRes.error
+      if (!token) {
+        console.error('No auth token available')
+        setLoading(false)
+        return
+      }
 
-      const users = usersRes.data || []
-      const earnings = earningsRes.data || []
-
-      setStats({
-        totalUsers: users.length,
-        totalArtists: users.filter(u => u.role_id === 'artist').length,
-        totalReleases: 0, // Would need releases table
-        totalEarnings: earnings.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0),
-        activeUsers: users.filter(u => {
-          const created = new Date(u.created_at)
-          const thirtyDaysAgo = new Date()
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-          return created > thirtyDaysAgo
-        }).length,
-        monthlyGrowth: 12.5 // Placeholder
+      const response = await fetch(`/api/admin/platform-analytics?period=${period}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load platform analytics')
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        setStats({
+          totalUsers: data.stats.totalUsers || 0,
+          totalArtists: data.stats.totalArtists || 0,
+          totalReleases: data.stats.totalReleases || 0,
+          totalEarnings: data.stats.totalEarnings || 0,
+          activeUsers: data.stats.activeUsers || 0,
+          monthlyGrowth: data.stats.monthlyGrowth || 0
+        })
+      }
     } catch (err) {
       console.error('Error loading stats:', err)
     } finally {

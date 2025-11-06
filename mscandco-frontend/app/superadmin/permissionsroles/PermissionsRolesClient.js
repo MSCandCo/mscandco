@@ -179,7 +179,20 @@ export default function PermissionsRolesClient() {
       }
 
       const data = await response.json()
-      setRolePermissions(data.permissions || [])
+      // Use assigned_permissions if available, otherwise transform from permissions array
+      if (data.assigned_permissions) {
+        setRolePermissions(data.assigned_permissions)
+      } else {
+        // Fallback: transform permissions to match expected format
+        const assignedPermissions = (data.permissions || [])
+          .filter(p => p.assigned)
+          .map(p => ({
+            permission_name: p.name,
+            permission_id: p.id,
+            ...p
+          }))
+        setRolePermissions(assignedPermissions)
+      }
 
       // Collapse all groups by default
       setExpandedGroups({})
@@ -217,7 +230,14 @@ export default function PermissionsRolesClient() {
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to ${hasPermission ? 'remove' : 'add'} permission`)
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Permission toggle error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        })
+        const errorMessage = errorData.error || errorData.message || errorData.details || `Failed to ${hasPermission ? 'remove' : 'add'} permission`
+        throw new Error(errorMessage)
       }
 
       // Reload role permissions WITHOUT collapsing groups
@@ -270,8 +290,13 @@ export default function PermissionsRolesClient() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('Reset failed:', errorData)
-        throw new Error(errorData.error || 'Failed to reset permissions')
+        console.error('Reset failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        })
+        const errorMessage = errorData.error || errorData.message || errorData.details || 'Failed to reset permissions'
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()

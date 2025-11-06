@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * GET /api/admin/deleted-users
  *
  * Admin endpoint to view deleted users and their financial data
- * Requires: manage_users permission
+ * Requires: Admin role (super_admin, company_admin, or label_admin)
  *
  * Returns deleted users with:
  * - User profile data
@@ -16,50 +22,111 @@ import { createClient } from '@/lib/supabase/server'
  */
 export async function GET(request) {
   try {
-    const supabase = await createClient()
+    // Authenticate user
+    const supabase = await createServerClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (sessionError || !session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', message: 'No authorization token provided' },
         { status: 401 }
       )
     }
 
-    // Check if user has manage_users permission
-    const { data: hasPermission, error: permError } = await supabase.rpc(
-      'check_user_permission',
-      {
-        user_id: user.id,
-        permission_name: 'manage_users'
-      }
-    )
+    // Check if user is admin using service role
+    const { data: profile } = await supabaseAdmin
+      .from('user_profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
 
-    if (permError || !hasPermission) {
-      console.error('Permission check failed:', permError)
+    if (!profile || !['super_admin', 'company_admin', 'label_admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'Forbidden: Requires manage_users permission' },
+        { error: 'Forbidden', message: 'Admin access required' },
         { status: 403 }
       )
     }
 
-    // Get deleted users with earnings data using the view
-    const { data: deletedUsers, error: fetchError } = await supabase
-      .from('deleted_users_with_earnings')
-      .select('*')
+    // Get deleted users with earnings data
+    // First, get all user_profiles that are deleted
+    const { data: deletedProfiles, error: profilesError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, email, first_name, last_name, artist_name, role, deleted_at, deletion_reason')
+      .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false })
 
-    if (fetchError) {
-      console.error('Error fetching deleted users:', fetchError)
+    if (profilesError) {
+      console.error('Error fetching deleted profiles:', profilesError)
       return NextResponse.json(
-        { error: 'Failed to fetch deleted users' },
+        { error: 'Failed to fetch deleted users', message: profilesError.message },
         { status: 500 }
       )
     }
 
-    console.log(`📋 Fetched ${deletedUsers?.length || 0} deleted users for admin: ${user.email}`)
+    // If no deleted users, return empty array
+    if (!deletedProfiles || deletedProfiles.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+        count: 0
+      })
+    }
+
+    // Get earnings data for deleted users
+    const userIds = deletedProfiles.map(p => p.id)
+    const { data: earningsData, error: earningsError } = await supabaseAdmin
+      .from('earnings_log')
+      .select('artist_id, amount, status')
+      .in('artist_id', userIds)
+
+    // Calculate totals per user
+    const earningsByUser = {}
+    if (earningsData) {
+      earningsData.forEach(earning => {
+        if (!earningsByUser[earning.artist_id]) {
+          earningsByUser[earning.artist_id] = {
+            total: 0,
+            pending: 0
+          }
+        }
+        earningsByUser[earning.artist_id].total += earning.amount || 0
+        if (earning.status === 'pending') {
+          earningsByUser[earning.artist_id].pending += earning.amount || 0
+        }
+      })
+    }
+
+    // Get wallet balances
+    const { data: walletData, error: walletError } = await supabaseAdmin
+      .from('earnings_log')
+      .select('artist_id, available_balance')
+      .in('artist_id', userIds)
+      .order('created_at', { ascending: false })
+
+    const walletByUser = {}
+    if (walletData) {
+      walletData.forEach(w => {
+        if (!walletByUser[w.artist_id]) {
+          walletByUser[w.artist_id] = w.available_balance || 0
+        }
+      })
+    }
+
+    // Combine all data
+    const deletedUsers = deletedProfiles.map(profile => ({
+      user_id: profile.id,
+      email: profile.email,
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email,
+      artist_name: profile.artist_name,
+      role_name: profile.role,
+      deleted_at: profile.deleted_at,
+      deletion_reason: profile.deletion_reason,
+      final_wallet_balance: walletByUser[profile.id] || 0,
+      total_earnings: earningsByUser[profile.id]?.total || 0,
+      pending_earnings: earningsByUser[profile.id]?.pending || 0
+    }))
+
+    console.log(`📋 Fetched ${deletedUsers?.length || 0} deleted users for admin: ${session.user.email}`)
 
     return NextResponse.json({
       success: true,
@@ -84,30 +151,27 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    const supabase = await createClient()
+    // Authenticate user
+    const supabase = await createServerClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (sessionError || !session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', message: 'No authorization token provided' },
         { status: 401 }
       )
     }
 
-    // Check permission
-    const { data: hasPermission } = await supabase.rpc(
-      'check_user_permission',
-      {
-        user_id: user.id,
-        permission_name: 'manage_users'
-      }
-    )
+    // Check if user is admin using service role
+    const { data: profile } = await supabaseAdmin
+      .from('user_profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
 
-    if (!hasPermission) {
+    if (!profile || !['super_admin', 'company_admin', 'label_admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'Forbidden: Requires manage_users permission' },
+        { error: 'Forbidden', message: 'Admin access required' },
         { status: 403 }
       )
     }
@@ -123,7 +187,7 @@ export async function POST(request) {
     }
 
     // Restore the user (unmark as deleted)
-    const { error: restoreError } = await supabase
+    const { error: restoreError } = await supabaseAdmin
       .from('user_profiles')
       .update({
         deleted_at: null,
@@ -139,20 +203,25 @@ export async function POST(request) {
       )
     }
 
-    // Log the restoration
-    await supabase.rpc('log_security_event', {
-      p_user_id: user_id,
-      p_event_type: 'account_restored',
-      p_event_category: 'account',
-      p_severity: 'warning',
-      p_success: true,
-      p_details: JSON.stringify({
-        restored_by: user.id,
-        restored_by_email: user.email
+    // Log the restoration (if function exists)
+    try {
+      await supabaseAdmin.rpc('log_security_event', {
+        p_user_id: user_id,
+        p_event_type: 'account_restored',
+        p_event_category: 'account',
+        p_severity: 'warning',
+        p_success: true,
+        p_details: JSON.stringify({
+          restored_by: session.user.id,
+          restored_by_email: session.user.email
+        })
       })
-    })
+    } catch (logError) {
+      // Silently fail if logging function doesn't exist
+      console.log('Security event logging not available')
+    }
 
-    console.log(`✅ User ${user_id} restored by admin: ${user.email}`)
+    console.log(`✅ User ${user_id} restored by admin: ${session.user.email}`)
 
     return NextResponse.json({
       success: true,

@@ -6,7 +6,7 @@
 export default function LoadingSpinner({ 
   size = 'md', 
   message = 'Loading...', 
-  color = 'blue',
+  color = 'brand',
   showMessage = true 
 }) {
   // Size variants
@@ -16,22 +16,31 @@ export default function LoadingSpinner({
     lg: 'h-16 w-16'
   }
 
-  // Color variants
-  const colorClasses = {
-    blue: 'border-blue-600',
-    gray: 'border-gray-900',
-    white: 'border-white',
-    purple: 'border-purple-600',
-    red: 'border-red-600',
-    green: 'border-green-600',
-    orange: 'border-orange-600',
-    violet: 'border-violet-600'
+  // Color variants - brand color (#1f2937) is default
+  const getBorderColor = () => {
+    switch (color) {
+      case 'brand':
+        return { borderColor: '#1f2937' }
+      case 'white':
+        return { borderColor: '#ffffff' }
+      case 'blue':
+        return { borderColor: '#2563eb' }
+      case 'gray':
+        return { borderColor: '#111827' }
+      case 'red':
+        return { borderColor: '#dc2626' }
+      case 'green':
+        return { borderColor: '#16a34a' }
+      default:
+        return { borderColor: '#1f2937' } // Default to brand color
+    }
   }
 
   return (
     <div className="flex flex-col items-center justify-center">
       <div 
-        className={`animate-spin rounded-full border-b-2 ${sizeClasses[size]} ${colorClasses[color]} mx-auto ${showMessage ? 'mb-4' : ''}`}
+        className={`animate-spin rounded-full border-b-2 ${sizeClasses[size]} mx-auto ${showMessage ? 'mb-4' : ''}`}
+        style={getBorderColor()}
       ></div>
       {showMessage && message && (
         <p className="text-gray-600">{message}</p>
@@ -44,7 +53,7 @@ export default function LoadingSpinner({
  * Full Page Loading State
  * For pages that need centered loading
  */
-export function PageLoading({ message = 'Loading...', color = 'blue' }) {
+export function PageLoading({ message = 'Loading...', color = 'brand' }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">

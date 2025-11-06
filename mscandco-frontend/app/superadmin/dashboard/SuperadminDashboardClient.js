@@ -30,25 +30,40 @@ export default function SuperadminDashboardClient({ user }) {
   const [notificationCount, setNotificationCount] = useState(3)
 
   useEffect(() => {
-    // Fetch real stats
+    // Fetch real stats from API
     const fetchStats = async () => {
       try {
-        // Fetch total users
-        const { count: usersCount } = await supabase
-          .from('user_profiles')
-          .select('*', { count: 'exact', head: true })
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
 
-        // Fetch total releases
-        const { count: releasesCount } = await supabase
-          .from('releases')
-          .select('*', { count: 'exact', head: true })
+        if (!token) {
+          console.error('No auth token available')
+          return
+        }
 
-        setStats({
-          totalUsers: usersCount || 0,
-          totalReleases: releasesCount || 0,
-          platformRevenue: 0, // This would come from a revenue table
-          systemHealth: 100
+        const response = await fetch('/api/superadmin/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
         })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to load dashboard stats')
+        }
+
+        const data = await response.json()
+
+        if (data.success) {
+          setStats({
+            totalUsers: data.stats.totalUsers || 0,
+            totalReleases: data.stats.totalReleases || 0,
+            platformRevenue: data.stats.platformRevenue || 0,
+            systemHealth: data.stats.systemHealth || 100
+          })
+        }
       } catch (error) {
         console.error('Error fetching stats:', error)
       }

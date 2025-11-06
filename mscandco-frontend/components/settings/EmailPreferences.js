@@ -76,11 +76,16 @@ export default function EmailPreferences() {
         credentials: 'include'
       })
 
+      console.log('Email preferences response:', response.status, response.statusText)
+
       if (!response.ok) {
-        throw new Error('Failed to load preferences')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Email preferences error:', errorData)
+        throw new Error(errorData.error || 'Failed to load preferences')
       }
 
       const data = await response.json()
+      console.log('Email preferences data:', data)
       setPreferences(data.preferences)
     } catch (error) {
       console.error('Error loading preferences:', error)

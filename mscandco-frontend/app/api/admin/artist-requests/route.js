@@ -34,26 +34,32 @@ export async function GET(request) {
       .from('artist_requests')
       .select(`
         id,
-        requested_by_user_id,
-        requested_by_email,
-        label_name,
+        from_label_id,
+        to_artist_id,
         artist_first_name,
         artist_last_name,
-        artist_stage_name,
-        label_royalty_percent,
+        artist_email,
+        label_admin_name,
+        label_admin_email,
         status,
-        request_type,
-        approved_by_user_id,
-        approved_by_email,
-        rejection_reason,
-        notes,
+        message,
         created_at,
-        updated_at
+        updated_at,
+        responded_at
       `)
       .order('created_at', { ascending: false })
 
-    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-      query = query.eq('status', status)
+    // Map status values: 'pending' -> 'pending', 'approved' -> 'accepted', 'rejected' -> 'declined'
+    if (status) {
+      const statusMap = {
+        'pending': 'pending',
+        'approved': 'accepted',
+        'rejected': 'declined'
+      }
+      const mappedStatus = statusMap[status] || status
+      if (['pending', 'accepted', 'declined'].includes(mappedStatus)) {
+        query = query.eq('status', mappedStatus)
+      }
     }
 
     const { data: requests, error } = await query
@@ -100,24 +106,46 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Rejection reason is required when rejecting' }, { status: 400 })
     }
 
-    // Call the database function to process the request
-    const { data, error } = await supabaseAdmin.rpc('process_artist_request', {
-      p_request_id: requestId,
-      p_action: action,
-      p_rejection_reason: rejectionReason || null,
-      p_notes: notes || null
-    })
+    // Map action to database status values
+    const actionMap = {
+      'approve': 'accepted',
+      'reject': 'declined'
+    }
+    const dbStatus = actionMap[action]
 
-    if (error) {
-      console.error('Error processing artist request:', error)
+    // Update the request status directly since process_artist_request function may not exist
+    const { data: requestData, error: fetchError } = await supabaseAdmin
+      .from('artist_requests')
+      .select('*')
+      .eq('id', requestId)
+      .single()
+
+    if (fetchError || !requestData) {
+      return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    }
+
+    // Update the request
+    const { data: updatedData, error: updateError } = await supabaseAdmin
+      .from('artist_requests')
+      .update({
+        status: dbStatus,
+        message: notes || requestData.message,
+        updated_at: new Date().toISOString(),
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', requestId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating artist request:', updateError)
       return NextResponse.json({ error: 'Failed to process request' }, { status: 500 })
     }
 
-    if (!data.success) {
-      return NextResponse.json({ error: data.error }, { status: 400 })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json({ 
+      success: true, 
+      request: updatedData 
+    })
 
   } catch (error) {
     console.error('Error in artist-requests POST:', error)

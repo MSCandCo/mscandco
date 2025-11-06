@@ -364,87 +364,61 @@ export default function ReleasesClient({ user: userProp }) {
     }
   };
 
-  // Load data from centralized source
+
+  // Load data from centralized source - OPTIMIZED: Parallel fetching
   useEffect(() => {
     const loadData = async () => {
+      if (!user) return
+      
       try {
         console.log('🔍 Starting data load, user:', user?.email);
-        console.log('🔐 Session from provider:', { hasSession: !!session, hasToken: !!session?.access_token });
 
-        // Get session - try from provider first, then fetch fresh
+        // Get session token once
         let token = session?.access_token;
-
         if (!token) {
-          console.error('❌ No access token available! Trying to get session...');
-          // Get a fresh session directly
           const { data: { session: freshSession } } = await supabase.auth.getSession();
-          if (freshSession?.access_token) {
-            console.log('✅ Got fresh token from getSession');
-            token = freshSession.access_token;
-          } else {
-            console.error('❌ Failed to get session');
-            // Try refresh as last resort
-            const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
-            if (refreshedSession?.access_token) {
-              console.log('✅ Got token from refresh');
-              token = refreshedSession.access_token;
-            }
-          }
+          token = freshSession?.access_token;
         }
-        
-        if (token) {
-          const profileResponse = await fetch('/api/artist/profile', {
+
+        // Fetch profile and releases in parallel for faster loading
+        const [profileResponse, releasesResponse] = await Promise.all([
+          token ? fetch('/api/artist/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (profileResponse.ok) {
-            const profile = await profileResponse.json();
-            setProfileData(profile);
-          }
+          }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false }),
+          fetch('/api/artist/releases-simple', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          }).catch(() => ({ ok: false }))
+        ]);
+
+        // Process profile response
+        if (profileResponse.ok) {
+          const profile = await profileResponse.json();
+          setProfileData(profile);
         }
-        
-        // 🔥 Load releases from database API
-        console.log('📋 Fetching releases from database...');
-        console.log('🔑 Token available:', !!token);
-        console.log('🔑 Token preview:', token ? `${token.substring(0, 20)}...` : 'NONE');
-        
-        const releasesResponse = await fetch('/api/artist/releases-simple', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        
-        console.log('📡 API Response status:', releasesResponse.status);
-        
+
+        // Process releases response
         if (releasesResponse.ok) {
           const responseData = await releasesResponse.json();
-          console.log('📦 Raw API Response:', responseData);
-          // API returns { success: true, releases: [...] }, extract the releases array
           const releasesArray = Array.isArray(responseData.releases)
             ? responseData.releases
             : (Array.isArray(responseData) ? responseData : []);
           console.log(`✅ Loaded ${releasesArray.length} releases from database`);
-          console.log('📋 Releases data:', releasesArray);
           setReleases(releasesArray);
         } else {
-          const errorText = await releasesResponse.text();
-          console.error('❌ Failed to load releases from database:', releasesResponse.status, errorText);
-          // Fallback to mock data if API fails
-          const artistReleases = getReleasesByArtist('msc_co');
-          const releasesArray = Array.isArray(artistReleases) ? artistReleases : [];
-          setReleases(releasesArray);
+          console.error('❌ Failed to load releases');
+          setReleases([]);
         }
 
-        // Simple plan check - One source of truth
+        // Simple plan check
         if (user?.sub) {
           const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
           setUserPlan(hasUpgraded ? 'pro' : 'starter');
-          console.log('Simple Plan Check:', { userId: user.sub, hasUpgraded, plan: hasUpgraded ? 'pro' : 'starter' });
         }
+        
         setIsLoadingData(false);
       } catch (error) {
         console.error('Error loading data:', error);
-        // Fallback to mock data on any error
-        const artistReleases = getReleasesByArtist('msc_co');
-        const releasesArray = Array.isArray(artistReleases) ? artistReleases : [];
-        setReleases(releasesArray);
+        setReleases([]);
         setIsLoadingData(false);
       }
     };
@@ -452,12 +426,15 @@ export default function ReleasesClient({ user: userProp }) {
     if (user && !isLoading) {
       loadData();
     }
-  }, [user, isLoading, user?.sub]);
+  }, [user, isLoading, session?.access_token]);
 
-  // Load subscription status for real plan detection
+  // Load subscription status for real plan detection - OPTIMIZED: Non-blocking
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
-      if (!user) return;
+      if (!user) {
+        setSubscriptionLoading(false);
+        return;
+      }
       
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -472,41 +449,29 @@ export default function ReleasesClient({ user: userProp }) {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        const result = await response.json();
-
-        if (result.success && result.data) {
-          setSubscriptionStatus(result.data);
-          // Update user plan based on real subscription
-          const plan = result.data.isPro ? 'pro' : 'starter';
-          setUserPlan(plan);
-          console.log('Real Subscription Status:', {
-            plan,
-            isPro: result.data.isPro,
-            planName: result.data.planName,
-            tier: result.data.planId
-          });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setSubscriptionStatus(result.data);
+            const plan = result.data.isPro ? 'pro' : 'starter';
+            setUserPlan(plan);
+          } else {
+            setUserPlan('starter');
+          }
         } else {
-          // Set default starter plan
-          setSubscriptionStatus({
-            status: 'none',
-            planName: 'No Subscription',
-            hasSubscription: false,
-            isPro: false,
-            isStarter: false
-          });
           setUserPlan('starter');
-          console.log('No Subscription - Defaulting to Starter');
         }
       } catch (error) {
         console.error('Failed to fetch subscription status:', error);
-        setUserPlan('starter'); // Default to starter on error
+        setUserPlan('starter');
       } finally {
         setSubscriptionLoading(false);
       }
     };
 
+    // Don't block initial render - fetch subscription in background
     fetchSubscriptionStatus();
-  }, [user]);
+  }, [user, supabase]);
 
   // Calculate release counts for starter plan limits
   const releaseCount = useMemo(() => {

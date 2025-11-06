@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess, onDataUpdated }) {
   // Use selectedArtistId if passed, fall back to artistId for compatibility
@@ -26,25 +27,39 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
   useEffect(() => {
     // Fetch artist's live releases
     if (currentArtistId) {
-      fetch(`/api/admin/releases?artist_id=${currentArtistId}&status=live`)
-        .then(res => res.json())
-        .then(data => {
+      const fetchReleases = async () => {
+        try {
+          const supabase = createClient()
+          const { data: { session } } = await supabase.auth.getSession()
+          const token = session?.access_token
+
+          const res = await fetch(`/api/admin/releases?artist_id=${currentArtistId}&status=live`, {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            credentials: 'include'
+          })
+          
+          const data = await res.json()
+          
           // Handle API response properly
           if (data && Array.isArray(data)) {
-            setReleases(data);
+            setReleases(data)
           } else if (data && Array.isArray(data.releases)) {
-            setReleases(data.releases);
+            setReleases(data.releases)
           } else {
-            console.log('No releases found or API error:', data);
-            setReleases([]); // Set empty array to prevent map errors
+            console.log('No releases found or API error:', data)
+            setReleases([]) // Set empty array to prevent map errors
           }
-        })
-        .catch(err => {
-          console.error('Error fetching releases:', err);
-          setReleases([]); // Set empty array on error
-        });
+        } catch (err) {
+          console.error('Error fetching releases:', err)
+          setReleases([]) // Set empty array on error
+        }
+      }
+      
+      fetchReleases()
     }
-  }, [currentArtistId]);
+  }, [currentArtistId])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,21 +73,27 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
     setLoading(true);
     
     try {
+      // Normalize date fields - convert empty strings to null
+      const normalizeDate = (date) => {
+        if (!date || typeof date !== 'string' || date.trim() === '') return null
+        return date.trim()
+      }
+
       const submitData = {
         artist_id: currentArtistId,
         earning_type: formData.earning_type,
         amount: parseFloat(formData.amount),
         currency: formData.currency,
-        platform: formData.platform,
-        territory: formData.territory,
+        platform: (formData.platform || '').trim(),
+        territory: (formData.territory || '').trim() || null,
         status: formData.status,
-        notes: formData.notes,
-        payment_date: formData.expected_payment_date || null,
-        period_start: formData.period_start || null,
-        period_end: formData.period_end || null
-      };
+        notes: (formData.notes || '').trim() || null,
+        payment_date: normalizeDate(formData.expected_payment_date),
+        period_start: normalizeDate(formData.period_start),
+        period_end: normalizeDate(formData.period_end)
+      }
       
-      console.log('📤 Sending data:', submitData);
+      console.log('📤 Sending data:', submitData)
       
       // Validation check before sending
       if (!submitData.artist_id || !submitData.earning_type || !submitData.amount || !submitData.platform) {
@@ -86,15 +107,63 @@ export default function AddEarningsForm({ selectedArtistId, artistId, onSuccess,
         return;
       }
       
+      // Get auth token for API call
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const response = await fetch('/api/admin/earnings/add-simple', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        credentials: 'include',
         body: JSON.stringify(submitData)
       });
       
-      console.log('📥 Response status:', response.status);
+      console.log('📥 Response status:', response.status)
 
-    if (response.ok) {
+      // Parse response
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ API Error Response:', result)
+        console.error('❌ Error Message:', result.message)
+        console.error('❌ Error Details:', result.details)
+        console.error('❌ Error Code:', result.code)
+        console.error('❌ Error Hint:', result.hint)
+        
+        // Show detailed error notification
+        const errorDiv = document.createElement('div')
+        errorDiv.innerHTML = `
+          <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #fef2f2; 
+            border-left: 4px solid #991b1b; 
+            padding: 16px 24px; 
+            color: #991b1b; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 500px;
+          ">
+            <div style="font-weight: bold; margin-bottom: 8px;">Failed to add earnings entry</div>
+            <div style="font-size: 14px;">${result.message || result.error || 'Unknown error'}</div>
+            ${result.details ? `<div style="font-size: 12px; margin-top: 8px; color: #7f1d1d;">Details: ${result.details}</div>` : ''}
+            ${result.hint ? `<div style="font-size: 12px; margin-top: 4px; color: #7f1d1d;">Hint: ${result.hint}</div>` : ''}
+            ${result.code ? `<div style="font-size: 12px; margin-top: 4px; color: #7f1d1d;">Code: ${result.code}</div>` : ''}
+          </div>
+        `
+        document.body.appendChild(errorDiv)
+        setTimeout(() => document.body.removeChild(errorDiv), 8000)
+        setLoading(false)
+        return
+      }
+
+    if (result.success) {
       // Show success notification using MSC brand style
       const successDiv = document.createElement('div');
       successDiv.innerHTML = `

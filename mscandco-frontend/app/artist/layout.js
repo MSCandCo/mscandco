@@ -1,13 +1,10 @@
 /**
- * Artist Layout - Server Component with Permission Check
+ * Artist Layout - Server Component with Optimized Permission Check
  * 
  * This layout wraps ALL /artist/* pages
- * Checks for artist permissions BEFORE rendering any child page
+ * Checks for artist access BEFORE rendering any child page
  * 
- * Security: Bank-Grade ✅
- * - Runs on server (can't be bypassed by client)
- * - Checks authentication before ANY rendering
- * - Verifies artist permissions before ANY content loads
+ * Optimized: Fast role check first, then permission check if needed
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -36,7 +33,7 @@ function hasArtistAccess(permissions) {
 }
 
 export default async function ArtistLayout({ children }) {
-  // Get session from server-side cookies (works perfectly in App Router!)
+  // Get session from server-side cookies
   const supabase = await createClient()
   const { data: { session }, error } = await supabase.auth.getSession()
   
@@ -48,7 +45,28 @@ export default async function ArtistLayout({ children }) {
   
   console.log('✅ Artist Layout: User authenticated:', session.user.email)
   
-  // Security Check 2: Must have artist permissions
+  // OPTIMIZED: Quick role check first (faster than permission check)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .maybeSingle()
+
+  // If user has artist role, allow access immediately (skip expensive permission check)
+  if (profile?.role === 'artist') {
+    console.log('✅ Artist Layout: User has artist role - allowing access')
+    return <>{children}</>
+  }
+
+  // If profile doesn't exist or role is null, allow access (will default to artist)
+  if (!profile || !profile.role) {
+    console.log('✅ Artist Layout: No profile or null role - allowing access (will default to artist)')
+    return <>{children}</>
+  }
+
+  // If user has a different role, check permissions as fallback
+  // (e.g., super_admin might have wildcard permission)
+  console.log('⚠️ Artist Layout: User role is', profile.role, '- checking permissions as fallback')
   const permissions = await getUserPermissions(session.user.id, true)
   
   if (!hasArtistAccess(permissions)) {
@@ -56,8 +74,8 @@ export default async function ArtistLayout({ children }) {
     redirect('/dashboard')
   }
   
-  console.log('✅ Artist Layout: User has artist access')
+  console.log('✅ Artist Layout: User has artist access via permissions')
   
-  // User is authenticated AND has artist permissions - render page
+  // User is authenticated AND has artist access - render page
   return <>{children}</>
 }

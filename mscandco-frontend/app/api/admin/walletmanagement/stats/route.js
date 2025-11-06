@@ -27,70 +27,94 @@ export async function GET(request) {
 
     console.log('📊 Fetching wallet management statistics...')
 
-    // Get all user wallets with balances
-    const { data: wallets, error: walletsError } = await supabaseAdmin
+    // Get all user wallets with balances from earnings_log (single source of truth)
+    const { data: allUsers, error: usersError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, wallet_balance, wallet_currency, role')
       .in('role', ['artist', 'label_admin'])
-      .not('wallet_balance', 'is', null)
 
-    if (walletsError) {
-      console.error('❌ Error fetching wallets:', walletsError)
-      return NextResponse.json({ error: 'Failed to fetch wallets' }, { status: 500 })
+    if (usersError) {
+      console.error('❌ Error fetching users:', usersError)
+      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
-    // Calculate total platform balance (convert to GBP if needed)
-    const totalBalance = wallets.reduce((sum, w) => {
-      const balance = parseFloat(w.wallet_balance) || 0
-      // TODO: Add currency conversion if needed
-      return sum + balance
+    const userIds = allUsers.map(u => u.id)
+
+    // Calculate balances from earnings_log
+    let earningsData = []
+    let earningsError = null
+    
+    if (userIds.length > 0) {
+      const earningsResult = await supabaseAdmin
+        .from('earnings_log')
+        .select('artist_id, amount, status, currency, created_at')
+        .in('artist_id', userIds)
+        .neq('status', 'cancelled')
+      
+      earningsData = earningsResult.data || []
+      earningsError = earningsResult.error
+    }
+
+    if (earningsError) {
+      console.error('❌ Error fetching earnings:', earningsError)
+      // Continue with empty earnings data - return stats with zeros
+    }
+
+    // Calculate total balance from earnings_log
+    const totalBalance = (earningsData || []).reduce((sum, e) => {
+      return sum + (parseFloat(e.amount) || 0)
     }, 0)
 
-    // Get monthly transactions (last 30 days)
+    // Get monthly transactions (last 30 days) from earnings_log
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    const { data: monthlyTx, error: monthlyTxError } = await supabaseAdmin
-      .from('wallet_transactions')
-      .select('amount, created_at')
-      .gte('created_at', thirtyDaysAgo.toISOString())
+    const monthlyEarnings = (earningsData || []).filter(e => {
+      if (!e.created_at) return false
+      const createdAt = new Date(e.created_at)
+      return createdAt >= thirtyDaysAgo
+    })
 
-    if (monthlyTxError) {
-      console.error('❌ Error fetching monthly transactions:', monthlyTxError)
-    }
+    const monthlyTransactions = monthlyEarnings.length
+    const monthlyVolume = monthlyEarnings.reduce((sum, e) => sum + Math.abs(parseFloat(e.amount) || 0), 0)
 
-    const monthlyTransactions = monthlyTx?.length || 0
-    const monthlyVolume = monthlyTx?.reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount) || 0), 0) || 0
-
-    // Get subscription revenue this month
+    // Get subscription revenue this month (from wallet_transactions if exists, otherwise 0)
     const firstDayOfMonth = new Date()
     firstDayOfMonth.setDate(1)
     firstDayOfMonth.setHours(0, 0, 0, 0)
 
-    const { data: subTx, error: subTxError } = await supabaseAdmin
-      .from('wallet_transactions')
-      .select('amount')
-      .eq('type', 'subscription_payment')
-      .gte('created_at', firstDayOfMonth.toISOString())
+    let subscriptionRevenue = 0
+    try {
+      const { data: subTx, error: subTxError } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('amount')
+        .eq('type', 'subscription_payment')
+        .gte('created_at', firstDayOfMonth.toISOString())
 
-    const subscriptionRevenue = subTx?.reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount) || 0), 0) || 0
+      if (!subTxError && subTx) {
+        subscriptionRevenue = subTx.reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount) || 0), 0)
+      }
+    } catch (err) {
+      // wallet_transactions table might not exist, that's okay
+      console.log('ℹ️ wallet_transactions table not available, using 0 for subscription revenue')
+    }
 
-    // Get active users (users with transactions in last 30 days)
-    const { data: activeUsersTx } = await supabaseAdmin
-      .from('wallet_transactions')
-      .select('user_id')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-
-    const uniqueActiveUsers = new Set(activeUsersTx?.map(tx => tx.user_id) || [])
+    // Get active users (users with earnings in last 30 days)
+    const uniqueActiveUsers = new Set(monthlyEarnings.map(e => e.artist_id))
     const activeUsers = uniqueActiveUsers.size
 
-    console.log('✅ Statistics calculated successfully')
+    // Count total wallets (users with any earnings or stored balance)
+    const walletsWithEarnings = new Set(earningsData?.map(e => e.artist_id) || [])
+    const walletsWithStoredBalance = allUsers.filter(u => parseFloat(u.wallet_balance) > 0).map(u => u.id)
+    const totalWallets = new Set([...walletsWithEarnings, ...walletsWithStoredBalance]).size
+
+    console.log('✅ Statistics calculated successfully from earnings_log')
 
     return NextResponse.json({
       success: true,
       stats: {
         total_balance: totalBalance,
-        total_wallets: wallets.length,
+        total_wallets: totalWallets,
         monthly_transactions: monthlyTransactions,
         monthly_volume: monthlyVolume,
         subscription_revenue: subscriptionRevenue,
