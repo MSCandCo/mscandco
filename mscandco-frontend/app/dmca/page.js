@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 
+export const dynamic = 'force-dynamic'
+
 export default function DMCAPage() {
   const [formType, setFormType] = useState('takedown') // 'takedown' or 'counter'
   const [formData, setFormData] = useState({

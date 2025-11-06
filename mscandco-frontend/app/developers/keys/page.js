@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Key, Copy, Check, Plus, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 
+export const dynamic = 'force-dynamic'
+
 export default function APIKeysPage() {
   const { user } = useUser();
   const router = useRouter();
