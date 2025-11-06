@@ -127,10 +127,34 @@ function LoginPageContent() {
           return
         }
 
-        console.log('✅ Login successful, session confirmed, redirecting...')
+        console.log('✅ Login successful, session confirmed, fetching user role...')
         
-        // No MFA or already verified - proceed to dashboard
-        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        // Fetch user profile to determine role-based redirect
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        
+        const userRole = profile?.role || session.user.user_metadata?.role
+        
+        // Determine redirect based on role
+        let redirectTo = searchParams.get('redirectedFrom')
+        
+        if (!redirectTo) {
+          // Role-based redirects
+          if (userRole === 'label_admin') {
+            redirectTo = '/labeladmin/dashboard'
+          } else if (userRole === 'super_admin') {
+            redirectTo = '/superadmin/dashboard'
+          } else if (userRole === 'company_admin' || userRole === 'admin') {
+            redirectTo = '/admin/dashboard'
+          } else {
+            redirectTo = '/dashboard'
+          }
+        }
+        
+        console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
         
         // Small delay to ensure SupabaseProvider updates state
         await new Promise(resolve => setTimeout(resolve, 300))
@@ -194,10 +218,34 @@ function LoginPageContent() {
           return
         }
 
-        console.log('✅ MFA verified, session confirmed, redirecting...')
+        console.log('✅ MFA verified, session confirmed, fetching user role...')
         
-        // Success! Redirect to dashboard
-        const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        // Fetch user profile to determine role-based redirect
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        
+        const userRole = profile?.role || session.user.user_metadata?.role
+        
+        // Determine redirect based on role
+        let redirectTo = searchParams.get('redirectedFrom')
+        
+        if (!redirectTo) {
+          // Role-based redirects
+          if (userRole === 'label_admin') {
+            redirectTo = '/labeladmin/dashboard'
+          } else if (userRole === 'super_admin') {
+            redirectTo = '/superadmin/dashboard'
+          } else if (userRole === 'company_admin' || userRole === 'admin') {
+            redirectTo = '/admin/dashboard'
+          } else {
+            redirectTo = '/dashboard'
+          }
+        }
+        
+        console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
         
         // Small delay to ensure SupabaseProvider updates state
         await new Promise(resolve => setTimeout(resolve, 300))

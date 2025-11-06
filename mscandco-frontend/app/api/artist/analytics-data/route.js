@@ -30,6 +30,36 @@ export async function GET(request) {
     
     // Use requested artistId if provided, otherwise use logged-in user's ID
     const artistId = requestedArtistId || user.id
+    
+    // If requesting another artist's data, verify permission (label admin must have affiliation)
+    if (requestedArtistId && requestedArtistId !== user.id) {
+      // Check if user is a label admin with affiliation to this artist
+      const { data: affiliation } = await supabase
+        .from('label_artist_affiliations')
+        .select('id')
+        .eq('label_admin_id', user.id)
+        .eq('artist_id', requestedArtistId)
+        .eq('status', 'active')
+        .maybeSingle()
+      
+      if (!affiliation) {
+        // Check if user is super admin or company admin (they can access any analytics)
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle()
+        
+        const userRole = profile?.role || user.user_metadata?.role
+        if (userRole !== 'super_admin' && userRole !== 'company_admin') {
+          return NextResponse.json(
+            { error: 'Unauthorized: You do not have access to this artist\'s analytics' },
+            { status: 403 }
+          )
+        }
+      }
+    }
+    
     console.log('📊 Fetching analytics data for artist:', artistId)
 
     // Fetch analytics data from user_profiles table

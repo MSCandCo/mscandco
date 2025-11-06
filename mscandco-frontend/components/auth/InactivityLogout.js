@@ -22,6 +22,7 @@ export function InactivityLogout({
   const supabase = createClient()
   const timeoutRef = useRef(null)
   const warningTimeoutRef = useRef(null)
+  const showWarningRef = useRef(false) // Track warning state with ref to avoid stale closures
   const [showWarning, setShowWarning] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(warningMinutes * 60)
 
@@ -39,8 +40,8 @@ export function InactivityLogout({
     // Don't reset on public pages
     if (isPublicPage) return
 
-    // Hide warning if shown
-    setShowWarning(false)
+    // If warning is already shown, don't reset - let user interact with modal
+    if (showWarningRef.current) return
 
     // Clear existing timeouts
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -50,6 +51,7 @@ export function InactivityLogout({
     const warningTime = (timeoutMinutes - warningMinutes) * 60 * 1000
     if (warningTime > 0) {
       warningTimeoutRef.current = setTimeout(() => {
+        showWarningRef.current = true
         setShowWarning(true)
         setRemainingSeconds(warningMinutes * 60)
 
@@ -73,6 +75,7 @@ export function InactivityLogout({
   }
 
   const extendSession = () => {
+    showWarningRef.current = false
     setShowWarning(false)
     resetTimeout()
   }
@@ -81,10 +84,17 @@ export function InactivityLogout({
     if (isPublicPage) return
 
     // Track user activity events
+    // Note: 'mousemove' is excluded when warning is shown to prevent modal from disappearing
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove']
 
+    const handleActivity = (e) => {
+      // Don't reset if warning is shown - user must interact with modal
+      if (showWarningRef.current) return
+      resetTimeout()
+    }
+
     events.forEach(event => {
-      document.addEventListener(event, resetTimeout, { passive: true })
+      document.addEventListener(event, handleActivity, { passive: true })
     })
 
     // Initial timeout setup
@@ -95,10 +105,10 @@ export function InactivityLogout({
       if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current)
 
       events.forEach(event => {
-        document.removeEventListener(event, resetTimeout)
+        document.removeEventListener(event, handleActivity)
       })
     }
-  }, [isPublicPage, pathname])
+  }, [isPublicPage, pathname, showWarning])
 
   if (isPublicPage || !showWarning) return null
 
@@ -154,7 +164,7 @@ export function InactivityLogout({
           </div>
 
           <p className="text-xs text-gray-500 mt-4">
-            Click anywhere or press any key to stay active
+            Please click a button above to continue
           </p>
         </div>
       </div>

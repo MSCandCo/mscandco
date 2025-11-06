@@ -58,45 +58,54 @@ export async function GET(request) {
       profileMap[profile.id] = profile
     })
 
-    // Transform the data for frontend consumption and fetch release counts
-    const artistsWithCounts = await Promise.all(
-      affiliations.map(async (affiliation) => {
-        const profile = profileMap[affiliation.artist_id]
-        
-        // Fetch release counts for this artist using direct PostgreSQL
-        const releasesResult = await query(
-          `SELECT id, status FROM releases WHERE artist_id = $1`,
-          [affiliation.artist_id]
-        )
-
-        const releases = releasesResult.rows
-        const totalReleases = releases.length
-        const liveReleases = releases.filter(r => r.status === 'live').length
-        const draftReleases = releases.filter(r => r.status === 'draft').length
-
-        console.log(`📊 Artist ${profile?.artist_name}: ${totalReleases} total, ${liveReleases} live, ${draftReleases} drafts`)
-
-        return {
-          affiliationId: affiliation.id,
-          artistId: affiliation.artist_id,
-          artistName: profile?.artist_name || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown Artist',
-          artistEmail: profile?.email || '',
-          firstName: profile?.first_name || '',
-          lastName: profile?.last_name || '',
-          phone: profile?.phone || '',
-          country: profile?.country || '',
-          city: profile?.city || '',
-          primaryGenre: profile?.primary_genre || '',
-          profilePictureUrl: profile?.profile_picture_url || null,
-          labelPercentage: affiliation.label_percentage,
-          status: affiliation.status,
-          affiliatedSince: affiliation.created_at,
-          totalReleases,
-          liveReleases,
-          draftReleases
-        }
-      })
+    // OPTIMIZED: Batch fetch all releases at once instead of one-by-one
+    const allArtistIds = affiliations.map(a => a.artist_id)
+    const releasesPlaceholders = allArtistIds.map((_, i) => `$${i + 1}`).join(',')
+    const allReleasesResult = await query(
+      `SELECT id, artist_id, status FROM releases WHERE artist_id IN (${releasesPlaceholders})`,
+      allArtistIds
     )
+
+    const allReleases = allReleasesResult.rows || []
+    
+    // Group releases by artist_id for fast lookup
+    const releasesByArtist = {}
+    allReleases.forEach(release => {
+      if (!releasesByArtist[release.artist_id]) {
+        releasesByArtist[release.artist_id] = []
+      }
+      releasesByArtist[release.artist_id].push(release)
+    })
+
+    // Transform the data for frontend consumption
+    const artistsWithCounts = affiliations.map((affiliation) => {
+      const profile = profileMap[affiliation.artist_id]
+      const releases = releasesByArtist[affiliation.artist_id] || []
+      
+      const totalReleases = releases.length
+      const liveReleases = releases.filter(r => r.status === 'live').length
+      const draftReleases = releases.filter(r => r.status === 'draft').length
+
+      return {
+        affiliationId: affiliation.id,
+        artistId: affiliation.artist_id,
+        artistName: profile?.artist_name || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown Artist',
+        artistEmail: profile?.email || '',
+        firstName: profile?.first_name || '',
+        lastName: profile?.last_name || '',
+        phone: profile?.phone || '',
+        country: profile?.country || '',
+        city: profile?.city || '',
+        primaryGenre: profile?.primary_genre || '',
+        profilePictureUrl: profile?.profile_picture_url || null,
+        labelPercentage: affiliation.label_percentage,
+        status: affiliation.status,
+        affiliatedSince: affiliation.created_at,
+        totalReleases,
+        liveReleases,
+        draftReleases
+      }
+    })
 
     console.log(`✅ Found ${artistsWithCounts.length} accepted artists for label admin`)
 

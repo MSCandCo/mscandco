@@ -3,16 +3,9 @@
 // LABEL ADMIN ANALYTICS - Combined analytics from all accepted artists
 import { useState, useEffect } from 'react'
 import { useUser } from '@/components/providers/SupabaseProvider'
-import { createClient } from '@supabase/supabase-js'
 import { BarChart3, TrendingUp, Users, Crown, Lock, Music, DollarSign, Globe } from 'lucide-react'
 import CleanManualDisplay from '@/components/analytics/CleanManualDisplay'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
 
 export default function AnalyticsClient() {
   const { user, session } = useUser()
@@ -82,17 +75,28 @@ export default function AnalyticsClient() {
         return
       }
 
-      // Fetch analytics for all artists and combine
+      const token = session?.access_token
+      if (!token) {
+        throw new Error('Authentication required')
+      }
+
+      // Fetch analytics for all artists using API route (works on staging)
       const analyticsPromises = artists.map(async (artist) => {
         try {
-          const { data, error } = await supabase
-            .from('user_profiles')
-            .select('analytics_data')
-            .eq('id', artist.artistId)
-            .maybeSingle()
+          const response = await fetch(`/api/artist/analytics-data?artistId=${artist.artistId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
 
-          if (error || !data || !data.analytics_data) return null
-          return { ...data.analytics_data, artistName: artist.artistName }
+          if (!response.ok) {
+            console.error(`Failed to fetch analytics for artist ${artist.artistId}`)
+            return null
+          }
+
+          const result = await response.json()
+          if (result.success && result.data) {
+            return { ...result.data, artistName: artist.artistName }
+          }
+          return null
         } catch (err) {
           console.error(`Error fetching analytics for artist ${artist.artistId}:`, err)
           return null
