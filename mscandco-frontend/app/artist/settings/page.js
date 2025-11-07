@@ -6,7 +6,7 @@ import SettingsClient from './SettingsClient'
 export default async function ArtistSettingsPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/login')
   }
@@ -17,6 +17,6 @@ export default async function ArtistSettingsPage() {
   if (!hasAccess) {
     redirect('/dashboard')
   }
-  
+
   return <SettingsClient />
 }

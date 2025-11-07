@@ -5,10 +5,10 @@ import LabelDashboardClient from './LabelDashboardClient'
 export default async function LabelDashboardPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/login')
   }
-  
+
   return <LabelDashboardClient user={session.user} />
 }

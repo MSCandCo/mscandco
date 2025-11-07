@@ -1,6 +1,6 @@
 /**
  * Wallet Management Page - App Router (Server Component)
- * 
+ *
  * Manage platform wallets and financial transactions
  * Full UI restoration with all original functionality
  */
@@ -15,14 +15,14 @@ export default async function WalletManagementPage() {
 
   // Get session (already authenticated by layout)
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/login')
   }
-  
+
   // Get permissions
   const permissions = await getUserPermissions(session.user.id, true)
-  
+
   // Load initial data server-side
   let initialData = null
   try {
@@ -58,14 +58,14 @@ export default async function WalletManagementPage() {
   } catch (error) {
     console.error('Error loading initial data:', error)
   }
-  
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
         💰 Wallet Management - Full UI Restored
       </h1>
-      
-      <WalletManagementClient 
+
+      <WalletManagementClient
         initialData={initialData}
         user={session.user}
       />

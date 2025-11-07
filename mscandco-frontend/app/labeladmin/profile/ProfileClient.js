@@ -51,7 +51,7 @@ export default function LabelAdminProfileClient() {
     setLoading(true);
     try {
       if (!session) {
-        console.error('No session found');
+
         setLoading(false);
         return;
       }
@@ -62,7 +62,7 @@ export default function LabelAdminProfileClient() {
 
       if (response.ok) {
         const profileData = await response.json();
-        
+
         // Map API response to expected format
         const mappedProfile = {
           id: profileData.id,
@@ -91,14 +91,14 @@ export default function LabelAdminProfileClient() {
           apple_music: profileData.apple_music,
           profile_picture_url: profileData.profile_picture_url
         };
-        
+
         setProfile(mappedProfile);
         setEditedProfile(mappedProfile);
       } else {
-        console.error('Failed to fetch profile:', response.status);
+
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export default function LabelAdminProfileClient() {
 
   const validateProfile = () => {
     const newErrors = {};
-    
+
     // Validate label name
     if (!editedProfile.label_name || editedProfile.label_name.trim() === '') {
       newErrors.label_name = 'Label name is required';
@@ -184,11 +184,11 @@ export default function LabelAdminProfileClient() {
 
       if (response.ok) {
         const updatedData = await response.json();
-        
+
         // Update local state with saved data
         setProfile({ ...editedProfile });
         setEditMode(false);
-        
+
         // Show success message
         alert('Profile updated successfully!');
       } else {
@@ -196,7 +196,7 @@ export default function LabelAdminProfileClient() {
         alert(`Failed to update profile: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+
       alert('An error occurred while saving your profile');
     } finally {
       setSaving(false);
@@ -213,7 +213,7 @@ export default function LabelAdminProfileClient() {
     const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
     const borderColor = type === 'success' ? '#065f46' : '#991b1b';
     const textColor = type === 'success' ? '#065f46' : '#991b1b';
-    
+
     notification.style.cssText = `
       position: fixed;
       top: 20px;
@@ -260,7 +260,7 @@ export default function LabelAdminProfileClient() {
         alert('Failed to submit change request');
       }
     } catch (error) {
-      console.error('Error submitting change request:', error);
+
       alert('An error occurred while submitting your request');
     }
   };
@@ -347,7 +347,7 @@ export default function LabelAdminProfileClient() {
               </h2>
             </div>
             <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
@@ -774,11 +774,11 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
 
   const handleSubmit = async () => {
     if (!selectedField || !newValue || !reason) return;
-    
+
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
         .from('profile_change_requests')
         .insert({
@@ -789,27 +789,27 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
           reason: reason,
           status: 'pending'
         });
-      
+
       if (!error) {
         showBrandedNotification('Change request submitted for approval');
         onSubmit();
       } else {
-        console.error('Error submitting request:', error);
+
         showBrandedNotification('Failed to submit request', 'error');
       }
     } catch (error) {
-      console.error('Error:', error);
+
       showBrandedNotification('Failed to submit request', 'error');
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl p-6 max-w-md w-full">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Request Profile Change</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Change to Personal Information</label>
@@ -824,7 +824,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
               ))}
             </select>
           </div>
-          
+
           {selectedField && (
             <>
               <div className="mb-2">
@@ -832,7 +832,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
                   Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change *</label>
                 <input
@@ -845,7 +845,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
               </div>
             </>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change *</label>
             <textarea
@@ -857,7 +857,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
             />
           </div>
         </div>
-        
+
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
@@ -878,4 +878,3 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
     </div>
   );
 }
-

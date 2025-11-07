@@ -255,7 +255,7 @@ const LabelAdminSettingsClient = () => {
       }
 
     } catch (error) {
-      console.error('Error loading settings:', error);
+
     } finally {
       setIsLoading(false);
     }
@@ -1002,4 +1002,3 @@ const LabelAdminSettingsClient = () => {
 };
 
 export default LabelAdminSettingsClient;
-

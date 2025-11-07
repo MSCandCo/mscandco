@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Activity, 
-  Database, 
-  TrendingUp, 
-  Zap, 
+import {
+  Activity,
+  Database,
+  TrendingUp,
+  Zap,
   Radio,
   ExternalLink,
   CheckCircle2,
@@ -286,4 +286,3 @@ export default function SystemsDashboardClient() {
     </div>
   )
 }
-

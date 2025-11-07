@@ -6,7 +6,7 @@ import BillingClient from './BillingClient'
 export default async function ArtistBillingPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/login')
   }
@@ -17,7 +17,6 @@ export default async function ArtistBillingPage() {
   if (!hasAccess) {
     redirect('/dashboard')
   }
-  
+
   return <BillingClient userRole="artist" />
 }
-

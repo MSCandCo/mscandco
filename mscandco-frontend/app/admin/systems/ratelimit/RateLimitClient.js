@@ -27,7 +27,7 @@ export default function RateLimitClient() {
         setRules(data.rules || []);
       }
     } catch (error) {
-      console.error('Error fetching rules:', error);
+
     } finally {
       setLoading(false);
     }
@@ -43,13 +43,13 @@ export default function RateLimitClient() {
         setStats(data);
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+
     }
   };
 
   const saveRule = async (rule) => {
     if (!hasPermission('systems:ratelimit:manage')) return;
-    
+
     try {
       const response = await fetch('/api/admin/systems/ratelimit', {
         method: rule.id ? 'PUT' : 'POST',
@@ -57,31 +57,31 @@ export default function RateLimitClient() {
         credentials: 'include',
         body: JSON.stringify(rule)
       });
-      
+
       if (response.ok) {
         fetchRules();
         setEditingRule(null);
       }
     } catch (error) {
-      console.error('Error saving rule:', error);
+
     }
   };
 
   const deleteRule = async (ruleId) => {
     if (!hasPermission('systems:ratelimit:manage')) return;
     if (!confirm('Delete this rate limit rule?')) return;
-    
+
     try {
       const response = await fetch(`/api/admin/systems/ratelimit/${ruleId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         fetchRules();
       }
     } catch (error) {
-      console.error('Error deleting rule:', error);
+
     }
   };
 
@@ -240,4 +240,3 @@ export default function RateLimitClient() {
     </div>
   );
 }
-

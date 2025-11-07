@@ -30,7 +30,7 @@ export default function EmailClient() {
       setLoading(true)
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.append('status', statusFilter)
-      
+
       const response = await fetch(`/api/admin/systems/email?${params}`)
       if (response.ok) {
         const data = await response.json()
@@ -317,4 +317,3 @@ export default function EmailClient() {
     </div>
   )
 }
-

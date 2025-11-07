@@ -6,7 +6,7 @@ import BillingClient from './BillingClient'
 export default async function LabelAdminBillingPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/login')
   }
@@ -17,7 +17,6 @@ export default async function LabelAdminBillingPage() {
   if (!hasAccess) {
     redirect('/dashboard')
   }
-  
+
   return <BillingClient userRole="label_admin" />
 }
-

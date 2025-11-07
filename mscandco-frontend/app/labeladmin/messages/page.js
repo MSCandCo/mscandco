@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function LabelAdminMessagesPage() {
   const supabase = await createClient()
-  
+
   // Check authentication
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {

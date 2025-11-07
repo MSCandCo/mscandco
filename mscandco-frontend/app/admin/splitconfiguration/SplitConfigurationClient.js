@@ -75,7 +75,7 @@ export default function SplitConfigurationClient({ user }) {
         if (response.ok) {
           const data = await response.json()
           // Filter results client-side as well (double-check)
-          const filtered = roleFilter 
+          const filtered = roleFilter
             ? (data.users || []).filter(user => user.role === roleFilter)
             : (data.users || [])
           setSearchResults(filtered)
@@ -820,10 +820,3 @@ export default function SplitConfigurationClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

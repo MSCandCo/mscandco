@@ -30,7 +30,7 @@ export default function AnalyticsClient() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const token = session?.access_token
       if (!token) {
         throw new Error('Authentication required')
@@ -48,12 +48,11 @@ export default function AnalyticsClient() {
 
       const data = await response.json()
       setConnectedArtists(data.artists || [])
-      
+
       // Load summary data
       await loadSummaryData(data.artists || [])
-      
+
     } catch (error) {
-      console.error('Error loading accepted artists:', error)
       setError(error.message || 'Failed to load analytics')
     } finally {
       setLoading(false)
@@ -88,7 +87,6 @@ export default function AnalyticsClient() {
           })
 
           if (!response.ok) {
-            console.error(`Failed to fetch analytics for artist ${artist.artistId}`)
             return null
           }
 
@@ -98,7 +96,6 @@ export default function AnalyticsClient() {
           }
           return null
         } catch (err) {
-          console.error(`Error fetching analytics for artist ${artist.artistId}:`, err)
           return null
         }
       })
@@ -151,7 +148,6 @@ export default function AnalyticsClient() {
 
       setSummaryData(combined)
     } catch (error) {
-      console.error('Error loading summary data:', error)
       // Set empty summary data on error instead of leaving it null
       setSummaryData({
         totalStreams: 0,
@@ -351,8 +347,8 @@ export default function AnalyticsClient() {
             )}
           </div>
         ) : (
-          <CleanManualDisplay 
-            artistId={activeTab} 
+          <CleanManualDisplay
+            artistId={activeTab}
             showAdvanced={true}
           />
         )}
@@ -360,4 +356,3 @@ export default function AnalyticsClient() {
     </div>
   )
 }
-

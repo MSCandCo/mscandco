@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { usePermissions } from '@/hooks/usePermissions';
 import Link from 'next/link';
-import { 
-  AlertTriangle, 
-  Activity, 
-  Shield, 
-  Database, 
-  TrendingUp, 
-  Mail, 
-  FileText, 
-  Clock, 
+import {
+  AlertTriangle,
+  Activity,
+  Shield,
+  Database,
+  TrendingUp,
+  Mail,
+  FileText,
+  Clock,
   Zap,
   BarChart3,
   CheckCircle,
@@ -47,13 +47,13 @@ export default function SystemsClient() {
       const response = await fetch('/api/admin/systems/status', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSystemStatus(data);
       }
     } catch (error) {
-      console.error('Error fetching system status:', error);
+
     }
   };
 
@@ -237,7 +237,7 @@ export default function SystemsClient() {
   };
 
   // Filter modules based on permissions
-  const visibleModules = systemModules.filter(module => 
+  const visibleModules = systemModules.filter(module =>
     hasPermission(module.permission)
   );
 
@@ -324,4 +324,3 @@ export default function SystemsClient() {
     </div>
   );
 }
-

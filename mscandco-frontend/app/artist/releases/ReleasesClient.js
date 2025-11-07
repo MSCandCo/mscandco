@@ -62,7 +62,7 @@ export default function ReleasesClient({ user: userProp }) {
   const [viewMode, setViewMode] = useState('grid');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [hoveredStatus, setHoveredStatus] = useState(null);
-  
+
   // Sync hover state with current filter
   useEffect(() => {
     if (statusFilter !== 'all') {
@@ -76,7 +76,7 @@ export default function ReleasesClient({ user: userProp }) {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [releaseToDelete, setReleaseToDelete] = useState(null);
-  
+
   // Audio player state
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -96,17 +96,16 @@ export default function ReleasesClient({ user: userProp }) {
 
   // Audio player functions
   const togglePlay = (releaseId, audioUrl) => {
-    console.log('🎵 togglePlay called:', { releaseId, audioUrl });
 
     if (!audioUrl) {
-      console.log('❌ No audio URL provided');
+
       return;
     }
 
     const audio = audioRefs.current[releaseId];
     if (!audio) {
       // Create new audio element
-      console.log('🆕 Creating new Audio element');
+
       audioRefs.current[releaseId] = new Audio(audioUrl);
       audioRefs.current[releaseId].muted = isMuted;
 
@@ -117,14 +116,13 @@ export default function ReleasesClient({ user: userProp }) {
 
       // Handle errors
       audioRefs.current[releaseId].addEventListener('error', (e) => {
-        console.error('❌ Audio error:', e);
-        console.error('Audio URL:', audioUrl);
+
       });
     }
 
     if (currentlyPlaying === releaseId) {
       // Pause current
-      console.log('⏸️ Pausing audio');
+
       audioRefs.current[releaseId].pause();
       setCurrentlyPlaying(null);
     } else {
@@ -136,14 +134,14 @@ export default function ReleasesClient({ user: userProp }) {
       });
 
       // Play this audio
-      console.log('▶️ Playing audio');
+
       audioRefs.current[releaseId].play()
         .then(() => {
-          console.log('✅ Audio playing successfully');
+
           setCurrentlyPlaying(releaseId);
         })
         .catch(error => {
-          console.error('❌ Play failed:', error);
+
         });
     }
   };
@@ -151,7 +149,7 @@ export default function ReleasesClient({ user: userProp }) {
   const toggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
-    
+
     // Update all audio elements
     Object.values(audioRefs.current).forEach(audio => {
       audio.muted = newMuted;
@@ -220,7 +218,6 @@ export default function ReleasesClient({ user: userProp }) {
   // Handle submitting a release (draft → submitted)
   const handleSubmitRelease = async (releaseId) => {
     try {
-      console.log('📤 Submitting release:', releaseId);
 
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -244,7 +241,7 @@ export default function ReleasesClient({ user: userProp }) {
       const result = await response.json();
 
       if (response.ok) {
-        console.log('✅ Release submitted successfully');
+
         showNotification('Release submitted for review!', 'success');
 
         // Update local state
@@ -254,11 +251,11 @@ export default function ReleasesClient({ user: userProp }) {
             : release
         ));
       } else {
-        console.error('❌ Failed to submit:', result);
+
         showNotification(result.error || 'Failed to submit release', 'error');
       }
     } catch (error) {
-      console.error('❌ Error submitting release:', error);
+
       showNotification('Network error. Please try again.', 'error');
     }
   };
@@ -305,7 +302,7 @@ export default function ReleasesClient({ user: userProp }) {
         showNotification(result.error || 'Failed to create update request', 'error');
       }
     } catch (error) {
-      console.error('Error creating update request:', error);
+
       showNotification('Error creating update request. Please try again.', 'error');
     }
   };
@@ -326,7 +323,6 @@ export default function ReleasesClient({ user: userProp }) {
     if (!releaseToDelete) return;
 
     try {
-      console.log('🗑️ Deleting release:', releaseToDelete.id);
 
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -345,7 +341,7 @@ export default function ReleasesClient({ user: userProp }) {
       const result = await response.json();
 
       if (response.ok) {
-        console.log('✅ Release deleted successfully');
+
         showNotification('Draft release deleted!', 'success');
 
         // Remove from local state
@@ -355,23 +351,21 @@ export default function ReleasesClient({ user: userProp }) {
         setIsDeleteModalOpen(false);
         setReleaseToDelete(null);
       } else {
-        console.error('❌ Failed to delete:', result);
+
         showNotification(result.error || 'Failed to delete release', 'error');
       }
     } catch (error) {
-      console.error('❌ Error deleting release:', error);
+
       showNotification('Network error. Please try again.', 'error');
     }
   };
-
 
   // Load data from centralized source - OPTIMIZED: Parallel fetching
   useEffect(() => {
     const loadData = async () => {
       if (!user) return
-      
+
       try {
-        console.log('🔍 Starting data load, user:', user?.email);
 
         // Get session token once
         let token = session?.access_token;
@@ -402,10 +396,10 @@ export default function ReleasesClient({ user: userProp }) {
           const releasesArray = Array.isArray(responseData.releases)
             ? responseData.releases
             : (Array.isArray(responseData) ? responseData : []);
-          console.log(`✅ Loaded ${releasesArray.length} releases from database`);
+
           setReleases(releasesArray);
         } else {
-          console.error('❌ Failed to load releases');
+
           setReleases([]);
         }
 
@@ -414,10 +408,10 @@ export default function ReleasesClient({ user: userProp }) {
           const hasUpgraded = localStorage.getItem(`user_upgraded_${user.sub}`) === 'true';
           setUserPlan(hasUpgraded ? 'pro' : 'starter');
         }
-        
+
         setIsLoadingData(false);
       } catch (error) {
-        console.error('Error loading data:', error);
+
         setReleases([]);
         setIsLoadingData(false);
       }
@@ -435,11 +429,11 @@ export default function ReleasesClient({ user: userProp }) {
         setSubscriptionLoading(false);
         return;
       }
-      
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
-        
+
         if (!token) {
           setSubscriptionLoading(false);
           return;
@@ -448,7 +442,7 @@ export default function ReleasesClient({ user: userProp }) {
         const response = await fetch('/api/user/subscription-status', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -462,7 +456,7 @@ export default function ReleasesClient({ user: userProp }) {
           setUserPlan('starter');
         }
       } catch (error) {
-        console.error('Failed to fetch subscription status:', error);
+
         setUserPlan('starter');
       } finally {
         setSubscriptionLoading(false);
@@ -481,10 +475,10 @@ export default function ReleasesClient({ user: userProp }) {
       const releaseDate = new Date(release.releaseDate);
       return releaseDate.getFullYear() === currentYear;
     }).length;
-    
+
     const maxReleases = userPlan === 'starter' ? 5 : Infinity;
     const remaining = Math.max(0, maxReleases - releasesThisYear);
-    
+
     return {
       thisYear: releasesThisYear,
       remaining: remaining,
@@ -522,7 +516,6 @@ export default function ReleasesClient({ user: userProp }) {
     if (typeFilter !== 'all') {
       filtered = filtered.filter(release => release.releaseType === typeFilter);
     }
-
 
     return filtered;
   }, [releases, statusFilter, searchTerm, genreFilter, typeFilter]);
@@ -742,7 +735,7 @@ export default function ReleasesClient({ user: userProp }) {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">My Releases</h1>
                 <p className="mt-2 text-gray-600">Manage your music releases and track their progress</p>
-                
+
                 {/* Show plan status for all users */}
                 {!subscriptionLoading && (
                   <div className="mt-3">
@@ -750,8 +743,8 @@ export default function ReleasesClient({ user: userProp }) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            releaseCount.remaining > 0 
-                              ? 'bg-green-100 text-green-800' 
+                            releaseCount.remaining > 0
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
                             <span>Releases Remaining: {releaseCount.remaining} / {releaseCount.maxReleases}</span>
@@ -761,8 +754,8 @@ export default function ReleasesClient({ user: userProp }) {
                           </div>
                         </div>
                         {releaseCount.remaining === 0 && (
-                          <a 
-                            href="/billing" 
+                          <a
+                            href="/billing"
                             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                           >
                             Upgrade to Pro for unlimited releases →
@@ -798,7 +791,7 @@ export default function ReleasesClient({ user: userProp }) {
 
             {/* Interactive Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-8">
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === 'all' || statusFilter === 'all' ? 'bg-gray-200 shadow-md transform scale-105' : 'bg-gray-50 hover:bg-gray-100'
                 }`}
@@ -808,20 +801,20 @@ export default function ReleasesClient({ user: userProp }) {
                 <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                 <div className="text-sm text-gray-600">Total</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === RELEASE_STATUSES.DRAFT || statusFilter === RELEASE_STATUSES.DRAFT ? 'bg-yellow-200 shadow-md transform scale-105' : 'bg-yellow-50 hover:bg-yellow-100'
                 }`}
                 onMouseEnter={() => setHoveredStatus(RELEASE_STATUSES.DRAFT)}
                 onClick={() => {
-                  setStatusFilter(RELEASE_STATUSES.DRAFT); 
+                  setStatusFilter(RELEASE_STATUSES.DRAFT);
                   setHoveredStatus(RELEASE_STATUSES.DRAFT);
                 }}
               >
                 <div className="text-2xl font-bold text-yellow-800">{stats.draft}</div>
                 <div className="text-sm text-yellow-700">Draft</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === RELEASE_STATUSES.SUBMITTED || statusFilter === RELEASE_STATUSES.SUBMITTED ? 'bg-blue-200 shadow-md transform scale-105' : 'bg-blue-50 hover:bg-blue-100'
                 }`}
@@ -831,7 +824,7 @@ export default function ReleasesClient({ user: userProp }) {
                 <div className="text-2xl font-bold text-blue-800">{stats.submitted}</div>
                 <div className="text-sm text-blue-700">Submitted</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === RELEASE_STATUSES.IN_REVIEW || statusFilter === RELEASE_STATUSES.IN_REVIEW ? 'bg-orange-200 shadow-md transform scale-105' : 'bg-orange-50 hover:bg-orange-100'
                 }`}
@@ -851,7 +844,7 @@ export default function ReleasesClient({ user: userProp }) {
                 <div className="text-2xl font-bold text-purple-800">{stats.revision}</div>
                 <div className="text-sm text-purple-700">Revision</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === RELEASE_STATUSES.COMPLETED || statusFilter === RELEASE_STATUSES.COMPLETED ? 'bg-indigo-200 shadow-md transform scale-105' : 'bg-indigo-50 hover:bg-indigo-100'
                 }`}
@@ -861,7 +854,7 @@ export default function ReleasesClient({ user: userProp }) {
                 <div className="text-2xl font-bold text-indigo-800">{stats.completed}</div>
                 <div className="text-sm text-indigo-700">Completed</div>
               </div>
-              <div 
+              <div
                 className={`rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                   hoveredStatus === RELEASE_STATUSES.LIVE || statusFilter === RELEASE_STATUSES.LIVE ? 'bg-green-200 shadow-md transform scale-105' : 'bg-green-50 hover:bg-green-100'
                 }`}
@@ -893,7 +886,7 @@ export default function ReleasesClient({ user: userProp }) {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                 <select
@@ -910,7 +903,7 @@ export default function ReleasesClient({ user: userProp }) {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
                 <select
@@ -924,7 +917,7 @@ export default function ReleasesClient({ user: userProp }) {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
@@ -938,7 +931,7 @@ export default function ReleasesClient({ user: userProp }) {
                   ))}
                 </select>
               </div>
-              
+
               <div className="flex flex-col justify-end">
                 <button
                   onClick={() => {
@@ -1004,19 +997,18 @@ export default function ReleasesClient({ user: userProp }) {
               setSelectedRelease(null);
             }}
             onSuccess={(newRelease) => {
-              console.log('🎉 Release operation completed:', newRelease);
-              
+
               // Check if we're editing or creating
               if (selectedRelease) {
                 // Editing: Update existing release in the list
-                setReleases(prev => prev.map(release => 
+                setReleases(prev => prev.map(release =>
                   release.id === selectedRelease.id ? { ...release, ...newRelease } : release
                 ));
               } else {
                 // Creating: Add new release to the list
                 setReleases(prev => [newRelease, ...prev]);
               }
-              
+
               setIsCreateModalOpen(false);
               setSelectedRelease(null);
               // No page refresh needed! ✨

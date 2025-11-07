@@ -347,7 +347,6 @@ export default function UserManagementClient({ user }) {
     return `bg-gray-100 text-gray-800`
   }
 
-
   if (loading && users.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -754,10 +753,3 @@ export default function UserManagementClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

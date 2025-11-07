@@ -25,5 +25,3 @@ export default async function SuperadminMessagesPage() {
 
   return <SuperadminMessagesClient user={session.user} />
 }
-
-

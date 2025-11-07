@@ -10,9 +10,3 @@ import PermissionsRolesClient from './PermissionsRolesClient'
 export default function PermissionsRolesPage() {
   return <PermissionsRolesClient />
 }
-
-
-
-
-
-

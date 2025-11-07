@@ -22,7 +22,7 @@ export default function DocsClient() {
       setLoading(true)
       const params = new URLSearchParams()
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
-      
+
       const response = await fetch(`/api/admin/systems/docs?${params}`)
       if (response.ok) {
         const data = await response.json()
@@ -48,7 +48,7 @@ export default function DocsClient() {
   }
 
   const filteredDocs = docs.filter(doc => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesSearch
@@ -271,4 +271,3 @@ export default function DocsClient() {
     </div>
   )
 }
-

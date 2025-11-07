@@ -80,7 +80,6 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
   return null;
 };
 
-
 export default function EarningsClient({ user: serverUser }) {
   const router = useRouter();
   const { user, session } = useUser();
@@ -230,10 +229,10 @@ export default function EarningsClient({ user: serverUser }) {
       }
 
       const data = await response.json();
-      console.log('💰 Label admin wallet data loaded:', data);
+
       setWalletData(data);
     } catch (error) {
-      console.error('Error loading wallet:', error);
+
       setError(error.message);
     } finally {
       setLoading(false);
@@ -420,7 +419,6 @@ export default function EarningsClient({ user: serverUser }) {
             </p>
           </div>
         </div>
-
 
         {/* Wallet Summary - 3 Core Cards */}
         <div className="mb-6 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>

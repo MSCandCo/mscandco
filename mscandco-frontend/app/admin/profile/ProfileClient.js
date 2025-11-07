@@ -55,7 +55,7 @@ export default function ProfileClient({ user }) {
       }
 
       const data = await response.json()
-      
+
       if (data.success) {
         setProfile({
           first_name: data.first_name || '',
@@ -242,10 +242,3 @@ export default function ProfileClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

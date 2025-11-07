@@ -187,10 +187,3 @@ export default function PlatformAnalyticsClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

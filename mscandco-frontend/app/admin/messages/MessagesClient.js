@@ -629,5 +629,3 @@ export default function MessagesClient({ user }) {
     </div>
   )
 }
-
-

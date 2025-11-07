@@ -25,7 +25,6 @@ import Avatar from '@/components/shared/Avatar';
 import MSCVideo from '@/components/shared/MSCVideo';
 import { PageLoading } from '@/components/ui/LoadingSpinner';
 
-
 export default function RosterClient({ user }) {
   const router = useRouter();
   const authLoading = false; // User is provided as prop from server component
@@ -38,7 +37,7 @@ export default function RosterClient({ user }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Permission check - redirect if no access
-  
+
   // Initialize modals hook
   const {
     confirmModal,
@@ -89,22 +88,21 @@ export default function RosterClient({ user }) {
 
   const loadRoster = async () => {
     try {
-  
+
       setIsLoading(true);
-      
+
       const response = await fetch('/api/artist/roster');
-      console.log('Roster response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
-        console.log('Roster data:', data);
+
         setRoster(data);
       } else {
-        console.error('Roster response not ok:', response.status, response.statusText);
+
         setRoster([]);
       }
     } catch (error) {
-      console.error('Error loading roster:', error);
+
       setRoster([]);
     } finally {
       setIsLoading(false);
@@ -149,7 +147,7 @@ export default function RosterClient({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateISNI(formData.isni)) {
       setSuccessMessage('Invalid ISNI format. Must be 16 digits with last character being a digit or X.');
       setShowSuccessModal(true);
@@ -165,10 +163,10 @@ export default function RosterClient({ user }) {
         formDataToSend.append('thumbnail', formData.thumbnail);
       }
 
-      const url = editingContributor 
+      const url = editingContributor
         ? `/api/artist/roster/${editingContributor.id}`
         : '/api/artist/roster';
-      
+
       const method = editingContributor ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -189,7 +187,7 @@ export default function RosterClient({ user }) {
         });
       }
     } catch (error) {
-      console.error('Error saving contributor:', error);
+
     }
   };
 
@@ -208,7 +206,7 @@ export default function RosterClient({ user }) {
   const handleDelete = async (id) => {
     const contributor = roster.find(c => c.id === id);
     const contributorName = contributor ? `${contributor.firstName} ${contributor.lastName}` : 'this contributor';
-    
+
     confirmDelete(contributorName, async () => {
       try {
         const response = await fetch(`/api/artist/roster/${id}`, {
@@ -221,7 +219,7 @@ export default function RosterClient({ user }) {
           showError('Failed to delete contributor. Please try again.');
         }
       } catch (error) {
-        console.error('Error deleting contributor:', error);
+
         showError('An error occurred while deleting the contributor. Please try again.');
       }
     });
@@ -248,7 +246,7 @@ export default function RosterClient({ user }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Video Hero Banner */}
         <div className="relative mb-8 px-4 sm:px-0">
-          <MSCVideo 
+          <MSCVideo
             artistName="MSC & Co"
             songTitle="Contributor Showcase"
             className="aspect-video shadow-2xl"
@@ -338,7 +336,7 @@ export default function RosterClient({ user }) {
                     <tr key={contributor.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex-shrink-0 h-24 w-24">
-                          <Avatar 
+                          <Avatar
                             name={contributor.name}
                             image={contributor.thumbnail}
                             size="w-24 h-24"
@@ -392,7 +390,7 @@ export default function RosterClient({ user }) {
               <FaUsers className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No contributors found</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || filterType !== 'all' 
+                {searchTerm || filterType !== 'all'
                   ? 'Try adjusting your search or filter criteria.'
                   : 'Get started by adding your first contributor.'
                 }
@@ -456,7 +454,7 @@ export default function RosterClient({ user }) {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {editingContributor ? 'Edit Contributor' : 'Add New Contributor'}
               </h3>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Thumbnail Upload */}
                 <div>
@@ -465,7 +463,7 @@ export default function RosterClient({ user }) {
                   </label>
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0 h-32 w-32">
-                      <Avatar 
+                      <Avatar
                         name={formData.name}
                         image={formData.thumbnailPreview}
                         size="w-32 h-32"
@@ -589,4 +587,4 @@ export default function RosterClient({ user }) {
       />
     </div>
   );
-} 
+}

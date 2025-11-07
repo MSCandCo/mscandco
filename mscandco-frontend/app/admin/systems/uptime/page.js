@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function UptimePage() {
   const supabase = await createClient()
-  
+
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
   if (sessionError || !session) {
@@ -25,4 +25,3 @@ export default async function UptimePage() {
 
   return <UptimeClient />
 }
-

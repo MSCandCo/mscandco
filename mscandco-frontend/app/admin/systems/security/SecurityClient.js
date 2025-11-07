@@ -27,7 +27,7 @@ export default function SecurityClient() {
       const params = new URLSearchParams()
       if (severityFilter !== 'all') params.append('severity', severityFilter)
       if (typeFilter !== 'all') params.append('type', typeFilter)
-      
+
       const response = await fetch(`/api/admin/systems/security?${params}`)
       if (response.ok) {
         const data = await response.json()
@@ -330,4 +330,3 @@ export default function SecurityClient() {
     </div>
   )
 }
-

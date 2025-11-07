@@ -17,7 +17,7 @@ export default function PerformanceClient() {
   useEffect(() => {
     fetchMetrics()
     fetchApiMetrics()
-    
+
     // Refresh every 10 seconds
     const interval = setInterval(() => {
       fetchMetrics()
@@ -311,4 +311,3 @@ export default function PerformanceClient() {
     </div>
   )
 }
-

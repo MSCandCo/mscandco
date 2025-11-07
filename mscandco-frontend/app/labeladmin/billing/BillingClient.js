@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/components/providers/SupabaseProvider';
-import { 
-  CreditCard, 
-  Check, 
-  Zap, 
-  Crown, 
-  Building2, 
-  Loader2, 
-  Wallet, 
-  Plus, 
+import {
+  CreditCard,
+  Check,
+  Zap,
+  Crown,
+  Building2,
+  Loader2,
+  Wallet,
+  Plus,
   AlertCircle,
   X,
   Calendar,
@@ -24,7 +24,7 @@ import { BillingRenewalNotification } from '@/components/notifications/RenewalNo
 export default function BillingClient({ userRole = 'label_admin' }) {
   const router = useRouter();
   const { user, session, isLoading: userLoading } = useUser();
-  
+
   // State management
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
@@ -35,11 +35,11 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   const [topUpAmount, setTopUpAmount] = useState(0);
   // Use shared wallet balance hook
   const { walletBalance, isLoading: loadingBalance, refreshBalance } = useWalletBalance();
-  
+
   // Transaction state
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
-  
+
   // Handle payment status from URL query parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -47,11 +47,11 @@ export default function BillingClient({ userRole = 'label_admin' }) {
       const payment = params.get('payment');
       if (payment) {
         setPaymentStatus(payment);
-        
+
         // Clear the query parameter after handling
         const newUrl = window.location.pathname;
         router.replace(newUrl);
-        
+
         // Auto-clear success message after 5 seconds
         if (payment === 'success') {
           setTimeout(() => setPaymentStatus(null), 5000);
@@ -64,10 +64,10 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       if (!user) return;
-      
+
       try {
         setSubscriptionLoading(true);
-        
+
         if (!session) return;
 
         const response = await fetch('/api/user/subscription-status', {
@@ -78,14 +78,14 @@ export default function BillingClient({ userRole = 'label_admin' }) {
           const result = await response.json();
           if (result.success && result.data.hasSubscription) {
             setCurrentSubscription(result.data);
-            console.log('Current subscription loaded:', result.data);
+
           } else {
             setCurrentSubscription(null);
-            console.log('📋 No active subscription found');
+
           }
         }
       } catch (error) {
-        console.error('Failed to fetch subscription status:', error);
+
         setCurrentSubscription(null);
       } finally {
         setSubscriptionLoading(false);
@@ -97,7 +97,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   }, [user, session]);
 
   // Wallet balance is now managed by the shared hook
-  
+
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
@@ -116,7 +116,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
 
   const PLAN_PRICES = {
     'artist-starter': { monthly: 9.99, yearly: 119.88 }, // 12 months minimum
-    'artist-pro': { monthly: 19.99, yearly: 239.88 }, // 12 months minimum  
+    'artist-pro': { monthly: 19.99, yearly: 239.88 }, // 12 months minimum
     'label-starter': { monthly: 29.99, yearly: 359.88 }, // 12 months minimum
     'label-pro': { monthly: 49.99, yearly: 599.88 } // 12 months minimum
   };
@@ -172,7 +172,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   // Load wallet transactions
   const loadTransactions = async () => {
     if (!user) return;
-    
+
     try {
       setLoadingTransactions(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -185,15 +185,15 @@ export default function BillingClient({ userRole = 'label_admin' }) {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setRecentTransactions(result.data || []);
       } else {
-        console.error('Failed to load transactions:', result.error);
+
         setRecentTransactions([]);
       }
     } catch (error) {
-      console.error('Error loading transactions:', error);
+
       setRecentTransactions([]);
     } finally {
       setLoadingTransactions(false);
@@ -210,7 +210,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
     const currency = CURRENCIES.find(c => c.code === currencyCode);
     const symbol = currency?.symbol || currencyCode;
     const highValueCurrencies = ['NGN', 'KES', 'ZMW', 'GHS'];
-    
+
     if (highValueCurrencies.includes(currencyCode)) {
       return `${symbol}${Math.round(price).toLocaleString()}`;
     }
@@ -242,7 +242,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
     const normalizeId = (id) => id?.replace(/-/g, '_');
     const currentPlanNormalized = normalizeId(currentSubscription?.planId || currentSubscription?.tier);
     const thisPlanNormalized = normalizeId(planId);
-    
+
     const isCurrentPlan = currentPlanNormalized === thisPlanNormalized;
     const hasActiveSubscription = currentSubscription?.hasSubscription;
 
@@ -261,7 +261,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
       const currentPlanId = (currentSubscription?.planId || currentSubscription?.tier)?.replace(/_/g, '-');
       const currentPlanPrice = getPlanPrice(currentPlanId);
       const thisPlanPrice = getPlanPrice(planId);
-      
+
       if (thisPlanPrice > currentPlanPrice) {
         return {
           text: 'Upgrade Plan',
@@ -292,17 +292,17 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   const handleSubscribe = async (planId) => {
     setIsLoading(true);
     setSelectedPlan(planId);
-    
+
     try {
       const gbpPrice = getPlanPrice(planId);
       const localPrice = convertPrice(gbpPrice);
 
       if (walletBalance >= gbpPrice) {
         // Process real wallet payment
-        
+
         // Get user session for API call
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (!session) {
           throw new Error('Please log in to continue');
         }
@@ -325,40 +325,39 @@ export default function BillingClient({ userRole = 'label_admin' }) {
           throw new Error(result.error || 'Subscription payment failed');
         }
 
-        console.log('Subscription successful via wallet:', result);
         setPaymentStatus('success');
-        
+
         // Refresh wallet balance using shared hook
         await refreshBalance();
-        
+
         // Refresh subscription status immediately
         const { data: { session: refreshSession } } = await supabase.auth.getSession();
         if (refreshSession) {
           const response = await fetch('/api/user/subscription-status', {
             headers: { 'Authorization': `Bearer ${refreshSession.access_token}` }
           });
-          
+
           if (response.ok) {
             const result = await response.json();
             if (result.success && result.data.hasSubscription) {
               setCurrentSubscription(result.data);
-              console.log('Subscription status refreshed after payment:', result.data);
+
             }
           }
         }
-        
+
         // Refresh transactions to show the new payment
         await loadTransactions();
-        
+
       } else {
         // Need to top up
         const shortfall = gbpPrice - walletBalance;
         setTopUpAmount(Math.ceil(shortfall));
         setShowTopUpModal(true);
-        console.log('Need to top up:', shortfall);
+
       }
     } catch (error) {
-      console.error('Subscription error:', error);
+
       setPaymentStatus('error');
     } finally {
       setIsLoading(false);
@@ -368,11 +367,11 @@ export default function BillingClient({ userRole = 'label_admin' }) {
 
   const handleTopUpAndSubscribe = async () => {
     setIsLoading(true);
-    
+
     try {
       // Get user session for API call
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         throw new Error('Please log in to continue');
       }
@@ -392,34 +391,33 @@ export default function BillingClient({ userRole = 'label_admin' }) {
           billing: selectedBilling
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create payment');
       }
-      
+
       const { paymentUrl } = await response.json();
-      
+
       // Store the pending subscription details
       sessionStorage.setItem('pendingSubscription', JSON.stringify({
         planId: selectedPlan,
         billing: selectedBilling,
         amount: topUpAmount
       }));
-      
+
       // Redirect to Revolut payment page
-      console.log('Redirecting to Revolut for top-up:', paymentUrl);
+
       window.location.href = paymentUrl;
-      
+
     } catch (error) {
-      console.error('Real Revolut integration not set up yet:', error);
-      
+
       // Fallback simulation for testing UI
-      console.log('Using simulation instead...');
+
       await new Promise(resolve => setTimeout(resolve, 3000));
-      
+
       setPaymentStatus('success');
       setShowTopUpModal(false);
-      console.log('Simulation: Top-up + Subscription successful');
+
     } finally {
       setIsLoading(false);
     }
@@ -428,14 +426,11 @@ export default function BillingClient({ userRole = 'label_admin' }) {
   const handleAddFunds = async (amount = 50) => {
     // Ensure amount is a number, not an event object
     const fundAmount = typeof amount === 'number' ? amount : 50;
-    
-    console.log('=== ADD FUNDS CLICKED ===');
-    console.log('Amount to add:', fundAmount);
-    
+
     try {
       // Get user session for API call
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         throw new Error('Please log in to continue');
       }
@@ -452,19 +447,19 @@ export default function BillingClient({ userRole = 'label_admin' }) {
           description: 'Wallet Top-up',
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create payment');
       }
-      
+
       const { paymentUrl } = await response.json();
-      
+
       // Redirect to Revolut payment page
-      console.log('Redirecting to Revolut:', paymentUrl);
+
       window.location.href = paymentUrl;
-      
+
     } catch (error) {
-      console.error('Payment creation failed:', error);
+
       alert(`Payment failed: ${error.message}`);
     }
   };
@@ -495,7 +490,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
               </div>
             </div>
           )}
-          
+
           {paymentStatus === 'failed' && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <div className="flex items-center">
@@ -515,7 +510,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
               </div>
             </div>
           )}
-          
+
           {paymentStatus === 'cancelled' && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <div className="flex items-center">
@@ -552,7 +547,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
                 <p className="text-sm text-gray-600">Wallet Balance</p>
                 <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowTopUpModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
               >
@@ -567,7 +562,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
               <p className="text-sm text-gray-600">Wallet Balance</p>
               <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
             </div>
-            <button 
+            <button
               onClick={() => setShowTopUpModal(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
             >
@@ -580,17 +575,15 @@ export default function BillingClient({ userRole = 'label_admin' }) {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Auto-Renewal Notification */}
         <BillingRenewalNotification
           subscriptionStatus={currentSubscription}
           walletBalance={walletBalance}
         />
-        
+
         {/* Subscription Content */}
         <div className="space-y-8">
-            
-
 
             {/* Currency and Billing Controls */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -690,17 +683,17 @@ export default function BillingClient({ userRole = 'label_admin' }) {
                           <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                         </div>
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                        
+
                         <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
                           {formatPrice(localPrice)}
                         </div>
                         <div className="text-sm sm:text-base text-gray-600 mb-2">per {selectedBilling}</div>
-                        
+
                         {/* 12-month minimum commitment notice */}
                         <div className="text-xs text-orange-600 font-medium mb-2">
                           12-month minimum commitment
                         </div>
-                        
+
                         {selectedCurrency !== 'GBP' && (
                           <div className="text-xs sm:text-sm text-gray-500">Base: £{gbpPrice.toFixed(2)}</div>
                         )}
@@ -736,7 +729,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
                       {(() => {
                         const buttonState = getButtonState(plan.id);
                         const isProcessing = isLoading && selectedPlan === plan.id;
-                        
+
                         return (
                           <button
                             onClick={() => !buttonState.disabled && handleSubscribe(plan.id)}
@@ -770,20 +763,20 @@ export default function BillingClient({ userRole = 'label_admin' }) {
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Top Up Wallet</h3>
-              <button 
+              <button
                 onClick={() => setShowTopUpModal(false)}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg"
               >
                 <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
               </button>
             </div>
-            
+
             <div className="mb-4 sm:mb-6">
               <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
                 You need <strong>£{topUpAmount}</strong> to complete this subscription.
                 Your current balance is <strong>£{walletBalance.toFixed(2)}</strong>.
               </p>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Top-up amount (GBP)
@@ -801,7 +794,7 @@ export default function BillingClient({ userRole = 'label_admin' }) {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={() => setShowTopUpModal(false)}

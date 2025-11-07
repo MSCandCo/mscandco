@@ -79,7 +79,6 @@ export default function AnalyticsManagementClient({ user }) {
       const result = await response.json()
 
       if (result.success) {
-        console.log('📊 Found artists/label admins:', result.breakdown)
         setArtists(result.users || [])
         setSearchResults((result.users || []).slice(0, 10))
       } else {
@@ -87,7 +86,6 @@ export default function AnalyticsManagementClient({ user }) {
       }
 
     } catch (err) {
-      console.error('Error loading artists:', err)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -141,7 +139,7 @@ export default function AnalyticsManagementClient({ user }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Artist Selection Panel */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
@@ -157,8 +155,8 @@ export default function AnalyticsManagementClient({ user }) {
                   <Input
                     type="text"
                     placeholder="Search by name or email..."
-                    value={selectedArtist ? 
-                      `${selectedArtist.artist_name || `${selectedArtist.first_name || ''} ${selectedArtist.last_name || ''}`.trim() || selectedArtist.email}` 
+                    value={selectedArtist ?
+                      `${selectedArtist.artist_name || `${selectedArtist.first_name || ''} ${selectedArtist.last_name || ''}`.trim() || selectedArtist.email}`
                       : searchTerm
                     }
                     onChange={(e) => {
@@ -176,7 +174,7 @@ export default function AnalyticsManagementClient({ user }) {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Dropdown Results */}
                 {showDropdown && searchTerm && !selectedArtist && (
                   <div className="absolute top-full left-0 right-0 bg-white border border-slate-300 rounded-lg shadow-lg mt-1 z-50 max-h-80 overflow-y-auto">
@@ -294,12 +292,11 @@ export default function AnalyticsManagementClient({ user }) {
                 </div>
 
                 {/* Analytics Interface */}
-                <AdminAnalyticsInterface 
+                <AdminAnalyticsInterface
                   artistId={selectedArtist.id}
                   artistName={selectedArtist.artist_name || `${selectedArtist.first_name} ${selectedArtist.last_name}`}
                   selectedArtistData={selectedArtist}
                   onDataUpdated={() => {
-                    console.log('✅ Analytics data updated successfully');
                     // Optionally reload artist data here if needed
                   }}
                 />
@@ -319,10 +316,3 @@ export default function AnalyticsManagementClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

@@ -156,7 +156,6 @@ export default function PermissionsRolesClient() {
 
       setLoading(false)
     } catch (err) {
-      console.error('Error loading data:', err)
       setError(err.message)
       setLoading(false)
     }
@@ -198,7 +197,6 @@ export default function PermissionsRolesClient() {
       setExpandedGroups({})
 
     } catch (err) {
-      console.error('Error loading role permissions:', err)
       setError(err.message)
     }
   }
@@ -231,7 +229,6 @@ export default function PermissionsRolesClient() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('Permission toggle error:', {
           status: response.status,
           statusText: response.statusText,
           errorData
@@ -251,7 +248,6 @@ export default function PermissionsRolesClient() {
       }
 
     } catch (err) {
-      console.error('Error toggling permission:', err)
       setError(err.message)
     } finally {
       setSaving(false)
@@ -279,18 +275,13 @@ export default function PermissionsRolesClient() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
-      console.log('Resetting role:', selectedRole.id, selectedRole.name)
-
       const response = await fetch(`/api/admin/roles/${selectedRole.id}/reset-default`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       })
 
-      console.log('Reset response status:', response.status)
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('Reset failed:', {
           status: response.status,
           statusText: response.statusText,
           errorData
@@ -300,13 +291,11 @@ export default function PermissionsRolesClient() {
       }
 
       const result = await response.json()
-      console.log('Reset successful:', result)
 
       // Reload role permissions
       await selectRole(selectedRole)
 
     } catch (err) {
-      console.error('Error resetting permissions:', err)
       setError(err.message)
     } finally {
       setSaving(false)
@@ -364,7 +353,6 @@ export default function PermissionsRolesClient() {
       await loadData()
 
     } catch (err) {
-      console.error('Error creating role:', err)
       setError(err.message)
     } finally {
       setSaving(false)
@@ -401,7 +389,6 @@ export default function PermissionsRolesClient() {
       await loadData()
 
     } catch (err) {
-      console.error('Error deleting role:', err)
       setError(err.message)
     } finally {
       setSaving(false)
@@ -826,7 +813,7 @@ function PermissionGroup({
     for (const permission of permissions) {
       const isGranted = rolePermissions.some(p => p.permission_name === permission.name)
       const isWildcardGranted = hasWildcard && permission.name !== '*:*:*'
-      
+
       // Skip if wildcard granted (can't toggle)
       if (isWildcardGranted) continue
 
@@ -857,7 +844,7 @@ function PermissionGroup({
             {activeCount}/{totalCount} permissions
           </span>
         </button>
-        
+
         {/* Toggle All Switch */}
         <button
           onClick={toggleAllPermissions}

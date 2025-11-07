@@ -56,11 +56,9 @@ export default function GhostLoginClient({ user }) {
         setUsers(filteredUsers)
       } else {
         const errorData = await response.json()
-        console.error('Search error:', errorData)
         showNotification(errorData.error || 'Error searching users', 'error')
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
       showNotification('Error searching users', 'error')
     } finally {
       setLoading(false)
@@ -84,7 +82,7 @@ export default function GhostLoginClient({ user }) {
         setActiveGhostSessions(data.sessions || [])
       }
     } catch (error) {
-      console.error('Error fetching sessions:', error)
+      // Error fetching sessions
     }
   }
 
@@ -127,7 +125,6 @@ export default function GhostLoginClient({ user }) {
         showNotification(data.error || 'Failed to create ghost session', 'error')
       }
     } catch (error) {
-      console.error('Error creating ghost session:', error)
       showNotification('Error creating ghost session', 'error')
     } finally {
       setLoading(false)
@@ -155,7 +152,6 @@ export default function GhostLoginClient({ user }) {
         showNotification('Failed to end session', 'error')
       }
     } catch (error) {
-      console.error('Error ending session:', error)
       showNotification('Error ending session', 'error')
     }
   }

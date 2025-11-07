@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@/components/providers/SupabaseProvider'
 import { createClient } from '@supabase/supabase-js'
-import { 
+import {
   Users, Plus, Search, Send, CheckCircle, XCircle, Clock,
   AlertTriangle, User, Mail, Calendar, TrendingUp
 } from 'lucide-react'
@@ -51,7 +51,6 @@ export default function ArtistsClient() {
         fetchArtistRequests()
       ])
     } catch (error) {
-      console.error('Error loading data:', error)
     } finally {
       setDataLoading(false)
     }
@@ -62,25 +61,21 @@ export default function ArtistsClient() {
       const response = await fetch('/api/labeladmin/accepted-artists', {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
-      
+
       if (!response.ok) throw new Error('Failed to fetch artists')
-      
+
       const data = await response.json()
-      console.log('✅ Accepted artists loaded:', data.artists?.length || 0)
-      console.log('📊 Artists data:', data.artists)
-      
+
       // API now returns release counts, just add joinDate
       const artistsWithJoinDate = (data.artists || []).map(artist => {
-        console.log(`📊 Artist ${artist.artistName}: total=${artist.totalReleases}, live=${artist.liveReleases}, drafts=${artist.draftReleases}`)
         return {
           ...artist,
           joinDate: artist.affiliatedSince
         }
       })
-      
+
       setAcceptedArtists(artistsWithJoinDate)
     } catch (error) {
-      console.error('Error loading accepted artists:', error)
       setAcceptedArtists([])
     }
   }
@@ -94,10 +89,8 @@ export default function ArtistsClient() {
       if (!response.ok) throw new Error('Failed to fetch requests')
 
       const data = await response.json()
-      console.log('✅ Affiliation requests loaded:', data.requests?.length || 0)
       setArtistRequests(data.requests || [])
     } catch (error) {
-      console.error('Error loading requests:', error)
       setArtistRequests([])
     }
   }
@@ -121,13 +114,13 @@ export default function ArtistsClient() {
       if (response.ok) {
         showNotification('success', 'Invitation Sent!', `Invitation sent to ${inviteForm.artistName}`)
         setShowInviteModal(false)
-        setInviteForm({ 
-          firstName: '', 
-          lastName: '', 
-          artistName: '', 
-          message: '', 
-          labelSplit: 30, 
-          artistSplit: 70 
+        setInviteForm({
+          firstName: '',
+          lastName: '',
+          artistName: '',
+          message: '',
+          labelSplit: 30,
+          artistSplit: 70
         })
         fetchArtistRequests() // Refresh requests list
       } else {
@@ -136,7 +129,6 @@ export default function ArtistsClient() {
         // Don't close the modal - let user fix the issue
       }
     } catch (error) {
-      console.error('Error inviting artist:', error)
       showNotification('error', 'Error', 'Failed to send invitation')
     } finally {
       setInviting(false)
@@ -145,7 +137,7 @@ export default function ArtistsClient() {
 
   const removeArtist = async (affiliationId) => {
     if (!confirm('Remove this artist from your roster? This will end your affiliation.')) return
-    
+
     try {
       const { error} = await supabase
         .from('label_artist_affiliations')
@@ -157,7 +149,6 @@ export default function ArtistsClient() {
       showNotification('success', 'Artist Removed', 'Artist has been removed from your roster')
       fetchAcceptedArtists() // Refresh list
     } catch (error) {
-      console.error('Error removing artist:', error)
       showNotification('error', 'Remove Failed', error.message)
     }
   }
@@ -299,7 +290,7 @@ export default function ArtistsClient() {
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
                         Active
                       </span>
-                      <button 
+                      <button
                         onClick={() => removeArtist(artist.affiliationId)}
                         className="text-xs text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
                       >
@@ -386,7 +377,7 @@ export default function ArtistsClient() {
               <h3 className="text-xl font-bold">Invite Artist to Label</h3>
               <p className="text-green-100">Fill in the artist details below</p>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
@@ -455,7 +446,7 @@ export default function ArtistsClient() {
                       <span className="ml-2 text-gray-600">%</span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Artist Split</label>
                     <div className="flex items-center">
@@ -469,13 +460,13 @@ export default function ArtistsClient() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className={`text-xs mt-2 ${
-                  inviteForm.labelSplit + inviteForm.artistSplit === 100 
-                    ? 'text-green-600' 
+                  inviteForm.labelSplit + inviteForm.artistSplit === 100
+                    ? 'text-green-600'
                     : 'text-red-600'
                 }`}>
-                  Total: {inviteForm.labelSplit + inviteForm.artistSplit}% 
+                  Total: {inviteForm.labelSplit + inviteForm.artistSplit}%
                   {inviteForm.labelSplit + inviteForm.artistSplit !== 100 && ' (Must equal 100%)'}
                 </div>
               </div>

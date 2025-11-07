@@ -12,9 +12,3 @@ export default async function SuperadminDashboardPage() {
 
   return <SuperadminDashboardClient user={session.user} />
 }
-
-
-
-
-
-

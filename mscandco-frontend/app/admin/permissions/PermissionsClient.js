@@ -156,10 +156,3 @@ export default function PermissionsClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

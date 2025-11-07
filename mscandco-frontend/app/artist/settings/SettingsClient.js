@@ -254,7 +254,7 @@ const SettingsClient = () => {
       }
 
     } catch (error) {
-      console.error('Error loading settings:', error);
+
     } finally {
       setIsLoading(false);
     }
@@ -873,4 +873,3 @@ const SettingsClient = () => {
 };
 
 export default SettingsClient;
-

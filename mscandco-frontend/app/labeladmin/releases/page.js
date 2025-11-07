@@ -7,12 +7,12 @@ export default async function LabelReleasesPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/login')
-  
+
   // Check permission
   const hasPermission = await userHasPermission(session.user.id, 'releases:access', true)
   if (!hasPermission) {
     redirect('/unauthorized')
   }
-  
+
   return <ReleasesClient />
 }

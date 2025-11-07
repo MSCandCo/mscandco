@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function SystemsPage() {
   const supabase = await createClient()
-  
+
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
   if (sessionError || !session) {
@@ -26,4 +26,3 @@ export default async function SystemsPage() {
 
   return <SystemsDashboardClient />
 }
-

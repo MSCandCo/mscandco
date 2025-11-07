@@ -7,12 +7,12 @@ export default async function LabelAnalyticsPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/login')
-  
+
   // Check permission
   const hasPermission = await userHasPermission(session.user.id, 'analytics:access', true)
   if (!hasPermission) {
     redirect('/unauthorized')
   }
-  
+
   return <AnalyticsClient />
 }

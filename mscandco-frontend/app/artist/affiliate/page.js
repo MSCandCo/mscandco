@@ -21,7 +21,7 @@ export default function AffiliatePage() {
   const loadAffiliateData = async () => {
     try {
       const supabase = createClient();
-      
+
       // Get or create affiliate link
       let { data: affiliateLink, error } = await supabase
         .from('affiliate_links')
@@ -34,7 +34,7 @@ export default function AffiliatePage() {
         const { data: createdLink, error: createError } = await supabase.rpc('generate_affiliate_code', {
           user_uuid: user.id
         });
-        
+
         if (!createError && createdLink) {
           const { data: newLink } = await supabase
             .from('affiliate_links')
@@ -44,7 +44,7 @@ export default function AffiliatePage() {
             })
             .select()
             .single();
-          
+
           affiliateLink = newLink;
         }
       }
@@ -61,7 +61,7 @@ export default function AffiliatePage() {
         conversions: conversions || [],
       });
     } catch (error) {
-      console.error('Failed to load affiliate data:', error);
+
     } finally {
       setLoading(false);
     }
@@ -213,8 +213,8 @@ export default function AffiliatePage() {
                       +£{parseFloat(conversion.commission_amount).toFixed(2)}
                     </div>
                     <div className={`text-sm ${
-                      conversion.status === 'paid' ? 'text-green-600' : 
-                      conversion.status === 'pending' ? 'text-yellow-600' : 
+                      conversion.status === 'paid' ? 'text-green-600' :
+                      conversion.status === 'pending' ? 'text-yellow-600' :
                       'text-gray-600'
                     }`}>
                       {conversion.status.charAt(0).toUpperCase() + conversion.status.slice(1)}
@@ -229,4 +229,3 @@ export default function AffiliatePage() {
     </div>
   );
 }
-

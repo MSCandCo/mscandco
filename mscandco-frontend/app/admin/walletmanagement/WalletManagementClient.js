@@ -23,7 +23,7 @@ import PayoutRequestModal from '@/components/modals/PayoutRequestModal'
 
 /**
  * Wallet Management Client Component - App Router Compatible
- * 
+ *
  * Full UI restoration with all original functionality
  * Converted from Pages Router to App Router
  */
@@ -31,7 +31,7 @@ import PayoutRequestModal from '@/components/modals/PayoutRequestModal'
 export default function WalletManagementClient({ initialData, user }) {
   const router = useRouter()
   const supabase = createClient()
-  
+
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(initialData?.stats || null)
   const [wallets, setWallets] = useState(initialData?.wallets || [])
@@ -181,7 +181,7 @@ export default function WalletManagementClient({ initialData, user }) {
 
       // Refresh data
       await loadData()
-      
+
     } catch (error) {
       console.error('Error creating payout request:', error)
       throw error

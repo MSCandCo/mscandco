@@ -21,9 +21,9 @@ export default function LabelAdminMessagesClient() {
       const response = await fetch(`/api/notifications?type=${filter}`, {
         credentials: 'include'
       });
-      
+
       if (!response.ok) {
-        console.error('Failed to fetch notifications:', response.statusText);
+
         setNotifications([]);
         return;
       }
@@ -31,7 +31,7 @@ export default function LabelAdminMessagesClient() {
       const data = await response.json();
       setNotifications(data.notifications || []);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+
       setNotifications([]);
     } finally {
       setLoading(false);
@@ -42,18 +42,18 @@ export default function LabelAdminMessagesClient() {
     try {
       const response = await fetch('/api/notifications/mark-read', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ notification_id: notificationId })
       });
-      
+
       if (response.ok) {
         fetchNotifications();
       }
     } catch (error) {
-      console.error('Error marking as read:', error);
+
     }
   };
 
@@ -61,18 +61,18 @@ export default function LabelAdminMessagesClient() {
     try {
       const response = await fetch('/api/notifications/delete', {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ notification_id: notificationId })
       });
-      
+
       if (response.ok) {
         fetchNotifications();
       }
     } catch (error) {
-      console.error('Error deleting notification:', error);
+
     }
   };
 
@@ -100,8 +100,8 @@ export default function LabelAdminMessagesClient() {
               key={type}
               onClick={() => setFilter(type)}
               className={`px-4 py-3 capitalize transition-colors ${
-                filter === type 
-                  ? 'border-b-2 border-purple-600 text-purple-600 font-medium' 
+                filter === type
+                  ? 'border-b-2 border-purple-600 text-purple-600 font-medium'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
@@ -125,8 +125,8 @@ export default function LabelAdminMessagesClient() {
         ) : (
           <div className="space-y-4">
             {notifications.map(notif => (
-              <div 
-                key={notif.id} 
+              <div
+                key={notif.id}
                 className={`bg-white rounded-lg shadow-sm border transition-all ${
                   notif.read ? 'opacity-60 border-gray-200' : 'border-l-4 border-l-purple-500 border-gray-200'
                 }`}
@@ -146,7 +146,7 @@ export default function LabelAdminMessagesClient() {
                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                     )}
                   </div>
-                  
+
                   <p className="text-gray-700 mb-4">{notif.message}</p>
 
                   {/* Show decline reason if provided */}
@@ -189,4 +189,3 @@ export default function LabelAdminMessagesClient() {
     </div>
   );
 }
-

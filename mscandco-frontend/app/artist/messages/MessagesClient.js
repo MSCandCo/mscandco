@@ -22,26 +22,21 @@ export default function MessagesClient() {
 
   const fetchNotifications = async () => {
     try {
-      console.log('📬 Fetching notifications with filter:', filter)
       const response = await fetch(`/api/notifications?type=${filter}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         },
         credentials: 'include'
       })
-      
+
       const data = await response.json()
-      console.log('📬 Notifications response:', data)
-      
+
       if (data.error) {
-        console.error('❌ API Error:', data.error, data.message)
       } else {
-        console.log(`✅ Loaded ${data.notifications?.length || 0} notifications`)
       }
-      
+
       setNotifications(data.notifications || [])
     } catch (error) {
-      console.error('❌ Error fetching notifications:', error)
     } finally {
       setLoading(false)
     }
@@ -51,17 +46,16 @@ export default function MessagesClient() {
     try {
       await fetch('/api/notifications/mark-read', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
         credentials: 'include',
         body: JSON.stringify({ notification_id: notificationId })
       })
-      
+
       fetchNotifications()
     } catch (error) {
-      console.error('Error marking as read:', error)
     }
   }
 
@@ -69,7 +63,7 @@ export default function MessagesClient() {
     try {
       const response = await fetch('/api/artist/respond-invitation', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
@@ -86,7 +80,6 @@ export default function MessagesClient() {
         showErrorNotification('Error: ' + error.error)
       }
     } catch (error) {
-      console.error('Error responding to invitation:', error)
       showErrorNotification('Failed to respond to invitation')
     }
   }
@@ -98,17 +91,17 @@ export default function MessagesClient() {
 
   const confirmDecline = async () => {
     if (!pendingDecline) return
-    
+
     try {
       const response = await fetch('/api/artist/respond-invitation', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
         credentials: 'include',
-        body: JSON.stringify({ 
-          invitation_id: pendingDecline.invitationId, 
+        body: JSON.stringify({
+          invitation_id: pendingDecline.invitationId,
           action: 'decline',
           decline_reason: declineReason.trim() || null
         })
@@ -118,7 +111,7 @@ export default function MessagesClient() {
         markAsRead(pendingDecline.notificationId)
         showSuccessNotification('Invitation declined successfully')
         fetchNotifications() // Refresh to show updated status
-        
+
         // Reset modal state
         setShowDeclineModal(false)
         setDeclineReason('')
@@ -128,7 +121,6 @@ export default function MessagesClient() {
         showErrorNotification('Error: ' + error.error)
       }
     } catch (error) {
-      console.error('Error declining invitation:', error)
       showErrorNotification('Failed to decline invitation')
     }
   }
@@ -193,18 +185,17 @@ export default function MessagesClient() {
     try {
       await fetch('/api/notifications/delete', {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
         credentials: 'include',
         body: JSON.stringify({ notification_id: notificationId })
       })
-      
+
       fetchNotifications() // Refresh list
       showSuccessNotification('Notification deleted')
     } catch (error) {
-      console.error('Error deleting notification:', error)
       showErrorNotification('Failed to delete notification')
     }
   }
@@ -232,8 +223,8 @@ export default function MessagesClient() {
             key={type}
             onClick={() => setFilter(type)}
             className={`px-4 py-2 capitalize ${
-              filter === type 
-                ? 'border-b-2 border-purple-600 text-purple-600 font-medium' 
+              filter === type
+                ? 'border-b-2 border-purple-600 text-purple-600 font-medium'
                 : 'text-gray-600 hover:text-purple-600'
             }`}
           >
@@ -257,8 +248,8 @@ export default function MessagesClient() {
       ) : (
         <div className="space-y-4">
           {notifications.map(notif => (
-            <div 
-              key={notif.id} 
+            <div
+              key={notif.id}
               className={`bg-white rounded-xl shadow-sm border p-6 ${
                 notif.read ? 'opacity-60' : 'border-l-4 border-l-purple-500'
               }`}
@@ -277,7 +268,7 @@ export default function MessagesClient() {
                   <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                 )}
               </div>
-              
+
               <p className="text-gray-700 mb-4">{notif.message}</p>
 
               {/* Invitation-specific UI */}
@@ -367,7 +358,7 @@ export default function MessagesClient() {
               <p className="text-sm text-gray-600 text-center mb-6">
                 Why are you declining this partnership invitation? (Optional)
               </p>
-              
+
               <textarea
                 value={declineReason}
                 onChange={(e) => setDeclineReason(e.target.value)}
@@ -375,7 +366,7 @@ export default function MessagesClient() {
                 rows={3}
                 placeholder="e.g., Already have a label, terms don't suit me, focusing on independent releases..."
               />
-              
+
               <div className="flex space-x-3 mt-6">
                 <button
                   type="button"
@@ -403,4 +394,3 @@ export default function MessagesClient() {
     </div>
   )
 }
-

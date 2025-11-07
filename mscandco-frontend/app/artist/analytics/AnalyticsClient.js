@@ -28,10 +28,10 @@ export default function AnalyticsClient({ user: serverUser }) {
   const currentUser = user || serverUser;
 
   // Permission check - redirect if no access
-  
+
   // Enhanced Pro access detection with multiple fallbacks
-  const hasProAccess = 
-    subscriptionStatus?.isPro || 
+  const hasProAccess =
+    subscriptionStatus?.isPro ||
     subscriptionStatus?.tier?.includes('pro') ||
     currentUser?.id === '0a060de5-1c94-4060-a1c2-860224fc348d' || // Henry Taylor
     currentUser?.email === 'info@htay.co.uk' || // Henry Taylor's email
@@ -41,10 +41,10 @@ export default function AnalyticsClient({ user: serverUser }) {
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       if (!currentUser || !session) return;
-      
+
       try {
         const token = session.access_token;
-        
+
         if (!token) {
           setSubscriptionLoading(false);
           return;
@@ -53,19 +53,19 @@ export default function AnalyticsClient({ user: serverUser }) {
         const response = await fetch('/api/user/subscription-status', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
           setSubscriptionStatus(result.data);
-          
+
           // Auto-set advanced tab for Pro users
           if (result.data?.isPro) {
             setActiveTab('advanced');
           }
         }
       } catch (error) {
-        console.error('Error fetching subscription status:', error);
+        // Error fetching subscription status
       } finally {
         setSubscriptionLoading(false);
       }
@@ -132,14 +132,14 @@ export default function AnalyticsClient({ user: serverUser }) {
                     </span>
                   </button>
                 )}
-                
+
                 {/* Advanced Tab */}
                 <button
                   onClick={() => hasProAccess ? setActiveTab('advanced') : null}
                   className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                     activeTab === 'advanced'
                       ? 'text-white shadow-md'
-                      : hasProAccess 
+                      : hasProAccess
                         ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         : 'text-slate-400 cursor-not-allowed'
                   }`}
@@ -166,11 +166,11 @@ export default function AnalyticsClient({ user: serverUser }) {
             {activeTab === 'basic' && !hasProAccess && (
               <CleanManualDisplay artistId={user?.id} showAdvanced={false} />
             )}
-            
+
             {(activeTab === 'advanced' || hasProAccess) && (
               <CleanManualDisplay artistId={user?.id} showAdvanced={true} />
             )}
-            
+
             {activeTab === 'advanced' && !hasProAccess && (
               <div className="rounded-2xl shadow-lg p-16 text-center" style={{
                 background: 'rgba(255, 255, 255, 0.1)',
@@ -184,7 +184,7 @@ export default function AnalyticsClient({ user: serverUser }) {
                   </div>
                   <h2 className="text-2xl font-bold mb-4" style={{color: '#1f2937'}}>Unlock Advanced Analytics</h2>
                   <p className="mb-8" style={{color: '#64748b'}}>
-                    Get access to comprehensive platform breakdowns, career snapshots, audience demographics, 
+                    Get access to comprehensive platform breakdowns, career snapshots, audience demographics,
                     social footprint analysis, and detailed performance insights.
                   </p>
                   <Link href="/billing">

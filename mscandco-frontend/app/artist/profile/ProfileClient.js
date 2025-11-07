@@ -50,7 +50,7 @@ export default function ProfileClient() {
     setLoading(true);
     try {
       if (!session) {
-        console.error('No session found');
+
         setLoading(false);
         return;
       }
@@ -61,7 +61,7 @@ export default function ProfileClient() {
 
       if (response.ok) {
         const profileData = await response.json();
-        
+
         // Map API response to expected format
         const mappedProfile = {
           id: profileData.id,
@@ -91,14 +91,14 @@ export default function ProfileClient() {
           apple_music: profileData.apple_music,
           profile_picture_url: profileData.profile_picture_url
         };
-        
+
         setProfile(mappedProfile);
         setEditedProfile(mappedProfile);
       } else {
-        console.error('Failed to fetch profile:', response.status);
+
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export default function ProfileClient() {
   const validateFields = () => {
     const newErrors = {};
     const requiredFields = ['artist_name', 'primary_genre'];
-    
+
     requiredFields.forEach(field => {
       if (!editedProfile[field] || editedProfile[field].trim() === '') {
         newErrors[field] = `${field.replace('_', ' ')} is required`;
@@ -133,7 +133,7 @@ export default function ProfileClient() {
     setSaving(true);
     try {
       if (!session) {
-        console.error('No session found');
+
         setSaving(false);
         return;
       }
@@ -180,10 +180,10 @@ export default function ProfileClient() {
           timestamp: new Date().toISOString()
         }
       };
-      
+
       const response = await fetch('/api/artist/profile', {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         },
@@ -194,22 +194,22 @@ export default function ProfileClient() {
         // Trigger cache refresh for all artist's releases
         await fetch('/api/artist/releases/refresh-cache', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         });
-        
+
         setProfile(editedProfile);
         setEditMode(false);
         setErrors({});
         showBrandedNotification('Profile updated successfully!');
       } else {
-        console.error('Failed to save profile:', response.status);
+
         showBrandedNotification('Failed to save changes. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+
       showBrandedNotification('Failed to save changes. Please try again.', 'error');
     } finally {
       setSaving(false);
@@ -227,7 +227,7 @@ export default function ProfileClient() {
     const bgColor = type === 'success' ? '#f0fdf4' : '#fef2f2';
     const borderColor = type === 'success' ? '#065f46' : '#991b1b';
     const textColor = type === 'success' ? '#065f46' : '#991b1b';
-    
+
     notification.style.cssText = `
       position: fixed;
       top: 20px;
@@ -253,23 +253,22 @@ export default function ProfileClient() {
     setTimeout(() => document.body.removeChild(notification), 4000);
   };
 
-
   const calculateProgress = () => {
     const currentData = editedProfile || profile;
     if (!currentData) return 0;
-    
+
     const allFields = [
-      'first_name', 'last_name', 'email', 'artist_name', 'date_of_birth', 'nationality', 
-      'country', 'city', 'artist_type', 'phone', 'primary_genre', 'secondary_genre', 
+      'first_name', 'last_name', 'email', 'artist_name', 'date_of_birth', 'nationality',
+      'country', 'city', 'artist_type', 'phone', 'primary_genre', 'secondary_genre',
       'years_active', 'record_label', 'bio', 'website', 'instagram', 'facebook', 'twitter'
     ];
-    
+
     const completedFields = allFields.filter(field => {
       const value = currentData[field];
       const isCompleted = value && value.toString().trim() !== '';
       return isCompleted;
     });
-    
+
     return Math.round((completedFields.length / allFields.length) * 100);
   };
 
@@ -284,7 +283,6 @@ export default function ProfileClient() {
     return changed;
   };
 
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -298,7 +296,7 @@ export default function ProfileClient() {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <p className="text-gray-600 text-lg">Unable to load profile data.</p>
-          <button 
+          <button
             onClick={fetchProfile}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -355,7 +353,7 @@ export default function ProfileClient() {
         <div className="lg:hidden mb-8">
           <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-            
+
             <ProfilePictureUpload
               currentImage={profile.profile_picture_url}
               onUploadSuccess={(url) => {
@@ -373,7 +371,7 @@ export default function ProfileClient() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - 70% */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Personal Information - LOCKED */}
             <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
               <div className="flex items-center mb-4">
@@ -386,7 +384,7 @@ export default function ProfileClient() {
                 </h2>
               </div>
               <p className="text-sm text-gray-600 mb-6">These fields require admin approval to change</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
@@ -479,7 +477,7 @@ export default function ProfileClient() {
                 <Music className="w-5 h-5 text-blue-600 mr-3" />
                 <h2 className="text-xl font-semibold text-gray-900">Artist Information</h2>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-4">
                   <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -523,7 +521,6 @@ export default function ProfileClient() {
                     ))}
                   </select>
                 </div>
-
 
                 <div>
                   <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -617,7 +614,7 @@ export default function ProfileClient() {
                 <FileText className="w-5 h-5 text-green-600 mr-3" />
                 <h2 className="text-xl font-semibold text-gray-900">Biography</h2>
               </div>
-              
+
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   Artist Bio
@@ -644,7 +641,7 @@ export default function ProfileClient() {
                 <Globe className="w-5 h-5 text-indigo-600 mr-3" />
                 <h2 className="text-xl font-semibold text-gray-900">Social Media & Links</h2>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { key: 'website', label: 'Website', type: 'url' },
@@ -673,7 +670,7 @@ export default function ProfileClient() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Additional platforms in a separate row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {[
@@ -704,11 +701,11 @@ export default function ProfileClient() {
 
           {/* Right Sidebar - 30% */}
           <div className="space-y-6">
-            
+
             {/* Profile Picture - Desktop only */}
             <section className="hidden lg:block bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-              
+
               <ProfilePictureUpload
                 currentImage={profile.profile_picture_url}
                 onUploadSuccess={(url) => {
@@ -725,7 +722,7 @@ export default function ProfileClient() {
             {/* Profile Completion */}
             <section className="bg-gray-100 rounded-xl shadow-sm border border-gray-300 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
-              
+
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>Progress</span>
@@ -738,7 +735,7 @@ export default function ProfileClient() {
                   ></div>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600">
                 Complete your profile to improve your visibility and connect with more opportunities.
               </p>
@@ -781,11 +778,11 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
 
   const handleSubmit = async () => {
     if (!selectedField || !newValue || !reason) return;
-    
+
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
         .from('profile_change_requests')
         .insert({
@@ -796,27 +793,27 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
           reason: reason,
           status: 'pending'
         });
-      
+
       if (!error) {
         showBrandedNotification('Change request submitted for approval');
         onSubmit();
       } else {
-        console.error('Error submitting request:', error);
+
         showBrandedNotification('Failed to submit request', 'error');
       }
     } catch (error) {
-      console.error('Error:', error);
+
       showBrandedNotification('Failed to submit request', 'error');
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl p-6 max-w-md w-full">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Request Profile Change</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Change to Personal Information</label>
@@ -831,7 +828,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
               ))}
             </select>
           </div>
-          
+
           {selectedField && (
             <>
               <div className="mb-2">
@@ -839,7 +836,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
                   Current: <span className="font-medium text-gray-900">{getCurrentValue()}</span>
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Requested Change *</label>
                 <input
@@ -852,7 +849,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
               </div>
             </>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change *</label>
             <textarea
@@ -864,7 +861,7 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
             />
           </div>
         </div>
-        
+
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
@@ -885,4 +882,3 @@ function ChangeRequestModal({ lockedFields, currentProfile, onClose, onSubmit, s
     </div>
   );
 }
-

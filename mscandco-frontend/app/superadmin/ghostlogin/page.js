@@ -20,7 +20,3 @@ export default async function GhostLoginPage() {
 
   return <GhostLoginClient user={session.user} />
 }
-
-
-
-

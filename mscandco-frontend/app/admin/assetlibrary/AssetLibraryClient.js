@@ -98,21 +98,21 @@ export default function AssetLibraryClient({ user }) {
       }
 
       const data = await response.json()
-      
+
       console.log('📦 Asset Library API Response:', {
         success: data.success,
         filesCount: data.files?.length || 0,
         message: data.message,
         bucket_checked: data.bucket_checked
       })
-      
+
       if (data.message) {
         console.warn('⚠️ Asset Library Message:', data.message)
       }
-      
+
       setFiles(data.files || [])
       setPagination(prev => ({ ...prev, ...data.pagination }))
-      
+
       if (data.files && data.files.length === 0 && data.message) {
         // Show message if bucket is empty or not found
         console.warn('Asset library is empty or bucket not found:', data.message)
@@ -725,10 +725,3 @@ export default function AssetLibraryClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-

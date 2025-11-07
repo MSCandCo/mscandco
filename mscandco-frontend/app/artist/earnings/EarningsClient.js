@@ -30,7 +30,7 @@ import {
 // Comprehensive currency selector component
 const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const currencies = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -56,7 +56,7 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
           <span>{selectedCurr.code}</span>
           <ChevronDown className="w-4 h-4 text-slate-600" />
         </button>
-        
+
         {isOpen && (
           <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[120px] max-h-64 overflow-y-auto">
             {currencies.map(currency => (
@@ -80,7 +80,6 @@ const CurrencySelector = ({ selectedCurrency, onCurrencyChange, compact = false 
   return null;
 };
 
-
 export default function EarningsClient({ user: serverUser }) {
   const router = useRouter();
   const { user, session } = useUser();
@@ -97,7 +96,7 @@ export default function EarningsClient({ user: serverUser }) {
   const [customEndDate, setCustomEndDate] = useState('');
 
   // Permission check - redirect if no access
-  
+
   // Use currency conversion hook
   const { convertAmount, formatAmount, symbol } = useCurrencyConversion(selectedCurrency);
 
@@ -117,7 +116,7 @@ export default function EarningsClient({ user: serverUser }) {
 
     const now = new Date();
     let startDate = new Date();
-    
+
     switch(selectedPeriod) {
       case 'last_7_days':
         startDate.setDate(now.getDate() - 7);
@@ -155,23 +154,23 @@ export default function EarningsClient({ user: serverUser }) {
     });
 
     const periodEarnings = periodEntries.reduce((sum, entry) => sum + entry.amount, 0);
-    
+
     // Calculate previous period for growth comparison
     const previousStartDate = new Date(startDate);
     const previousEndDate = new Date(startDate);
     const periodDays = (now - startDate) / (24 * 60 * 60 * 1000);
     previousStartDate.setDate(previousStartDate.getDate() - periodDays);
-    
+
     const previousPeriodEntries = walletData.recent_history.filter(entry => {
       const entryDate = new Date(entry.created_at);
       return entryDate >= previousStartDate && entryDate < previousEndDate && entry.amount > 0;
     });
 
     const previousPeriodEarnings = previousPeriodEntries.reduce((sum, entry) => sum + entry.amount, 0);
-    
+
     // Calculate growth percentage
-    const growthPercentage = previousPeriodEarnings > 0 
-      ? ((periodEarnings - previousPeriodEarnings) / previousPeriodEarnings) * 100 
+    const growthPercentage = previousPeriodEarnings > 0
+      ? ((periodEarnings - previousPeriodEarnings) / previousPeriodEarnings) * 100
       : periodEarnings > 0 ? 100 : 0;
 
     return {
@@ -207,33 +206,33 @@ export default function EarningsClient({ user: serverUser }) {
   const fetchWalletData = async () => {
     try {
       setLoading(true);
-      
+
       // Get authentication token from context
       if (!session) {
         throw new Error('Authentication required. Please log in again.');
       }
-      
+
       const token = session.access_token;
-      
+
       if (!token) {
         throw new Error('Authentication required. Please log in again.');
       }
-      
+
       const response = await fetch('/api/artist/wallet-simple', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch wallet data');
       }
-      
+
       const data = await response.json();
-      console.log('💰 Wallet data loaded:', data);
+
       setWalletData(data);
     } catch (error) {
-      console.error('Error loading wallet:', error);
+
       setError(error.message);
     } finally {
       setLoading(false);
@@ -346,7 +345,7 @@ export default function EarningsClient({ user: serverUser }) {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Wallet Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Available Balance - Highlighted */}
@@ -360,7 +359,7 @@ export default function EarningsClient({ user: serverUser }) {
               </div>
               <h1 className="text-4xl font-bold mb-3">{displayAmount(wallet.available_balance)}</h1>
               <p className="text-sm opacity-90 mb-4">Ready for withdrawal</p>
-              <button 
+              <button
                 className="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-all w-full"
                 onClick={handlePayoutRequest}
               >
@@ -421,7 +420,6 @@ export default function EarningsClient({ user: serverUser }) {
           </div>
         </div>
 
-
         {/* Wallet Summary - 3 Core Cards */}
         <div className="mb-6 bg-white rounded-2xl shadow-lg p-6" style={{border: '1px solid rgba(31, 41, 55, 0.08)'}}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -446,7 +444,7 @@ export default function EarningsClient({ user: serverUser }) {
               </div>
               <DollarSign className="w-8 h-8" style={{color: '#d97706'}} />
             </div>
-            
+
             {/* Pending Payouts */}
             <div className="flex items-center justify-between p-4 rounded-lg" style={{background: '#f1f5f9', border: '1px solid #e2e8f0'}}>
               <div>
@@ -485,7 +483,7 @@ export default function EarningsClient({ user: serverUser }) {
                     </option>
                   ))}
                 </select>
-                
+
                 {/* Custom Date Range Inputs */}
                 {selectedPeriod === 'custom' && (
                   <div className="flex items-center space-x-3 ml-4">
@@ -533,7 +531,7 @@ export default function EarningsClient({ user: serverUser }) {
               </div>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 rounded-lg" style={{background: '#f8fafc', border: '1px solid #e2e8f0'}}>
               <p className="text-sm font-medium mb-2" style={{color: '#64748b'}}>Period Earnings</p>

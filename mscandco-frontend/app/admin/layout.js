@@ -6,15 +6,15 @@ import AdminLayout from '@/components/layouts/AdminLayout'
 // Helper to check if user has wildcard or specific admin permissions
 function hasAdminAccess(permissions) {
   const permissionNames = permissions.map(p => p.permission_name)
-  
+
   // Check for wildcard (super admin)
   if (permissionNames.includes('*:*:*')) {
     return true
   }
-  
+
   // Check for any admin or users_access permission
-  const hasAdminPerm = permissionNames.some(p => 
-    p.startsWith('admin:') || 
+  const hasAdminPerm = permissionNames.some(p =>
+    p.startsWith('admin:') ||
     p.startsWith('users_access:') ||
     p.startsWith('finance:') ||
     p.startsWith('platform:') ||
@@ -29,7 +29,7 @@ function hasAdminAccess(permissions) {
     p.startsWith('permission_performance:') ||
     p.startsWith('profile:')
   )
-  
+
   return hasAdminPerm
 }
 

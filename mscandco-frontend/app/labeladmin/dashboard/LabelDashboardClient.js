@@ -38,7 +38,7 @@ export default function LabelDashboardClient({ user }) {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      
+
       if (!user) {
         window.location.href = '/login'
         return
@@ -63,7 +63,7 @@ export default function LabelDashboardClient({ user }) {
       }
 
       const data = await response.json()
-      
+
       if (data.success) {
         setStats(data.stats)
         setRecentReleases(data.recentReleases || [])
@@ -128,8 +128,8 @@ export default function LabelDashboardClient({ user }) {
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-            <Link 
-              href="/labeladmin/artists" 
+            <Link
+              href="/labeladmin/artists"
               className="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
             >
               View all artists <ArrowRight className="w-4 h-4 ml-1" />
@@ -148,8 +148,8 @@ export default function LabelDashboardClient({ user }) {
                 <Music className="w-6 h-6 text-purple-600" />
               </div>
             </div>
-            <Link 
-              href="/labeladmin/releases" 
+            <Link
+              href="/labeladmin/releases"
               className="mt-4 inline-flex items-center text-sm text-purple-600 hover:text-purple-700"
             >
               View all releases <ArrowRight className="w-4 h-4 ml-1" />
@@ -170,8 +170,8 @@ export default function LabelDashboardClient({ user }) {
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
             </div>
-            <Link 
-              href="/labeladmin/earnings" 
+            <Link
+              href="/labeladmin/earnings"
               className="mt-4 inline-flex items-center text-sm text-green-600 hover:text-green-700"
             >
               View earnings <ArrowRight className="w-4 h-4 ml-1" />
@@ -190,8 +190,8 @@ export default function LabelDashboardClient({ user }) {
                   <AlertCircle className="w-6 h-6 text-orange-600" />
                 </div>
               </div>
-              <Link 
-                href="/labeladmin/artists" 
+              <Link
+                href="/labeladmin/artists"
                 className="mt-4 inline-flex items-center text-sm text-orange-600 hover:text-orange-700"
               >
                 Review requests <ArrowRight className="w-4 h-4 ml-1" />
@@ -219,8 +219,8 @@ export default function LabelDashboardClient({ user }) {
                   <div key={release.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full ${
-                        release.status === 'live' ? 'bg-green-500' : 
-                        release.status === 'completed' ? 'bg-blue-500' : 
+                        release.status === 'live' ? 'bg-green-500' :
+                        release.status === 'completed' ? 'bg-blue-500' :
                         'bg-gray-400'
                       }`} />
                       <div>
@@ -229,8 +229,8 @@ export default function LabelDashboardClient({ user }) {
                       </div>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded ${
-                      release.status === 'live' ? 'bg-green-100 text-green-700' : 
-                      release.status === 'completed' ? 'bg-blue-100 text-blue-700' : 
+                      release.status === 'live' ? 'bg-green-100 text-green-700' :
+                      release.status === 'completed' ? 'bg-blue-100 text-blue-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {release.status}
@@ -263,8 +263,8 @@ export default function LabelDashboardClient({ user }) {
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full ${
-                        earning.status === 'paid' ? 'bg-green-500' : 
-                        earning.status === 'pending' ? 'bg-orange-500' : 
+                        earning.status === 'paid' ? 'bg-green-500' :
+                        earning.status === 'pending' ? 'bg-orange-500' :
                         'bg-gray-400'
                       }`} />
                       <div>
@@ -273,8 +273,8 @@ export default function LabelDashboardClient({ user }) {
                       </div>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded ${
-                      earning.status === 'paid' ? 'bg-green-100 text-green-700' : 
-                      earning.status === 'pending' ? 'bg-orange-100 text-orange-700' : 
+                      earning.status === 'paid' ? 'bg-green-100 text-green-700' :
+                      earning.status === 'pending' ? 'bg-orange-100 text-orange-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {earning.status}
@@ -295,29 +295,29 @@ export default function LabelDashboardClient({ user }) {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link 
-              href="/labeladmin/artists" 
+            <Link
+              href="/labeladmin/artists"
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Users className="w-5 h-5 text-blue-600" />
               <span className="font-medium text-gray-900">Manage Artists</span>
             </Link>
-            <Link 
-              href="/labeladmin/releases" 
+            <Link
+              href="/labeladmin/releases"
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Music className="w-5 h-5 text-purple-600" />
               <span className="font-medium text-gray-900">View Releases</span>
             </Link>
-            <Link 
-              href="/labeladmin/analytics" 
+            <Link
+              href="/labeladmin/analytics"
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <BarChart3 className="w-5 h-5 text-indigo-600" />
               <span className="font-medium text-gray-900">Analytics</span>
             </Link>
-            <Link 
-              href="/labeladmin/earnings" 
+            <Link
+              href="/labeladmin/earnings"
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <DollarSign className="w-5 h-5 text-green-600" />
@@ -329,4 +329,3 @@ export default function LabelDashboardClient({ user }) {
     </div>
   )
 }
-

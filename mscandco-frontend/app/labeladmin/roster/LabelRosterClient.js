@@ -60,19 +60,18 @@ export default function LabelRosterClient({ user }) {
       setIsLoading(true);
 
       const response = await fetch('/api/labeladmin/roster');
-      console.log('Roster response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Roster data:', data);
+
         setContributors(data.contributors || []);
         setSummary(data.summary || null);
       } else {
-        console.error('Roster response not ok:', response.status, response.statusText);
+
         setContributors([]);
       }
     } catch (error) {
-      console.error('Error loading roster:', error);
+
       setContributors([]);
     } finally {
       setIsLoading(false);
@@ -158,7 +157,6 @@ export default function LabelRosterClient({ user }) {
             </div>
           </div>
         </div>
-
 
         {/* Controls */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

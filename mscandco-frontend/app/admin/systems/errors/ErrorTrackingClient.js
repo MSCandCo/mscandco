@@ -28,14 +28,14 @@ export default function ErrorTrackingClient() {
       const response = await fetch(`/api/admin/systems/errors?filter=${filter}&timeRange=${timeRange}`, {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setErrors(data.errors || []);
         setStats(data.stats || stats);
       }
     } catch (error) {
-      console.error('Error fetching errors:', error);
+
     } finally {
       setLoading(false);
     }
@@ -43,37 +43,37 @@ export default function ErrorTrackingClient() {
 
   const markAsResolved = async (errorId) => {
     if (!hasPermission('systems:errors:manage')) return;
-    
+
     try {
       const response = await fetch(`/api/admin/systems/errors/${errorId}/resolve`, {
         method: 'POST',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         fetchErrors();
       }
     } catch (error) {
-      console.error('Error marking as resolved:', error);
+
     }
   };
 
   const deleteError = async (errorId) => {
     if (!hasPermission('systems:errors:manage')) return;
-    
+
     if (!confirm('Are you sure you want to delete this error log?')) return;
-    
+
     try {
       const response = await fetch(`/api/admin/systems/errors/${errorId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         fetchErrors();
       }
     } catch (error) {
-      console.error('Error deleting error:', error);
+
     }
   };
 
@@ -311,4 +311,3 @@ export default function ErrorTrackingClient() {
     </div>
   );
 }
-

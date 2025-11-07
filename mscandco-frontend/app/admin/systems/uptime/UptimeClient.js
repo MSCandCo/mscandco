@@ -19,7 +19,7 @@ export default function UptimeClient() {
     fetchServices()
     fetchStats()
     fetchIncidents()
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(() => {
       fetchServices()
@@ -238,8 +238,8 @@ export default function UptimeClient() {
                           <div
                             key={index}
                             className={`flex-1 h-full rounded-sm ${
-                              status === 'up' ? 'bg-green-500' : 
-                              status === 'degraded' ? 'bg-yellow-500' : 
+                              status === 'up' ? 'bg-green-500' :
+                              status === 'degraded' ? 'bg-yellow-500' :
                               'bg-red-500'
                             }`}
                             title={`${status} - ${new Date(Date.now() - (service.history.length - index) * 3600000).toLocaleString()}`}
@@ -319,4 +319,3 @@ export default function UptimeClient() {
     </div>
   )
 }
-

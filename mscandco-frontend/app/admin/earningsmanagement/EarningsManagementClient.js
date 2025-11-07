@@ -283,7 +283,7 @@ export default function EarningsManagementClient({ user }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Artist Selection Panel */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
@@ -299,8 +299,8 @@ export default function EarningsManagementClient({ user }) {
                   <Input
                     type="text"
                     placeholder="Search by name, artist name, or email..."
-                    value={selectedArtist ? 
-                      `${selectedArtist.artist_name || `${selectedArtist.first_name || ''} ${selectedArtist.last_name || ''}`.trim() || selectedArtist.email}` 
+                    value={selectedArtist ?
+                      `${selectedArtist.artist_name || `${selectedArtist.first_name || ''} ${selectedArtist.last_name || ''}`.trim() || selectedArtist.email}`
                       : searchTerm
                     }
                     onChange={(e) => {
@@ -323,7 +323,7 @@ export default function EarningsManagementClient({ user }) {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Dropdown Results */}
                 {showDropdown && searchTerm && !selectedArtist && (
                   <div className="absolute top-full left-0 right-0 bg-white border border-slate-300 rounded-lg shadow-lg mt-1 z-50 max-h-80 overflow-y-auto">
@@ -344,7 +344,7 @@ export default function EarningsManagementClient({ user }) {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <p className="font-medium text-slate-900 truncate">
-                                  {artist.artist_name || 
+                                  {artist.artist_name ||
                                    (artist.first_name && artist.last_name ? `${artist.first_name} ${artist.last_name}` : artist.email)
                                   }
                                 </p>
@@ -384,9 +384,9 @@ export default function EarningsManagementClient({ user }) {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-900">
-                          {selectedArtist.artist_name || 
-                           (selectedArtist.first_name && selectedArtist.last_name 
-                             ? `${selectedArtist.first_name} ${selectedArtist.last_name}` 
+                          {selectedArtist.artist_name ||
+                           (selectedArtist.first_name && selectedArtist.last_name
+                             ? `${selectedArtist.first_name} ${selectedArtist.last_name}`
                              : selectedArtist.email)
                           }
                         </p>
@@ -431,9 +431,9 @@ export default function EarningsManagementClient({ user }) {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-slate-900 truncate">
-                              {artist.artist_name || 
-                               (artist.first_name && artist.last_name 
-                                 ? `${artist.first_name} ${artist.last_name}` 
+                              {artist.artist_name ||
+                               (artist.first_name && artist.last_name
+                                 ? `${artist.first_name} ${artist.last_name}`
                                  : artist.email)
                               }
                             </p>
@@ -634,7 +634,7 @@ export default function EarningsManagementClient({ user }) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Status
                 </label>
-                <Select 
+                <Select
                   defaultValue={editingEntry.status}
                   onValueChange={(value) => setEditingEntry({...editingEntry, status: value})}
                 >
@@ -649,7 +649,7 @@ export default function EarningsManagementClient({ user }) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {editingEntry.status === 'paid' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -704,10 +704,3 @@ export default function EarningsManagementClient({ user }) {
     </div>
   )
 }
-
-
-
-
-
-
-
