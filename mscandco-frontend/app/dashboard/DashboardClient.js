@@ -31,7 +31,12 @@ import {
 
 export default function DashboardClient({ user }) {
   const supabase = createClient()
-  const { onNotification } = useRealtime()
+  
+  // Get realtime hook - will be null if RealtimeProvider isn't available
+  // This is safe because the hook returns a default context value
+  const realtimeContext = useRealtime()
+  const onNotification = realtimeContext?.onNotification || null
+  
   const [profileData, setProfileData] = useState(null)
   const [userRole, setUserRole] = useState(null)
   const [userPermissions, setUserPermissions] = useState([])

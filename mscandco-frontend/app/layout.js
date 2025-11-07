@@ -10,7 +10,7 @@ import { Inter } from 'next/font/google'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import PostHogProvider from '@/components/providers/PostHogProvider'
-import RealtimeProvider from '@/components/providers/RealtimeProvider'
+import RealtimeProviderWrapper from '@/components/providers/RealtimeProviderWrapper'
 import { SessionValidator } from '@/components/auth/SessionValidator'
 import { InactivityLogout } from '@/components/auth/InactivityLogout'
 import CookieConsentBanner from '@/components/CookieConsentBanner'
@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
         <QueryProvider>
           <SupabaseProvider>
             <PostHogProvider>
-              <RealtimeProvider>
+              <RealtimeProviderWrapper>
                 <SessionValidator />
                 <InactivityLogout timeoutMinutes={30} warningMinutes={5} />
                 <Header />
@@ -45,7 +45,7 @@ export default function RootLayout({ children }) {
                 </main>
                 <Footer />
                 <CookieConsentBanner />
-              </RealtimeProvider>
+              </RealtimeProviderWrapper>
             </PostHogProvider>
           </SupabaseProvider>
         </QueryProvider>
