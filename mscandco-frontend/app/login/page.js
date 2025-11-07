@@ -145,10 +145,23 @@ function LoginPageContent() {
         }
 
         // Verify session is established before redirecting
-        const { data: { session } } = await supabase.auth.getSession()
+        let session = null
+        let attempts = 0
+        const maxAttempts = 5
+        
+        // Retry getting session (sometimes it takes a moment)
+        while (!session && attempts < maxAttempts) {
+          const { data: sessionData } = await supabase.auth.getSession()
+          if (sessionData?.session) {
+            session = sessionData.session
+            break
+          }
+          attempts++
+          await new Promise(resolve => setTimeout(resolve, 200))
+        }
         
         if (!session) {
-          console.error('❌ Session not available after login')
+          console.error('❌ Session not available after login after', maxAttempts, 'attempts')
           setError('Session could not be established. Please try again.')
           setLoading(false)
           return
@@ -157,13 +170,23 @@ function LoginPageContent() {
         console.log('✅ Login successful, session confirmed, fetching user role...')
         
         // Fetch user profile to determine role-based redirect
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle()
-        
-        const userRole = profile?.role || session.user.user_metadata?.role
+        let userRole = null
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle()
+          
+          if (profileError) {
+            console.warn('⚠️ Profile fetch error (using fallback):', profileError)
+          }
+          
+          userRole = profile?.role || session.user.user_metadata?.role || session.user.app_metadata?.role
+        } catch (profileErr) {
+          console.warn('⚠️ Profile fetch exception (using fallback):', profileErr)
+          userRole = session.user.user_metadata?.role || session.user.app_metadata?.role
+        }
         
         // Determine redirect based on role
         let redirectTo = searchParams.get('redirectedFrom')
@@ -183,29 +206,30 @@ function LoginPageContent() {
         
         console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
         
-        // Small delay to ensure SupabaseProvider updates state
-        await new Promise(resolve => setTimeout(resolve, 300))
-        
-        // Reset loading state before redirect (in case redirect fails)
+        // Reset loading state before redirect
         setLoading(false)
+        
+        // Small delay to ensure state updates
+        await new Promise(resolve => setTimeout(resolve, 100))
         
         // Use window.location.href for full page reload with fresh session
         // This ensures a clean redirect without React state issues
         window.location.href = redirectTo
         
-        // Fallback: If redirect doesn't happen within 2 seconds, try router.push
+        // Fallback: If redirect doesn't happen within 3 seconds, try router.push
         setTimeout(() => {
           if (window.location.pathname === '/login') {
             console.warn('⚠️ Redirect timeout, using router.push as fallback')
             router.push(redirectTo)
           }
-        }, 2000)
+        }, 3000)
       } else {
         setError('Login failed. Please try again.')
         setLoading(false)
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      console.error('Login error:', err)
+      setError(err.message || 'An unexpected error occurred. Please try again.')
       setLoading(false)
     }
   }
