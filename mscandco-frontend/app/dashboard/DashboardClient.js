@@ -68,36 +68,7 @@ export default function DashboardClient({ user }) {
     return date.toLocaleDateString()
   }
 
-  useEffect(() => {
-    if (user && !loadingRef.current) {
-      loadingRef.current = true
-      loadDashboardData()
-    } else if (!user) {
-      // If no user, stop loading immediately
-      setLoading(false)
-      loadingRef.current = false
-    }
-  }, [user, loadDashboardData]) // Include loadDashboardData in dependencies
-
-  // Listen to global notification events from RealtimeProvider
-  // This uses the SINGLE global subscription instead of creating a duplicate
-  useEffect(() => {
-    if (!user || !onNotification) return
-
-    const unsubscribe = onNotification((notification) => {
-      // Incremental update: Add new notification to list
-      const newActivityItem = {
-        id: notification.id,
-        type: notification.type || 'message',
-        message: notification.message || notification.title,
-        time: formatTimeAgo(notification.created_at)
-      }
-      setRecentActivity(prev => [newActivityItem, ...prev.slice(0, 4)])
-    })
-
-    return unsubscribe
-  }, [user, onNotification])
-
+  // Define loadDashboardData BEFORE useEffects that use it
   const loadDashboardData = useCallback(async () => {
     // Prevent multiple simultaneous loads
     if (loadingRef.current) {

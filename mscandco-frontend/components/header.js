@@ -4,7 +4,7 @@ import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRealtime } from '@/components/providers/RealtimeProvider';
 import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
@@ -15,6 +15,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 function Header({ largeLogo = false }) {
   const { user, session, isLoading, supabase } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const { unreadCount } = useRealtime(); // Use global unread count from RealtimeProvider
   const [profileData, setProfileData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -34,6 +35,13 @@ function Header({ largeLogo = false }) {
   // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
+      // If on login page, always clear profile data
+      if (pathname === '/login' || pathname === '/register') {
+        console.log('🧹 Header: On login/register page, clearing profile data');
+        setProfileData(null);
+        return;
+      }
+
       if (user && session) {
         try {
           // Fetch from the same API that the profile page uses
@@ -90,7 +98,7 @@ function Header({ largeLogo = false }) {
     };
 
     fetchProfile();
-  }, [user, session]);
+  }, [user, session, pathname]);
 
   // Using global unread count from RealtimeProvider
   // RealtimeProvider handles initial fetch and realtime updates
@@ -210,8 +218,62 @@ function Header({ largeLogo = false }) {
     hasUser: !!user,
     hasProfileData: !!profileData,
     role: profileData?.role,
+    pathname: pathname,
     isPlatformAdminResult: profileData?.role ? isPlatformAdmin(profileData.role) : 'N/A'
   });
+
+  // If on login/register page, always show logged-out header
+  if (pathname === '/login' || pathname === '/register') {
+    return (
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16 md:h-20">
+            {/* Logo - Left */}
+            <div className="flex-shrink-0">
+              <Link href="/" className="flex items-center">
+                <img
+                  className={`${largeLogo ? 'h-32 w-32' : 'h-16 w-16 md:h-20 md:w-20'} object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200`}
+                  src="/logos/MSCandCoLogoV2.svg"
+                  alt="MSC & Co Logo"
+                />
+              </Link>
+            </div>
+
+            {/* Desktop Navigation - Centered Layout */}
+            <div className="hidden lg:flex items-center flex-1 ml-8">
+              {/* Left Spacer for logged out */}
+              <div className="flex-1"></div>
+              
+              {/* Right - Public Links + Auth Buttons */}
+              <div className="flex items-center space-x-6 flex-1 justify-end">
+                <Link href="/pricing" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                  Prices
+                </Link>
+                <Link href="/about" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                  About
+                </Link>
+                <Link href="/support" className="transition-colors duration-200 text-gray-400 hover:text-gray-800 font-medium">
+                  Support
+                </Link>
+                {pathname !== '/login' && (
+                  <Link href="/login" className="font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                    Login
+                  </Link>
+                )}
+                {pathname !== '/register' && (
+                  <Link href="/register">
+                    <button className="bg-transparent text-[#1f2937] border border-[#1f2937] rounded-xl px-6 py-2 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]">
+                      Register
+                    </button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   // Wait for profile data to load before deciding which header to show
   if (user && !profileData) {
