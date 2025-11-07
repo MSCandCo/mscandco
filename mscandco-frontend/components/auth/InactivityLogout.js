@@ -105,9 +105,10 @@ export function InactivityLogout({
         setRemainingSeconds(warningMinutes * 60)
 
         // Start countdown using timestamps (works even when page is in background)
+        // Update every second for smooth countdown display
         countdownIntervalRef.current = setInterval(() => {
           updateCountdown()
-        }, 100) // Check every 100ms for smooth updates
+        }, 1000) // Update every second
         
         // Backup timeout to ensure logout happens
         timeoutRef.current = setTimeout(() => {
@@ -148,7 +149,9 @@ export function InactivityLogout({
     resetTimeout()
   }
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     logout()
   }
 
