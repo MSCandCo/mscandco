@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation'
  *
  * Automatically logs out users after a period of inactivity.
  * Tracks user activity through mouse, keyboard, scroll, and touch events.
+ * Countdown continues even when page is in background using timestamps.
  *
  * @param {number} timeoutMinutes - Minutes of inactivity before logout (default: 30)
  * @param {number} warningMinutes - Minutes before timeout to show warning (default: 5)
@@ -21,8 +22,9 @@ export function InactivityLogout({
   const supabase = createClient()
   const timeoutRef = useRef(null)
   const warningTimeoutRef = useRef(null)
-  const countdownIntervalRef = useRef(null) // Store countdown interval reference
-  const showWarningRef = useRef(false) // Track warning state with ref to avoid stale closures
+  const countdownIntervalRef = useRef(null)
+  const showWarningRef = useRef(false)
+  const warningStartTimeRef = useRef(null) // Track when warning started
   const [showWarning, setShowWarning] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(warningMinutes * 60)
 
@@ -31,12 +33,20 @@ export function InactivityLogout({
   const isPublicPage = publicPaths.includes(pathname)
 
   const logout = async () => {
-    console.log('⏱️ Auto-logout due to inactivity')
-    
     // Clear countdown interval if it's running
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current)
       countdownIntervalRef.current = null
+    }
+    
+    // Clear all timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current)
+      warningTimeoutRef.current = null
     }
     
     // Clear all storage
@@ -46,13 +56,30 @@ export function InactivityLogout({
     }
     
     // Sign out (non-blocking)
-    supabase.auth.signOut().catch(err => {
-      console.error('Sign out error (non-blocking):', err)
+    supabase.auth.signOut().catch(() => {
+      // Ignore errors
     })
     
     // Hard redirect to login page with reason
     if (typeof window !== 'undefined') {
       window.location.href = '/login?reason=inactivity'
+    }
+  }
+
+  const updateCountdown = () => {
+    if (!warningStartTimeRef.current) return
+    
+    const elapsed = Math.floor((Date.now() - warningStartTimeRef.current) / 1000)
+    const remaining = Math.max(0, (warningMinutes * 60) - elapsed)
+    
+    setRemainingSeconds(remaining)
+    
+    if (remaining <= 0) {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
+        countdownIntervalRef.current = null
+      }
+      logout()
     }
   }
 
@@ -74,24 +101,15 @@ export function InactivityLogout({
       warningTimeoutRef.current = setTimeout(() => {
         showWarningRef.current = true
         setShowWarning(true)
+        warningStartTimeRef.current = Date.now() // Record when warning started
         setRemainingSeconds(warningMinutes * 60)
 
-        // Start countdown
+        // Start countdown using timestamps (works even when page is in background)
         countdownIntervalRef.current = setInterval(() => {
-          setRemainingSeconds(prev => {
-            if (prev <= 1) {
-              clearInterval(countdownIntervalRef.current)
-              countdownIntervalRef.current = null
-              // Automatically logout when countdown reaches zero
-              logout()
-              return 0
-            }
-            return prev - 1
-          })
-        }, 1000)
+          updateCountdown()
+        }, 100) // Check every 100ms for smooth updates
         
-        // Also set a timeout as backup in case the interval doesn't fire
-        // This ensures logout happens even if there's a timing issue
+        // Backup timeout to ensure logout happens
         timeoutRef.current = setTimeout(() => {
           if (countdownIntervalRef.current) {
             clearInterval(countdownIntervalRef.current)
@@ -103,7 +121,6 @@ export function InactivityLogout({
     }
 
     // Set actual logout timeout (only if warning hasn't been shown yet)
-    // Once warning is shown, logout is handled by the countdown timer
     if (!showWarningRef.current) {
       timeoutRef.current = setTimeout(() => {
         logout()
@@ -117,16 +134,28 @@ export function InactivityLogout({
       clearInterval(countdownIntervalRef.current)
       countdownIntervalRef.current = null
     }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current)
+      warningTimeoutRef.current = null
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    warningStartTimeRef.current = null
     showWarningRef.current = false
     setShowWarning(false)
     resetTimeout()
+  }
+
+  const handleLogout = () => {
+    logout()
   }
 
   useEffect(() => {
     if (isPublicPage) return
 
     // Track user activity events
-    // Note: 'mousemove' is excluded when warning is shown to prevent modal from disappearing
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove']
 
     const handleActivity = (e) => {
@@ -135,9 +164,24 @@ export function InactivityLogout({
       resetTimeout()
     }
 
+    // Handle page visibility changes - recalculate time when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page is hidden - timestamps will handle the countdown
+        return
+      } else {
+        // Page is visible again - update countdown immediately
+        if (showWarningRef.current && warningStartTimeRef.current) {
+          updateCountdown()
+        }
+      }
+    }
+
     events.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true })
     })
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Initial timeout setup
     resetTimeout()
@@ -150,8 +194,9 @@ export function InactivityLogout({
       events.forEach(event => {
         document.removeEventListener(event, handleActivity)
       })
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [isPublicPage, pathname, showWarning])
+  }, [isPublicPage, pathname])
 
   if (isPublicPage || !showWarning) return null
 
@@ -199,7 +244,7 @@ export function InactivityLogout({
               Stay Logged In
             </button>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="flex-1 bg-gray-200 text-gray-700 rounded-xl px-6 py-3 font-semibold hover:bg-gray-300 transition-all duration-200"
             >
               Logout Now
