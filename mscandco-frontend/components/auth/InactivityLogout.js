@@ -241,13 +241,23 @@ export function InactivityLogout({
 
           <div className="flex gap-3">
             <button
-              onClick={extendSession}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                extendSession()
+              }}
               className="flex-1 bg-[#1f2937] text-white rounded-xl px-6 py-3 font-semibold hover:bg-[#374151] transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Stay Logged In
             </button>
             <button
-              onClick={handleLogout}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                logout()
+              }}
               className="flex-1 bg-gray-200 text-gray-700 rounded-xl px-6 py-3 font-semibold hover:bg-gray-300 transition-all duration-200"
             >
               Logout Now
