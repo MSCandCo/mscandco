@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRealtime } from '@/components/providers/RealtimeProvider'
 import {
   Bell,
   Music,
@@ -30,6 +31,7 @@ const NOTIFICATION_TYPES = {
 
 export default function NotificationsClient({ initialNotifications, user }) {
   const supabase = createClient()
+  const { refreshUnreadCount } = useRealtime() // Get refresh function from global provider
   const [notifications, setNotifications] = useState(initialNotifications)
   const [filteredNotifications, setFilteredNotifications] = useState(initialNotifications)
   const [loading, setLoading] = useState(false)
@@ -70,36 +72,30 @@ export default function NotificationsClient({ initialNotifications, user }) {
     setFilteredNotifications(filtered)
   }, [notifications, selectedFilter, searchTerm])
 
-  // Real-time subscription
+  // REMOVED: Duplicate notification subscription
+  // Notifications are handled by RealtimeProvider (global subscription)
+  // For this page, we'll use polling every 30 seconds instead
   useEffect(() => {
     if (!user) return
 
-    const channel = supabase
-      .channel('notifications_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setNotifications(prev => [payload.new, ...prev])
-          } else if (payload.eventType === 'UPDATE') {
-            setNotifications(prev =>
-              prev.map(n => n.id === payload.new.id ? payload.new : n)
-            )
-          } else if (payload.eventType === 'DELETE') {
-            setNotifications(prev => prev.filter(n => n.id !== payload.old.id))
+    // Poll for new notifications every 30 seconds instead of realtime
+    const pollInterval = setInterval(() => {
+      supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+        .then(({ data }) => {
+          if (data) {
+            setNotifications(data)
           }
-        }
-      )
-      .subscribe()
+        })
+        .catch(err => console.error('Error polling notifications:', err))
+    }, 30000) // 30 seconds
 
-    return () => supabase.removeChannel(channel)
-  }, [user])
+    return () => clearInterval(pollInterval)
+  }, [user, supabase])
 
   const markAsRead = async (notificationId) => {
     try {
@@ -114,6 +110,11 @@ export default function NotificationsClient({ initialNotifications, user }) {
       setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       )
+      
+      // Refresh global unread count
+      if (refreshUnreadCount) {
+        refreshUnreadCount()
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error)
     }
@@ -131,6 +132,11 @@ export default function NotificationsClient({ initialNotifications, user }) {
       if (error) throw error
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      
+      // Refresh global unread count
+      if (refreshUnreadCount) {
+        refreshUnreadCount()
+      }
     } catch (error) {
       console.error('Error marking all as read:', error)
     } finally {

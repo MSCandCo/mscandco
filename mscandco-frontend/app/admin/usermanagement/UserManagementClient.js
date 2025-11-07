@@ -47,33 +47,17 @@ export default function UserManagementClient({ user }) {
     }
   }, [user])
 
-  // Real-time subscriptions
+  // REMOVED: Realtime subscriptions for admin pages
+  // Admin pages have high change frequency - polling is more efficient
+  // Poll every 20 seconds instead of realtime
   useEffect(() => {
     if (!user) return
 
-    const channel = supabase
-      .channel('user_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_profiles' },
-        (payload) => {
-          console.log('User profile changed:', payload)
-          loadData()
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_role_assignments' },
-        (payload) => {
-          console.log('Role assignment changed:', payload)
-          loadData()
-        }
-      )
-      .subscribe()
+    const pollInterval = setInterval(() => {
+      loadData()
+    }, 20000) // Poll every 20 seconds
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => clearInterval(pollInterval)
   }, [user])
 
   const loadData = async () => {

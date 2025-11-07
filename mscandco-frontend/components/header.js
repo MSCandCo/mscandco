@@ -1,6 +1,7 @@
 'use client'
 
 import { useUser } from '@/components/providers/SupabaseProvider';
+import { useRealtime } from '@/components/providers/RealtimeProvider';
 import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,10 +15,10 @@ import { usePermissions } from '@/hooks/usePermissions';
 function Header({ largeLogo = false }) {
   const { user, session, isLoading, supabase } = useUser();
   const router = useRouter();
+  const { unreadCount } = useRealtime(); // Use global unread count from RealtimeProvider
   const [profileData, setProfileData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   
   // Permissions
@@ -91,50 +92,9 @@ function Header({ largeLogo = false }) {
     fetchProfile();
   }, [user, session]);
 
-  // Fetch unread notification count
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (user && supabase) {
-        try {
-          const { count, error } = await supabase
-            .from('notifications')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('read', false)
-
-          if (!error) {
-            setUnreadCount(count || 0)
-          }
-        } catch (err) {
-          console.error('Error fetching unread count:', err)
-        }
-      } else {
-        // Clear unread count when user logs out
-        setUnreadCount(0)
-      }
-    }
-
-    fetchUnreadCount()
-
-    // Subscribe to notification changes for real-time count
-    if (user && supabase) {
-      const channel = supabase
-        .channel('notification_count')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`
-          },
-          () => fetchUnreadCount()
-        )
-        .subscribe()
-
-      return () => supabase.removeChannel(channel)
-    }
-  }, [user, supabase])
+  // Using global unread count from RealtimeProvider
+  // RealtimeProvider handles initial fetch and realtime updates
+  // This eliminates duplicate subscriptions and reduces database load
 
   // For the button: Artist Name first
   const getButtonDisplayName = () => {

@@ -57,35 +57,17 @@ export default function WalletManagementClient({ initialData, user }) {
     }
   }, [user, page, searchTerm, walletFilter, transactionType, currencyFilter])
 
-  // Set up real-time subscriptions
+  // REMOVED: Realtime subscription for admin pages
+  // Admin pages have high change frequency - polling is more efficient
+  // Poll every 15 seconds instead of realtime
   useEffect(() => {
     if (!user) return
 
-    const channel = supabase
-      .channel('wallet_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'transactions' },
-        (payload) => {
-          console.log('Transaction changed:', payload)
-          // Refresh data when transactions change
-          loadData()
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_profiles' },
-        (payload) => {
-          console.log('User profile changed:', payload)
-          // Refresh data when user profiles change
-          loadData()
-        }
-      )
-      .subscribe()
+    const pollInterval = setInterval(() => {
+      loadData()
+    }, 15000) // Poll every 15 seconds
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => clearInterval(pollInterval)
   }, [user])
 
   const loadData = async () => {

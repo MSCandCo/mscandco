@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 import ApolloOnboarding from '@/components/ApolloOnboarding'
+import { useRealtime } from '@/components/providers/RealtimeProvider'
 import {
   TrendingUp,
   Music,
@@ -30,6 +31,7 @@ import {
 
 export default function DashboardClient({ user }) {
   const supabase = createClient()
+  const { onNotification } = useRealtime()
   const [profileData, setProfileData] = useState(null)
   const [userRole, setUserRole] = useState(null)
   const [userPermissions, setUserPermissions] = useState([])
@@ -52,44 +54,24 @@ export default function DashboardClient({ user }) {
     loadDashboardData()
   }, [user])
 
-  // Real-time subscription for notifications
+  // Listen to global notification events from RealtimeProvider
+  // This uses the SINGLE global subscription instead of creating a duplicate
   useEffect(() => {
-    if (!user) return
+    if (!user || !onNotification) return
 
-    const channel = supabase
-      .channel('dashboard_notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        async (payload) => {
-          // Reload notifications when any change occurs
-          const { data: recentNotifs } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(5)
+    const unsubscribe = onNotification((notification) => {
+      // Incremental update: Add new notification to list
+      const newActivityItem = {
+        id: notification.id,
+        type: notification.type || 'message',
+        message: notification.message || notification.title,
+        time: formatTimeAgo(notification.created_at)
+      }
+      setRecentActivity(prev => [newActivityItem, ...prev.slice(0, 4)])
+    })
 
-          if (recentNotifs) {
-            const activityItems = recentNotifs.map(notif => ({
-              id: notif.id,
-              type: notif.type || 'message',
-              message: notif.message || notif.title,
-              time: formatTimeAgo(notif.created_at)
-            }))
-            setRecentActivity(activityItems)
-          }
-        }
-      )
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
-  }, [user])
+    return unsubscribe
+  }, [user, onNotification])
 
   const loadDashboardData = async () => {
     try {
