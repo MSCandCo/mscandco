@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 /**
  * InactivityLogout Component
@@ -17,11 +17,11 @@ export function InactivityLogout({
   timeoutMinutes = 30,
   warningMinutes = 5
 }) {
-  const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
   const timeoutRef = useRef(null)
   const warningTimeoutRef = useRef(null)
+  const countdownIntervalRef = useRef(null) // Store countdown interval reference
   const showWarningRef = useRef(false) // Track warning state with ref to avoid stale closures
   const [showWarning, setShowWarning] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(warningMinutes * 60)
@@ -32,8 +32,28 @@ export function InactivityLogout({
 
   const logout = async () => {
     console.log('⏱️ Auto-logout due to inactivity')
-    await supabase.auth.signOut()
-    router.push('/login?reason=inactivity')
+    
+    // Clear countdown interval if it's running
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
+    
+    // Clear all storage
+    if (typeof window !== 'undefined') {
+      localStorage.clear()
+      sessionStorage.clear()
+    }
+    
+    // Sign out (non-blocking)
+    supabase.auth.signOut().catch(err => {
+      console.error('Sign out error (non-blocking):', err)
+    })
+    
+    // Hard redirect to login page with reason
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login?reason=inactivity'
+    }
   }
 
   const resetTimeout = () => {
@@ -43,9 +63,10 @@ export function InactivityLogout({
     // If warning is already shown, don't reset - let user interact with modal
     if (showWarningRef.current) return
 
-    // Clear existing timeouts
+    // Clear existing timeouts and intervals
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current)
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
 
     // Set warning timeout (shown N minutes before actual logout)
     const warningTime = (timeoutMinutes - warningMinutes) * 60 * 1000
@@ -56,25 +77,46 @@ export function InactivityLogout({
         setRemainingSeconds(warningMinutes * 60)
 
         // Start countdown
-        const countdownInterval = setInterval(() => {
+        countdownIntervalRef.current = setInterval(() => {
           setRemainingSeconds(prev => {
             if (prev <= 1) {
-              clearInterval(countdownInterval)
+              clearInterval(countdownIntervalRef.current)
+              countdownIntervalRef.current = null
+              // Automatically logout when countdown reaches zero
+              logout()
               return 0
             }
             return prev - 1
           })
         }, 1000)
+        
+        // Also set a timeout as backup in case the interval doesn't fire
+        // This ensures logout happens even if there's a timing issue
+        timeoutRef.current = setTimeout(() => {
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current)
+            countdownIntervalRef.current = null
+          }
+          logout()
+        }, warningMinutes * 60 * 1000)
       }, warningTime)
     }
 
-    // Set actual logout timeout
-    timeoutRef.current = setTimeout(() => {
-      logout()
-    }, timeoutMinutes * 60 * 1000)
+    // Set actual logout timeout (only if warning hasn't been shown yet)
+    // Once warning is shown, logout is handled by the countdown timer
+    if (!showWarningRef.current) {
+      timeoutRef.current = setTimeout(() => {
+        logout()
+      }, timeoutMinutes * 60 * 1000)
+    }
   }
 
   const extendSession = () => {
+    // Clear countdown interval if it's running
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
     showWarningRef.current = false
     setShowWarning(false)
     resetTimeout()
@@ -103,6 +145,7 @@ export function InactivityLogout({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current)
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
 
       events.forEach(event => {
         document.removeEventListener(event, handleActivity)
