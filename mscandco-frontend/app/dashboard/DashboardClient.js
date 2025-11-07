@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
@@ -53,11 +53,18 @@ export default function DashboardClient({ user }) {
   const [quickActions, setQuickActions] = useState([])
   const [performanceMetrics, setPerformanceMetrics] = useState([])
   const [onboardingComplete, setOnboardingComplete] = useState(false)
-
+  const loadingRef = useRef(false) // Prevent multiple simultaneous loads
 
   useEffect(() => {
-    loadDashboardData()
-  }, [user])
+    if (user && !loadingRef.current) {
+      loadingRef.current = true
+      loadDashboardData()
+    } else if (!user) {
+      // If no user, stop loading immediately
+      setLoading(false)
+      loadingRef.current = false
+    }
+  }, [user, loadDashboardData]) // Include loadDashboardData in dependencies
 
   // Listen to global notification events from RealtimeProvider
   // This uses the SINGLE global subscription instead of creating a duplicate
@@ -78,16 +85,33 @@ export default function DashboardClient({ user }) {
     return unsubscribe
   }, [user, onNotification])
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
+    // Prevent multiple simultaneous loads
+    if (loadingRef.current) {
+      console.log('⏸️ Dashboard: Load already in progress, skipping...')
+      return
+    }
+
+    let timeoutId = null
     try {
       setLoading(true)
+      loadingRef.current = true
       console.log('🔄 Dashboard: Starting to load data...')
 
       if (!user) {
         console.warn('⚠️ Dashboard: No user provided, redirecting to login')
+        setLoading(false)
+        loadingRef.current = false
         window.location.href = '/login'
         return
       }
+
+      // Set a timeout to ensure loading stops even if something hangs
+      timeoutId = setTimeout(() => {
+        console.warn('⏰ Dashboard: Load timeout reached, stopping loading')
+        setLoading(false)
+        loadingRef.current = false
+      }, 30000) // 30 second timeout
 
       // Get user profile from API (same as header) to get correct artist_name
       const profileResponse = await fetch('/api/artist/profile', {
@@ -192,19 +216,26 @@ export default function DashboardClient({ user }) {
         console.log('✅ Dashboard: Performance metrics loaded')
 
         console.log('✅✅✅ Dashboard: ALL DATA LOADED SUCCESSFULLY ✅✅✅')
+        clearTimeout(timeoutId)
       } catch (permErr) {
         console.error('❌ Dashboard: Error loading permissions or data:', permErr)
         // Continue with default permissions
         setUserPermissions([])
+        clearTimeout(timeoutId)
       }
     } catch (error) {
       console.error('❌❌❌ Dashboard: CRITICAL ERROR:', error)
       // Don't redirect on error, just show empty dashboard
     } finally {
+      // Clear timeout if it still exists
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
       setLoading(false)
+      loadingRef.current = false
       console.log('🏁 Dashboard: Loading state set to false')
     }
-  }
+  }, [user, supabase])
 
   const getGreeting = () => {
     const hour = new Date().getHours()
