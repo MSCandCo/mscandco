@@ -278,10 +278,6 @@ export default function PermissionsRolesClient() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-          status: response.status,
-          statusText: response.statusText,
-          errorData
-        })
         const errorMessage = errorData.error || errorData.message || errorData.details || 'Failed to reset permissions'
         throw new Error(errorMessage)
       }
