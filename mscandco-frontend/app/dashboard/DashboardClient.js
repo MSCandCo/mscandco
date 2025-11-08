@@ -98,25 +98,39 @@ export default function DashboardClient({ user }) {
       }, 30000) // 30 second timeout
 
       // Get user profile from API (same as header) to get correct artist_name
-      const profileResponse = await fetch('/api/artist/profile', {
-        credentials: 'include'
-      })
-      console.log('✅ Dashboard: Profile API response:', profileResponse.status)
-      
+      // Add timeout to prevent hanging
       let profile = null
-      if (profileResponse.ok) {
-        const profileApiData = await profileResponse.json()
-        // Map API response to profile data structure
-        profile = {
-          ...profileApiData,
-          artist_name: profileApiData.artistName, // Map artistName to artist_name
-          first_name: profileApiData.firstName,
-          last_name: profileApiData.lastName,
-          profile_completed: profileApiData.profileCompleted
-        }
-      } else {
-        // Fallback to direct database query if API fails
-        try {
+      try {
+        const profileController = new AbortController()
+        const profileTimeout = setTimeout(() => profileController.abort(), 10000) // 10 second timeout
+        
+        const profileResponse = await fetch('/api/artist/profile', {
+          credentials: 'include',
+          signal: profileController.signal
+        }).catch(err => {
+          if (err.name === 'AbortError') {
+            console.warn('⏰ Dashboard: Profile API timeout')
+            return { ok: false }
+          }
+          throw err
+        })
+        
+        clearTimeout(profileTimeout)
+        console.log('✅ Dashboard: Profile API response:', profileResponse?.status)
+        
+        if (profileResponse?.ok) {
+          const profileApiData = await profileResponse.json()
+          // Map API response to profile data structure
+          profile = {
+            ...profileApiData,
+            artist_name: profileApiData.artistName, // Map artistName to artist_name
+            first_name: profileApiData.firstName,
+            last_name: profileApiData.lastName,
+            profile_completed: profileApiData.profileCompleted
+          }
+        } else {
+          // Fallback to direct database query if API fails
+          console.log('⚠️ Dashboard: Profile API failed, using fallback')
           const { data: dbProfile, error: dbError } = await supabase
             .from('user_profiles')
             .select('*')
@@ -126,10 +140,12 @@ export default function DashboardClient({ user }) {
           if (dbError) {
             console.error('❌ Dashboard: Database profile error:', dbError)
           }
-          profile = dbProfile
-        } catch (dbErr) {
-          console.error('❌ Dashboard: Fallback profile fetch failed:', dbErr)
+          profile = dbProfile || { id: user.id, role: user.user_metadata?.role || 'artist' }
         }
+      } catch (profileErr) {
+        console.error('❌ Dashboard: Profile fetch error:', profileErr)
+        // Use minimal profile to prevent blocking
+        profile = { id: user.id, role: user.user_metadata?.role || 'artist' }
       }
 
       setProfileData(profile)
@@ -209,9 +225,17 @@ export default function DashboardClient({ user }) {
       }
     } catch (error) {
       console.error('❌❌❌ Dashboard: CRITICAL ERROR:', error)
-      // Don't redirect on error, just show empty dashboard
+      // Set default values to prevent infinite loading
+      setProfileData({ id: user?.id, role: user?.user_metadata?.role || 'artist' })
+      setUserRole(user?.user_metadata?.role || 'artist')
+      setUserPermissions([])
+      setStats({ totalReleases: 0, totalEarnings: 0, totalStreams: 0, pendingTasks: 0 })
+      setRecentActivity([])
+      setPendingTasks([])
+      setQuickActions([])
+      setPerformanceMetrics([])
     } finally {
-      // Clear timeout if it still exists
+      // ALWAYS clear timeout and loading state
       if (timeoutId) {
         clearTimeout(timeoutId)
       }
@@ -220,6 +244,13 @@ export default function DashboardClient({ user }) {
       console.log('🏁 Dashboard: Loading state set to false')
     }
   }, [user, supabase])
+
+  // Trigger loadDashboardData when user is available
+  useEffect(() => {
+    if (user && !loadingRef.current) {
+      loadDashboardData()
+    }
+  }, [user, loadDashboardData])
 
   const getGreeting = () => {
     const hour = new Date().getHours()
