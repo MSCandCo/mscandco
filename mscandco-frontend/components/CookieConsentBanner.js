@@ -86,7 +86,7 @@ export default function CookieConsentBanner() {
           savedConsent = JSON.parse(sessionStorageConsent)
           // Migrate to localStorage and cookie for persistence
           localStorage.setItem('cookie_consent', sessionStorageConsent)
-          setCookie('cookie_consent', 'true', 365)
+          setCookie('cookie_consent', 'true', 180) // 6 months
         } catch (e) {
           console.warn('Invalid sessionStorage consent, clearing')
           sessionStorage.removeItem('cookie_consent')
@@ -126,7 +126,7 @@ export default function CookieConsentBanner() {
             applyConsentSettings(dbConsent)
             // Sync to localStorage and cookie
             localStorage.setItem('cookie_consent', JSON.stringify(dbConsent))
-            setCookie('cookie_consent', 'true', 365)
+            setCookie('cookie_consent', 'true', 180) // 6 months
             setIsVisible(false)
             setIsChecking(false)
             return
@@ -193,7 +193,7 @@ export default function CookieConsentBanner() {
     localStorage.setItem('cookie_consent', JSON.stringify(allAccepted))
     sessionStorage.setItem('cookie_consent', JSON.stringify(allAccepted))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
-    setCookie('cookie_consent', 'true', 365) // 1 year expiration
+    setCookie('cookie_consent', 'true', 180) // 6 months expiration
 
     setPreferences(allAccepted)
     applyConsentSettings(allAccepted)
@@ -211,7 +211,7 @@ export default function CookieConsentBanner() {
     localStorage.setItem('cookie_consent', JSON.stringify(necessaryOnly))
     sessionStorage.setItem('cookie_consent', JSON.stringify(necessaryOnly))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
-    setCookie('cookie_consent', 'true', 365) // 1 year expiration
+    setCookie('cookie_consent', 'true', 180) // 6 months expiration
 
     setPreferences(necessaryOnly)
     applyConsentSettings(necessaryOnly)
@@ -223,7 +223,7 @@ export default function CookieConsentBanner() {
     localStorage.setItem('cookie_consent', JSON.stringify(preferences))
     sessionStorage.setItem('cookie_consent', JSON.stringify(preferences))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
-    setCookie('cookie_consent', 'true', 365) // 1 year expiration
+    setCookie('cookie_consent', 'true', 180) // 6 months expiration
 
     applyConsentSettings(preferences)
     setIsVisible(false)
@@ -363,7 +363,7 @@ export default function CookieConsentBanner() {
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600">
-                  Your preferences will be saved for 12 months
+                  Your preferences will be saved for 6 months
                 </p>
                 <div className="flex gap-3">
                   <Button
