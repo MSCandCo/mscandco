@@ -33,26 +33,118 @@ export default function CookieConsentBanner() {
     analytics: false,
     functional: false
   })
+  const [isChecking, setIsChecking] = useState(true)
+
+  // Helper function to get cookie value
+  const getCookie = (name) => {
+    if (typeof document === 'undefined') return null
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(';').shift()
+    return null
+  }
+
+  // Helper function to set cookie
+  const setCookie = (name, value, days = 365) => {
+    if (typeof document === 'undefined') return
+    const date = new Date()
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
+    const expires = `expires=${date.toUTCString()}`
+    document.cookie = `${name}=${value};${expires};path=/;SameSite=Lax`
+  }
 
   useEffect(() => {
-    // Check if user has already made a choice
-    const consent = localStorage.getItem('cookie_consent')
-    const dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1'
+    const checkConsent = async () => {
+      setIsChecking(true)
+      
+      // Check multiple sources for consent
+      const localStorageConsent = localStorage.getItem('cookie_consent')
+      const sessionStorageConsent = sessionStorage.getItem('cookie_consent')
+      const cookieConsent = getCookie('cookie_consent')
+      const dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1'
 
-    if (!consent && !dnt) {
-      // Show banner after a short delay for better UX
-      setTimeout(() => setIsVisible(true), 1000)
-    } else if (consent) {
-      // Apply saved preferences
-      const savedPrefs = JSON.parse(consent)
-      setPreferences(savedPrefs)
-      applyConsentSettings(savedPrefs)
-    } else if (dnt) {
-      // Respect Do Not Track
-      const dntPrefs = { necessary: true, analytics: false, functional: false }
-      setPreferences(dntPrefs)
-      applyConsentSettings(dntPrefs)
+      // If Do Not Track is enabled, respect it and don't show banner
+      if (dnt) {
+        const dntPrefs = { necessary: true, analytics: false, functional: false }
+        setPreferences(dntPrefs)
+        applyConsentSettings(dntPrefs)
+        setIsChecking(false)
+        return
+      }
+
+      // Check if consent exists in any storage
+      let savedConsent = null
+      if (localStorageConsent) {
+        try {
+          savedConsent = JSON.parse(localStorageConsent)
+        } catch (e) {
+          console.warn('Invalid localStorage consent, clearing')
+          localStorage.removeItem('cookie_consent')
+        }
+      } else if (sessionStorageConsent) {
+        try {
+          savedConsent = JSON.parse(sessionStorageConsent)
+          // Migrate to localStorage and cookie for persistence
+          localStorage.setItem('cookie_consent', sessionStorageConsent)
+          setCookie('cookie_consent', 'true', 365)
+        } catch (e) {
+          console.warn('Invalid sessionStorage consent, clearing')
+          sessionStorage.removeItem('cookie_consent')
+        }
+      } else if (cookieConsent === 'true') {
+        // Cookie exists but no localStorage - restore from cookie
+        // Default to necessary only if cookie exists but no preferences stored
+        savedConsent = { necessary: true, analytics: false, functional: false }
+        localStorage.setItem('cookie_consent', JSON.stringify(savedConsent))
+      }
+
+      // If consent exists, apply it and don't show banner
+      if (savedConsent) {
+        setPreferences(savedConsent)
+        applyConsentSettings(savedConsent)
+        setIsVisible(false)
+        setIsChecking(false)
+        return
+      }
+
+      // Check database for logged-in users
+      try {
+        const response = await fetch('/api/user/cookie-consent', {
+          credentials: 'include'
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          if (data.consent) {
+            // User has consent in database
+            const dbConsent = {
+              necessary: data.consent.necessary !== false,
+              analytics: data.consent.analytics === true,
+              functional: data.consent.functional === true
+            }
+            setPreferences(dbConsent)
+            applyConsentSettings(dbConsent)
+            // Sync to localStorage and cookie
+            localStorage.setItem('cookie_consent', JSON.stringify(dbConsent))
+            setCookie('cookie_consent', 'true', 365)
+            setIsVisible(false)
+            setIsChecking(false)
+            return
+          }
+        }
+      } catch (error) {
+        // Silently fail - user might not be logged in
+        console.debug('Could not fetch consent from database:', error)
+      }
+
+      // No consent found anywhere - show banner after delay
+      setTimeout(() => {
+        setIsVisible(true)
+        setIsChecking(false)
+      }, 1000)
     }
+
+    checkConsent()
   }, [])
 
   const applyConsentSettings = (prefs) => {
@@ -97,8 +189,11 @@ export default function CookieConsentBanner() {
       functional: true
     }
 
+    // Save to multiple storage locations for redundancy
     localStorage.setItem('cookie_consent', JSON.stringify(allAccepted))
+    sessionStorage.setItem('cookie_consent', JSON.stringify(allAccepted))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
+    setCookie('cookie_consent', 'true', 365) // 1 year expiration
 
     setPreferences(allAccepted)
     applyConsentSettings(allAccepted)
@@ -112,8 +207,11 @@ export default function CookieConsentBanner() {
       functional: false
     }
 
+    // Save to multiple storage locations for redundancy
     localStorage.setItem('cookie_consent', JSON.stringify(necessaryOnly))
+    sessionStorage.setItem('cookie_consent', JSON.stringify(necessaryOnly))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
+    setCookie('cookie_consent', 'true', 365) // 1 year expiration
 
     setPreferences(necessaryOnly)
     applyConsentSettings(necessaryOnly)
@@ -121,8 +219,11 @@ export default function CookieConsentBanner() {
   }
 
   const handleSavePreferences = () => {
+    // Save to multiple storage locations for redundancy
     localStorage.setItem('cookie_consent', JSON.stringify(preferences))
+    sessionStorage.setItem('cookie_consent', JSON.stringify(preferences))
     localStorage.setItem('cookie_consent_date', new Date().toISOString())
+    setCookie('cookie_consent', 'true', 365) // 1 year expiration
 
     applyConsentSettings(preferences)
     setIsVisible(false)
@@ -138,7 +239,8 @@ export default function CookieConsentBanner() {
     }))
   }
 
-  if (!isVisible) return null
+  // Don't render anything while checking or if not visible
+  if (isChecking || !isVisible) return null
 
   return (
     <>
