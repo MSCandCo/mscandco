@@ -37,15 +37,28 @@ export async function GET(request) {
       )
     }
 
-    const { data: preferences, error } = await supabase
+    // Use service role client to bypass RLS for reliable access
+    const supabaseAdmin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        cookies: {
+          get() { return undefined; },
+          set() {},
+          remove() {},
+        },
+      }
+    )
+
+    const { data: preferences, error } = await supabaseAdmin
       .from('email_preferences')
       .select('*')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     console.log('📧 Query result - Preferences:', preferences, 'Error:', error)
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error) {
       console.error('❌ Error fetching email preferences:', error)
       return NextResponse.json(
         { error: 'Failed to fetch preferences', details: error.message },
@@ -57,13 +70,14 @@ export async function GET(request) {
     if (!preferences) {
       console.log('📧 No preferences found, creating defaults for user:', user.id)
 
-      const { data: newPreferences, error: createError } = await supabase
+      const { data: newPreferences, error: createError } = await supabaseAdmin
         .from('email_preferences')
         .insert({
           user_id: user.id,
           transactional_enabled: true,
           operational_enabled: true,
           marketing_enabled: false,
+          email_enabled: true,
           created_at: new Date().toISOString()
         })
         .select()
@@ -136,6 +150,19 @@ export async function POST(request) {
       )
     }
 
+    // Use service role client to bypass RLS for reliable access
+    const supabaseAdmin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        cookies: {
+          get() { return undefined; },
+          set() {},
+          remove() {},
+        },
+      }
+    )
+
     // Ensure transactional emails can never be disabled (legal requirement)
     const sanitizedPreferences = {
       ...preferences,
@@ -145,7 +172,7 @@ export async function POST(request) {
     }
 
     // Upsert preferences
-    const { data: updatedPreferences, error } = await supabase
+    const { data: updatedPreferences, error } = await supabaseAdmin
       .from('email_preferences')
       .upsert(sanitizedPreferences, { onConflict: 'user_id' })
       .select()
@@ -206,8 +233,21 @@ export async function DELETE(request) {
       )
     }
 
+    // Use service role client to bypass RLS for reliable access
+    const supabaseAdmin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        cookies: {
+          get() { return undefined; },
+          set() {},
+          remove() {},
+        },
+      }
+    )
+
     // Disable all non-essential emails
-    const { data: updatedPreferences, error } = await supabase
+    const { data: updatedPreferences, error } = await supabaseAdmin
       .from('email_preferences')
       .upsert({
         user_id: user.id,
@@ -230,6 +270,7 @@ export async function DELETE(request) {
         platform_maintenance_notices: false,
         platform_policy_changes: false,
         digest_enabled: false,
+        email_enabled: true,
         unsubscribed_at: new Date().toISOString(),
         last_modified_at: new Date().toISOString()
       }, { onConflict: 'user_id' })
