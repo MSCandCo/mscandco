@@ -2188,6 +2188,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // AI ASSISTANT (Apollo) TOOLS (4 tools)
       // ==========================================
       {
+        name: "get_comprehensive_intelligence",
+        description: "🧠 Get comprehensive AI intelligence insights for a user - learns from every interaction, navigation pattern, release, analytics view, earnings check, settings change, and more. Provides intelligent recommendations, predictions, and adaptive defaults based on learned patterns.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: { type: "string", description: "User ID (optional - uses authenticated user if not provided)" },
+          },
+          required: [],
+        },
+      },
+      {
+        name: "track_interaction",
+        description: "📊 Track any user interaction for comprehensive learning - automatically called throughout the platform to learn from every user action at every level and stage.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            interactionType: { type: "string", description: "Type of interaction (page_view, feature_use, release_created, analytics_viewed, etc.)" },
+            interactionCategory: { type: "string", description: "Category (navigation, releases, analytics, earnings, settings, social, collaboration, etc.)" },
+            interactionData: { type: "object", description: "Contextual data about the interaction" },
+          },
+          required: ["interactionType", "interactionCategory"],
+        },
+      },
+      {
         name: "apollo_chat",
         description: "Chat with AI assistant for help and guidance",
         inputSchema: {
@@ -2822,13 +2846,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             profile = await apiCall("/api/user/profile");
             profileId = profile?.id;
             
-            // Get learning data if profile exists
+            // Get comprehensive intelligence if profile exists
             if (profileId) {
               try {
-                const learningResponse: any = await apiCall(`/api/profile/learning-data?profileId=${profileId}`);
-                learningData = learningResponse?.learningData;
+                const intelligenceResponse: any = await apiCall(`/api/ai/intelligence/${profileId}`);
+                learningData = intelligenceResponse?.intelligence?.releases || {};
               } catch (error) {
-                console.log(`⚠️ Could not load learning data: ${error}`);
+                console.log(`⚠️ Could not load comprehensive intelligence: ${error}`);
+                // Fallback to basic learning data
+                try {
+                  const learningResponse: any = await apiCall(`/api/profile/learning-data?profileId=${profileId}`);
+                  learningData = learningResponse?.learningData || {};
+                } catch (fallbackError) {
+                  console.log(`⚠️ Could not load learning data: ${fallbackError}`);
+                }
               }
             }
           } catch (error) {
@@ -3205,6 +3236,92 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }, null, 2)
           }],
         };
+      }
+
+      case "get_comprehensive_intelligence": {
+        const params = args as any || {};
+        const userId = params.userId;
+        
+        if (!userId) {
+          // Try to get from authenticated session
+          try {
+            const profile: any = await apiCall("/api/user/profile");
+            if (profile?.id) {
+              const intelligence: any = await apiCall(`/api/ai/intelligence/${profile.id}`);
+              return {
+                content: [{
+                  type: "text",
+                  text: JSON.stringify({
+                    success: true,
+                    intelligence: intelligence.intelligence,
+                    message: "Comprehensive intelligence loaded - learning from every interaction, navigation, release, analytics view, earnings check, and settings change.",
+                  }, null, 2)
+                }],
+              };
+            }
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  error: "User ID required or user must be authenticated",
+                }, null, 2)
+              }],
+            };
+          }
+        }
+        
+        const intelligence: any = await apiCall(`/api/ai/intelligence/${userId}`);
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: true,
+              intelligence: intelligence.intelligence,
+              message: "Comprehensive intelligence loaded - learning from every aspect of platform usage.",
+            }, null, 2)
+          }],
+        };
+      }
+
+      case "track_interaction": {
+        const params = args as any || {};
+        const { interactionType, interactionCategory, interactionData } = params;
+        
+        // Get user ID from authenticated session
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            await apiCall("/api/ai/learn", {
+              method: "POST",
+              body: JSON.stringify({
+                userId: profile.id,
+                interactionType,
+                interactionCategory,
+                interactionData: interactionData || {},
+              }),
+            });
+            
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  message: `Interaction tracked: ${interactionCategory}/${interactionType}`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to track interactions",
+              }, null, 2)
+            }],
+          };
+        }
       }
 
       // For all new tools, return a placeholder implementation

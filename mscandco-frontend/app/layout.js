@@ -13,9 +13,7 @@ import PostHogProvider from '@/components/providers/PostHogProvider'
 import RealtimeProviderWrapper from '@/components/providers/RealtimeProviderWrapper'
 import { SessionValidator } from '@/components/auth/SessionValidator'
 import { InactivityLogout } from '@/components/auth/InactivityLogout'
-import CookieConsentBanner from '@/components/CookieConsentBanner'
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import AILearningTracker from '@/hooks/useAILearning'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -45,7 +43,7 @@ export default function RootLayout({ children }) {
                 </main>
                 <Footer />
                 <CookieConsentBanner />
-              </RealtimeProviderWrapper>
+                <AILearningTracker />
             </PostHogProvider>
           </SupabaseProvider>
         </QueryProvider>
