@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Check, X, ChevronDown, ChevronUp } from 'lucide-react'
 
 const FEATURES = [

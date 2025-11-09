@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
+import LabelTierUsageWidget from '@/components/label/LabelTierUsageWidget'
 import {
   Users,
   Music,
@@ -113,6 +114,11 @@ export default function LabelDashboardClient({ user }) {
             Label Dashboard
           </h1>
           <p className="mt-2 text-gray-600">Overview of your label's performance and activity</p>
+        </div>
+
+        {/* Tier Usage Widget */}
+        <div className="mb-8">
+          <LabelTierUsageWidget userId={user.id} />
         </div>
 
         {/* Stats Grid */}

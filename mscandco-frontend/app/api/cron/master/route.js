@@ -9,6 +9,7 @@
  * - Daily analytics aggregation
  * - Subscription renewals (every 6 hours, checked daily)
  * - Counter resets (monthly on 1st, annual on Jan 1st)
+ * - Label Partner qualification check (daily at 2 AM UTC)
  */
 
 import { NextResponse } from 'next/server';
@@ -48,7 +49,8 @@ export async function GET(request) {
     const results = {
       analytics: null,
       renewals: null,
-      resets: null
+      resets: null,
+      labelQualification: null
     };
 
     // 1. Daily Analytics Aggregation (runs at midnight)
@@ -129,7 +131,71 @@ export async function GET(request) {
       }
     }
 
-    // 3. Counter Resets (monthly on 1st, annual on Jan 1st)
+    // 3. Label Partner Auto-Qualification (daily at 2 AM UTC)
+    if (hour === 2) {
+      console.log('👑 Running label Partner qualification check...');
+      try {
+        // Check all label admins for Partner qualification
+        const { data: labels, error: fetchError } = await supabase
+          .from('user_profiles')
+          .select('id, email, name, label_tier, label_total_earnings, label_total_streams, label_artist_count, label_commissions_paid, label_qualified_for_partner')
+          .eq('role', 'label_admin')
+          .in('label_tier', ['label_starter', 'label_pro']);
+
+        if (fetchError) throw fetchError;
+
+        const CRITERIA = {
+          annual_earnings: 50000,
+          total_streams: 500000,
+          artist_count: 25,
+          commissions_paid: 10000
+        };
+
+        let qualified = 0;
+
+        for (const label of labels || []) {
+          const meetsEarnings = (label.label_total_earnings || 0) >= CRITERIA.annual_earnings;
+          const meetsStreams = (label.label_total_streams || 0) >= CRITERIA.total_streams;
+          const meetsArtists = (label.label_artist_count || 0) >= CRITERIA.artist_count;
+          const meetsCommissions = (label.label_commissions_paid || 0) >= CRITERIA.commissions_paid;
+
+          if ((meetsEarnings || meetsStreams || meetsArtists || meetsCommissions) && !label.label_qualified_for_partner) {
+            const { error: updateError } = await supabase
+              .from('user_profiles')
+              .update({
+                label_tier: 'label_partner',
+                subscription_tier: 'label_partner',
+                label_qualified_for_partner: true,
+                label_partner_qualified_at: new Date().toISOString(),
+                label_subscription_cancelled_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', label.id);
+
+            if (!updateError) {
+              qualified++;
+              console.log(`✅ Upgraded ${label.email} to FREE Partner tier`);
+            }
+          }
+        }
+
+        results.labelQualification = {
+          success: true,
+          message: `Checked ${labels?.length || 0} labels, upgraded ${qualified} to FREE Partner`,
+          checked: labels?.length || 0,
+          qualified
+        };
+        console.log(`✅ Label qualification check completed: ${qualified} upgraded`);
+      } catch (error) {
+        console.error('❌ Label qualification check failed:', error);
+        results.labelQualification = {
+          success: false,
+          error: error.message
+        };
+      }
+    }
+
+    // 4. Counter Resets (monthly on 1st, annual on Jan 1st)
     if (isFirstOfMonth) {
       console.log('📅 Running counter resets...');
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Loader2, Award } from 'lucide-react'
 
 export default function QualificationChecker({ userId, onQualified }) {

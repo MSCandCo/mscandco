@@ -16,14 +16,17 @@ import {
   X,
   Calendar,
   Download,
-  RefreshCw
+  RefreshCw,
+  Star
 } from 'lucide-react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { BillingRenewalNotification } from '@/components/notifications/RenewalNotification';
+import { createClient } from '@/lib/supabase/client';
 
 export default function BillingClient({ userRole = 'artist' }) {
   const router = useRouter();
   const { user, session, isLoading: userLoading } = useUser();
+  const supabase = createClient();
 
   // State management
   const [selectedCurrency, setSelectedCurrency] = useState('GBP');
@@ -113,10 +116,10 @@ export default function BillingClient({ userRole = 'artist' }) {
   ];
 
   const PLAN_PRICES = {
-    'artist-starter': { monthly: 9.99, yearly: 119.88 }, // 12 months minimum
-    'artist-pro': { monthly: 19.99, yearly: 239.88 }, // 12 months minimum
-    'label-starter': { monthly: 29.99, yearly: 359.88 }, // 12 months minimum
-    'label-pro': { monthly: 49.99, yearly: 599.88 } // 12 months minimum
+    'free': { monthly: 0, annual: 0 },
+    'pro': { monthly: 19.99, annual: 199 },
+    'mpp': { monthly: 99, annual: 999 },
+    'investment': { investment: [10000, 25000, 50000] }
   };
 
   const EXCHANGE_RATES = {
@@ -126,44 +129,108 @@ export default function BillingClient({ userRole = 'artist' }) {
 
   const PLANS = [
     {
-      id: 'artist-starter',
-      name: 'Artist Starter',
+      id: 'free',
+      name: 'MSC Free',
+      icon: null,
+      color: 'bg-gray-500',
+      features: [
+        'Keep 80% of royalties',
+        '12 streaming platforms',
+        'ISRC & UPC codes',
+        'Basic analytics',
+        'CSV sales reports',
+        'Copyright protection',
+        'Apollo Intelligence: 3 queries/month'
+      ],
+      limitations: [
+        'Maximum 3 releases per year',
+        'Maximum 15 tracks per year',
+        'Excludes TikTok, Boomplay, Anghami, Napster, KKBOX, JOOX',
+        'Standard delivery: 7-10 days',
+        'No pre-save campaigns',
+        'No smart links',
+        'No royalty splits',
+        'Upgrade required at £5,000/year earnings'
+      ],
+      target: 'artist',
+      popular: false,
+      minimumCommitment: null
+    },
+    {
+      id: 'pro',
+      name: 'MSC Pro',
+      icon: Star,
+      color: 'bg-indigo-600',
+      features: [
+        'Keep 85% of royalties',
+        'UNLIMITED releases & tracks',
+        'ALL 18 streaming platforms',
+        'Priority delivery: 1-3 days',
+        'Advanced analytics (demographics, retention)',
+        'Apollo Intelligence: 100 queries/month',
+        'Pre-save campaigns',
+        'Smart links & landing pages',
+        'Royalty splits management',
+        'Priority support (12h response)',
+        'Custom release dates',
+        'Pre-order functionality'
+      ],
+      target: 'artist',
+      popular: true,
+      minimumCommitment: null,
+      badge: 'Best Value'
+    },
+    {
+      id: 'mpp',
+      name: 'MPP Partner',
       icon: Zap,
-      color: 'bg-blue-500',
-      features: ['Up to 5 releases per year', 'Basic analytics dashboard', 'Distribution to all major platforms', 'Email support only', 'Basic earnings overview', 'Standard release management', 'Basic artist profile'],
+      color: 'bg-purple-600',
+      features: [
+        'Keep 90% of royalties',
+        '24-hour express delivery',
+        'Dedicated account manager',
+        'Apollo Intelligence Pro: 500 queries/month',
+        'White-label distribution (earn 3-5%)',
+        'Referral revenue (earn 10%)',
+        'Co-marketing opportunities',
+        'Featured on homepage',
+        'Private Partner community',
+        'Networking events',
+        'VIP support (6h response)',
+        'Custom integrations',
+        'Quarterly strategy calls'
+      ],
       target: 'artist',
       popular: false,
-      minimumCommitment: '12 months'
+      minimumCommitment: null,
+      badge: 'Most Popular',
+      qualificationNote: 'Or qualify for FREE with £10K earnings, 100K streams, or 50 releases'
     },
     {
-      id: 'artist-pro',
-      name: 'Artist Pro',
+      id: 'investment',
+      name: 'Investment Partner',
       icon: Crown,
-      color: 'bg-purple-500',
-      features: ['Unlimited releases per year', 'Advanced analytics & insights', 'Priority email & phone support', 'Distribution to all major platforms', 'Detailed earnings & royalty tracking', 'Advanced release management', 'Social media integration', 'Marketing campaign tools', 'Priority customer service', 'Advanced artist profile customization', 'Release scheduling & promotion'],
+      color: 'bg-yellow-600',
+      features: [
+        'Keep 97.5% of royalties (LOWEST RATE)',
+        'Equity ownership (0.5% - 2.0%)',
+        'Board advisory seat',
+        'Vote on platform decisions',
+        'Revenue share: 5% of ALL platform revenue',
+        'Dividend payments (when profitable)',
+        'Apollo Intelligence: UNLIMITED',
+        'Personal concierge support (1h response)',
+        'Custom feature development',
+        'White-label override (5%)',
+        'Exit proceeds (acquisition/IPO)',
+        'Shape product roadmap'
+      ],
       target: 'artist',
-      popular: true,
-      minimumCommitment: '12 months'
-    },
-    {
-      id: 'label-starter',
-      name: 'Label Admin Starter',
-      icon: Building2,
-      color: 'bg-green-500',
-      features: ['Manage up to 3 artists (2 releases per artist per year)', 'Basic label analytics dashboard', 'Artist content oversight', 'Basic reporting tools', 'Standard release management', 'Basic artist performance tracking', 'Email support only', 'Simple content approval workflows', 'Basic revenue tracking'],
-      target: 'label',
       popular: false,
-      minimumCommitment: '12 months'
-    },
-    {
-      id: 'label-pro',
-      name: 'Label Admin Pro',
-      icon: Crown,
-      color: 'bg-orange-500',
-      features: ['Unlimited artists management', 'Advanced label analytics & insights', 'Comprehensive artist content oversight', 'Advanced reporting & export tools', 'Full release management suite', 'Detailed artist performance tracking', 'Custom label branding options', 'Priority email & phone support', 'Advanced content approval workflows', 'Comprehensive revenue & royalty tracking', 'Multi-label roster management', 'Release calendar & scheduling', 'Artist development tools', 'Advanced content distribution controls'],
-      target: 'label',
-      popular: true,
-      minimumCommitment: '12 months'
+      minimumCommitment: null,
+      badge: 'Ultimate',
+      investmentNote: '£10K (0.5%) | £25K (1.0%) | £50K (2.0%) equity',
+      isInvestment: true
     }
   ];
 
@@ -222,7 +289,10 @@ export default function BillingClient({ userRole = 'artist' }) {
   };
 
   const getPlanPrice = (planId, billing = selectedBilling) => {
-    return PLAN_PRICES[planId]?.[billing] || 0;
+    const plan = PLAN_PRICES[planId];
+    if (!plan) return 0;
+    if (plan.investment) return plan.investment[1]; // Return middle investment tier for display
+    return plan[billing] || plan.monthly || 0;
   };
 
   // Helper function to determine button state for each plan
@@ -292,6 +362,52 @@ export default function BillingClient({ userRole = 'artist' }) {
     setSelectedPlan(planId);
 
     try {
+      // Free tier doesn't need payment
+      if (planId === 'free') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Please log in to continue');
+        }
+
+        const response = await fetch('/api/wallet/pay-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            planId: planId,
+            billing: 'annual' // Free tier uses annual billing period
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to activate free plan');
+        }
+
+        setPaymentStatus('success');
+        await refreshBalance();
+
+        const { data: { session: refreshSession } } = await supabase.auth.getSession();
+        if (refreshSession) {
+          const response = await fetch('/api/user/subscription-status', {
+            headers: { 'Authorization': `Bearer ${refreshSession.access_token}` }
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data.hasSubscription) {
+              setCurrentSubscription(result.data);
+            }
+          }
+        }
+
+        await loadTransactions();
+        return;
+      }
+
       const gbpPrice = getPlanPrice(planId);
       const localPrice = convertPrice(gbpPrice);
 
@@ -313,7 +429,7 @@ export default function BillingClient({ userRole = 'artist' }) {
           },
           body: JSON.stringify({
             planId: planId,
-            billing: selectedBilling
+            billing: selectedBilling === 'monthly' ? 'monthly' : 'annual'
           })
         });
 
@@ -615,9 +731,9 @@ export default function BillingClient({ userRole = 'artist' }) {
                       Monthly
                     </button>
                     <button
-                      onClick={() => setSelectedBilling('yearly')}
+                      onClick={() => setSelectedBilling('annual')}
                       className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all relative ${
-                        selectedBilling === 'yearly'
+                        selectedBilling === 'annual'
                           ? 'bg-white text-gray-900 shadow-sm'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
@@ -654,66 +770,101 @@ export default function BillingClient({ userRole = 'artist' }) {
             {/* Subscription Plans */}
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Choose Your Plan</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {availablePlans.map((plan) => {
                   const gbpPrice = getPlanPrice(plan.id);
                   const localPrice = convertPrice(gbpPrice);
-                  const hasEnoughFunds = walletBalance >= gbpPrice;
+                  const hasEnoughFunds = walletBalance >= gbpPrice || plan.id === 'free';
                   const Icon = plan.icon;
+                  const isInvestment = plan.isInvestment;
+                  const isFree = plan.id === 'free';
 
                   return (
                     <div
                       key={plan.id}
                       className={`relative bg-white rounded-xl shadow-sm border-2 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-all ${
-                        plan.popular ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'
+                        plan.popular ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'
                       }`}
                     >
-                      {plan.popular && (
-                        <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 z-10">
-                          <span className="bg-blue-500 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-semibold">
-                            Most Popular
+                      {plan.badge && (
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                          <span className={`inline-flex items-center justify-center px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap ${
+                            plan.badge === 'Best Value' ? 'bg-green-100 text-green-800' :
+                            plan.badge === 'Most Popular' ? 'bg-purple-100 text-purple-800' :
+                            plan.badge === 'Ultimate' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-500 text-white'
+                          }`}>
+                            {plan.badge}
                           </span>
                         </div>
                       )}
 
                       <div className="text-center mb-4 sm:mb-6">
-                        <div className={`${plan.color} w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4`}>
-                          <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                        </div>
+                        {Icon && (
+                          <div className={`${plan.color} w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4`}>
+                            <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                          </div>
+                        )}
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
 
-                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-                          {formatPrice(localPrice)}
-                        </div>
-                        <div className="text-sm sm:text-base text-gray-600 mb-2">per {selectedBilling}</div>
-
-                        {/* 12-month minimum commitment notice */}
-                        <div className="text-xs text-orange-600 font-medium mb-2">
-                          12-month minimum commitment
-                        </div>
-
-                        {selectedCurrency !== 'GBP' && (
-                          <div className="text-xs sm:text-sm text-gray-500">Base: £{gbpPrice.toFixed(2)}</div>
+                        {isInvestment ? (
+                          <div>
+                            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Investment</div>
+                            {plan.investmentNote && (
+                              <div className="text-sm text-gray-600 mb-2">{plan.investmentNote}</div>
+                            )}
+                          </div>
+                        ) : isFree ? (
+                          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Free</div>
+                        ) : (
+                          <>
+                            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                              {formatPrice(localPrice)}
+                            </div>
+                            <div className="text-sm sm:text-base text-gray-600 mb-2">
+                              per {selectedBilling === 'monthly' ? 'month' : 'year'}
+                            </div>
+                            {selectedCurrency !== 'GBP' && (
+                              <div className="text-xs sm:text-sm text-gray-500">Base: £{gbpPrice.toFixed(2)}</div>
+                            )}
+                          </>
                         )}
 
-                        <div className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mt-2 sm:mt-3 ${
-                          hasEnoughFunds ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {hasEnoughFunds ? (
-                            <>
-                              <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="hidden sm:inline">Pay from wallet</span>
-                              <span className="sm:hidden">Wallet</span>
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="hidden sm:inline">Top up £{(gbpPrice - walletBalance).toFixed(2)} needed</span>
-                              <span className="sm:hidden">+£{(gbpPrice - walletBalance).toFixed(2)}</span>
-                            </>
-                          )}
-                        </div>
+                        {!isFree && !isInvestment && (
+                          <div className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mt-2 sm:mt-3 ${
+                            hasEnoughFunds ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {hasEnoughFunds ? (
+                              <>
+                                <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <span className="hidden sm:inline">Pay from wallet</span>
+                                <span className="sm:hidden">Wallet</span>
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <span className="hidden sm:inline">Top up £{(gbpPrice - walletBalance).toFixed(2)} needed</span>
+                                <span className="sm:hidden">+£{(gbpPrice - walletBalance).toFixed(2)}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
+
+                      {/* Limitations (Free tier only) */}
+                      {plan.limitations && plan.limitations.length > 0 && (
+                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <h4 className="text-xs font-semibold text-yellow-900 mb-2">Limitations:</h4>
+                          <ul className="space-y-1">
+                            {plan.limitations.slice(0, 3).map((limitation, index) => (
+                              <li key={index} className="flex items-start text-xs text-yellow-800">
+                                <X className="w-3 h-3 text-yellow-600 mr-1.5 flex-shrink-0 mt-0.5" />
+                                <span className="break-words">{limitation}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
                       <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                         {plan.features.map((feature, index) => (
@@ -724,9 +875,48 @@ export default function BillingClient({ userRole = 'artist' }) {
                         ))}
                       </ul>
 
+                      {plan.qualificationNote && (
+                        <p className="text-xs text-center text-gray-500 mb-4 px-2">
+                          {plan.qualificationNote}
+                        </p>
+                      )}
+
                       {(() => {
                         const buttonState = getButtonState(plan.id);
                         const isProcessing = isLoading && selectedPlan === plan.id;
+
+                        if (isInvestment) {
+                          return (
+                            <button
+                              onClick={() => router.push('/billing/investment-application')}
+                              className="w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold transition-all bg-yellow-600 hover:bg-yellow-700 text-white text-sm sm:text-base"
+                            >
+                              Learn More
+                            </button>
+                          );
+                        }
+
+                        if (isFree) {
+                          return (
+                            <button
+                              onClick={() => handleSubscribe(plan.id)}
+                              disabled={isLoading}
+                              className={`w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold transition-all flex items-center justify-center text-sm sm:text-base ${
+                                buttonState.disabled ? 'bg-green-100 text-green-700 cursor-not-allowed border border-green-200' :
+                                'bg-gray-900 hover:bg-gray-800 text-white'
+                              }`}
+                            >
+                              {isLoading && selectedPlan === plan.id ? (
+                                <>
+                                  <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                                  <span>Processing...</span>
+                                </>
+                              ) : (
+                                <span>{buttonState.text === 'Current Plan' ? 'Current Plan' : 'Activate Free Plan'}</span>
+                              )}
+                            </button>
+                          );
+                        }
 
                         return (
                           <button

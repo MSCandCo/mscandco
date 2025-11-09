@@ -114,24 +114,34 @@ function Header({ largeLogo = false }) {
     // Priority 1: Artist Name
     if (profileData?.artist_name) {
       console.log('✅ Using artist_name:', profileData.artist_name);
-      return profileData.artist_name
+      return profileData.artist_name;
     }
     // Priority 2: First Name + Last Name
     if (profileData?.first_name && profileData?.last_name) {
       console.log('✅ Using first+last name');
-      return `${profileData.first_name} ${profileData.last_name}`
+      return `${profileData.first_name} ${profileData.last_name}`;
     }
-    // Priority 3: Formatted Role
+    // Priority 3: First Name only
+    if (profileData?.first_name) {
+      console.log('✅ Using first_name only');
+      return profileData.first_name;
+    }
+    // Priority 4: Formatted Role
     if (profileData?.role) {
       console.log('✅ Using role:', profileData.role);
       return profileData.role
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
+        .join(' ');
     }
-    // Priority 4: Email username as fallback
-    console.log('✅ Using email fallback');
-    return user?.email?.split('@')[0] || 'User'
+    // Priority 5: Email username as fallback
+    if (user?.email) {
+      console.log('✅ Using email fallback');
+      return user.email.split('@')[0];
+    }
+    // Priority 6: Final fallback
+    console.log('✅ Using final fallback');
+    return 'User';
   }
 
   // For the dropdown header: First Name + Last Name first
@@ -452,7 +462,7 @@ function Header({ largeLogo = false }) {
                         type="button"
                       >
                         <span className="sr-only">Open user menu</span>
-                        Hi, {getButtonDisplayName()}
+                        <span>Hi, {getButtonDisplayName() || 'User'}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-1" />
                       </button>
                     </div>

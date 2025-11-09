@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import TierCard from '@/components/pricing/TierCard'
@@ -111,7 +111,7 @@ const TIERS = [
 ]
 
 export default function NewPricingClient({ user }) {
-  const [billingPeriod, setBillingPeriod] = useState('annual')
+  const [billingPeriod, setBillingPeriod] = useState('monthly')
   const [showFAQ, setShowFAQ] = useState(false)
 
   const getPrice = (tierData) => {
@@ -141,7 +141,7 @@ export default function NewPricingClient({ user }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-4">
+    <div className="min-h-screen bg-gray-50 py-16 px-4 overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -157,11 +157,6 @@ export default function NewPricingClient({ user }) {
           <p className="text-lg text-gray-600">
             The more you grow, the less you pay.
           </p>
-        </div>
-
-        {/* Earnings Calculator */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <EarningsCalculator />
         </div>
 
         {/* Billing Toggle */}
@@ -196,26 +191,30 @@ export default function NewPricingClient({ user }) {
         )}
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {TIERS.map((tierData) => (
-            <TierCard
-              key={tierData.tier}
-              {...tierData}
-              billingPeriod={billingPeriod}
-              price={getPrice(tierData)}
-              originalPrice={getOriginalPrice(tierData)}
-              ctaText={
-                !user
-                  ? 'Get Started'
-                  : user.tier === tierData.tier
-                  ? 'Current Plan'
-                  : tierData.tier === 'free'
-                  ? 'Downgrade'
-                  : 'Upgrade'
-              }
-              ctaAction={() => handleUpgrade(tierData.tier)}
-              user={user}
-            />
+            <div key={tierData.tier} className="min-w-0">
+              <TierCard
+                {...tierData}
+                billingPeriod={billingPeriod}
+                price={tierData.tier === 'investment' ? null : getPrice(tierData)}
+                originalPrice={getOriginalPrice(tierData)}
+                investmentNote={tierData.investmentNote}
+                ctaText={
+                  !user
+                    ? 'Get Started'
+                    : user.tier === tierData.tier
+                    ? 'Current Plan'
+                    : tierData.tier === 'free'
+                    ? 'Downgrade'
+                    : tierData.tier === 'investment'
+                    ? 'Learn More'
+                    : 'Upgrade'
+                }
+                ctaAction={() => handleUpgrade(tierData.tier)}
+                user={user}
+              />
+            </div>
           ))}
         </div>
 
@@ -235,6 +234,11 @@ export default function NewPricingClient({ user }) {
         {/* Feature Comparison */}
         <div className="mb-16">
           <FeatureComparisonTable />
+        </div>
+
+        {/* Earnings Calculator */}
+        <div className="max-w-4xl mx-auto mb-16">
+          <EarningsCalculator />
         </div>
 
         {/* FAQ Section */}

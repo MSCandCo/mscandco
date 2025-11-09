@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { Check, X, Crown, Star, Zap, Diamond } from 'lucide-react'
 import Link from 'next/link'
 
@@ -31,21 +32,22 @@ export default function TierCard({
   ctaText,
   ctaAction,
   highlighted = false,
-  user = null
+  user = null,
+  investmentNote = null // For investment tier
 }) {
   const Icon = TIER_ICONS[tier]
   const tierBadge = badge || TIER_BADGES[tier]
 
   const getCardClasses = () => {
-    const base = "bg-white rounded-2xl shadow-xl p-8 transition-all duration-300"
+    const base = "bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 overflow-hidden"
     if (highlighted) {
-      return `${base} border-4 border-indigo-600 scale-105 relative`
+      return `${base} border-4 border-indigo-600 relative`
     }
     return `${base} border-2 border-gray-200 hover:border-gray-400`
   }
 
   return (
-    <div className={getCardClasses()}>
+    <div className={`${getCardClasses()} min-w-0`}>
       {/* Badge */}
       {tierBadge && (
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -63,11 +65,22 @@ export default function TierCard({
           </div>
         )}
 
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{name}</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2 break-words">{name}</h3>
 
         {/* Price */}
         <div className="mb-2">
-          {price === 0 ? (
+          {tier === 'investment' ? (
+            <div className="text-center">
+              <div className="text-4xl font-bold text-gray-900 mb-2">
+                Investment
+              </div>
+              {investmentNote && (
+                <div className="text-sm text-gray-600 break-words px-2">
+                  {investmentNote}
+                </div>
+              )}
+            </div>
+          ) : price === 0 || price === null ? (
             <span className="text-5xl font-bold text-gray-900">Free</span>
           ) : (
             <>
@@ -88,18 +101,8 @@ export default function TierCard({
           </div>
         )}
 
-        {/* Commission rate */}
-        <div className="mt-3 inline-flex items-center px-4 py-2 bg-gray-100 rounded-lg">
-          <span className="text-sm text-gray-600">Commission: </span>
-          <span className="ml-1 text-lg font-bold text-gray-900">{commission}%</span>
-        </div>
-
-        <div className="mt-2 text-sm font-medium text-green-600">
-          You keep {100 - commission}% of royalties
-        </div>
-
         {/* Best for */}
-        <p className="mt-4 text-sm text-gray-600 italic">{bestFor}</p>
+        <p className="mt-4 text-sm text-gray-600 italic break-words">{bestFor}</p>
       </div>
 
       {/* Limitations (Free tier only) */}
@@ -110,7 +113,7 @@ export default function TierCard({
             {limitations.map((limitation, index) => (
               <li key={index} className="flex items-start text-xs text-yellow-800">
                 <X className="w-4 h-4 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
-                <span>{limitation}</span>
+                <span className="break-words">{limitation}</span>
               </li>
             ))}
           </ul>
@@ -126,7 +129,7 @@ export default function TierCard({
           {features.map((feature, index) => (
             <li key={index} className="flex items-start text-sm text-gray-700">
               <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-              <span>{feature}</span>
+              <span className="break-words">{feature}</span>
             </li>
           ))}
         </ul>
@@ -148,12 +151,6 @@ export default function TierCard({
       {tier === 'mpp' && (
         <p className="mt-3 text-xs text-center text-gray-500">
           Or qualify for FREE with £10K earnings, 100K streams, or 50 releases
-        </p>
-      )}
-
-      {tier === 'investment' && (
-        <p className="mt-3 text-xs text-center text-gray-500">
-          Investment includes equity ownership + lowest commission rate
         </p>
       )}
     </div>
