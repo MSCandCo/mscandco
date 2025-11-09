@@ -1116,6 +1116,62 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "create_comprehensive_profile",
+        description: "🎯 Create comprehensive MSC profile - only needs to be done once in the Aiverse. Intelligently collects all necessary information (location, genre, artist type, social media, payment preferences) without asking redundant questions. After setup, AI learns from releases to make future ones easier.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            // Basic Info
+            email: { type: "string", description: "Email address" },
+            artistName: { type: "string", description: "Artist/band name" },
+            firstName: { type: "string", description: "First name" },
+            lastName: { type: "string", description: "Last name" },
+            fullName: { type: "string", description: "Full name (if first/last not provided)" },
+            
+            // Location & Demographics
+            country: { type: "string", enum: COUNTRIES as any, description: "Country code (ISO 3166-1 alpha-2)" },
+            city: { type: "string", description: "City" },
+            location: { type: "string", description: "Full location string (e.g., 'London, UK')" },
+            nationality: { type: "string", description: "Nationality" },
+            timezone: { type: "string", description: "Timezone (e.g., 'Europe/London')" },
+            
+            // Music Info
+            primaryGenre: { type: "string", enum: MUSIC_GENRES as any, description: "Primary genre" },
+            secondaryGenre: { type: "string", enum: MUSIC_GENRES as any, description: "Secondary genre" },
+            artistType: { type: "string", description: "Artist type (solo, band, duo, etc.)" },
+            yearsActive: { type: "string", description: "Years active" },
+            recordLabel: { type: "string", description: "Record label" },
+            bio: { type: "string", description: "Artist biography" },
+            
+            // Contact
+            phone: { type: "string", description: "Phone number" },
+            countryCode: { type: "string", description: "Country code (e.g., '+44')" },
+            
+            // Social Media
+            website: { type: "string", description: "Website URL" },
+            instagram: { type: "string", description: "Instagram handle/URL" },
+            twitter: { type: "string", description: "Twitter handle/URL" },
+            facebook: { type: "string", description: "Facebook page URL" },
+            youtube: { type: "string", description: "YouTube channel URL" },
+            tiktok: { type: "string", description: "TikTok handle/URL" },
+            spotify: { type: "string", description: "Spotify artist URL" },
+            
+            // Preferences (for learning)
+            preferredReleaseType: { type: "string", enum: RELEASE_TYPES as any },
+            preferredTerritories: { type: "array", items: { type: "string", enum: TERRITORIES as any } },
+            
+            // Payment Info
+            paymentMethod: { type: "string", enum: ["paypal", "stripe", "bank_transfer", "revolut", "wise"] },
+            paymentDetails: { type: "string" },
+            
+            // Context
+            conversationContext: { type: "string", description: "Context from conversation for intelligent defaults" },
+            detectedLocation: { type: "object", description: "Detected location from IP/browser" },
+          },
+          required: ["email", "artistName"],
+        },
+      },
+      {
         name: "check_or_create_account",
         description: "Check if user has an MSC & Co account, create one if not. Collects complete profile and payment info.",
         inputSchema: {
@@ -2698,6 +2754,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // Step 1: Match/link profile if info provided
         let profileId = null;
         let profileInfo: any = null;
+        let learningData: any = null;
         
         if (params.email && params.artistName) {
           try {
@@ -2714,8 +2771,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               profileId = matchResult.profileId;
               profileInfo = matchResult;
               console.log(`✅ Profile matched: ${profileId}`);
+              
+              // Get learning data for intelligent defaults
+              try {
+                const learningResponse: any = await apiCall(`/api/profile/learning-data/${profileId}`);
+                learningData = learningResponse?.learningData;
+                console.log(`🧠 Learning data loaded: ${learningData?.intelligenceLevel || 'new'}`);
+              } catch (error) {
+                console.log(`⚠️ Could not load learning data: ${error}`);
+              }
             } else {
               console.log(`ℹ️ No existing profile found for ${params.email}`);
+              // Guide user to comprehensive profile creation
+              return {
+                content: [{
+                  type: "text",
+                  text: JSON.stringify({
+                    success: false,
+                    needsProfile: true,
+                    message: `🎯 No MSC profile found. Let's set up your comprehensive profile - this only needs to be done once in the Aiverse!`,
+                    instruction: `I'll collect all the information I need intelligently, without asking redundant questions. Once set up, I'll remember your preferences and make future releases easier.`,
+                    nextAction: "create_comprehensive_profile",
+                    requiredInfo: {
+                      email: params.email,
+                      artistName: params.artistName,
+                      fullName: params.fullName,
+                    },
+                    whatIWillAsk: [
+                      "Your location (country, city) - helps me understand your market",
+                      "Your primary music genre - for better categorization",
+                      "Your artist type (solo, band, etc.) - for proper metadata",
+                      "Years active - helps with promotion",
+                      "Social media links - for cross-platform promotion",
+                      "Payment preferences - for royalty distribution",
+                    ],
+                    note: "After 2-3 releases, I'll learn your patterns and make releases even easier!",
+                  }, null, 2)
+                }],
+              };
             }
           } catch (error) {
             console.log(`⚠️ Profile matching failed, continuing without match: ${error}`);
@@ -2728,38 +2821,90 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           try {
             profile = await apiCall("/api/user/profile");
             profileId = profile?.id;
+            
+            // Get learning data if profile exists
+            if (profileId) {
+              try {
+                const learningResponse: any = await apiCall(`/api/profile/learning-data?profileId=${profileId}`);
+                learningData = learningResponse?.learningData;
+              } catch (error) {
+                console.log(`⚠️ Could not load learning data: ${error}`);
+              }
+            }
           } catch (error) {
-            // If profile fetch fails, continue anyway with defaults
-            profile = null;
+            // If profile fetch fails, guide to comprehensive creation
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: false,
+                  needsProfile: true,
+                  message: `🎯 Let's set up your comprehensive MSC profile - this only needs to be done once in the Aiverse!`,
+                  instruction: `I'll collect all necessary information intelligently. Once set up, I'll learn from your releases and make future ones easier.`,
+                  nextAction: "create_comprehensive_profile",
+                }, null, 2)
+              }],
+            };
           }
         } else {
           // Use matched profile info
           profile = profileInfo;
         }
 
-        // Step 3: Create draft release with minimal required info or defaults
+        // Step 3: Use intelligent defaults from learning data
+        const suggestedDefaults = learningData?.suggestedDefaults || {};
+        const intelligenceLevel = learningData?.intelligenceLevel || 'new';
+        
         const releaseData = {
           title: params.title || "New Release",
-          release_type: params.release_type || "single",
-          genre: params.genre || "Pop",
+          release_type: params.release_type || suggestedDefaults.releaseType || "single",
+          genre: params.genre || suggestedDefaults.genre || profile?.primary_genre || "Pop",
           status: "draft",
         };
 
+        // Step 4: Create draft release
         const data = await apiCall("/api/releases", {
           method: "POST",
           body: JSON.stringify(releaseData),
         });
+
+        // Step 5: Update learning data after release creation
+        if (profileId && data) {
+          try {
+            await apiCall("/api/profile/update-learning", {
+              method: "POST",
+              body: JSON.stringify({
+                profileId: profileId,
+                releaseData: releaseData,
+              }),
+            });
+          } catch (error) {
+            console.log(`⚠️ Could not update learning data: ${error}`);
+          }
+        }
+
+        // Step 6: Build intelligent response based on learning level
+        let message = '';
+        if (intelligenceLevel === 'experienced') {
+          message = `🚀 Release created! I've used your preferred settings (${suggestedDefaults.genre || releaseData.genre}, ${suggestedDefaults.releaseType || releaseData.release_type}). I'm learning from your ${learningData?.releaseHistory?.totalReleases || 0} releases to make this easier!`;
+        } else if (intelligenceLevel === 'learning') {
+          message = `🚀 Release created! I'm learning your preferences from your releases. After a few more, I'll make this even smoother!`;
+        } else {
+          message = profileId && profileInfo?.matched
+            ? `🚀 Release process started! Profile matched: ${profileInfo.artistName || params.artistName}. Draft release created.`
+            : `🚀 Release process started! I've created a draft release for you.`;
+        }
 
         return {
           content: [{
             type: "text",
             text: JSON.stringify({
               success: true,
-              message: profileId && profileInfo?.matched
-                ? `🚀 Release process started! Profile matched: ${profileInfo.artistName || params.artistName}. Draft release created.`
-                : `🚀 Release process started! I've created a draft release for you.`,
+              message: message,
               profileMatched: profileInfo?.matched || false,
               profileId: profileId,
+              intelligenceLevel: intelligenceLevel,
+              usedLearningDefaults: !!suggestedDefaults.genre || !!suggestedDefaults.releaseType,
               next_steps: [
                 `1. Complete your release details at: ${API_BASE_URL}/artist/releases`,
                 `2. Upload your audio files and artwork`,
@@ -2770,7 +2915,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               profile: profile ? { 
                 artist_name: profile.artistName || profile.artist_name || params.artistName,
                 email: profile.email || params.email,
-                id: profileId
+                id: profileId,
+                location: learningData?.location || { country: profile.country, city: profile.city },
               } : null,
             }, null, 2)
           }],
@@ -2865,6 +3011,65 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         );
         return {
           content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        };
+      }
+
+      case "create_comprehensive_profile": {
+        const params = args as any || {};
+        
+        const profileData = {
+          email: params.email,
+          artistName: params.artistName,
+          firstName: params.firstName,
+          lastName: params.lastName,
+          fullName: params.fullName,
+          country: params.country,
+          city: params.city,
+          location: params.location,
+          nationality: params.nationality,
+          timezone: params.timezone,
+          primaryGenre: params.primaryGenre,
+          secondaryGenre: params.secondaryGenre,
+          artistType: params.artistType,
+          yearsActive: params.yearsActive,
+          recordLabel: params.recordLabel,
+          bio: params.bio,
+          phone: params.phone,
+          countryCode: params.countryCode,
+          website: params.website,
+          instagram: params.instagram,
+          twitter: params.twitter,
+          facebook: params.facebook,
+          youtube: params.youtube,
+          tiktok: params.tiktok,
+          spotify: params.spotify,
+          preferredReleaseType: params.preferredReleaseType,
+          preferredTerritories: params.preferredTerritories,
+          paymentMethod: params.paymentMethod,
+          paymentDetails: params.paymentDetails,
+          conversationContext: params.conversationContext,
+          detectedLocation: params.detectedLocation,
+        };
+
+        const data = await apiCall("/api/profile/create-comprehensive", {
+          method: "POST",
+          body: JSON.stringify(profileData),
+        });
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: true,
+              message: (data as any).profileCreated 
+                ? `✅ Comprehensive profile created! This only needs to be done once in the Aiverse. I'll remember your preferences and learn from your releases to make future ones easier.`
+                : `✅ Profile information collected! ${(data as any).message || 'Complete registration to finish account setup.'}`,
+              profileId: (data as any).profileId,
+              profile: (data as any).profile,
+              nextStep: (data as any).nextStep,
+              note: "After 2-3 releases, I'll learn your patterns and make releases even easier!",
+            }, null, 2)
+          }],
         };
       }
 
