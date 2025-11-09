@@ -322,11 +322,6 @@ function Header({ largeLogo = false }) {
       </header>
     );
   }
-  
-  // If user is a platform admin, use AdminHeader
-  if (user && isPlatformAdmin(profileData?.role)) {
-    return <AdminHeader largeLogo={largeLogo} />;
-  }
 
   // Otherwise, use standard header for content creators (artists, label_admin) and logged-out users
   return (
