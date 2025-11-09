@@ -39,9 +39,9 @@ export default function TierCard({
   const tierBadge = badge || TIER_BADGES[tier]
 
   const getCardClasses = () => {
-    const base = "bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 overflow-hidden"
+    const base = "bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 relative"
     if (highlighted) {
-      return `${base} border-4 border-indigo-600 relative`
+      return `${base} border-4 border-indigo-600`
     }
     return `${base} border-2 border-gray-200 hover:border-gray-400`
   }
@@ -50,8 +50,8 @@ export default function TierCard({
     <div className={`${getCardClasses()} min-w-0`}>
       {/* Badge */}
       {tierBadge && (
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <span className={`inline-flex items-center px-4 py-1 rounded-full text-sm font-semibold ${tierBadge.color}`}>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+          <span className={`inline-flex items-center justify-center px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${tierBadge.color}`}>
             {tierBadge.text}
           </span>
         </div>

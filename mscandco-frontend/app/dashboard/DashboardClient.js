@@ -30,8 +30,10 @@ import {
 } from 'lucide-react'
 
 export default function DashboardClient({ user }) {
+  console.log('🎯 DashboardClient: Component rendering, user:', user?.id || 'no user')
+
   const supabase = createClient()
-  
+
   // Get realtime hook - will be null if RealtimeProvider isn't available
   // This is safe because the hook returns a default context value
   const realtimeContext = useRealtime()

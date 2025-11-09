@@ -36,6 +36,7 @@ export default function BillingClient({ userRole = 'artist' }) {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState(0);
+  const [isTopUpForSubscription, setIsTopUpForSubscription] = useState(false);
   // Use shared wallet balance hook
   const { walletBalance, isLoading: loadingBalance, refreshBalance } = useWalletBalance();
 
@@ -467,6 +468,7 @@ export default function BillingClient({ userRole = 'artist' }) {
         // Need to top up
         const shortfall = gbpPrice - walletBalance;
         setTopUpAmount(Math.ceil(shortfall));
+        setIsTopUpForSubscription(true);
         setShowTopUpModal(true);
 
       }
@@ -578,6 +580,47 @@ export default function BillingClient({ userRole = 'artist' }) {
     }
   };
 
+  const handleAddFundsFromModal = async () => {
+    const fundAmount = topUpAmount > 0 ? topUpAmount : 50;
+    
+    try {
+      setIsLoading(true);
+      
+      // Get user session for API call
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('Please log in to continue');
+      }
+
+      const response = await fetch('/api/revolut/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          amount: fundAmount,
+          currency: 'GBP',
+          description: 'Wallet Top-up',
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment');
+      }
+
+      const { paymentUrl } = await response.json();
+
+      // Redirect to Revolut payment page
+      window.location.href = paymentUrl;
+
+    } catch (error) {
+      alert(`Payment failed: ${error.message}`);
+      setIsLoading(false);
+    }
+  };
+
   const availablePlans = getAvailablePlans();
 
   return (
@@ -662,7 +705,11 @@ export default function BillingClient({ userRole = 'artist' }) {
                 <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
               </div>
               <button
-                onClick={() => setShowTopUpModal(true)}
+                onClick={() => {
+                  setIsTopUpForSubscription(false);
+                  setTopUpAmount(0);
+                  setShowTopUpModal(true);
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -676,13 +723,17 @@ export default function BillingClient({ userRole = 'artist' }) {
               <p className="text-sm text-gray-600">Wallet Balance</p>
               <p className="text-lg font-bold text-gray-900">£{walletBalance.toFixed(2)}</p>
             </div>
-            <button
-              onClick={() => setShowTopUpModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Funds
-            </button>
+              <button
+                onClick={() => {
+                  setIsTopUpForSubscription(false);
+                  setTopUpAmount(0);
+                  setShowTopUpModal(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Funds
+              </button>
           </div>
         </div>
       </div>
@@ -888,7 +939,7 @@ export default function BillingClient({ userRole = 'artist' }) {
                         if (isInvestment) {
                           return (
                             <button
-                              onClick={() => router.push('/billing/investment-application')}
+                              onClick={() => router.push('/artist/billing/investment-application')}
                               className="w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold transition-all bg-yellow-600 hover:bg-yellow-700 text-white text-sm sm:text-base"
                             >
                               Learn More
@@ -960,10 +1011,16 @@ export default function BillingClient({ userRole = 'artist' }) {
             </div>
 
             <div className="mb-4 sm:mb-6">
-              <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
-                You need <strong>£{topUpAmount}</strong> to complete this subscription.
-                Your current balance is <strong>£{walletBalance.toFixed(2)}</strong>.
-              </p>
+              {isTopUpForSubscription ? (
+                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
+                  You need <strong>£{topUpAmount}</strong> to complete this subscription.
+                  Your current balance is <strong>£{walletBalance.toFixed(2)}</strong>.
+                </p>
+              ) : (
+                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
+                  Add funds to your wallet. Your current balance is <strong>£{walletBalance.toFixed(2)}</strong>.
+                </p>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -991,7 +1048,7 @@ export default function BillingClient({ userRole = 'artist' }) {
                 Cancel
               </button>
               <button
-                onClick={handleTopUpAndSubscribe}
+                onClick={isTopUpForSubscription ? handleTopUpAndSubscribe : handleAddFundsFromModal}
                 disabled={isLoading}
                 className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg disabled:opacity-50 flex items-center justify-center text-sm sm:text-base"
               >
@@ -1002,8 +1059,17 @@ export default function BillingClient({ userRole = 'artist' }) {
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">Top Up & Subscribe</span>
-                    <span className="sm:hidden">Subscribe</span>
+                    {isTopUpForSubscription ? (
+                      <>
+                        <span className="hidden sm:inline">Top Up & Subscribe</span>
+                        <span className="sm:hidden">Subscribe</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Top Up</span>
+                        <span className="sm:hidden">Top Up</span>
+                      </>
+                    )}
                   </>
                 )}
               </button>

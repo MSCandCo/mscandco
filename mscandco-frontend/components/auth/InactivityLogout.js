@@ -38,7 +38,7 @@ export function InactivityLogout({
       clearInterval(countdownIntervalRef.current)
       countdownIntervalRef.current = null
     }
-    
+
     // Clear all timeouts
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
@@ -48,18 +48,27 @@ export function InactivityLogout({
       clearTimeout(warningTimeoutRef.current)
       warningTimeoutRef.current = null
     }
-    
-    // Clear all storage
+
+    try {
+      // Sign out first with proper scope
+      await supabase.auth.signOut({ scope: 'global' })
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+
+    // Clear all storage after signout
     if (typeof window !== 'undefined') {
       localStorage.clear()
       sessionStorage.clear()
+
+      // Clear cookies by setting them to expire
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+      })
     }
-    
-    // Sign out (non-blocking)
-    supabase.auth.signOut().catch(() => {
-      // Ignore errors
-    })
-    
+
     // Hard redirect to login page with reason
     if (typeof window !== 'undefined') {
       window.location.href = '/login?reason=inactivity'

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 // GET - Retrieve user's email preferences
@@ -38,18 +39,41 @@ export async function GET(request) {
     }
 
     // Use service role client to bypass RLS for reliable access
-    const supabaseAdmin = createServerClient(
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ SUPABASE_SERVICE_ROLE_KEY is not set')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    console.log('📧 Creating service role client...', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'missing',
+      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing',
+      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0
+    })
+
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY,
       {
-        cookies: {
-          get() { return undefined; },
-          set() {},
-          remove() {},
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
         },
+        db: {
+          schema: 'public'
+        },
+        global: {
+          headers: {
+            'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+          }
+        }
       }
     )
 
+    console.log('📧 Querying email_preferences for user:', user.id)
     const { data: preferences, error } = await supabaseAdmin
       .from('email_preferences')
       .select('*')
@@ -57,6 +81,14 @@ export async function GET(request) {
       .maybeSingle()
 
     console.log('📧 Query result - Preferences:', preferences, 'Error:', error)
+    if (error) {
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
+    }
 
     if (error) {
       console.error('❌ Error fetching email preferences:', error)
@@ -100,9 +132,15 @@ export async function GET(request) {
     return NextResponse.json({ success: true, preferences })
 
   } catch (error) {
-    console.error('Unexpected error in email preferences GET:', error)
+    console.error('❌ Unexpected error in email preferences GET:', error)
+    console.error('❌ Error stack:', error.stack)
+    console.error('❌ Error name:', error.name)
+    console.error('❌ Error message:', error.message)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }
@@ -151,15 +189,14 @@ export async function POST(request) {
     }
 
     // Use service role client to bypass RLS for reliable access
-    const supabaseAdmin = createServerClient(
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY,
       {
-        cookies: {
-          get() { return undefined; },
-          set() {},
-          remove() {},
-        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
     )
 
@@ -234,15 +271,14 @@ export async function DELETE(request) {
     }
 
     // Use service role client to bypass RLS for reliable access
-    const supabaseAdmin = createServerClient(
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY,
       {
-        cookies: {
-          get() { return undefined; },
-          set() {},
-          remove() {},
-        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
     )
 

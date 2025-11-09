@@ -38,18 +38,55 @@ function LoginPageContent() {
     // Check if user is already logged in - redirect to dashboard
     const checkExistingSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        // Retry mechanism to ensure session is fully loaded
+        let sessionRetries = 0
+        let session = null
+        const maxRetries = 3
+        
+        while (sessionRetries < maxRetries && !session) {
+          const { data: sessionData } = await supabase.auth.getSession()
+          
+          if (sessionData?.session) {
+            session = sessionData.session
+            break
+          }
+          
+          sessionRetries++
+          if (sessionRetries < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+        }
+
         if (session?.user) {
           console.log('✅ User already logged in, fetching role for redirect...')
           
-          // Fetch user role for proper redirect
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .maybeSingle()
+          // Fetch user role for proper redirect (with retry)
+          let profile = null
+          let profileRetries = 0
+          const maxProfileRetries = 3
+
+          while (profileRetries < maxProfileRetries) {
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .maybeSingle()
+
+            if (profileData || profileError?.code === 'PGRST116') {
+              profile = profileData
+              break
+            }
+
+            profileRetries++
+            if (profileRetries < maxProfileRetries) {
+              await new Promise(resolve => setTimeout(resolve, 200))
+            }
+          }
           
-          const userRole = profile?.role || session.user.user_metadata?.role
+          // Determine role with fallbacks
+          const userRole = profile?.role || 
+                          session.user.user_metadata?.role || 
+                          session.user.app_metadata?.role
           
           // Determine redirect based on role
           let redirectTo = '/dashboard'
@@ -134,6 +171,8 @@ function LoginPageContent() {
       }
 
       if (data.user) {
+        console.log('✅ Login successful, verifying session before redirect...')
+
         // Check if MFA is enabled but not yet challenged
         const { data: factorsData } = await supabase.auth.mfa.listFactors()
         if (factorsData?.totp && factorsData.totp.length > 0) {
@@ -144,53 +183,65 @@ function LoginPageContent() {
           return
         }
 
-        // Verify session is established before redirecting
+        // Retry mechanism to ensure session is fully established
+        let sessionRetries = 0
         let session = null
-        let attempts = 0
-        const maxAttempts = 5
+        const maxRetries = 5
         
-        // Retry getting session (sometimes it takes a moment)
-        while (!session && attempts < maxAttempts) {
-          const { data: sessionData } = await supabase.auth.getSession()
+        while (sessionRetries < maxRetries && !session) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+          
           if (sessionData?.session) {
             session = sessionData.session
+            console.log(`✅ Session confirmed after ${sessionRetries + 1} attempt(s)`)
             break
           }
-          attempts++
-          await new Promise(resolve => setTimeout(resolve, 200))
+          
+          sessionRetries++
+          if (sessionRetries < maxRetries) {
+            console.log(`⏳ Waiting for session... (attempt ${sessionRetries}/${maxRetries})`)
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
         }
-        
+
         if (!session) {
-          console.error('❌ Session not available after login after', maxAttempts, 'attempts')
+          console.error('❌ Session not available after retries')
           setError('Session could not be established. Please try again.')
           setLoading(false)
           return
         }
 
-        console.log('✅ Login successful, session confirmed, fetching user role...')
-        
-        // Fetch user profile to determine role-based redirect
-        let userRole = null
-        try {
-          const { data: profile, error: profileError } = await supabase
+        // Fetch user profile to determine role (with retry)
+        let profile = null
+        let profileRetries = 0
+        const maxProfileRetries = 3
+
+        while (profileRetries < maxProfileRetries) {
+          const { data: profileData, error: profileError } = await supabase
             .from('user_profiles')
             .select('role')
             .eq('id', session.user.id)
             .maybeSingle()
-          
-          if (profileError) {
-            console.warn('⚠️ Profile fetch error (using fallback):', profileError)
+
+          if (profileData || profileError?.code === 'PGRST116') {
+            profile = profileData
+            break
           }
-          
-          userRole = profile?.role || session.user.user_metadata?.role || session.user.app_metadata?.role
-        } catch (profileErr) {
-          console.warn('⚠️ Profile fetch exception (using fallback):', profileErr)
-          userRole = session.user.user_metadata?.role || session.user.app_metadata?.role
+
+          profileRetries++
+          if (profileRetries < maxProfileRetries) {
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
         }
-        
+
+        // Determine role with fallbacks
+        const userRole = profile?.role || 
+                        session.user.user_metadata?.role || 
+                        session.user.app_metadata?.role
+
         // Determine redirect based on role
         let redirectTo = searchParams.get('redirectedFrom')
-        
+
         if (!redirectTo) {
           // Role-based redirects
           if (userRole === 'label_admin') {
@@ -203,26 +254,14 @@ function LoginPageContent() {
             redirectTo = '/dashboard'
           }
         }
-        
-        console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
-        
-        // Reset loading state before redirect
-        setLoading(false)
-        
-        // Small delay to ensure state updates
+
+        console.log(`🚀 Redirecting ${userRole || 'user'} to: ${redirectTo}`)
+
+        // Small delay to ensure SupabaseProvider updates state
         await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Use window.location.href for full page reload with fresh session
-        // This ensures a clean redirect without React state issues
+
+        // Use window.location.href for hard redirect (ensures fresh session)
         window.location.href = redirectTo
-        
-        // Fallback: If redirect doesn't happen within 3 seconds, try router.push
-        setTimeout(() => {
-          if (window.location.pathname === '/login') {
-            console.warn('⚠️ Redirect timeout, using router.push as fallback')
-            router.push(redirectTo)
-          }
-        }, 3000)
       } else {
         setError('Login failed. Please try again.')
         setLoading(false)
@@ -259,8 +298,26 @@ function LoginPageContent() {
           return
         }
 
-        // Verify session is established
-        const { data: { session } } = await supabase.auth.getSession()
+        // Retry mechanism to ensure session is fully established after MFA
+        let sessionRetries = 0
+        let session = null
+        const maxRetries = 5
+        
+        while (sessionRetries < maxRetries && !session) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+          
+          if (sessionData?.session) {
+            session = sessionData.session
+            console.log(`✅ MFA session confirmed after ${sessionRetries + 1} attempt(s)`)
+            break
+          }
+          
+          sessionRetries++
+          if (sessionRetries < maxRetries) {
+            console.log(`⏳ Waiting for MFA session... (attempt ${sessionRetries}/${maxRetries})`)
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+        }
         
         if (!session) {
           console.error('❌ Session not available after MFA verification')
@@ -271,14 +328,33 @@ function LoginPageContent() {
 
         console.log('✅ MFA verified, session confirmed, fetching user role...')
         
-        // Fetch user profile to determine role-based redirect
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle()
+        // Fetch user profile to determine role (with retry)
+        let profile = null
+        let profileRetries = 0
+        const maxProfileRetries = 3
+
+        while (profileRetries < maxProfileRetries) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle()
+
+          if (profileData || profileError?.code === 'PGRST116') {
+            profile = profileData
+            break
+          }
+
+          profileRetries++
+          if (profileRetries < maxProfileRetries) {
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+        }
         
-        const userRole = profile?.role || session.user.user_metadata?.role
+        // Determine role with fallbacks
+        const userRole = profile?.role || 
+                        session.user.user_metadata?.role || 
+                        session.user.app_metadata?.role
         
         // Determine redirect based on role
         let redirectTo = searchParams.get('redirectedFrom')
@@ -299,7 +375,7 @@ function LoginPageContent() {
         console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
         
         // Small delay to ensure SupabaseProvider updates state
-        await new Promise(resolve => setTimeout(resolve, 300))
+        await new Promise(resolve => setTimeout(resolve, 100))
         
         // Use window.location.href for full page reload with fresh session
         window.location.href = redirectTo

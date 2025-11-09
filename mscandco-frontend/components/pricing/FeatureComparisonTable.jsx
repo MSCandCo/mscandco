@@ -81,7 +81,7 @@ const FEATURES = [
 ]
 
 export default function FeatureComparisonTable({ className = '' }) {
-  const [expandedCategories, setExpandedCategories] = useState(new Set(['Releases & Distribution']))
+  const [expandedCategories, setExpandedCategories] = useState(new Set(FEATURES.map(f => f.category)))
 
   const toggleCategory = (category) => {
     const newExpanded = new Set(expandedCategories)

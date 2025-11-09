@@ -14,7 +14,7 @@ export default function LogoutPage() {
 
     const handleLogout = async () => {
       try {
-        const supabase = createClient()
+        setHasRun(true)
 
         // Clear ghost mode if active
         if (typeof window !== 'undefined') {
@@ -24,22 +24,30 @@ export default function LogoutPage() {
           sessionStorage.removeItem('ghost_target_user')
         }
 
-        // Sign out (don't wait for it to complete - redirect immediately)
-        supabase.auth.signOut().catch(err => {
-          console.error('Sign out error (non-blocking):', err)
-        })
+        // First: Call server-side logout API to clear cookies properly
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+        } catch (apiError) {
+          console.error('Logout API error:', apiError)
+        }
 
-        // Mark as run
-        setHasRun(true)
+        // Second: Client-side sign out with global scope
+        const supabase = createClient()
+        await supabase.auth.signOut({ scope: 'global' })
 
-        // Clear local storage immediately
+        // Third: Clear all local storage
         if (typeof window !== 'undefined') {
           localStorage.clear()
           sessionStorage.clear()
         }
 
-        // Hard redirect to login page immediately
-        // Use window.location.href for full page reload to clear all state
+        // Fourth: Hard redirect to login page with full page reload
+        // This ensures all state is cleared and cookies are gone
         window.location.href = '/login'
       } catch (error) {
         console.error('Logout error:', error)

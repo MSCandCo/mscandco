@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Bell, Mail, AlertCircle, Check, X, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useUser } from '@/components/providers/SupabaseProvider'
 
 const PREFERENCE_CATEGORIES = {
   operational: {
@@ -58,42 +59,118 @@ const PREFERENCE_CATEGORIES = {
 }
 
 export default function EmailPreferences() {
+  const { user, session, isLoading: userLoading } = useUser()
   const [preferences, setPreferences] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [showUnsubscribeConfirm, setShowUnsubscribeConfirm] = useState(false)
 
-  useEffect(() => {
-    loadPreferences()
-  }, [])
+  const loadPreferences = useCallback(async () => {
+    // Double-check user and session before proceeding
+    if (!user || !session) {
+      console.log('📧 Skipping load - no user or session:', { user: !!user, session: !!session })
+      setLoading(false)
+      setMessage({ type: 'error', text: 'Please log in to view email preferences' })
+      return
+    }
 
-  const loadPreferences = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/user/email-preferences', {
-        method: 'GET',
-        credentials: 'include'
+      setMessage({ type: '', text: '' })
+      
+      console.log('📧 Starting email preferences load...', { 
+        userId: user?.id, 
+        hasSession: !!session,
+        sessionToken: session?.access_token ? 'present' : 'missing'
       })
-
-      console.log('Email preferences response:', response.status, response.statusText)
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('Email preferences error:', errorData)
-        throw new Error(errorData.error || 'Failed to load preferences')
+      
+      let response
+      try {
+        response = await fetch('/api/user/email-preferences', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+      } catch (fetchError) {
+        console.error('📧 Fetch failed (network error):', fetchError)
+        throw new Error(`Network error: Unable to connect to server. ${fetchError.message}`)
       }
 
-      const data = await response.json()
-      console.log('Email preferences data:', data)
-      setPreferences(data.preferences)
+      console.log('📧 Response received:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      })
+
+      const responseText = await response.text()
+      console.log('📧 Raw response:', responseText)
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('📧 Failed to parse JSON response:', parseError)
+        throw new Error(`Invalid server response: ${responseText.substring(0, 100)}`)
+      }
+
+      console.log('📧 Parsed response data:', data)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.log('📧 401 Unauthorized - user not authenticated')
+          setMessage({ type: 'error', text: 'Please log in to view email preferences' })
+          setLoading(false)
+          return
+        }
+
+        const errorMsg = data.error || data.details || `Server error (${response.status})`
+        console.error('📧 API error:', errorMsg)
+        throw new Error(errorMsg)
+      }
+
+      // Handle both response formats: { success: true, preferences } or { preferences }
+      const preferencesData = data.preferences || data
+      
+      if (!preferencesData) {
+        console.error('📧 No preferences in response:', data)
+        throw new Error('Server returned empty preferences data')
+      }
+      
+      console.log('📧 Successfully loaded preferences:', preferencesData)
+      setPreferences(preferencesData)
+      setMessage({ type: '', text: '' })
     } catch (error) {
-      console.error('Error loading preferences:', error)
-      setMessage({ type: 'error', text: 'Failed to load email preferences' })
+      console.error('📧 Error in loadPreferences:', error)
+      console.error('📧 Error stack:', error.stack)
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Failed to load email preferences. Please try again.' 
+      })
+      setPreferences(null)
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, session])
+
+  useEffect(() => {
+    // Wait for user authentication to be ready before loading preferences
+    if (userLoading) {
+      return // Still loading user, wait
+    }
+
+    if (!user || !session) {
+      console.log('📧 No user or session, skipping email preferences load')
+      setLoading(false)
+      return
+    }
+
+    // User is authenticated, load preferences
+    loadPreferences()
+  }, [user, session, userLoading, loadPreferences])
 
   const handleToggle = async (key, value) => {
     const updatedPreferences = { ...preferences, [key]: value }
@@ -171,10 +248,19 @@ export default function EmailPreferences() {
     }
   }
 
-  if (loading) {
+  if (userLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!user || !session) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+        <p className="text-gray-600">Please log in to manage your email preferences</p>
       </div>
     )
   }
@@ -183,7 +269,20 @@ export default function EmailPreferences() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <p className="text-gray-600">Failed to load email preferences</p>
+        {message.text ? (
+          <>
+            <p className="text-lg font-semibold text-red-600 mb-2">Error Loading Preferences</p>
+            <p className="text-sm text-gray-600 mb-4">{message.text}</p>
+          </>
+        ) : (
+          <p className="text-gray-600 mb-4">Failed to load email preferences</p>
+        )}
+        <Button
+          onClick={loadPreferences}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Retry Loading
+        </Button>
       </div>
     )
   }
