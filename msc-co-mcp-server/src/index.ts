@@ -2188,6 +2188,78 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // AI ASSISTANT (Apollo) TOOLS (4 tools)
       // ==========================================
       {
+        name: "get_advanced_intelligence",
+        description: "🚀 ADVANCED: Get highest-level AI intelligence with ML features - includes reinforcement learning, behavioral patterns, prediction accuracy, collaborative filtering, and multi-armed bandit recommendations. The absolute best of the best.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: { type: "string", description: "User ID (optional - uses authenticated user if not provided)" },
+            includePredictions: { type: "boolean", description: "Include time-series predictions" },
+            includeSimilarUsers: { type: "boolean", description: "Include collaborative filtering results" },
+          },
+          required: [],
+        },
+      },
+      {
+        name: "predict_next_value",
+        description: "🔮 Predict next value using time-series analysis - predicts future metrics (releases, earnings, streams) based on historical patterns with confidence scores.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            metric: { type: "string", description: "Metric to predict (releases, earnings, streams, etc.)" },
+            timeframe: { type: "string", description: "Timeframe for prediction (30 days, 90 days, etc.)" },
+          },
+          required: ["metric"],
+        },
+      },
+      {
+        name: "get_optimal_recommendation",
+        description: "🎯 Multi-armed bandit recommendation - balances exploration (trying new things) vs exploitation (using learned preferences) for optimal recommendations.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            recommendationType: { type: "string", description: "Type of recommendation (genre, release_type, release_date, etc.)" },
+          },
+          required: ["recommendationType"],
+        },
+      },
+      {
+        name: "detect_behavioral_patterns",
+        description: "🔍 Detect behavioral patterns - identifies temporal, sequential, frequency, and preference patterns in user behavior with confidence scores.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            patternType: { type: "string", description: "Type of pattern to detect (temporal, sequential, frequency, preference)" },
+            category: { type: "string", description: "Category to analyze (releases, analytics, earnings, etc.)" },
+          },
+          required: [],
+        },
+      },
+      {
+        name: "find_similar_users",
+        description: "👥 Collaborative filtering - find users with similar preferences and behaviors for cross-user learning and recommendations.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            category: { type: "string", description: "Category to match on (releases, analytics, earnings, etc.)" },
+            limit: { type: "number", description: "Number of similar users to return" },
+          },
+          required: ["category"],
+        },
+      },
+      {
+        name: "validate_prediction",
+        description: "✅ Validate prediction outcome - provides feedback for reinforcement learning, improving prediction accuracy over time.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            predictionId: { type: "string", description: "ID of the prediction to validate" },
+            actualValue: { type: "object", description: "Actual value that occurred" },
+          },
+          required: ["predictionId", "actualValue"],
+        },
+      },
+      {
         name: "get_comprehensive_intelligence",
         description: "🧠 Get comprehensive AI intelligence insights for a user - learns from every interaction, navigation pattern, release, analytics view, earnings check, settings change, and more. Provides intelligent recommendations, predictions, and adaptive defaults based on learned patterns.",
         inputSchema: {
@@ -3236,6 +3308,228 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }, null, 2)
           }],
         };
+      }
+
+      case "get_advanced_intelligence": {
+        const params = args as any || {};
+        let userId = params.userId;
+        
+        if (!userId) {
+          try {
+            const profile: any = await apiCall("/api/user/profile");
+            userId = profile?.id;
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  error: "User ID required or user must be authenticated",
+                }, null, 2)
+              }],
+            };
+          }
+        }
+        
+        // Get advanced intelligence with ML features
+        const intelligence: any = await apiCall(`/api/ai/intelligence/${userId}`);
+        
+        // Add predictions if requested
+        let predictions: any[] = [];
+        if (params.includePredictions) {
+          try {
+            const releasesPred: any = await apiCall(`/api/ai/predict?userId=${userId}&metric=releases`);
+            const earningsPred: any = await apiCall(`/api/ai/predict?userId=${userId}&metric=earnings`);
+            predictions = [releasesPred, earningsPred];
+          } catch (error) {
+            console.log(`⚠️ Could not load predictions: ${error}`);
+          }
+        }
+        
+        // Add similar users if requested
+        let similarUsers: any[] = [];
+        if (params.includeSimilarUsers) {
+          try {
+            const similar: any = await apiCall(`/api/ai/similar-users?userId=${userId}&category=releases`);
+            similarUsers = similar.users || [];
+          } catch (error) {
+            console.log(`⚠️ Could not load similar users: ${error}`);
+          }
+        }
+        
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: true,
+              intelligence: intelligence.intelligence,
+              predictions: predictions,
+              similarUsers: similarUsers,
+              message: "🚀 Advanced intelligence loaded with ML features: reinforcement learning, behavioral patterns, predictions, and collaborative filtering.",
+            }, null, 2)
+          }],
+        };
+      }
+
+      case "predict_next_value": {
+        const params = args as any || {};
+        const { metric, timeframe } = params;
+        
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            const prediction: any = await apiCall(`/api/ai/predict?userId=${profile.id}&metric=${metric}&timeframe=${timeframe || '30 days'}`);
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  prediction: prediction,
+                  message: `Prediction generated using time-series analysis`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to generate predictions",
+              }, null, 2)
+            }],
+          };
+        }
+      }
+
+      case "get_optimal_recommendation": {
+        const params = args as any || {};
+        const { recommendationType } = params;
+        
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            const recommendation: any = await apiCall(`/api/ai/recommendation?userId=${profile.id}&type=${recommendationType}`);
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  recommendation: recommendation,
+                  message: `Multi-armed bandit recommendation: ${recommendation.type === 'exploration' ? 'Exploring new options' : 'Using learned preferences'}`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to get recommendations",
+              }, null, 2)
+            }],
+          };
+        }
+      }
+
+      case "detect_behavioral_patterns": {
+        const params = args as any || {};
+        const { patternType, category } = params;
+        
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            const patterns: any = await apiCall(`/api/ai/patterns?userId=${profile.id}&type=${patternType || 'all'}&category=${category || 'all'}`);
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  patterns: patterns,
+                  message: `Behavioral patterns detected with confidence scores`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to detect patterns",
+              }, null, 2)
+            }],
+          };
+        }
+      }
+
+      case "find_similar_users": {
+        const params = args as any || {};
+        const { category, limit } = params;
+        
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            const similar: any = await apiCall(`/api/ai/similar-users?userId=${profile.id}&category=${category}&limit=${limit || 10}`);
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  similarUsers: similar.users || [],
+                  message: `Found ${similar.users?.length || 0} similar users using collaborative filtering`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to find similar users",
+              }, null, 2)
+            }],
+          };
+        }
+      }
+
+      case "validate_prediction": {
+        const params = args as any || {};
+        const { predictionId, actualValue } = params;
+        
+        try {
+          const profile: any = await apiCall("/api/user/profile");
+          if (profile?.id) {
+            const validation: any = await apiCall(`/api/ai/validate-prediction`, {
+              method: "POST",
+              body: JSON.stringify({
+                userId: profile.id,
+                predictionId,
+                actualValue,
+              }),
+            });
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  success: true,
+                  validation: validation,
+                  message: `Prediction validated - accuracy updated for reinforcement learning`,
+                }, null, 2)
+              }],
+            };
+          }
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "User must be authenticated to validate predictions",
+              }, null, 2)
+            }],
+          };
+        }
       }
 
       case "get_comprehensive_intelligence": {

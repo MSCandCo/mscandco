@@ -23,10 +23,10 @@ export async function GET(request, { params }) {
       )
     }
 
-    // Get comprehensive learning data
+    // Get comprehensive learning data with advanced metrics
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('ai_learning_data, country, city, primary_genre, artist_name')
+      .select('ai_learning_data, ai_intelligence_score, ai_learning_confidence, ai_prediction_accuracy, ai_behavioral_cluster, country, city, primary_genre, artist_name')
       .eq('id', userId)
       .maybeSingle()
 
@@ -111,7 +111,10 @@ export async function GET(request, { params }) {
       },
 
       // Overall Intelligence Score
-      intelligenceScore: calculateIntelligenceScore(learningData, interactions),
+      intelligenceScore: profile.ai_intelligence_score || calculateIntelligenceScore(learningData, interactions),
+      learningConfidence: profile.ai_learning_confidence || 0,
+      predictionAccuracy: profile.ai_prediction_accuracy || 0,
+      behavioralCluster: profile.ai_behavioral_cluster || null,
 
       // Intelligent Recommendations
       recommendations: generateRecommendations(learningData, profile, interactions),

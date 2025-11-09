@@ -128,15 +128,25 @@ export async function POST(request) {
         }
     }
 
-    // Update learning data using the database function
-    const { error: updateError } = await supabase.rpc('update_ai_learning_data', {
+    // Use advanced learning function with reinforcement learning support
+    const { data: learningResult, error: learningError } = await supabase.rpc('update_advanced_learning', {
       p_user_id: userId,
       p_category: interactionCategory,
       p_data: learningUpdate[interactionCategory] || interactionData,
+      p_outcome: null, // Can be provided for reinforcement learning feedback
     })
 
-    if (updateError) {
-      console.error('Error updating learning data:', updateError)
+    if (learningError) {
+      console.error('Error updating advanced learning:', learningError)
+      // Fallback to basic update
+      const { error: fallbackError } = await supabase.rpc('update_ai_learning_data', {
+        p_user_id: userId,
+        p_category: interactionCategory,
+        p_data: learningUpdate[interactionCategory] || interactionData,
+      })
+      if (fallbackError) {
+        console.error('Fallback learning update also failed:', fallbackError)
+      }
     }
 
     return NextResponse.json({
