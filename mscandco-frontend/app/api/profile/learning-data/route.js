@@ -8,12 +8,13 @@ const supabase = createClient(
 )
 
 /**
- * GET /api/profile/learning-data/:profileId
+ * GET /api/profile/learning-data?profileId=xxx
  * Get AI learning data for a profile (release patterns, preferences, etc.)
  */
-export async function GET(request, { params }) {
+export async function GET(request) {
   try {
-    const { profileId } = params
+    const { searchParams } = new URL(request.url)
+    const profileId = searchParams.get('profileId')
 
     if (!profileId) {
       return NextResponse.json(
