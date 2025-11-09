@@ -1,10 +1,11 @@
 # MSC & Co Platform - Ultimate Technical Documentation
 ## Enterprise-Grade Music Distribution & Publishing Platform
 
-**Version:** 2.3
-**Last Updated:** November 3, 2025
-**Status:** Production-Ready with Enhanced Security, AI Onboarding & Compliance Infrastructure
-**Stack:** Next.js 15, React 18, Supabase, PostgreSQL 17, OpenAI, Resend Email
+**Version:** 3.0.0
+**Last Updated:** November 9, 2025
+**Status:** Production-Ready with 4-Tier Pricing, Progressive Commissions & Investment Partnership
+**Stack:** Next.js 15, React 18, Supabase, PostgreSQL 17, OpenAI, Resend Email, Revolut Business API
+**Major Update:** Complete 4-tier pricing system with tier enforcement and auto-qualification
 
 ---
 
@@ -205,6 +206,46 @@ CREATE TABLE user_profiles (
   -- Analytics Data (JSONB for flexibility)
   analytics_data JSONB,
 
+  -- NEW: Pricing Tier Management (v3.0.0)
+  tier VARCHAR(50) DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'mpp_paid', 'mpp_earned', 'mpp_invited', 'investment')),
+  commission_rate DECIMAL(5,2) DEFAULT 20.00,
+  subscription_status VARCHAR(50) DEFAULT 'inactive',
+  subscription_period VARCHAR(20), -- 'monthly' or 'annual'
+  subscription_start_date TIMESTAMPTZ,
+  subscription_end_date TIMESTAMPTZ,
+
+  -- Revolut Payment Integration
+  revolut_subscription_id VARCHAR(255),
+  revolut_customer_id VARCHAR(255),
+  revolut_pending_order_id VARCHAR(255),
+  revolut_pending_tier VARCHAR(50),
+  revolut_pending_period VARCHAR(20),
+
+  -- Usage Tracking (for tier limits)
+  releases_this_year INT DEFAULT 0,
+  tracks_this_year INT DEFAULT 0,
+  total_earnings_this_year DECIMAL(12,2) DEFAULT 0.00,
+  total_streams_all_time BIGINT DEFAULT 0,
+  total_releases_all_time INT DEFAULT 0,
+  total_commissions_paid DECIMAL(12,2) DEFAULT 0.00,
+
+  -- Apollo Intelligence Tracking
+  apollo_queries_used_this_month INT DEFAULT 0,
+  apollo_query_limit INT DEFAULT 3,
+  apollo_unlimited_addon BOOLEAN DEFAULT FALSE,
+
+  -- MPP Auto-Qualification
+  mpp_qualification_status VARCHAR(50) DEFAULT 'not_qualified' CHECK (mpp_qualification_status IN ('not_qualified', 'qualified', 'invited', 'rejected')),
+  mpp_qualified_at TIMESTAMPTZ,
+  mpp_activated_at TIMESTAMPTZ,
+
+  -- Investment Partnership
+  investment_amount DECIMAL(12,2),
+  equity_percentage DECIMAL(5,2),
+
+  -- Tier Management
+  last_tier_change_at TIMESTAMPTZ,
+
   -- Metadata
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -218,6 +259,10 @@ CREATE TABLE user_profiles (
 CREATE INDEX idx_user_profiles_role ON user_profiles(role);
 CREATE INDEX idx_user_profiles_email ON user_profiles(email);
 CREATE INDEX idx_user_profiles_artist_name ON user_profiles(artist_name);
+CREATE INDEX idx_user_profiles_tier ON user_profiles(tier);
+CREATE INDEX idx_user_profiles_mpp_qualification ON user_profiles(mpp_qualification_status);
+CREATE INDEX idx_user_profiles_subscription_status ON user_profiles(subscription_status);
+CREATE INDEX idx_user_profiles_revolut_subscription ON user_profiles(revolut_subscription_id);
 
 -- RLS Policies
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;

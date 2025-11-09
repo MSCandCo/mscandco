@@ -1,9 +1,10 @@
 # MSC & Co Platform - Business Overview
 ## The Future of Music Distribution & Publishing
 
-**Version:** 1.3.0
-**Last Updated:** November 3, 2025
+**Version:** 2.0.0
+**Last Updated:** November 9, 2025
 **Document Type:** Executive Summary & Business Proposal
+**Major Update:** Complete 4-tier pricing system with progressive commission rates
 
 ---
 
@@ -59,9 +60,64 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
    - Manage split sheets and royalty sharing
    - Work with producers, songwriters, and featured artists
 
-#### Subscription Plans:
-- **Artist Starter:** £9.99/month - 5 releases, basic analytics
-- **Artist Pro:** £19.99/month - Unlimited releases, advanced analytics, priority support
+#### Pricing Tiers (NEW 4-Tier System):
+
+**MSC Free** - £0/month
+- **Commission:** 20% (you keep 80%)
+- **Releases:** 3 per year maximum
+- **Tracks:** 15 per year maximum
+- **Platforms:** 12 major streaming services
+- **Apollo AI:** 3 queries per month
+- **Features:** Basic analytics, CSV reports, ISRC/UPC codes
+- **Delivery:** 7-10 days
+- **Best For:** New & emerging artists testing the waters
+
+**MSC Pro** - £199/year or £19.99/month
+- **Commission:** 15% (you keep 85%)
+- **Releases:** Unlimited
+- **Tracks:** Unlimited
+- **Platforms:** All 18 streaming services (includes TikTok, Boomplay, etc.)
+- **Apollo AI:** 100 queries per month
+- **Features:** Advanced analytics (demographics, retention), pre-save campaigns, smart links, royalty splits, priority delivery (1-3 days)
+- **Support:** Email + Chat (12h response)
+- **Best For:** Artists releasing regularly
+- **Break-even:** Above £3,980 annual earnings
+
+**MPP Partner** - £999/year or £99/month (FREE if qualified)
+- **Commission:** 10% (you keep 90%)
+- **Auto-Qualify FREE with ANY of:**
+  - £10,000+ annual earnings
+  - 100,000+ total streams
+  - 50+ total releases
+  - £5,000+ commissions paid
+- **Features:** All Pro features PLUS:
+  - 24-hour express delivery
+  - Dedicated account manager
+  - White-label distribution (earn 3-5% on artists you bring)
+  - Referral revenue (earn 10% on referrals)
+  - Featured on homepage
+  - Private Partner community
+  - Networking events
+  - VIP support (6h response)
+- **Best For:** Elite artists & strategic partners
+
+**Investment Partner** - £10K-£50K one-time investment
+- **Commission:** 2.5% (you keep 97.5% - LOWEST RATE)
+- **Equity:** 0.5%-2.0% ownership based on investment
+  - £10K = 0.5% equity
+  - £25K = 1.0% equity
+  - £50K = 2.0% equity
+- **Features:** All MPP features PLUS:
+  - Board advisory seat
+  - Vote on platform decisions
+  - 5% revenue share of ALL platform revenue
+  - Dividend payments (when profitable)
+  - Apollo Intelligence: UNLIMITED
+  - Personal concierge support (1h response)
+  - Custom feature development
+  - Exit proceeds (acquisition/IPO)
+  - Shape product roadmap
+- **Best For:** Artists who want ownership and long-term value
 
 ---
 
@@ -90,9 +146,14 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
    - Send bulk messages to all artists
    - Manage artist contracts and agreements
 
-#### Subscription Plans:
-- **Label Starter:** £29.99/month - 20 releases, 5 artists
-- **Label Pro:** £49.99/month - Unlimited releases, unlimited artists
+#### Pricing Tiers:
+Labels use the same 4-tier system as artists, with commission rates applied to all artists under the label. Label-specific features:
+- Aggregate analytics across all artists
+- Revenue split management
+- Artist roster management
+- Bulk messaging and notifications
+
+See artist pricing tiers above for full details.
 
 ---
 
@@ -176,41 +237,75 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
 
 ## �� Business Model
 
-### Revenue Streams (Prioritized by Potential)
+### Revenue Streams (5 Major Sources)
 
-#### **Primary Revenue: MCP (Music Collection Partner) Model** 🎯
-**The True Earning Engine - Multi-Million Pound Potential**
+#### **1. Primary Revenue: Progressive Commission Model** 🎯
+**NEW: 4-Tier Commission Structure (20% → 15% → 10% → 2.5%)**
 
-MSC & Co operates as a **Master Collection Partner (MCP)** that aggregates and distributes music to Digital Service Providers (DSPs) like Spotify, Apple Music, YouTube Music, etc.
+MSC & Co operates with a progressive commission model that rewards artist growth with lower rates.
 
-**How MCP Revenue Works:**
-1. **Collection Fee:** MSC & Co collects 10-15% of ALL streaming royalties before distribution to artists
-2. **Volume-Based Earnings:** Revenue scales with total platform streams, not just user count
+**How Commission Revenue Works:**
+1. **Tiered Rates:** Commission decreases as artists grow
+   - MSC Free: 20% commission
+   - MSC Pro: 15% commission
+   - MPP Partner: 10% commission
+   - Investment Partner: 2.5% commission
+
+2. **Volume-Based Earnings:** Revenue scales with total platform streams
 3. **Passive Income:** Once artists upload, royalties flow indefinitely on each stream
-4. **Compound Growth:** More artists → more releases → more streams → exponential revenue
+4. **Smart Incentive:** Lower rates encourage growth, which increases total volume
 
-**Financial Examples:**
+**Financial Examples (Updated for 4-Tier Model):**
 
-| Scenario | Active Artists | Avg Releases/Artist | Monthly Streams | Royalty Pool | MSC & Co Share (15%) | **Annual Revenue** |
-|----------|----------------|---------------------|-----------------|--------------|----------------------|-------------------|
-| **Year 1** | 10,000 | 3 | 50M streams | £150,000/mo | £22,500/mo | **£270,000** |
-| **Year 2** | 50,000 | 4 | 300M streams | £900,000/mo | £135,000/mo | **£1,620,000** |
-| **Year 3** | 200,000 | 5 | 1.5B streams | £4.5M/mo | £675,000/mo | **£8,100,000** |
-| **Year 5** | 500,000 | 6 | 5B streams | £15M/mo | £2.25M/mo | **£27,000,000** |
+| Scenario | Active Artists | Tier Distribution | Monthly Streams | Royalty Pool | Weighted Avg Commission | **Annual Revenue** |
+|----------|----------------|-------------------|-----------------|--------------|------------------------|-------------------|
+| **Year 1** | 10,000 | 70% Free, 25% Pro, 5% MPP | 50M streams | £150,000/mo | 17.5% | **£315,000** |
+| **Year 2** | 50,000 | 50% Free, 35% Pro, 12% MPP, 3% Investment | 300M streams | £900,000/mo | 14.2% | **£1,534,800** |
+| **Year 3** | 200,000 | 40% Free, 35% Pro, 20% MPP, 5% Investment | 1.5B streams | £4.5M/mo | 12.8% | **£6,912,000** |
+| **Year 5** | 500,000 | 30% Free, 30% Pro, 30% MPP, 10% Investment | 5B streams | £15M/mo | 10.9% | **£19,620,000** |
 
 *Assumptions: Average streaming payout £0.003 per stream (industry standard)*
 
-**Why MCP Revenue is Superior:**
-- ✅ **Recurring & Passive:** Artists keep uploading, streams keep flowing
-- ✅ **Scales Exponentially:** Each new release multiplies earning potential
-- ✅ **No Customer Acquisition Cost:** Once artist uploads, revenue is automatic
-- ✅ **Higher Margins:** 15% of royalties vs. £9.99 subscription
-- ✅ **Lifetime Value:** Artists' catalogs generate income for years
+**Why Progressive Commission is Superior:**
+- ✅ **Incentivizes Growth:** Artists want to grow to lower their commission
+- ✅ **Higher Volume:** Lower rates = happier artists = more retention = more total revenue
+- ✅ **Competitive Moat:** Only platform with auto-qualification to free Partner status
+- ✅ **Win-Win Model:** Artists save money as they succeed, platform grows with them
+- ✅ **Lifetime Value:** Artists stay longer due to fair pricing
 
-**Competitive Advantage:**
-- Most competitors (DistroKid, TuneCore) charge flat fees OR take commission
-- MSC & Co can do **BOTH** - subscription for uploads + commission on earnings
-- **Apollo AI reduces churn** - better onboarding = longer artist retention = more streams
+**Revenue Breakdown by Tier:**
+```
+Free Tier (20%): £945,000/year (30% of users × £3.15M annual revenue)
+Pro Tier (15%): £2,360,000/year (30% of users × £7.87M annual revenue)
+MPP Tier (10%): £5,886,000/year (30% of users × £19.62M annual revenue)
+Investment Tier (2.5%): £981,000/year (10% of users × £39.24M annual revenue)
+TOTAL: £10,172,000/year at Year 5
+```
+
+#### **2. Subscription Revenue** 💳
+**Recurring Monthly/Annual Revenue from Paid Tiers**
+
+- **MSC Pro:** £199/year or £19.99/month
+- **MPP Partner (paid):** £999/year or £99/month
+- **Investment Partner:** £10K-£50K one-time investment
+
+**Year 5 Projection:**
+- 150,000 Pro subscribers × £199/year = **£29,850,000**
+- 50,000 MPP paid subscribers × £999/year = **£49,950,000**
+- 50,000 Investment partners × £25K avg = **£1,250,000,000 capital** (one-time)
+
+**TOTAL Subscription ARR: £79,800,000**
+
+#### **3. Investment Capital** 💰
+**One-Time Equity Investments from Investment Partners**
+
+- Investment tier allows artists to buy equity: 0.5%-2.0%
+- £10K-£50K per investment
+- Provides growth capital while aligning incentives
+
+**Year 5 Target:**
+- 50,000 Investment Partners × £25K average = **£1.25 BILLION in growth capital**
+- Used for: Platform development, marketing, acquisitions, international expansion
 
 ---
 
