@@ -22,7 +22,7 @@
  * - All release formats and types
  * - Comprehensive validation for all fields
  *
- * @version 2.1.0
+ * @version 2.2.0
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -909,6 +909,75 @@ const MUSICAL_KEYS = [
   "Bm",     // B Minor
 ] as const;
 
+/**
+ * SUBSCRIPTION PLAN TYPES
+ * All available subscription tiers
+ */
+const SUBSCRIPTION_PLANS = [
+  "artist_starter",      // £9.99/month - 5 releases/year, basic analytics
+  "artist_pro",          // £19.99/month - Unlimited releases, advanced analytics
+  "label_starter",       // £29.99/month - 20 releases, 5 artists
+  "label_pro",           // £49.99/month - Unlimited releases & artists
+  "enterprise",          // Custom pricing - White-label, API access
+  "free_trial",          // 14-day trial period
+] as const;
+
+/**
+ * PAYOUT STATUS TYPES
+ * Comprehensive payout lifecycle states
+ */
+const PAYOUT_STATUSES = [
+  "pending",             // Payout requested, awaiting processing
+  "processing",          // Being processed by payment provider
+  "in_transit",          // Payment sent, in banking system
+  "completed",           // Successfully paid to artist
+  "failed",              // Payment failed (insufficient funds, invalid account)
+  "cancelled",           // Cancelled by user or admin
+  "on_hold",             // Held for review (fraud check, compliance)
+  "reversed",            // Payment reversed/refunded
+] as const;
+
+/**
+ * RELEASE STATUS TYPES
+ * Complete release workflow states
+ */
+const RELEASE_STATUSES = [
+  "draft",               // Initial state, being edited
+  "submitted",           // Submitted for admin review
+  "in_review",           // Under admin review
+  "revision_required",   // Needs changes before approval
+  "approved",            // Approved, ready for distribution
+  "processing",          // Being sent to platforms
+  "live",                // Live on streaming platforms
+  "takedown_requested",  // Takedown request submitted
+  "takedown_processing", // Takedown being processed
+  "taken_down",          // Removed from platforms
+  "archived",            // Archived by user
+  "rejected",            // Rejected by admin (copyright, quality issues)
+] as const;
+
+/**
+ * BILLING PERIODS
+ * Subscription billing frequency options
+ */
+const BILLING_PERIODS = [
+  "monthly",             // Monthly billing
+  "annual",               // Annual billing (12 months)
+  "quarterly",            // Quarterly billing (3 months) - Future support
+  "lifetime",             // One-time lifetime payment - Future support
+] as const;
+
+/**
+ * PRIORITY LEVELS
+ * Support ticket and notification priority levels
+ */
+const PRIORITY_LEVELS = [
+  "low",                 // Low priority - non-urgent
+  "normal",               // Normal priority - standard processing
+  "high",                 // High priority - needs attention soon
+  "urgent",               // Urgent - immediate attention required
+] as const;
+
 // Helper function to make authenticated API calls
 async function apiCall(endpoint: string, options: any = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -1260,8 +1329,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
-            plan: { type: "string", enum: ["basic", "pro", "premium", "enterprise"] },
-            billing: { type: "string", enum: ["monthly", "annual"] },
+            plan: { type: "string", enum: SUBSCRIPTION_PLANS as any },
+            billing: { type: "string", enum: BILLING_PERIODS as any },
           },
           required: ["plan", "billing"],
         },
@@ -1294,7 +1363,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: "object",
           properties: {
             limit: { type: "number", default: 50 },
-            status: { type: "string", enum: ["all", "pending", "processing", "completed", "failed"] },
+            status: { type: "string", enum: ["all", ...PAYOUT_STATUSES] as any },
           },
         },
       },
@@ -1362,7 +1431,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             status: {
               type: "string",
-              enum: ["all", "draft", "submitted", "processing", "live", "archived", "rejected"],
+              enum: ["all", ...RELEASE_STATUSES] as any,
               default: "all",
             },
             limit: { type: "number", default: 50 },
@@ -1869,7 +1938,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             subject: { type: "string" },
             message: { type: "string" },
             category: { type: "string", enum: SUPPORT_CATEGORIES as any },
-            priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
+            priority: { type: "string", enum: PRIORITY_LEVELS as any },
           },
           required: ["subject", "message", "category"],
         },
@@ -2820,8 +2889,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
-  console.error("🎵 MSC & Co MCP Server - ULTIMATE EDITION v2.1.0");
-  console.error("🚀 134+ Tools with 1,000+ Comprehensive Enums");
+  console.error("🎵 MSC & Co MCP Server - ULTIMATE EDITION v2.2.0");
+  console.error("🚀 134+ Tools with 1,220 Comprehensive Enums");
   console.error(`📡 API: ${API_BASE_URL}`);
   console.error(`🔑 API Key: ${API_KEY?.substring(0, 8)}...`);
   console.error("");
@@ -2843,6 +2912,11 @@ async function main() {
   console.error(`  🎸 Instruments: ${INSTRUMENTS.length}`);
   console.error(`  🎶 Time Signatures: ${TIME_SIGNATURES.length}`);
   console.error(`  🎹 Musical Keys: ${MUSICAL_KEYS.length}`);
+  console.error(`  💳 Subscription Plans: ${SUBSCRIPTION_PLANS.length}`);
+  console.error(`  💸 Payout Statuses: ${PAYOUT_STATUSES.length}`);
+  console.error(`  📊 Release Statuses: ${RELEASE_STATUSES.length}`);
+  console.error(`  📅 Billing Periods: ${BILLING_PERIODS.length}`);
+  console.error(`  ⚡ Priority Levels: ${PRIORITY_LEVELS.length}`);
   console.error("");
   console.error("✅ 100% COMPLETE - No Competitor Can Even Compare!");
 

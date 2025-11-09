@@ -1,7 +1,7 @@
 {
   "name": "@mscandco/mcp-server",
-  "version": "2.1.0",
-  "description": "The Ultimate AI-Native Music Distribution MCP - 134+ tools, 900+ comprehensive enums, 150+ genres, 195 countries, 100+ languages, 100+ instruments. The most comprehensive music distribution MCP in existence.",
+  "version": "2.2.0",
+  "description": "The Ultimate AI-Native Music Distribution MCP - 134+ tools, 1,220 comprehensive enums, 212 genres, 209 countries, 94 languages, 102 instruments, 26 musical keys, complete subscription/payout/release/billing workflows with priority levels. The most comprehensive music distribution MCP in existence.",
   "type": "module",
   "main": "build/index.js",
   "bin": {
