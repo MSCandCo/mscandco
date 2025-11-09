@@ -101,10 +101,14 @@ BEGIN
     SET actual_value = p_outcome,
         accuracy = calculate_prediction_accuracy(predicted_value, p_outcome),
         validated_at = NOW()
-    WHERE user_id = p_user_id
-      AND validated_at IS NULL
-    ORDER BY created_at DESC
-    LIMIT 1;
+    WHERE id = (
+      SELECT id
+      FROM ai_prediction_outcomes
+      WHERE user_id = p_user_id
+        AND validated_at IS NULL
+      ORDER BY created_at DESC
+      LIMIT 1
+    );
   END IF;
 
   -- Detect and store behavioral patterns
