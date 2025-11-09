@@ -8,8 +8,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 /**
@@ -19,7 +19,7 @@ const supabase = createClient(
  * @param trackCount - Number of tracks in the release
  * @returns Object with allowed status, error message, and upgrade info
  */
-export async function enforceReleaseLimit(userId: string, trackCount: number = 0) {
+export async function enforceReleaseLimit(userId, trackCount = 0) {
   try {
     // Get user tier and current usage
     const { data: user, error } = await supabase
@@ -105,7 +105,7 @@ export async function enforceReleaseLimit(userId: string, trackCount: number = 0
  * @param userId - User ID
  * @param trackCount - Number of tracks created
  */
-export async function trackReleaseCreation(userId: string, trackCount: number = 0) {
+export async function trackReleaseCreation(userId, trackCount = 0) {
   try {
     // Increment counters atomically
     const { error } = await supabase.rpc('increment_release_counters', {
@@ -158,7 +158,7 @@ export async function trackReleaseCreation(userId: string, trackCount: number = 
  * @param userId - User ID
  * @returns Object with allowed status and error message
  */
-export async function enforceApolloQueryLimit(userId: string) {
+export async function enforceApolloQueryLimit(userId) {
   try {
     const { data: user, error } = await supabase
       .from('user_profiles')
@@ -225,7 +225,7 @@ export async function enforceApolloQueryLimit(userId: string) {
  * 
  * @param userId - User ID
  */
-export async function trackApolloQuery(userId: string) {
+export async function trackApolloQuery(userId) {
   try {
     const { data: user } = await supabase
       .from('user_profiles')
@@ -260,7 +260,7 @@ export async function trackApolloQuery(userId: string) {
  * @param userId - User ID
  * @returns Object with prompt info
  */
-export async function checkUpgradePrompt(userId: string) {
+export async function checkUpgradePrompt(userId) {
   try {
     const { data: user } = await supabase
       .from('user_profiles')

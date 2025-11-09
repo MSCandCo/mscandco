@@ -3,7 +3,7 @@
 -- Used by the tier enforcement middleware
 
 CREATE OR REPLACE FUNCTION increment_release_counters(
-    p_user_id BIGINT,
+    p_user_id UUID,
     p_track_count INT DEFAULT 0
 )
 RETURNS void AS $$
@@ -18,7 +18,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION increment_release_counters(BIGINT, INT) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_release_counters(UUID, INT) TO authenticated;
 
 COMMENT ON FUNCTION increment_release_counters IS 'Atomically increments release and track counters for tier enforcement';
 
