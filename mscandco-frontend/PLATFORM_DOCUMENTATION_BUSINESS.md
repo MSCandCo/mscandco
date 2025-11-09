@@ -1,10 +1,8 @@
 # MSC & Co Platform - Business Overview
 ## The Future of Music Distribution & Publishing
 
-**Version:** 2.0.0
 **Last Updated:** November 9, 2025
 **Document Type:** Executive Summary & Business Proposal
-**Major Update:** Complete 4-tier pricing system with progressive commission rates
 
 ---
 
@@ -60,36 +58,40 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
    - Manage split sheets and royalty sharing
    - Work with producers, songwriters, and featured artists
 
-#### Pricing Tiers (NEW 4-Tier System):
+#### Pricing Tiers (4-Tier System with Auto-Qualification):
 
 **MSC Free** - £0/month
 - **Commission:** 20% (you keep 80%)
-- **Releases:** 3 per year maximum
-- **Tracks:** 15 per year maximum
+- **Releases:** 3 per year maximum (ENFORCED)
+- **Tracks:** 15 per year maximum (ENFORCED)
 - **Platforms:** 12 major streaming services
-- **Apollo AI:** 3 queries per month
+- **Apollo Intelligence:** 3 queries per month (ENFORCED)
 - **Features:** Basic analytics, CSV reports, ISRC/UPC codes
 - **Delivery:** 7-10 days
 - **Best For:** New & emerging artists testing the waters
+- **Auto-Upgrade Prompt:** When you earn £5,000+/year
 
 **MSC Pro** - £199/year or £19.99/month
 - **Commission:** 15% (you keep 85%)
 - **Releases:** Unlimited
 - **Tracks:** Unlimited
 - **Platforms:** All 18 streaming services (includes TikTok, Boomplay, etc.)
-- **Apollo AI:** 100 queries per month
+- **Apollo Intelligence:** 100 queries per month (ENFORCED)
+  - **Add-on Available:** Unlimited Apollo AI for +£9.99/month
 - **Features:** Advanced analytics (demographics, retention), pre-save campaigns, smart links, royalty splits, priority delivery (1-3 days)
 - **Support:** Email + Chat (12h response)
 - **Best For:** Artists releasing regularly
 - **Break-even:** Above £3,980 annual earnings
 
-**MPP Partner** - £999/year or £99/month (FREE if qualified)
+**MPP Partner** - £999/year or £99/month (FREE if auto-qualified)
 - **Commission:** 10% (you keep 90%)
-- **Auto-Qualify FREE with ANY of:**
-  - £10,000+ annual earnings
-  - 100,000+ total streams
-  - 50+ total releases
-  - £5,000+ commissions paid
+- **Auto-Qualify FREE (AUTOMATIC) with ANY of:**
+  - £10,000+ annual earnings (checked daily via cron)
+  - 100,000+ total streams (checked on analytics update)
+  - 50+ total releases (checked on release creation)
+  - £5,000+ commissions paid (checked on payout)
+- **Apollo Intelligence:** 500 queries per month (ENFORCED)
+  - **Add-on Available:** Unlimited Apollo AI for +£9.99/month
 - **Features:** All Pro features PLUS:
   - 24-hour express delivery
   - Dedicated account manager
@@ -100,6 +102,10 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
   - Networking events
   - VIP support (6h response)
 - **Best For:** Elite artists & strategic partners
+- **MPP Types:**
+  - `mpp_earned`: Auto-qualified (FREE)
+  - `mpp_invited`: Admin-invited (FREE)
+  - `mpp_paid`: Paid subscription (£999/year)
 
 **Investment Partner** - £10K-£50K one-time investment
 - **Commission:** 2.5% (you keep 97.5% - LOWEST RATE)
@@ -1088,10 +1094,130 @@ MSC & Co features an enterprise-grade email system that keeps users informed wit
 
 ---
 
-**Document Version:** 1.2.0
-**Last Updated:** October 30, 2025
+**Last Updated:** November 9, 2025
 **Prepared By:** MSC & Co Business Development Team
 **Confidential:** This document contains proprietary information
+
+---
+
+## 🛡️ Tier Enforcement System
+
+### Automated Limit Enforcement
+
+MSC & Co features **real-time tier enforcement** that automatically monitors and enforces tier limits across the platform.
+
+#### Release & Track Limits (ENFORCED)
+- **Free Tier:** Maximum 3 releases and 15 tracks per year
+- **Counter Reset:** Automatic annual reset via cron job (Jan 1st)
+- **Enforcement Points:**
+  - Release creation API endpoint
+  - Track upload validation
+  - Middleware checks before saving to database
+- **User Experience:** Clear upgrade prompts with savings calculator
+
+#### Apollo Intelligence Limits (ENFORCED)
+- **Free Tier:** 3 queries per month
+- **Pro Tier:** 100 queries per month
+- **MPP Tier:** 500 queries per month
+- **Investment Tier:** Unlimited
+- **Counter Reset:** Automatic monthly reset via cron job (1st of each month)
+- **Add-on Available:** Unlimited Apollo AI for +£9.99/month (all tiers except Investment)
+- **Enforcement:** Real-time query counting in Apollo chat API
+
+#### Auto-Qualification System (NEW)
+**Automated MPP Partner Qualification:**
+
+MSC & Co automatically upgrades users to **MPP Partner (FREE)** when they meet ANY of these criteria:
+
+| Criteria | Threshold | Check Frequency |
+|----------|-----------|----------------|
+| **Annual Earnings** | £10,000+ | Daily (cron job) |
+| **Total Streams** | 100,000+ | On analytics update |
+| **Total Releases** | 50+ | On release creation |
+| **Commissions Paid** | £5,000+ | On payout processing |
+
+**What Happens:**
+1. System detects qualification criteria met
+2. User tier automatically changed to `mpp_earned`
+3. Commission rate drops to 10% (from 15% or 20%)
+4. All MPP Partner features unlocked immediately
+5. User receives congratulatory email and notification
+6. No payment required - it's FREE for life
+
+**Business Impact:**
+- **Rewards loyalty:** Artists who succeed on MSC get lower rates
+- **No manual review:** Fully automated, instant qualification
+- **Transparent criteria:** Artists know exactly how to qualify
+- **Viral growth:** Success stories encourage other artists to join
+
+#### Upgrade Prompts & Smart Recommendations
+**Free Tier Users:**
+- Automatic upgrade prompt when earnings reach £5,000/year
+- Shows exact commission savings if they upgrade to Pro
+- Break-even calculator: "Save £X/year with Pro tier"
+
+**Pro Tier Users:**
+- Tracks progress towards MPP auto-qualification
+- Shows how close they are to each criterion
+- Dashboard widgets showing "50% towards MPP Partner"
+
+#### Cron Jobs (Production Infrastructure)
+
+**1. Annual Counter Reset** (`/api/cron/reset-annual-counters`)
+- **Schedule:** January 1st, 00:00 UTC
+- **Purpose:** Reset `releases_this_year` and `tracks_this_year` to 0
+- **Coverage:** All user tiers
+- **Security:** Vercel Cron Auth verification required
+
+**2. Monthly Apollo Reset** (`/api/cron/reset-monthly-apollo`)
+- **Schedule:** 1st of every month, 00:00 UTC
+- **Purpose:** Reset `apollo_queries_used_this_month` to 0
+- **Exceptions:** Users with `apollo_unlimited_addon = true` (not reset)
+- **Coverage:** All tiers except Investment (unlimited)
+- **Security:** Vercel Cron Auth verification required
+
+**3. Daily MPP Qualification Check** (Planned)
+- **Schedule:** Daily at 02:00 UTC
+- **Purpose:** Check annual earnings and auto-upgrade qualifying users
+- **Notification:** Email + in-app notification on upgrade
+
+#### Vercel Cron Configuration
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/reset-annual-counters",
+      "schedule": "0 0 1 1 *"
+    },
+    {
+      "path": "/api/cron/reset-monthly-apollo",
+      "schedule": "0 0 1 * *"
+    }
+  ]
+}
+```
+
+### Revenue Impact of Tier Enforcement
+
+**Increased Subscription Revenue:**
+- Enforced limits drive more Free → Pro upgrades
+- Target: 25% conversion rate (industry avg: 5-10%)
+- Transparent limits = better user experience = higher conversions
+
+**Higher Lifetime Value:**
+- Auto-qualification keeps successful artists on platform
+- Lower churn from elite artists (MPP tier)
+- Progressive commission creates growth partnership
+
+**Projected Conversion Funnel:**
+```
+100,000 Free Users
+    → 25,000 upgrade to Pro (25% conversion @ £199/year = £4.975M)
+    → 5,000 auto-qualify to MPP (5% elite artists, FREE)
+    → 500 invest in platform (0.5% @ £25K avg = £12.5M)
+
+Total ARR from pricing tiers: £17.475M (from 100K users)
+```
 
 ---
 
@@ -1100,8 +1226,8 @@ MSC & Co features an enterprise-grade email system that keeps users informed wit
 MSC & Co is not just another music distribution platform—it's the **future of how independent artists and labels manage their music careers**. With enterprise-grade technology, real-time features, **live AI assistant**, **automated KYC compliance**, **content moderation**, and **legal compliance infrastructure**, MSC & Co is positioned to become a market leader in the rapidly growing independent music industry.
 
 **Key Competitive Advantages:**
-- ✅ **Apollo AI Assistant is LIVE** - The only music distribution platform with conversational AI onboarding
-- ✅ **MCP Server Integration (v2.2.0)** - 134+ AI tools with 1,212 comprehensive validation enums
+- ✅ **Apollo AI Assistant** - The only music distribution platform with conversational AI onboarding
+- ✅ **MCP Server Integration** - 134+ AI tools with 1,212 comprehensive validation enums
 - ✅ **Automated KYC/AML Compliance** - Locked personal information ensures regulatory compliance
 - ✅ **Content Moderation System** - Automated screening with priority-based admin review
 - ✅ **DMCA Compliance Infrastructure** - Full takedown and counter-notification workflows
