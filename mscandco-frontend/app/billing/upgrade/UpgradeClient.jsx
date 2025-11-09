@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Check, AlertCircle } from 'lucide-react'
-import { TIER_CONFIG } from '@/lib/pricing/tierLimits'
 
 const TIER_NAMES = {
   free: 'MSC Free',
@@ -15,6 +14,26 @@ const TIER_NAMES = {
 const TIER_PRICES = {
   pro: { monthly: 19.99, annual: 199 },
   mpp: { monthly: 99, annual: 999 }
+}
+
+// Client-safe tier config (subset of server config)
+const TIER_CONFIG = {
+  free: {
+    commission: 20.00,
+    apolloQueries: 3
+  },
+  pro: {
+    commission: 15.00,
+    apolloQueries: 100
+  },
+  mpp_paid: {
+    commission: 10.00,
+    apolloQueries: 500
+  },
+  investment: {
+    commission: 2.50,
+    apolloQueries: null
+  }
 }
 
 export default function UpgradeClient({ user, targetTier, billingPeriod }) {

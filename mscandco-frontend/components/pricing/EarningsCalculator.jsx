@@ -53,7 +53,7 @@ export default function EarningsCalculator({
     )
   }
 
-  const best Tier = getBestTier()
+  const bestTier = getBestTier()
 
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 shadow-lg border border-indigo-100">
