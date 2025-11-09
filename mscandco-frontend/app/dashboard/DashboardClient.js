@@ -156,6 +156,7 @@ export default function DashboardClient({ user }) {
       console.log('✅ Dashboard: Role set:', role)
 
       // Fetch user permissions
+      let permissionNames = [] // Initialize outside try block
       try {
         const { data: permissions, error: permError } = await supabase
           .from('user_permissions')
@@ -163,12 +164,29 @@ export default function DashboardClient({ user }) {
           .eq('user_id', user.id)
 
         if (permError) {
-          console.error('❌ Dashboard: Permissions error:', permError)
+          // Better error logging with full error details
+          const errorDetails = {
+            message: permError.message || 'Unknown error',
+            code: permError.code || 'unknown',
+            details: permError.details || null,
+            hint: permError.hint || null,
+            error: permError
+          }
+          console.error('❌ Dashboard: Permissions error:', JSON.stringify(errorDetails, null, 2))
+          
+          // If it's a permissions/RLS error, continue with empty permissions
+          // This is not critical - dashboard can work without permissions
+          if (permError.code === 'PGRST301' || permError.code === '42501' || permError.message?.includes('permission')) {
+            console.warn('⚠️ Dashboard: RLS/permissions error - continuing with empty permissions')
+          }
+          // Set empty permissions regardless of error type
+          permissionNames = []
+          setUserPermissions([])
+        } else {
+          permissionNames = permissions?.map(p => p.permission?.name).filter(Boolean) || []
+          setUserPermissions(permissionNames)
+          console.log('✅ Dashboard: Permissions loaded:', permissionNames.length)
         }
-
-        const permissionNames = permissions?.map(p => p.permission?.name).filter(Boolean) || []
-        setUserPermissions(permissionNames)
-        console.log('✅ Dashboard: Permissions loaded:', permissionNames.length)
 
         // Load quick actions - use most visited or fall back to permission-based defaults
         const topVisited = getTopVisitedPages(permissionNames)
