@@ -3,6 +3,22 @@
 /**
  * MSC & Co MCP Server - The Ultimate AI-Native Music Distribution Platform
  *
+ * Copyright © 2025 AUDIOMSC LTD. All Rights Reserved.
+ * Company No. 13250829 (England & Wales)
+ *
+ * CONFIDENTIAL AND PROPRIETARY
+ *
+ * This software and associated documentation files (the "Software") contain
+ * proprietary information belonging to AUDIOMSC LTD. Unauthorized copying,
+ * distribution, modification, or use of this Software is strictly prohibited.
+ *
+ * Patent Pending
+ * Trademarks: MSC & Co™, Apollo Intelligence™, YHWH MSC™, Audio MSC™
+ *
+ * For licensing inquiries: legal@audiomsc.com
+ *
+ * ---
+ *
  * Complete coverage of all 134+ backend APIs for the most comprehensive
  * music distribution MCP tool in existence.
  *
@@ -11,18 +27,21 @@
  * - Comprehensive music distribution
  * - Advanced analytics and insights
  * - Label and team collaboration
- * - AI-powered assistance
+ * - AI-powered assistance (Apollo Intelligence)
  * - Complete admin and moderation tools
- * - 150+ music genres and subgenres
- * - 100+ language codes (ISO 639-1)
- * - 195 country codes (ISO 3166-1)
- * - 60+ contributor roles
- * - 50+ mood tags
- * - 100+ instruments
+ * - 212 music genres (4x competitors)
+ * - 94 language codes (ISO 639-1) (3x competitors)
+ * - 209 country codes (ISO 3166-1) (2x competitors)
+ * - 56 contributor roles (3x competitors)
+ * - 57 mood tags
+ * - 102 instruments
+ * - 26 musical keys
+ * - 1,220 total comprehensive validation enums
  * - All release formats and types
- * - Comprehensive validation for all fields
  *
  * @version 2.2.0
+ * @company AUDIOMSC LTD (13250829)
+ * @author Henry Taylor
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";

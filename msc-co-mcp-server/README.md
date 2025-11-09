@@ -1,10 +1,26 @@
-# 🎵 MSC & Co MCP Server v2.1.0
+# 🎵 MSC & Co MCP Server v2.2.0
 
 **The Most Comprehensive Music Distribution MCP Ever Built!**
 
+**Copyright © 2025 AUDIOMSC LTD. All Rights Reserved.**
+Company No. 13250829 (England & Wales)
+
+---
+
+## ⚠️ CONFIDENTIAL AND PROPRIETARY
+
+This repository contains proprietary and confidential information belonging to AUDIOMSC LTD.
+Unauthorized access, copying, distribution, or use is strictly prohibited.
+
+**Patent Pending** | **Trademarks Pending**
+
+For licensing inquiries: legal@audiomsc.com
+
+---
+
 Manage your music releases, check earnings, and analyze performance directly from Claude Desktop, Cursor, or any MCP-compatible AI assistant.
 
-**NEW in v2.1.0**: 900+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, and much more!
+**NEW in v2.2.0**: 1,220+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, 26 musical keys, and complete workflow statuses!
 
 ---
 
