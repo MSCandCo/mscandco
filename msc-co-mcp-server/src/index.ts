@@ -1471,7 +1471,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "quick_start_release",
-        description: "🚀 QUICK START: Immediately start the music release process. Gets your profile automatically and creates a draft release. Use this when user says 'I want to release music' or 'start release'. No questions asked - just starts the process.",
+        description: "🚀 QUICK START: Immediately start the music release process. Gets your profile automatically and creates a draft release. Use this when user says 'I want to release music' or 'start release'. If user provides profile info (full name, artist name, email), it will match/link to their existing MSC profile for direct database access.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1486,6 +1486,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               enum: MUSIC_GENRES as any,
               description: "Primary genre (optional - can be set later)",
             },
+            // Profile matching info (optional but recommended)
+            email: { type: "string", description: "Your email address (for profile matching)" },
+            artistName: { type: "string", description: "Your artist/band name (for profile matching)" },
+            fullName: { type: "string", description: "Your full name (first and last name, for profile matching)" },
           },
           required: [],
         },
@@ -2691,16 +2695,49 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "quick_start_release": {
         const params = args as any || {};
         
-        // Automatically get profile (no permission needed - it's part of this tool)
-        let profile;
-        try {
-          profile = await apiCall("/api/user/profile");
-        } catch (error) {
-          // If profile fetch fails, continue anyway with defaults
-          profile = null;
+        // Step 1: Match/link profile if info provided
+        let profileId = null;
+        let profileInfo: any = null;
+        
+        if (params.email && params.artistName) {
+          try {
+            const matchResult: any = await apiCall("/api/profile/match-or-link", {
+              method: "POST",
+              body: JSON.stringify({
+                email: params.email,
+                artistName: params.artistName,
+                fullName: params.fullName,
+              }),
+            });
+            
+            if (matchResult?.matched) {
+              profileId = matchResult.profileId;
+              profileInfo = matchResult;
+              console.log(`✅ Profile matched: ${profileId}`);
+            } else {
+              console.log(`ℹ️ No existing profile found for ${params.email}`);
+            }
+          } catch (error) {
+            console.log(`⚠️ Profile matching failed, continuing without match: ${error}`);
+          }
+        }
+        
+        // Step 2: Get or create profile (if not matched above)
+        let profile: any;
+        if (!profileId) {
+          try {
+            profile = await apiCall("/api/user/profile");
+            profileId = profile?.id;
+          } catch (error) {
+            // If profile fetch fails, continue anyway with defaults
+            profile = null;
+          }
+        } else {
+          // Use matched profile info
+          profile = profileInfo;
         }
 
-        // Create draft release with minimal required info or defaults
+        // Step 3: Create draft release with minimal required info or defaults
         const releaseData = {
           title: params.title || "New Release",
           release_type: params.release_type || "single",
@@ -2718,7 +2755,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: "text",
             text: JSON.stringify({
               success: true,
-              message: `🚀 Release process started! I've created a draft release for you.`,
+              message: profileId && profileInfo?.matched
+                ? `🚀 Release process started! Profile matched: ${profileInfo.artistName || params.artistName}. Draft release created.`
+                : `🚀 Release process started! I've created a draft release for you.`,
+              profileMatched: profileInfo?.matched || false,
+              profileId: profileId,
               next_steps: [
                 `1. Complete your release details at: ${API_BASE_URL}/artist/releases`,
                 `2. Upload your audio files and artwork`,
@@ -2726,7 +2767,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 `4. Submit for distribution when ready`
               ],
               release: data,
-              profile: profile ? { artist_name: (profile as any).artistName || (profile as any).firstName } : null,
+              profile: profile ? { 
+                artist_name: profile.artistName || profile.artist_name || params.artistName,
+                email: profile.email || params.email,
+                id: profileId
+              } : null,
             }, null, 2)
           }],
         };
