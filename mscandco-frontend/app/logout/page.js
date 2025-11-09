@@ -40,15 +40,18 @@ export default function LogoutPage() {
         const supabase = createClient()
         await supabase.auth.signOut({ scope: 'global' })
 
+        // Wait a bit to ensure session is fully cleared
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         // Third: Clear all local storage
         if (typeof window !== 'undefined') {
           localStorage.clear()
           sessionStorage.clear()
         }
 
-        // Fourth: Hard redirect to login page with full page reload
+        // Fourth: Hard redirect to login page with loggedOut flag to prevent auto-login
         // This ensures all state is cleared and cookies are gone
-        window.location.href = '/login'
+        window.location.href = '/login?loggedOut=true'
       } catch (error) {
         console.error('Logout error:', error)
         // Still redirect even if there's an error

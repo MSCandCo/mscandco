@@ -35,6 +35,13 @@ function LoginPageContent() {
 
   // Check for email verification success and session expiration
   useEffect(() => {
+    // Skip session check if user just logged out
+    const loggedOut = searchParams.get('loggedOut') === 'true'
+    if (loggedOut) {
+      console.log('🚪 User just logged out, skipping session check')
+      return
+    }
+
     // Check if user is already logged in - redirect to dashboard
     const checkExistingSession = async () => {
       try {
@@ -109,7 +116,10 @@ function LoginPageContent() {
       }
     }
     
-    checkExistingSession()
+    // Only check session if user didn't just log out
+    if (!loggedOut) {
+      checkExistingSession()
+    }
 
     if (searchParams.get('verified') === 'true') {
       setEmailVerified(true)

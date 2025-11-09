@@ -286,8 +286,19 @@ function Header({ largeLogo = false }) {
   }
 
   // Wait for profile data to load before deciding which header to show
-  if (user && !profileData) {
-    console.log('⏳ Header: Showing loading state - waiting for profileData');
+  // BUT: For platform admins, use metadata as fallback to show AdminHeader immediately
+  const userRoleFromMetadata = user?.user_metadata?.role || user?.app_metadata?.role
+  const isPlatformAdminFromMetadata = userRoleFromMetadata && isPlatformAdmin(userRoleFromMetadata)
+  const isPlatformAdminFromProfile = profileData?.role && isPlatformAdmin(profileData.role)
+  
+  // Show AdminHeader if user is platform admin (from metadata OR profile)
+  if (user && (isPlatformAdminFromMetadata || isPlatformAdminFromProfile)) {
+    return <AdminHeader largeLogo={largeLogo} />;
+  }
+  
+  // Show loading header only if user exists but we don't know their role yet
+  if (user && !profileData && !userRoleFromMetadata) {
+    console.log('⏳ Header: Showing loading state - waiting for profileData or metadata');
     // Show loading header while profile data is being fetched
     return (
       <header className="bg-white border-b border-gray-200">
