@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/subscription-renewals",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/reset-annual-counters",
+      "schedule": "0 0 1 1 *"
+    },
+    {
+      "path": "/api/cron/reset-monthly-apollo",
+      "schedule": "0 0 1 * *"
     }
   ]
 }

@@ -9,6 +9,7 @@ import { MVP_TOOLS } from '@/lib/apollo/tools-mvp';
 import { getSystemPrompt } from '@/lib/apollo/prompts';
 import { executeToolCall } from '@/lib/apollo/tool-executor';
 import { createClient } from '@supabase/supabase-js';
+import { enforceApolloQueryLimit, trackApolloQuery } from '@/lib/middleware/tierEnforcement';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -27,6 +28,19 @@ export async function POST(request) {
     }
     
     console.log('💬 Apollo chat request from user:', userId);
+    
+    // TIER ENFORCEMENT: Check Apollo query limit
+    const limitCheck = await enforceApolloQueryLimit(userId);
+    if (!limitCheck.allowed) {
+      return NextResponse.json({
+        error: 'Apollo Intelligence limit reached',
+        message: limitCheck.error,
+        upgradeMessage: limitCheck.upgradeMessage,
+        upgradeUrl: limitCheck.upgradeUrl,
+        addonUrl: limitCheck.addonUrl,
+        currentUsage: limitCheck.currentUsage
+      }, { status: 403 });
+    }
     
     // Get user context for personalization
     const userContext = await getUserContext(userId);
@@ -121,20 +135,28 @@ export async function POST(request) {
       
       console.log('✅ Final response generated with tool results');
       
+      // TIER TRACKING: Increment Apollo query counter
+      await trackApolloQuery(userId);
+      
       return NextResponse.json({
         response: finalResponse.choices[0].message.content,
         tool_calls: assistantMessage.tool_calls.map(tc => ({
           name: tc.function.name,
           args: JSON.parse(tc.function.arguments),
         })),
+        usage: limitCheck.currentUsage
       });
     }
     
     // No tools needed - direct response
     console.log('✅ Direct response (no tools)');
     
+    // TIER TRACKING: Increment Apollo query counter
+    await trackApolloQuery(userId);
+    
     return NextResponse.json({
       response: assistantMessage.content,
+      usage: limitCheck.currentUsage
     });
     
   } catch (error) {
