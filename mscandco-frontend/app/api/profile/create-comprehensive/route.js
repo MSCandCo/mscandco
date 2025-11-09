@@ -158,7 +158,7 @@ export async function POST(request) {
         .update({
           ...profileData,
           ai_learning_data: {
-            ...existingProfile.ai_learning_data,
+            ...(existingProfile.ai_learning_data || {}),
             ...profileData.ai_learning_data,
           },
         })
@@ -172,6 +172,7 @@ export async function POST(request) {
 
       return NextResponse.json({
         success: true,
+        profileCreated: true,
         profileId: updatedProfile.id,
         message: 'Profile updated with comprehensive information',
         profile: updatedProfile,
@@ -193,7 +194,7 @@ export async function POST(request) {
       return NextResponse.json({
         success: true,
         profileCreated: false,
-        message: 'Profile data collected. Complete account creation at: ' + process.env.NEXT_PUBLIC_APP_URL + '/register',
+        message: 'Profile data collected. Complete account creation at: ' + (process.env.NEXT_PUBLIC_APP_URL || 'https://mscandco.com') + '/register',
         profileData: profileData,
         nextStep: 'Complete registration to create account',
       })
@@ -201,6 +202,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
+      profileCreated: true,
       profileId: newProfile.id,
       message: 'Comprehensive profile created successfully. This only needs to be done once in the Aiverse!',
       profile: newProfile,

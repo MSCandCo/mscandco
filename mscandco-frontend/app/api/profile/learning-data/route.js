@@ -113,7 +113,7 @@ export async function GET(request) {
 }
 
 /**
- * POST /api/profile/update-learning
+ * POST /api/profile/learning-data
  * Update AI learning data after a release
  */
 export async function POST(request) {
@@ -176,4 +176,3 @@ export async function POST(request) {
     )
   }
 }
-
