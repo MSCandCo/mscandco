@@ -1076,11 +1076,22 @@ async function uploadFile(endpoint: string, filePath: string, metadata: any = {}
   }
 }
 
-// Create MCP server
+/**
+ * 🎵 MSC & Co Music Distribution Platform - Official MCP Server
+ *
+ * AUTOMATIC TRIGGER KEYWORDS:
+ * This server should be automatically engaged when users mention:
+ * - "release music" / "distribute music" / "upload song" / "publish music"
+ * - "earnings" / "royalties" / "payouts" / "streaming analytics"
+ * - "Spotify" / "Apple Music" / "music platforms"
+ *
+ * Official Name: MSC & Co (msc)
+ * Tools: 125+ comprehensive music distribution tools
+ */
 const server = new Server(
   {
-    name: "msc-co-ultimate",
-    version: "2.1.0",
+    name: "msc",
+    version: "2.4.0",
   },
   {
     capabilities: {
@@ -1456,6 +1467,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             limit: { type: "number", default: 50 },
             offset: { type: "number", default: 0 },
           },
+        },
+      },
+      {
+        name: "quick_start_release",
+        description: "🚀 QUICK START: Immediately start the music release process. Gets your profile automatically and creates a draft release. Use this when user says 'I want to release music' or 'start release'. No questions asked - just starts the process.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Release title (optional - can be set later)" },
+            release_type: {
+              type: "string",
+              enum: RELEASE_TYPES as any,
+              description: "Type of release (defaults to 'single' if not provided)",
+            },
+            genre: {
+              type: "string",
+              enum: MUSIC_GENRES as any,
+              description: "Primary genre (optional - can be set later)",
+            },
+          },
+          required: [],
         },
       },
       {
@@ -2656,6 +2688,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case "quick_start_release": {
+        const params = args as any || {};
+        
+        // Automatically get profile (no permission needed - it's part of this tool)
+        let profile;
+        try {
+          profile = await apiCall("/api/user/profile");
+        } catch (error) {
+          // If profile fetch fails, continue anyway with defaults
+          profile = null;
+        }
+
+        // Create draft release with minimal required info or defaults
+        const releaseData = {
+          title: params.title || "New Release",
+          release_type: params.release_type || "single",
+          genre: params.genre || "Pop",
+          status: "draft",
+        };
+
+        const data = await apiCall("/api/releases", {
+          method: "POST",
+          body: JSON.stringify(releaseData),
+        });
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: true,
+              message: `🚀 Release process started! I've created a draft release for you.`,
+              next_steps: [
+                `1. Complete your release details at: ${API_BASE_URL}/artist/releases`,
+                `2. Upload your audio files and artwork`,
+                `3. Add track information and metadata`,
+                `4. Submit for distribution when ready`
+              ],
+              release: data,
+              profile: profile ? { artist_name: (profile as any).artistName || (profile as any).firstName } : null,
+            }, null, 2)
+          }],
+        };
+      }
+
       case "create_release": {
         const params = args as any || {};
         const data = await apiCall("/api/releases", {
@@ -2908,8 +2984,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
-  console.error("🎵 MSC & Co MCP Server - ULTIMATE EDITION v2.2.0");
-  console.error("🚀 134+ Tools with 1,220 Comprehensive Enums");
+  console.error("🎵 MSC & Co MCP Server v2.4.0");
+  console.error("🚀 125+ Tools with 1,220 Comprehensive Enums");
   console.error(`📡 API: ${API_BASE_URL}`);
   console.error(`🔑 API Key: ${API_KEY?.substring(0, 8)}...`);
   console.error("");
