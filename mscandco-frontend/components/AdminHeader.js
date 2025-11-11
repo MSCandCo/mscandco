@@ -2,7 +2,7 @@
 
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Users, Shield, BarChart3, DollarSign, Database, Music, Inbox, FileText, MessageSquare, Eye, Wallet, TrendingUp, PieChart, Server, AlertTriangle, Activity, HardDrive, Globe, Lock, Zap, Mail, Book } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Users, Shield, BarChart3, DollarSign, Database, Music, Inbox, FileText, MessageSquare, Eye, Wallet, TrendingUp, PieChart, Server, AlertTriangle, Activity, HardDrive, Globe, Lock, Zap, Mail, Book, Accessibility, GraduationCap, Leaf, Sparkles, Target, Share2, Heart, Mic, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -211,6 +211,22 @@ function AdminHeader({ largeLogo = false }) {
     if (showAll || hasPermission('systems:analytics:view')) items.push({ href: '/admin/systems/analytics', label: 'User Analytics', icon: BarChart3 });
     if (showAll || hasPermission('systems:email:view')) items.push({ href: '/admin/systems/email', label: 'Email System', icon: Mail });
     if (showAll || hasPermission('systems:docs:view')) items.push({ href: '/admin/systems/docs', label: 'Documentation', icon: Book });
+
+    // Platform Features - Admin Views
+    if (showAll || hasPermission('copyright:manage')) items.push({ href: '/admin/copyright', label: 'Copyright Management', icon: Shield });
+    if (showAll || hasPermission('accessibility:manage')) items.push({ href: '/admin/accessibility', label: 'Accessibility Admin', icon: Accessibility });
+    if (showAll || hasPermission('sustainability:manage')) items.push({ href: '/admin/sustainability', label: 'Carbon Management', icon: Leaf });
+    if (showAll || hasPermission('learning:manage')) items.push({ href: '/admin/skills', label: 'Skills Management', icon: GraduationCap });
+    if (showAll || hasPermission('opendata:manage')) items.push({ href: '/admin/open-data', label: 'Open Data Admin', icon: Database });
+
+    // 🎉 ENTERPRISE FEATURES - Admin Views
+    if (showAll || hasPermission('features:artwork:manage')) items.push({ href: '/admin/artwork-generator', label: 'AI Artwork (Admin)', icon: Sparkles });
+    if (showAll || hasPermission('features:playlists:manage')) items.push({ href: '/admin/playlist-pitching', label: 'Playlist Campaigns', icon: Target });
+    if (showAll || hasPermission('features:social:manage')) items.push({ href: '/admin/social-media', label: 'Social Media Admin', icon: Share2 });
+    if (showAll || hasPermission('features:fans:manage')) items.push({ href: '/admin/fans', label: 'Fan Analytics', icon: Heart });
+    if (showAll || hasPermission('features:performances:manage')) items.push({ href: '/admin/performances', label: 'Performance Analytics', icon: Mic });
+    if (showAll || hasPermission('features:merch:manage')) items.push({ href: '/admin/merch', label: 'Merch Management', icon: ShoppingBag });
+
     return items;
   };
 

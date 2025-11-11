@@ -133,5 +133,3 @@ export default function AILearningTracker() {
   return null
 }
 
-export { useAILearning }
-

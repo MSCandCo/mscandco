@@ -53,6 +53,8 @@ import {
 import fetch from "node-fetch";
 import { readFileSync, statSync } from "fs";
 import { basename } from "path";
+import { PLATFORM_FEATURES_TOOLS } from "./platform-features-tools.js";
+import { enterpriseFeaturesTools } from "./enterprise-features-tools.js";
 
 // Configuration
 const API_BASE_URL = process.env.MSC_CO_API_URL || "https://mscandco.com";
@@ -2786,6 +2788,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+
+      // ==========================================
+      // PLATFORM FEATURES TOOLS (35 tools)
+      // Copyright Protection, Accessibility Services,
+      // Sustainability & Carbon Tracking, Learning & Skills,
+      // Open Research Data Platform
+      // ==========================================
+      ...PLATFORM_FEATURES_TOOLS,
+
+      // ==========================================
+      // 🎉 ENTERPRISE FEATURES (7 Features - 12 Tools)
+      // AI Artwork, Playlist Pitching, Social Media,
+      // Fan Engagement, Live Performance, Merchandise
+      // ==========================================
+      ...enterpriseFeaturesTools,
     ],
   };
 });
@@ -3619,7 +3636,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       // For all new tools, return a placeholder implementation
-      default:
+      default: {
+        // Check if it's an enterprise feature tool
+        const enterpriseTool = enterpriseFeaturesTools.find(t => t.name === name);
+        if (enterpriseTool) {
+          return await enterpriseTool.execute(args as any);
+        }
+
+        // Otherwise return placeholder
         return {
           content: [{
             type: "text",
@@ -3631,6 +3655,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }, null, 2)
           }],
         };
+      }
     }
   } catch (error: any) {
     return {

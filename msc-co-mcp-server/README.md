@@ -1,4 +1,4 @@
-# 🎵 MSC & Co MCP Server v2.2.0
+# 🎵 MSC & Co MCP Server v2.5.0
 
 **The Most Comprehensive Music Distribution MCP Ever Built!**
 
@@ -20,13 +20,13 @@ For licensing inquiries: legal@audiomsc.com
 
 Manage your music releases, check earnings, and analyze performance directly from Claude Desktop, Cursor, or any MCP-compatible AI assistant.
 
-**NEW in v2.2.0**: 1,220+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, 26 musical keys, and complete workflow statuses!
+**NEW in v2.5.0**: 169+ tools including copyright protection, accessibility services, sustainability tracking, learning modules, and open research data platform! Plus 1,220+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, 26 musical keys, and complete workflow statuses!
 
 ---
 
 ## 🎯 What Makes This Special
 
-- **134+ Tools** - Complete coverage of all music distribution operations
+- **169+ Tools** - Complete coverage of music distribution + copyright protection, accessibility, sustainability, learning, and open data
 - **900+ Comprehensive Enums** - Industry-standard validation for all fields
 - **212 Music Genres** - From Hip-Hop to Afrobeats to Classical
 - **94 Languages (ISO 639-1)** - Global language support
@@ -70,6 +70,13 @@ Manage your music releases, check earnings, and analyze performance directly fro
 ### Notifications & Support
 - 🔔 **Notifications** - 16 notification types including earnings, releases, analytics
 - 📧 **Support** - Contact support with 16 specialized categories
+
+### Platform Features (NEW in v2.5.0)
+- ©️ **Copyright Protection** - AI-powered copyright verification for releases and tracks
+- ♿ **Accessibility Services** - Generate transcriptions, audio descriptions, sign language content
+- 🌱 **Sustainability Tracking** - Track carbon footprint, purchase offsets, earn achievements
+- 🎓 **Learning & Skills** - Access learning modules, AI tutor, quizzes, and certificates
+- 📊 **Open Research Data** - Query public metrics, access datasets, create API keys
 
 ---
 

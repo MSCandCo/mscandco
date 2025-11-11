@@ -20,6 +20,11 @@ MSC & Co is a **next-generation music distribution and publishing platform** des
 6. **Transparent Earnings:** Single source of truth for all financial transactions
 7. **Label-Artist Partnerships:** Unique revenue-sharing system for label-artist collaborations
 8. **Compliance & KYC:** Automated personal information collection and secure locking for regulatory compliance
+9. **Copyright Protection:** AI-powered copyright verification for all releases and tracks
+10. **Accessibility Services:** WCAG 2.1 AAA compliant with 94 languages, transcription, audio descriptions
+11. **Sustainability Tracking:** DIMPACT 2024 carbon footprint calculation with offset purchasing
+12. **Learning Platform:** Skills development with AI tutor, quizzes, and certifications
+13. **Open Research Data:** Public metrics API with 3-tier access for researchers and developers
 
 ---
 
@@ -240,6 +245,30 @@ See artist pricing tiers above for full details.
    - Audit user actions and access logs
 
 ---
+
+## 🌟 Platform Features - Industry-Leading Capabilities
+
+MSC & Co goes beyond traditional music distribution with comprehensive platform features.
+
+### 1. ©️ Copyright Protection
+**AI-Powered Copyright Verification** - Automated verification using AI audio fingerprinting, lyrics analysis, composition verification. Protects artists and platform from infringement.
+
+### 2. ♿ Accessibility Services
+**WCAG 2.1 AAA Compliant** - Automatic transcription, audio descriptions, sign language, 94 languages. Reaches 1.3 billion people with disabilities.
+
+### 3. 🌱 Sustainability & Carbon Tracking
+**DIMPACT 2024 Carbon Footprint** - Track per-stream emissions (0.0128 kg CO2e), purchase offsets (Greenspark, Ecologi, Offset Earth). Gamified achievements.
+
+### 4. 🎓 Learning & Skills Development
+**Education Platform with AI Tutor** - Free courses on distribution, copyright, marketing. Interactive AI tutor, quizzes, certificates, public badges.
+
+### 5. 📊 Open Research Data Platform
+**Public Metrics API** - 3-tier access (Free: 10k/mo, Research: 100k/mo, Commercial: 1M+/mo) for streaming trends, geographic data, market analysis.
+
+**Impact:** Only distribution platform with all 5 features. Unique competitive advantages, industry-leading compliance, positive brand differentiation.
+
+---
+
 
 ## �� Business Model
 

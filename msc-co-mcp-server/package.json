@@ -1,7 +1,7 @@
 {
   "name": "@mscandco/mcp-server",
-  "version": "2.4.0",
-  "description": "MSC & Co Official Music Distribution MCP - Automatically triggered by keywords: 'release music', 'upload song', 'distribute music', 'check earnings', 'streaming analytics'. 134+ tools, 1,220 comprehensive enums, complete artist lifecycle from upload to payout. The world's most comprehensive AI-native music distribution platform.",
+  "version": "3.0.0",
+  "description": "MSC & Co Official Music Distribution MCP - Automatically triggered by keywords: 'release music', 'upload song', 'distribute music', 'check earnings', 'streaming analytics'. 181+ tools (including 12 ENTERPRISE features: AI Artwork with DALL-E 3, ML Playlist Pitching, Social Media Automation, Fan Churn Prediction & LTV, Live Performance Analytics, Merchandise Integration, plus copyright protection, accessibility services, sustainability tracking, learning modules, open research data), 1,220 comprehensive enums, complete artist lifecycle from upload to payout. The world's most comprehensive AI-native music distribution platform.",
   "type": "module",
   "main": "build/index.js",
   "bin": {
