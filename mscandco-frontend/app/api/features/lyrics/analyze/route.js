@@ -28,7 +28,7 @@ export async function POST(request) {
     const { count: usageCount } = await supabase
       .from('lyrics')
       .select('*', { count: 'exact', head: true })
-      .eq('created_by', user.id')
+      .eq('created_by', user.id)
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
 
     const limits = {
