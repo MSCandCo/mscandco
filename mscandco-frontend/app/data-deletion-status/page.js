@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function DataDeletionStatus() {
+function DataDeletionStatusContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
   const [status, setStatus] = useState('loading');
@@ -126,5 +126,20 @@ export default function DataDeletionStatus() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DataDeletionStatus() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Loading...</h1>
+        </div>
+      </div>
+    }>
+      <DataDeletionStatusContent />
+    </Suspense>
   );
 }

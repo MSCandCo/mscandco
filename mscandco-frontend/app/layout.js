@@ -14,6 +14,7 @@ import RealtimeProviderWrapper from '@/components/providers/RealtimeProviderWrap
 import { SessionValidator } from '@/components/auth/SessionValidator'
 import { InactivityLogout } from '@/components/auth/InactivityLogout'
 import AILearningTracker from '@/hooks/useAILearning'
+import { Suspense } from 'react'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 import CookieConsentBanner from '@/components/CookieConsentBanner'
@@ -46,7 +47,9 @@ export default function RootLayout({ children }) {
                 </main>
                 <Footer />
                 <CookieConsentBanner />
-                <AILearningTracker />
+                <Suspense fallback={null}>
+                  <AILearningTracker />
+                </Suspense>
               </RealtimeProviderWrapper>
             </PostHogProvider>
           </SupabaseProvider>
