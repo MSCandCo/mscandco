@@ -88,20 +88,20 @@ export default function HomeClient() {
                 />
               </div>
               <h1 className="text-4xl font-bold mb-4">
-                AI-Native Music Distribution & Publishing
+                AI-Native · Blockchain-Verified · Carbon-Neutral
               </h1>
               <h3 className="text-xl font-normal mb-8">
-                The first and only AI-native music distribution platform. Manage your releases, track your earnings, and grow your career through AI-powered insights. Purpose-built for gospel, Christian, and general music creators.
+                The world's most advanced music distribution platform. Powered by AI intelligence, secured with blockchain verification, and committed to carbon neutrality. Get hit predictions, immutable royalty records, and real-time carbon tracking—all while keeping 100% of your rights.
               </h3>
-              <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-6">
-                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
-                  AI-Powered
+              <div className="flex gap-2 justify-center md:justify-start mb-6 overflow-x-auto">
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-white/30 whitespace-nowrap">
+                  Hit Prediction AI
                 </span>
-                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
-                  Global Distribution
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-white/30 whitespace-nowrap">
+                  Blockchain Verified
                 </span>
-                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/30">
-                  Instant Analytics
+                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm md:bg-black/20 text-[#1f2937] md:text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-white/30 whitespace-nowrap">
+                  Carbon Tracking
                 </span>
               </div>
               <button
@@ -323,7 +323,7 @@ export default function HomeClient() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Global Distribution</h3>
               <p className="text-gray-600">
-                Distribute your music to all major streaming platforms including Spotify, Apple Music, Amazon Music, and more.
+                Distribute your music to 150+ streaming platforms including Spotify, Apple Music, Amazon Music, YouTube Music, Tidal, and more.
               </p>
             </div>
 
@@ -335,13 +335,41 @@ export default function HomeClient() {
               <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-lg flex items-center justify-center mb-4">
                 <span className="text-2xl">🤖</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">AI-Powered Analytics</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">AI Hit Prediction</h3>
               <p className="text-gray-600">
-                Get intelligent insights and predictions about your releases, audience growth, and revenue opportunities powered by advanced AI.
+                Predict commercial success before release with our AI engine analyzing audio features, timing, social signals, and artist momentum.
               </p>
             </div>
 
-            {/* Feature 3 */}
+            {/* Feature 3 - Blockchain Verification */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                INDUSTRY FIRST
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">⛓️</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Blockchain Verification</h3>
+              <p className="text-gray-600">
+                Immutable royalty records on Polygon blockchain. Verify every payment with transparent, timestamped proof of all distributions.
+              </p>
+            </div>
+
+            {/* Feature 4 - Carbon Tracking */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                ONLY ON MSC
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">🌍</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Carbon Tracking & Offsets</h3>
+              <p className="text-gray-600">
+                Real-time CO2 tracking per stream using DIMPACT methodology. Purchase verified carbon offsets and achieve carbon neutrality.
+              </p>
+            </div>
+
+            {/* Feature 5 - Fast Payments */}
             <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,11 +378,11 @@ export default function HomeClient() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Fast Payments</h3>
               <p className="text-gray-600">
-                Get paid quickly with transparent royalty tracking and flexible payout options.
+                Get paid quickly with transparent royalty tracking, multi-currency support, and flexible payout options via Revolut.
               </p>
             </div>
 
-            {/* Feature 4 */}
+            {/* Feature 6 - Lightning Fast Releases */}
             <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,24 +391,71 @@ export default function HomeClient() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Lightning Fast Releases</h3>
               <p className="text-gray-600">
-                Submit your music and go live on streaming platforms in as little as 24-48 hours.
+                Submit your music and go live on streaming platforms in as little as 24-48 hours with priority distribution.
               </p>
             </div>
 
-            {/* Feature 5 */}
+            {/* Feature 7 - Social Media Automation */}
             <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">📱</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Social Media Automation</h3>
+              <p className="text-gray-600">
+                Connect Instagram, TikTok, Twitter, YouTube, and Facebook. AI-generated captions and scheduled posts across all platforms.
+              </p>
+            </div>
+
+            {/* Feature 8 - Copyright Protection with Sample Clearance */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                LAWSUIT PROTECTION
+              </div>
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Rights Protection</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Copyright Protection</h3>
               <p className="text-gray-600">
-                Keep 100% of your rights while we handle distribution and royalty collection.
+                Pre-publication sample clearance prevents $150K+ lawsuits. Plus blockchain registration, AI monitoring, and DMCA takedown filing.
               </p>
             </div>
 
-            {/* Feature 6 */}
+            {/* Feature 9 - Merchandise Store */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">👕</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Merchandise Store</h3>
+              <p className="text-gray-600">
+                Print-on-demand merch with Printful integration. Create apparel, vinyl, posters—no inventory needed. Automatic fulfillment.
+              </p>
+            </div>
+
+            {/* Feature 10 - Learning & Development */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">🎓</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Skills Development</h3>
+              <p className="text-gray-600">
+                Access professional courses on music business, production, and marketing. Industry mentorship and certification programs.
+              </p>
+            </div>
+
+            {/* Feature 11 - Playlist Pitching */}
+            <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">🎯</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">ML Playlist Pitching</h3>
+              <p className="text-gray-600">
+                AI matches your music to perfect playlists from 15M+ database. Automated email campaigns with 15-25% acceptance rate.
+              </p>
+            </div>
+
+            {/* Feature 12 - Expert Support */}
             <div className="bg-white rounded-lg p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,7 +464,7 @@ export default function HomeClient() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Expert Support</h3>
               <p className="text-gray-600">
-                Get help from our dedicated support team who understand the music industry.
+                Get help from our dedicated support team who understand the music industry. Email, chat, and VIP support available.
               </p>
             </div>
           </div>

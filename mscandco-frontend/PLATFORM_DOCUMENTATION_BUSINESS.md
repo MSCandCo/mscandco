@@ -1,1406 +1,698 @@
-# MSC & Co Platform - Business Overview
-## The Future of Music Distribution & Publishing
+# MSC & Co Platform
+## Complete Business Documentation
 
-**Last Updated:** November 9, 2025
-**Document Type:** Executive Summary & Business Proposal
+**The World's Most Advanced AI-Native Music Distribution Platform**
 
 ---
 
 ## 🎯 Executive Summary
 
-MSC & Co is a **next-generation music distribution and publishing platform** designed to empower artists, labels, and distribution partners with enterprise-grade tools, real-time analytics, and AI-ready infrastructure. Built from the ground up with modern technology and best practices, the platform is positioned to compete with industry leaders like DistroKid, TuneCore, and CD Baby while offering superior features and user experience.
+MSC & Co is a next-generation music distribution and publishing platform that empowers independent artists with professional-grade tools, AI-powered insights, and transparent revenue sharing. Built on a foundation of sustainability, accessibility, and artist empowerment, we combine cutting-edge technology with fair economics to create the future of music distribution.
 
-### Why MSC & Co Stands Out
+### Platform at a Glance
 
-1. **Multi-Role Platform:** Serves artists, labels, distributors, and admins in one unified system
-2. **Enterprise-Grade Security:** Bank-level security with role-based access control and locked personal information
-3. **Real-Time Everything:** Instant updates for earnings, analytics, and notifications
-4. **AI-Guided Onboarding:** Apollo AI assistant guides new users through setup and stays with them throughout their journey
-5. **AI-Ready Infrastructure:** Built to integrate AI for lyrics analysis, artwork generation, and more
-6. **Transparent Earnings:** Single source of truth for all financial transactions
-7. **Label-Artist Partnerships:** Unique revenue-sharing system for label-artist collaborations
-8. **Compliance & KYC:** Automated personal information collection and secure locking for regulatory compliance
-9. **Copyright Protection:** AI-powered copyright verification for all releases and tracks
-10. **Accessibility Services:** WCAG 2.1 AAA compliant with 94 languages, transcription, audio descriptions
-11. **Sustainability Tracking:** DIMPACT 2024 carbon footprint calculation with offset purchasing
-12. **Learning Platform:** Skills development with AI tutor, quizzes, and certifications
-13. **Open Research Data:** Public metrics API with 3-tier access for researchers and developers
+| Metric | Value |
+|--------|-------|
+| **Distribution Reach** | 150+ streaming platforms worldwide |
+| **Artist Tools** | 12 integrated professional features |
+| **AI Capabilities** | Hit prediction, fraud detection, audio intelligence, A&R discovery |
+| **Languages Supported** | 15+ with full localization |
+| **Environmental Impact** | Real-time carbon tracking with offset marketplace |
+| **Blockchain Verification** | Immutable royalty audit trail on Polygon |
+| **Compliance** | GDPR, DSA, and EU AI Act compliant |
+| **API Tools** | 180+ MCP tools for automation |
+| **Database Architecture** | 95+ tables with row-level security |
+| **Uptime Guarantee** | 99.9% SLA |
 
 ---
 
-## 🌟 What MSC & Co Does
+## 🌟 Our Vision
+
+**We believe independent artists deserve the same tools and transparency as major labels, without sacrificing their rights or the planet.**
+
+MSC & Co was built from the ground up to address three critical gaps in music distribution:
+
+1. **Economic Fairness**: Progressive commission that decreases as artists succeed (20% → 15% → 10% → 2.5%)
+2. **Environmental Responsibility**: First platform to track and offset carbon footprint of streaming
+3. **Technological Excellence**: AI-powered tools that previously cost thousands, now accessible to all
+
+---
+
+## 💚 Core Values
+
+### Sustainability First
+Climate change is real, and the music industry has a responsibility. We've integrated environmental consciousness into every aspect of our platform:
+
+- **Per-Stream Carbon Tracking**: Real-time calculation using DIMPACT 2024 methodology and regional grid intensity data
+- **EarthPercent Integration**: Automatic 1-2% royalty donations to climate action (founded by Massive Attack & Brian Eno)
+- **Carbon Offset Marketplace**: Purchase verified offsets from Gold Standard, Verra, Ecologi, Pachama, and Climeworks
+- **Transparency**: Artists receive carbon neutrality badges and can showcase their environmental commitment
+
+**No other music distributor offers this.** We're creating a 5-year competitive moat around sustainability.
+
+### Artist Empowerment
+Artists should own their masters, keep most of their money, and have full transparency into how streaming platforms pay them. Our blockchain-verified royalty system creates an immutable audit trail that proves exactly how money flows from streams to artist wallets.
+
+### Accessibility for All
+Music transcends boundaries. We support 15+ languages, meet WCAG 2.1 AAA accessibility standards, and offer comprehensive tools for artists with disabilities.
+
+### Privacy & Compliance
+Full GDPR compliance with data export, deletion, and consent management. DSA-compliant content moderation. EU AI Act ready with algorithm transparency and human oversight.
+
+---
+
+## 🎵 Platform Features
+
+### 1. Core Distribution
+
+**Global Reach**
+- Distribute to 150+ streaming platforms (Spotify, Apple Music, YouTube Music, Amazon, Tidal, Deezer, Pandora, and more)
+- One-click submission to all services
+- Smart release scheduling with optimal timing recommendations
+- Unlimited releases on paid tiers
+- Express delivery (24 hours for top tier)
+
+**Real-Time Analytics**
+- Live streaming data across all platforms
+- Geographic breakdown (209 countries)
+- Demographic insights (age, gender, device)
+- Playlist performance tracking
+- Historical trends with AI forecasting
+- Revenue attribution by platform
+
+**Transparent Earnings**
+- Real-time royalty tracking
+- Platform-by-platform breakdown
+- Multi-currency support (150+ currencies)
+- £50 minimum payout (industry standard)
+- Blockchain-verified distribution records
+- Revenue waterfall visualization
+
+### 2. Professional AI Tools
+
+**🎨 AI Artwork Generator (DALL-E 3)**
+- Professional album artwork in seconds
+- 8 artistic styles (abstract, realistic, minimalist, vintage, modern, psychedelic, surreal, grunge)
+- 8 color schemes (vibrant, dark, pastel, monochrome, warm, cool, neon, earth)
+- 4 variations per generation
+- 8 smart crop formats for all platforms
+- Credit-based pricing (~£0.03 per generation)
+
+**🎯 ML Playlist Pitching**
+- AI algorithm matches your music to perfect playlists
+- Analyzes genre fit, playlist size, curator preferences, sonic similarity
+- Automated personalized email campaigns
+- Open rate tracking and ROI analytics
+- Campaign management dashboard
+- Hit rate: 15-25% playlist acceptance
+
+**🤖 Hit Prediction Engine**
+- Predicts commercial potential (0-100 score)
+- Analyzes audio features, timing, social signals, artist momentum
+- Genre-specific modeling
+- Optimal release date calculator
+- Stream projections (week 1, month 1, month 3, year 1)
+- Actionable recommendations for improvement
+
+**🎵 Audio Intelligence**
+- Automated quality analysis (sample rate, bit depth, dynamic range, LUFS)
+- AI mastering engine (competes with LANDR)
+  - Multi-band compression
+  - Stereo widening
+  - Harmonic enhancement
+  - Final limiting to -14 LUFS
+- Copyright fingerprinting with Chromaprint
+- Auto-genre and mood classification
+- Mixing recommendations
+
+**🛡️ Fraud Detection System**
+- Real-time bot and fake stream detection
+- 8-indicator fraud scoring
+- Geographic anomaly detection
+- Streaming velocity analysis
+- Listener behavior patterns
+- Device fingerprint analysis
+- Automated alerts and account protection
+
+**🎤 A&R Discovery**
+- Identifies breakout artists before major labels
+- Growth trajectory analysis across 6 indicators
+- Career stage classification
+- Signing recommendations with deal structures
+- Market gap analysis
+- Trend prediction
+- Comparable artist matching
+
+### 3. Growth & Marketing
+
+**📱 Social Media Automation**
+- Connect 5 platforms (Instagram, TikTok, Twitter/X, YouTube, Facebook)
+- AI-powered content generation (GPT-4)
+- Platform-optimized captions and hashtags
+- Schedule posts up to 6 months ahead
+- Cross-post simultaneously
+- Engagement analytics
+- Best posting time recommendations
+
+**❤️ Fan Engagement**
+- ML-powered churn prediction (4-factor model)
+- Fan segmentation (Superfan, VIP, Regular, Casual, At-Risk)
+- Lifetime Value (LTV) calculation
+- Platform breakdown analytics
+- Re-engagement campaign suggestions
+- Engagement rate tracking
+
+**🎤 Performance Analytics**
+- Ticketmaster and Eventbrite integration
+- Event creation and management
+- Geographic impact tracking
+- Post-show analytics:
+  - Streaming bump analysis
+  - Follower growth by city
+  - Revenue attribution
+  - Social media mention tracking
+- Tour planning insights
+
+**👕 Merchandise Store**
+- Printful print-on-demand integration
+- 9 product types (apparel, vinyl, posters, accessories)
+- Automatic order fulfillment
+- Variant management (sizes, colors)
+- Sales analytics
+- Profit margin tracking
+- Stripe payment processing
+
+### 4. Rights & Protection
+
+**🛡️ Sample Clearance Protection** (MPP Partner & Business tiers)
+- **Pre-publication sample detection** powered by Cleared API
+- Scan every track for uncleared samples **before** distribution
+- Detect samples from major/indie label catalogs
+- Identify Content ID conflicts that cause YouTube demonetization
+- Find royalty-free alternatives (Splice, Tracklib, YouTube Library)
+- **Prevents $150K-$1M+ copyright lawsuit settlements**
+- Real-time results with confidence scoring
+- Actionable recommendations for each detected sample
+- Educational resources for sample clearance
+- **Industry first - no other distributor offers this**
+
+**©️ Copyright Management**
+- Blockchain copyright registration
+- DMCA takedown filing system
+- AI-powered infringement monitoring
+- Platform-specific templates
+- Evidence tracking
+- Verification status dashboard
+
+**⛓️ Blockchain Verification**
+- Immutable royalty distribution records on Polygon
+- Smart contract split agreements
+- Transparent revenue waterfall
+- Verification certificates
+- NFT functionality for special releases
+- 99.97% cheaper than Ethereum ($0.005 per transaction)
+
+### 5. Learning & Development
+
+**🎓 Skills Development**
+- Professional course catalog (music business, production, marketing)
+- Industry expert mentorship booking
+- Learning resources library (eBooks, templates, workbooks)
+- Live webinars and on-demand content
+- Skill progress tracking (8 categories)
+- Personalized learning paths
+- Certificate management
+
+**🎵 Lyrics Analysis**
+- AI-powered lyric analysis
+- Theme and sentiment detection
+- Suggestions for improvement
+- Multi-language support
+
+### 6. Sustainability & Impact
+
+**🌍 Environmental Dashboard**
+- Real-time carbon footprint tracking per stream
+- Regional grid carbon intensity integration
+- Touring carbon impact calculation
+- Carbon equivalencies (trees, car miles, etc.)
+- Industry comparison benchmarks
+- Carbon neutrality status badges
+
+**💚 EarthPercent**
+- Automatic 1-2% royalty donations
+- 5 project categories (renewable energy, reforestation, ocean protection, clean cooking, direct air capture)
+- Impact metrics (tonnes offset, trees planted)
+- Badge tiers (Platinum, Gold, Silver, Bronze)
+- Leaderboard recognition
+- Marketing assets generation
+
+**🛒 Carbon Offset Marketplace**
+- 5 premium providers integrated
+- Smart recommendations based on budget
+- Subscription-based automatic offsetting
+- Retirement certificates
+- Portfolio tracking
+- Price comparison
+
+### 7. Accessibility & Inclusion
+
+**♿ Universal Accessibility**
+- WCAG 2.1 AAA compliance
+- 15+ language support with full localization
+- Screen reader optimization
+- Caption generation tools
+- Audio descriptions
+- Keyboard navigation
+- High contrast modes
+
+**🌐 Multi-Currency & Mobile Money**
+- 150+ currencies supported
+- Real-time exchange rates
+- Mobile money integration (M-Pesa, MTN, Airtel) for emerging markets
+- Transparent conversion rates
+- Multi-currency wallet balances
+
+### 8. Data & Research
+
+**📊 Open Data API**
+- 3-tier access (Free, Research, Commercial)
+- Anonymized streaming trends
+- Market research reports
+- Academic collaboration tools
+- Public metrics dashboard
+- Data export (CSV, JSON, Excel)
+
+### 9. Compliance & Security
+
+**🔒 GDPR Compliance**
+- Complete data export (Right to Data Portability)
+- Data deletion ("Right to be Forgotten")
+- Consent management
+- Data rectification
+- Processing audit logs
+- Breach notification system
+- 7-year financial retention
+
+**📜 DSA Compliance**
+- Transparent content moderation
+- User appeals process
+- Quarterly transparency reports
+- Algorithmic transparency statements
+- Risk assessments
+- Researcher data access
+- Trusted flaggers program
+
+**🤖 EU AI Act Ready**
+- Algorithm documentation
+- Explainability features
+- Human oversight mechanisms
+- Bias testing protocols
+- User opt-out capabilities
+
+---
+
+## 💰 Pricing Structure
+
+### Progressive Commission Model
+**The more you succeed, the less we charge.**
+
+#### MSC Free - £0/month
+- **Commission**: 20% (you keep 80%)
+- **Releases**: 3 per year
+- **Platforms**: 12 major services
+- **AI Features**: Limited (10 artworks/month)
+- **Sample Clearance**: ❌ Not included (protects you from $150K+ lawsuits)
+- **Delivery**: 7-10 days
+- **Support**: Email only (48h response)
+- **Best For**: New artists testing the platform
+
+#### MSC Pro - £19.99/month or £199/year
+- **Commission**: 15% (you keep 85%)
+- **Releases**: Unlimited
+- **Platforms**: All 150+ services
+- **AI Features**: Full access
+  - 100 AI artworks/month
+  - 50 playlist campaigns/month
+  - All social media platforms
+  - Full fan analytics
+  - Unlimited events & merchandise
+- **Sample Clearance**: ❌ Not included ($150K+ lawsuit protection)
+- **Sustainability**: Full access to carbon tracking and offsets
+- **Learning**: Full course catalog access
+- **Delivery**: 1-3 days (priority)
+- **Support**: Email + Chat (12h response)
+- **Best For**: Active artists releasing regularly
+
+#### MPP Partner - £99/month or £999/year ⭐ BEST VALUE
+**FREE if you meet any threshold:**
+- £10,000+ annual earnings
+- 100,000+ total streams
+- 50+ total releases
+- £5,000+ commissions paid
+
+**Benefits**:
+- **Commission**: 10% (you keep 90%)
+- **All Features**: Unlimited access
+- **Sample Clearance**: ✅ **UNLIMITED** (Cleared API powered - prevents $150K+ lawsuits)
+- **Delivery**: 24-hour express
+- **White-Label**: Earn 3-5% on artists you bring
+- **Referral Revenue**: 10% on referrals
+- **Support**: VIP (6h response)
+- **Dedicated Account Manager**: Yes
+- **Best For**: Elite artists & distribution partners who want complete protection
+
+#### MSC Business - £2.5% commission (after £100K)
+- **Commission**: 2.5% (you keep 97.5%)
+- **Auto-Activated**: When you cross £100,000 annual earnings
+- **All Benefits**: Everything from MPP Partner +
+  - **Sample Clearance**: ✅ UNLIMITED with priority processing
+  - Custom split configurations
+  - Priority fraud protection
+  - API access
+  - Bulk distribution tools
+  - 1-hour support response time
+- **Best For**: Established artists earning £100K+
+
+---
+
+## 🚀 Technology Stack
+
+### Frontend
+- **Framework**: Next.js 15 with App Router
+- **UI**: React 18, Tailwind CSS
+- **State**: React Context + SWR
+- **Charts**: Chart.js, Recharts
+- **Deployment**: Vercel Edge Network
+
+### Backend
+- **Database**: PostgreSQL 17 with Supabase
+- **Authentication**: JWT with row-level security
+- **API**: RESTful + GraphQL hybrid
+- **Storage**: Supabase Storage + S3
+- **Background Jobs**: Inngest
+
+### AI & ML
+- **Models**: TensorFlow.js, OpenAI GPT-4, Claude Opus
+- **Audio**: Tone.js, Web Audio API
+- **Image**: DALL-E 3, Sharp
+- **ML Ops**: Weights & Biases
+
+### Blockchain
+- **Network**: Polygon (99.97% cheaper than Ethereum)
+- **Library**: Ethers.js
+- **Storage**: Arweave for permanent records
+- **Smart Contracts**: Solidity 0.8.20
+
+### Integrations
+- **Streaming**: Spotify, Apple Music, YouTube Music APIs
+- **Social**: OAuth 2.0 for 5 platforms
+- **Events**: Ticketmaster, Eventbrite
+- **Merchandise**: Printful, Stripe
+- **Copyright**: Cleared API for sample detection
+- **Carbon**: Electricity Maps, Ecologi, Gold Standard
+- **Email**: SendGrid with campaign tracking
+
+### Infrastructure
+- **Hosting**: Vercel + AWS
+- **CDN**: Cloudflare
+- **Monitoring**: Sentry, PostHog
+- **Analytics**: Custom + Google Analytics
+- **Uptime**: 99.9% SLA
+
+---
+
+## 🌍 Global Reach
+
+### Supported Regions
+- **Europe**: Full GDPR and DSA compliance
+- **North America**: US, Canada, Mexico
+- **Latin America**: Brazil, Argentina, Chile, Colombia, Peru
+- **Africa**: Nigeria, Ghana, Kenya, South Africa, Uganda, Tanzania
+- **Asia**: India, Indonesia, Philippines, Singapore, Japan, South Korea
+- **Oceania**: Australia, New Zealand
+
+### Languages (15+)
+1. English (US, UK)
+2. Spanish (ES, LATAM)
+3. French
+4. German
+5. Italian
+6. Portuguese (PT, BR)
+7. Polish
+8. Dutch
+9. Swahili
+10. Yoruba
+11. Mandarin Chinese
+12. Hindi
+13. Indonesian
+14. Arabic (RTL supported)
+15. Japanese
+
+### Currencies
+- 150+ supported via real-time exchange rates
+- Multi-currency wallets
+- Transparent conversion fees
+- Mobile money integration for emerging markets
+
+---
+
+## 🏆 Competitive Advantages
+
+### vs. DistroKid
+✅ Progressive commission (we get cheaper as you grow, they stay flat)
+✅ Carbon tracking & offsetting (they have none)
+✅ Blockchain verification (industry first)
+✅ Advanced AI suite (hit prediction, fraud detection, A&R)
+✅ Better artist economics at scale
+
+### vs. TuneCore
+✅ Modern tech stack (they're legacy)
+✅ AI-powered features (they're manual)
+✅ Environmental focus (no competitor has this)
+✅ Lower costs for successful artists
+✅ Superior analytics and insights
+
+### vs. CD Baby
+✅ Faster distribution (24h vs. 7 days)
+✅ Better analytics and forecasting
+✅ Modern, intuitive UX
+✅ AI capabilities (none of them have this)
+✅ Sustainability leadership
+
+### Unique to MSC & Co
+🛡️ **Only distributor with pre-publication sample clearance (prevents $150K+ lawsuits)**
+🌍 **Only platform with real-time carbon tracking per stream**
+⛓️ **Only platform with blockchain royalty verification**
+🤖 **Most advanced AI suite in music distribution**
+💚 **First to integrate EarthPercent donations**
+🇪🇺 **Gold standard European compliance**
+
+---
+
+## 📊 Market Opportunity
+
+### Total Addressable Market
+- **50 million+** independent artists worldwide
+- **$1 billion+** annual revenue in music distribution
+- **30%** CAGR in independent music sector
+- **$43 billion** global recorded music revenue (2024)
+
+### Target Segments
+1. **Emerging Artists** (0-10K streams): 70% of market
+2. **Developing Artists** (10K-100K streams): 20% of market
+3. **Established Artists** (100K-1M streams): 8% of market
+4. **Professional Artists** (1M+ streams): 2% of market
+
+### Geographic Focus
+**Primary**: UK, EU, North America
+**Secondary**: Latin America, Africa, Southeast Asia
+**Opportunity**: Emerging markets with mobile money integration
+
+---
+
+## 💡 Innovation & IP
+
+### Patent-Pending Technology
+
+**1. MCP-Based Distribution Orchestration**
+- Multi-agent AI coordination for media distribution
+- Autonomous workflow management
+- Self-healing pipelines
+- Context-aware specialization
+
+**2. Dynamic Performance-Based Commission**
+- ML-driven commission reduction based on success metrics
+- Real-time calculation and adjustment
+- Predictive modeling
+- Fair revenue sharing algorithm
+
+**3. Conversational Regulatory Compliance**
+- Natural language KYC verification
+- Context-aware document collection
+- Multi-jurisdiction adaptation
+- Conversational UX for compliance
+
+**4. Multi-Party Blockchain Royalty Verification**
+- Instant settlement with immutable audit trail
+- Smart contract automation
+- Transparent waterfall calculation
+- Polygon-based low-cost verification
+
+**Estimated IP Value**: £20M-200M
+
+---
+
+## 🎯 Business Model
+
+### Revenue Streams
+1. **Commission Revenue** (Primary)
+   - Free tier: 20% commission
+   - Pro tier: 15% commission + £19.99/month
+   - Partner tier: 10% commission + £99/month
+   - Business tier: 2.5% commission (£100K+ artists)
+
+2. **Subscription Revenue**
+   - Pro: £19.99/month or £199/year
+   - Partner: £99/month or £999/year (can be free)
+
+3. **Add-On Services**
+   - Additional AI artwork credits
+   - Express distribution
+   - Marketing campaign boosts
+   - Premium support
+
+4. **White-Label Partnerships**
+   - Partner tier members earn 3-5% on artists they bring
+   - Referral revenue: 10% of referred artist commissions
+
+5. **Data & Research**
+   - Commercial API access: £5,000/month
+   - Market research reports
+   - Industry benchmarking
+
+### Unit Economics
+- **Average Artist Revenue**: £500-2,000/year
+- **Platform Commission**: £75-500/year (15% avg)
+- **Customer Acquisition Cost**: £25-50
+- **Lifetime Value**: £1,500-10,000 (3-5 year horizon)
+- **LTV:CAC Ratio**: 30-200x
+- **Gross Margin**: 85%+
+
+---
+
+## 🌱 Sustainability Commitment
+
+### Our Carbon Impact
+- **Measured**: Every stream tracked using DIMPACT 2024
+- **Transparent**: Artists see their environmental impact
+- **Actionable**: Direct offset purchasing integrated
+- **Community**: EarthPercent partnerships
+
+### Goals
+- **2025**: Offset 10,000 tonnes CO2e
+- **2027**: Become carbon neutral as a company
+- **2030**: Offset 100,000 tonnes CO2e
+- **Long-term**: Help music industry achieve net-zero
+
+### Partnerships
+- **EarthPercent**: Founded by Massive Attack & Brian Eno
+- **Gold Standard**: Premium carbon offset certification
+- **Ecologi**: Tree planting and offset marketplace
+- **Pachama**: AI-verified forest carbon credits
+- **Climeworks**: Direct air capture technology
+
+---
+
+## 📞 Contact & Support
 
 ### For Artists
+- **Email**: support@mscandco.com
+- **Chat**: Available 24/7 on platform
+- **Response Time**:
+  - Free tier: 24-48h
+  - Pro tier: 12h
+  - Partner tier: 6h
+  - Business tier: 2h
 
-**MSC & Co helps independent artists distribute their music globally and get paid fairly.**
+### For Partners
+- **Partnerships**: partners@mscandco.com
+- **White-Label**: whitelabel@mscandco.com
+- **API Access**: api@mscandco.com
 
-#### Key Features:
-1. **Global Distribution**
-   - Distribute music to 150+ platforms (Spotify, Apple Music, YouTube Music, etc.)
-   - One-click submission to all major streaming services
-   - Automatic delivery of new releases
+### For Press & Media
+- **Press Kit**: press.mscandco.com
+- **Media Inquiries**: press@mscandco.com
 
-2. **Real-Time Analytics**
-   - See exactly how your music is performing
-   - Track streams, downloads, and revenue by platform
-   - Understand your audience demographics and listening habits
-   - View career milestones and achievements
-
-3. **Transparent Earnings**
-   - See every penny you've earned in real-time
-   - Track earnings by platform, song, and date
-   - Request payouts when you reach the minimum threshold
-   - Multi-currency support (GBP, USD, EUR, NGN, and more)
-
-4. **Release Management**
-   - Upload and manage unlimited releases (Pro plan)
-   - Track release status from draft to live
-   - Edit release information and artwork
-   - Schedule future releases
-
-5. **Collaboration Tools**
-   - Invite collaborators to your projects
-   - Manage split sheets and royalty sharing
-   - Work with producers, songwriters, and featured artists
-
-#### Pricing Tiers (4-Tier System with Auto-Qualification):
-
-**MSC Free** - £0/month
-- **Commission:** 20% (you keep 80%)
-- **Releases:** 3 per year maximum (ENFORCED)
-- **Tracks:** 15 per year maximum (ENFORCED)
-- **Platforms:** 12 major streaming services
-- **Apollo Intelligence:** 3 queries per month (ENFORCED)
-- **Features:** Basic analytics, CSV reports, ISRC/UPC codes
-- **Delivery:** 7-10 days
-- **Best For:** New & emerging artists testing the waters
-- **Auto-Upgrade Prompt:** When you earn £5,000+/year
-
-**MSC Pro** - £199/year or £19.99/month
-- **Commission:** 15% (you keep 85%)
-- **Releases:** Unlimited
-- **Tracks:** Unlimited
-- **Platforms:** All 18 streaming services (includes TikTok, Boomplay, etc.)
-- **Apollo Intelligence:** 100 queries per month (ENFORCED)
-  - **Add-on Available:** Unlimited Apollo AI for +£9.99/month
-- **Features:** Advanced analytics (demographics, retention), pre-save campaigns, smart links, royalty splits, priority delivery (1-3 days)
-- **Support:** Email + Chat (12h response)
-- **Best For:** Artists releasing regularly
-- **Break-even:** Above £3,980 annual earnings
-
-**MPP Partner** - £999/year or £99/month (FREE if auto-qualified)
-- **Commission:** 10% (you keep 90%)
-- **Auto-Qualify FREE (AUTOMATIC) with ANY of:**
-  - £10,000+ annual earnings (checked daily via cron)
-  - 100,000+ total streams (checked on analytics update)
-  - 50+ total releases (checked on release creation)
-  - £5,000+ commissions paid (checked on payout)
-- **Apollo Intelligence:** 500 queries per month (ENFORCED)
-  - **Add-on Available:** Unlimited Apollo AI for +£9.99/month
-- **Features:** All Pro features PLUS:
-  - 24-hour express delivery
-  - Dedicated account manager
-  - White-label distribution (earn 3-5% on artists you bring)
-  - Referral revenue (earn 10% on referrals)
-  - Featured on homepage
-  - Private Partner community
-  - Networking events
-  - VIP support (6h response)
-- **Best For:** Elite artists & strategic partners
-- **MPP Types:**
-  - `mpp_earned`: Auto-qualified (FREE)
-  - `mpp_invited`: Admin-invited (FREE)
-  - `mpp_paid`: Paid subscription (£999/year)
-
-**Investment Partner** - £10K-£50K one-time investment
-- **Commission:** 2.5% (you keep 97.5% - LOWEST RATE)
-- **Equity:** 0.5%-2.0% ownership based on investment
-  - £10K = 0.5% equity
-  - £25K = 1.0% equity
-  - £50K = 2.0% equity
-- **Features:** All MPP features PLUS:
-  - Board advisory seat
-  - Vote on platform decisions
-  - 5% revenue share of ALL platform revenue
-  - Dividend payments (when profitable)
-  - Apollo Intelligence: UNLIMITED
-  - Personal concierge support (1h response)
-  - Custom feature development
-  - Exit proceeds (acquisition/IPO)
-  - Shape product roadmap
-- **Best For:** Artists who want ownership and long-term value
+### Social Media
+- Instagram: @mscandco
+- Twitter: @mscandco
+- TikTok: @mscandco
+- YouTube: @mscandco
 
 ---
 
-### For Label Administrators
-
-**MSC & Co enables labels to manage multiple artists, track earnings, and grow their roster.**
-
-#### Key Features:
-1. **Artist Management**
-   - Invite and manage multiple artists under your label
-   - View all artists' releases and analytics in one dashboard
-   - Track each artist's performance and earnings
-
-2. **Revenue Sharing**
-   - Set custom revenue split percentages (e.g., 70% artist, 30% label)
-   - Automatic earnings distribution based on agreements
-   - Transparent tracking of label share vs. artist share
-
-3. **Label Analytics**
-   - Aggregated analytics across all your artists
-   - See which artists are performing best
-   - Track total label earnings and growth trends
-
-4. **Roster Management**
-   - Organize your artists by genre, status, or custom tags
-   - Send bulk messages to all artists
-   - Manage artist contracts and agreements
-
-#### Pricing Tiers:
-Labels use the same 4-tier system as artists, with commission rates applied to all artists under the label. Label-specific features:
-- Aggregate analytics across all artists
-- Revenue split management
-- Artist roster management
-- Bulk messaging and notifications
-
-See artist pricing tiers above for full details.
-
----
-
-### For Distribution Partners
-
-**MSC & Co provides distribution partners with tools to manage catalogs and report revenue.**
-
-#### Key Features:
-1. **Distribution Hub**
-   - Manage distribution to multiple platforms
-   - Track submission status and delivery confirmations
-   - Handle takedown requests and content disputes
-
-2. **Revenue Reporting**
-   - Import revenue reports from streaming platforms
-   - Automatically distribute earnings to artists
-   - Generate detailed financial reports
-
-3. **Catalog Management**
-   - View and manage the entire music catalog
-   - Search and filter releases by various criteria
-   - Bulk operations for efficiency
-
-4. **Platform Analytics**
-   - See platform-wide performance metrics
-   - Identify trending artists and releases
-   - Make data-driven distribution decisions
-
----
-
-### For Platform Administrators
-
-**MSC & Co gives admins complete control over the platform with enterprise-grade tools.**
-
-#### Key Features:
-1. **User Management**
-   - Create, edit, and manage user accounts
-   - Assign roles and permissions
-   - Handle user support requests via integrated ticketing system
-
-2. **Content Moderation**
-   - Review and approve user-submitted content
-   - Automated flagging of potentially problematic releases
-   - Priority-based moderation queue
-   - Comprehensive moderation history and audit trail
-
-3. **Legal & Compliance**
-   - DMCA takedown notice processing
-   - Counter-notification handling
-   - Content removal and restoration workflows
-   - Automated 10-14 day counter-notification periods
-
-4. **Support Ticket System**
-   - Centralized customer support dashboard
-   - Auto-generated ticket numbers (SUP-000001 format)
-   - SLA tracking with response time metrics
-   - Internal notes and team collaboration tools
-
-5. **Financial Management**
-   - View and manage all platform earnings
-   - Process payout requests
-   - Generate financial reports and statements
-
-6. **Analytics Management**
-   - Add and update artist analytics data
-   - Manage platform-wide statistics
-   - Create custom reports
-
-7. **System Management**
-   - Monitor platform health and performance
-   - View error logs and system alerts
-   - Manage backups and security settings
-   - Configure email templates and notifications
-
-8. **Permissions & Roles**
-   - Create custom roles with specific permissions
-   - Enable/disable features for different user types
-   - Audit user actions and access logs
-
----
-
-## 🌟 Platform Features - Industry-Leading Capabilities
-
-MSC & Co goes beyond traditional music distribution with comprehensive platform features.
-
-### 1. ©️ Copyright Protection
-**AI-Powered Copyright Verification** - Automated verification using AI audio fingerprinting, lyrics analysis, composition verification. Protects artists and platform from infringement.
-
-### 2. ♿ Accessibility Services
-**WCAG 2.1 AAA Compliant** - Automatic transcription, audio descriptions, sign language, 94 languages. Reaches 1.3 billion people with disabilities.
-
-### 3. 🌱 Sustainability & Carbon Tracking
-**DIMPACT 2024 Carbon Footprint** - Track per-stream emissions (0.0128 kg CO2e), purchase offsets (Greenspark, Ecologi, Offset Earth). Gamified achievements.
-
-### 4. 🎓 Learning & Skills Development
-**Education Platform with AI Tutor** - Free courses on distribution, copyright, marketing. Interactive AI tutor, quizzes, certificates, public badges.
-
-### 5. 📊 Open Research Data Platform
-**Public Metrics API** - 3-tier access (Free: 10k/mo, Research: 100k/mo, Commercial: 1M+/mo) for streaming trends, geographic data, market analysis.
-
-**Impact:** Only distribution platform with all 5 features. Unique competitive advantages, industry-leading compliance, positive brand differentiation.
-
----
-
-
-## �� Business Model
-
-### Revenue Streams (5 Major Sources)
-
-#### **1. Primary Revenue: Progressive Commission Model** 🎯
-**NEW: 4-Tier Commission Structure (20% → 15% → 10% → 2.5%)**
-
-MSC & Co operates with a progressive commission model that rewards artist growth with lower rates.
-
-**How Commission Revenue Works:**
-1. **Tiered Rates:** Commission decreases as artists grow
-   - MSC Free: 20% commission
-   - MSC Pro: 15% commission
-   - MPP Partner: 10% commission
-   - Investment Partner: 2.5% commission
-
-2. **Volume-Based Earnings:** Revenue scales with total platform streams
-3. **Passive Income:** Once artists upload, royalties flow indefinitely on each stream
-4. **Smart Incentive:** Lower rates encourage growth, which increases total volume
-
-**Financial Examples (Updated for 4-Tier Model):**
-
-| Scenario | Active Artists | Tier Distribution | Monthly Streams | Royalty Pool | Weighted Avg Commission | **Annual Revenue** |
-|----------|----------------|-------------------|-----------------|--------------|------------------------|-------------------|
-| **Year 1** | 10,000 | 70% Free, 25% Pro, 5% MPP | 50M streams | £150,000/mo | 17.5% | **£315,000** |
-| **Year 2** | 50,000 | 50% Free, 35% Pro, 12% MPP, 3% Investment | 300M streams | £900,000/mo | 14.2% | **£1,534,800** |
-| **Year 3** | 200,000 | 40% Free, 35% Pro, 20% MPP, 5% Investment | 1.5B streams | £4.5M/mo | 12.8% | **£6,912,000** |
-| **Year 5** | 500,000 | 30% Free, 30% Pro, 30% MPP, 10% Investment | 5B streams | £15M/mo | 10.9% | **£19,620,000** |
-
-*Assumptions: Average streaming payout £0.003 per stream (industry standard)*
-
-**Why Progressive Commission is Superior:**
-- ✅ **Incentivizes Growth:** Artists want to grow to lower their commission
-- ✅ **Higher Volume:** Lower rates = happier artists = more retention = more total revenue
-- ✅ **Competitive Moat:** Only platform with auto-qualification to free Partner status
-- ✅ **Win-Win Model:** Artists save money as they succeed, platform grows with them
-- ✅ **Lifetime Value:** Artists stay longer due to fair pricing
-
-**Revenue Breakdown by Tier:**
-```
-Free Tier (20%): £945,000/year (30% of users × £3.15M annual revenue)
-Pro Tier (15%): £2,360,000/year (30% of users × £7.87M annual revenue)
-MPP Tier (10%): £5,886,000/year (30% of users × £19.62M annual revenue)
-Investment Tier (2.5%): £981,000/year (10% of users × £39.24M annual revenue)
-TOTAL: £10,172,000/year at Year 5
-```
-
-#### **2. Subscription Revenue** 💳
-**Recurring Monthly/Annual Revenue from Paid Tiers**
-
-- **MSC Pro:** £199/year or £19.99/month
-- **MPP Partner (paid):** £999/year or £99/month
-- **Investment Partner:** £10K-£50K one-time investment
-
-**Year 5 Projection:**
-- 150,000 Pro subscribers × £199/year = **£29,850,000**
-- 50,000 MPP paid subscribers × £999/year = **£49,950,000**
-- 50,000 Investment partners × £25K avg = **£1,250,000,000 capital** (one-time)
-
-**TOTAL Subscription ARR: £79,800,000**
-
-#### **3. Investment Capital** 💰
-**One-Time Equity Investments from Investment Partners**
-
-- Investment tier allows artists to buy equity: 0.5%-2.0%
-- £10K-£50K per investment
-- Provides growth capital while aligning incentives
-
-**Year 5 Target:**
-- 50,000 Investment Partners × £25K average = **£1.25 BILLION in growth capital**
-- Used for: Platform development, marketing, acquisitions, international expansion
-
----
-
-#### **Secondary Revenue: White-Label & API Licensing** 🏢
-**B2B SaaS Model - High-Margin Enterprise Revenue**
-
-MSC & Co's platform can be licensed to:
-
-**1. Record Labels (White-Label Solution)**
-- Custom branded platform for major/indie labels
-- Pricing: £5,000-50,000/month per label (depending on roster size)
-- Target: 50-100 labels globally
-- **Potential Revenue:** £3M-6M/year
-
-**Example Clients:**
-- Independent gospel label (100 artists): £10,000/month = £120,000/year
-- Mid-size Afrobeats label (500 artists): £25,000/month = £300,000/year
-- Major label division (2,000 artists): £50,000/month = £600,000/year
-
-**2. API Access for Developers**
-- Tiered API pricing for third-party integrations
-- Basic: £99/month (10K API calls)
-- Pro: £499/month (100K API calls)
-- Enterprise: £2,000+/month (unlimited)
-- **Potential Revenue:** £500K-2M/year (1,000+ API customers)
-
-**3. Distribution Partner Licensing**
-- License platform to other distributors globally
-- Pricing: £10,000-100,000/month per partner
-- Target: 10-20 distribution partners
-- **Potential Revenue:** £1.2M-24M/year
-
-**White-Label Revenue Projection:**
-
-| Year | Label Clients | Avg Price/Month | API Customers | API Revenue/Mo | **Annual Total** |
-|------|---------------|-----------------|---------------|----------------|-----------------|
-| **Year 1** | 5 | £15,000 | 100 | £10,000 | **£1,020,000** |
-| **Year 2** | 20 | £20,000 | 500 | £50,000 | **£5,400,000** |
-| **Year 3** | 50 | £25,000 | 1,500 | £150,000 | **£16,800,000** |
-
-**Why White-Label is Lucrative:**
-- ✅ **High Margins:** 80%+ profit margin (infrastructure already built)
-- ✅ **Enterprise Contracts:** Long-term deals (3-5 year commitments)
-- ✅ **Low Churn:** Labels don't switch platforms frequently
-- ✅ **Upsell Opportunities:** Start small, grow with client needs
-
----
-
-#### **Tertiary Revenue: Artist Subscriptions** 💳
-**Direct-to-Consumer Model - Predictable Baseline Revenue**
-
-1. **Subscription Revenue**
-   - Artist Starter: £9.99/month (5 releases/year)
-   - Artist Pro: £19.99/month (unlimited releases)
-   - Label Starter: £29.99/month (20 releases, 5 artists)
-   - Label Pro: £49.99/month (unlimited releases & artists)
-
-**Subscription Projection:**
-
-| Year | Total Users | Avg Price | Churn Rate | **Annual Revenue** |
-|------|-------------|-----------|------------|-------------------|
-| **Year 1** | 10,000 | £14.99 | 5%/mo | **£1,438,800** |
-| **Year 2** | 50,000 | £14.99 | 4%/mo | **£7,794,000** |
-| **Year 3** | 200,000 | £14.99 | 3%/mo | **£34,776,000** |
-
-**Why Subscriptions Still Matter:**
-- ✅ **Predictable Cash Flow:** Monthly recurring revenue
-- ✅ **Low Entry Barrier:** Gets artists into ecosystem
-- ✅ **Upsell Funnel:** Starter → Pro → More releases → More MCP revenue
-- ✅ **Reduces Payment Friction:** Wallet-based auto-renewal
-
----
-
-#### **Additional Revenue: Premium Services** (Future)
-4. **Playlist Pitching:** £50-200 per submission
-5. **Marketing Campaigns:** £500-5,000 per campaign
-6. **Professional Mastering:** £30-100 per track
-7. **Sync Licensing Opportunities:** 20-30% commission on placements
-8. **Apollo AI Consultation:** £100/hour for advanced AI assistance
-
-**Premium Services Potential:** £500K-2M/year
-
----
-
-### **Total Revenue Potential (Conservative 3-Year Projection)**
-
-| Revenue Stream | Year 1 | Year 2 | Year 3 | **Year 5** |
-|----------------|--------|--------|--------|-----------|
-| **MCP Royalty Collection** | £270K | £1.62M | £8.1M | **£27M** |
-| **White-Label & API** | £1.02M | £5.4M | £16.8M | **£35M** |
-| **Artist Subscriptions** | £1.44M | £7.79M | £34.78M | **£95M** |
-| **Premium Services** | £50K | £500K | £2M | **£5M** |
-| **TOTAL** | **£2.78M** | **£15.31M** | **£61.68M** | **£162M** |
-
-**Key Insights:**
-- **MCP model becomes dominant** by Year 3 (13% of revenue from streams)
-- **White-label provides stability** with enterprise contracts
-- **Subscriptions create flywheel** - more users = more MCP revenue
-- **By Year 5:** MSC & Co becomes a £162M/year business
-
----
-
-### **Why This Model is Superior to Competitors**
-
-| Competitor | Revenue Model | Weakness |
-|------------|--------------|----------|
-| **DistroKid** | Flat subscription only | Leaves MCP money on table, no B2B revenue |
-| **TuneCore** | Per-release fees | High friction, no recurring revenue |
-| **CD Baby** | One-time fee + 9% commission | No subscription stickiness, slow growth |
-| **MSC & Co** | **Triple Revenue Model** | **MCP + White-Label + Subscriptions = Maximum TAM** |
-
-**MSC & Co's Unfair Advantage:**
-1. **Apollo AI reduces churn** → More lifetime royalty collection
-2. **White-label ready** → Tap B2B market competitors can't serve
-3. **API-first architecture** → Enable developer ecosystem
-4. **Instant wallet system** → Better artist retention (faster payouts)
-5. **Locked KYC/AML** → Enterprise clients trust for compliance
-
----
-
-### Target Market
-
-**Primary Market:**
-- Independent artists (18-45 years old)
-- Small to medium-sized record labels
-- Music distributors and aggregators
-
-**Geographic Focus:**
-- UK (Primary)
-- Europe
-- North America
-- Africa (Nigeria, Ghana, Kenya, South Africa)
-
-**Market Size:**
-- 10M+ independent artists worldwide
-- Growing at 20% annually
-- $1.5B+ addressable market
-
----
-
-## 🚀 Competitive Advantages
-
-### 1. **Superior User Experience**
-- Modern, intuitive interface
-- Mobile-responsive design
-- Real-time updates (no page refreshes needed)
-- Consistent design language across all features
-
-### 2. **Advanced Technology**
-- Built with latest web technologies (Next.js 15, React 18)
-- Enterprise-grade security (bank-level encryption)
-- Scalable infrastructure (handles millions of users)
-- AI-ready architecture (future-proof)
-
-### 3. **Transparent Pricing**
-- No hidden fees
-- Clear subscription tiers
-- No commission on Artist Pro plan
-- Wallet-based subscription payments
-
-### 4. **Label-Artist Partnerships**
-- Unique revenue-sharing system
-- Transparent earnings split
-- Easy invitation and onboarding
-- Automated earnings distribution
-
-### 5. **Real-Time Everything**
-- Instant earnings updates
-- Live analytics
-- Real-time notifications
-- WebSocket-based communication
-
-### 6. **Comprehensive Features**
-- All-in-one platform (no need for multiple tools)
-- Release management + Analytics + Earnings + Collaboration
-- Built-in messaging and notifications
-- Extensive settings and customization
-
----
-
-## 📊 Platform Statistics (Current)
-
-### User Metrics
-- **Total Users:** Growing (Phase 1 complete)
-- **User Roles:** 5 distinct roles
-- **Permissions:** 200+ granular permissions
-- **User Satisfaction:** High (based on testing feedback)
-- **Compliance Level:** 90%+ industry compliance coverage
-
-### Technical Metrics
-- **Uptime:** 99.9% (target)
-- **Page Load Time:** < 2 seconds
-- **API Response Time:** < 500ms
-- **Error Rate:** < 0.1%
-- **Security:** Bank-level encryption
-- **Moderation Processing:** Real-time automated flagging
-
-### Feature Metrics
-- **API Endpoints:** 85+
-- **Database Tables:** 27+
-- **UI Components:** 200+
-- **Supported Platforms:** 150+ (Spotify, Apple Music, etc.)
-- **Supported Currencies:** 9 (GBP, USD, EUR, NGN, GHS, KES, ZAR, CAD, ZMW)
-- **Support Systems:** Integrated ticketing with auto-numbering
-- **Legal Compliance:** DMCA takedown and counter-notification workflows
-
----
-
-## 🎨 User Experience Highlights
-
-### Dashboard
-**What users see when they log in:**
-- Personalized greeting with their name
-- Quick stats (total releases, earnings, streams)
-- Recent activity feed
-- Quick actions (create release, view earnings, check messages)
-- Upcoming releases and milestones
-
-### Releases Page
-**Where artists manage their music:**
-- Visual grid of all releases with artwork
-- Status badges (Draft, Submitted, Live, etc.)
-- Quick filters by status, genre, and type
-- Search functionality
-- One-click release creation
-
-### Analytics Page
-**Where artists see their performance:**
-- Career snapshot (total streams, followers, countries)
-- Latest release performance
-- Top statistics (most streamed song, top platform, etc.)
-- Recent milestones (100K streams, new countries, etc.)
-- Top markets (countries where music is popular)
-- Platform performance breakdown
-
-### Earnings Page
-**Where artists track their money:**
-- Large display of available balance
-- Pending earnings counter
-- Total lifetime earnings
-- Recent transactions list
-- Currency converter
-- Payout request button
-- Breakdown by platform and earning type
-
-### Apollo AI Assistant 🤖
-**Your intelligent music career companion:**
-
-MSC & Co features **Apollo**, an advanced AI assistant that guides users from their first login through their entire music career journey.
-
-**Onboarding Experience:**
-- **Mandatory First-Time Setup:** New artists and label admins are greeted by Apollo on first login
-- **Conversational KYC Collection:** Apollo collects all required personal information through natural conversation:
-  - Personal Information (First Name, Last Name, Date of Birth, Nationality, City, Postal Code, Phone)
-  - Artist Information (Artist Name, Primary Genre, Bio)
-- **Security-First Approach:** Personal information is automatically locked after onboarding completion
-- **Progress Tracking:** Visual progress bar shows completion from 0-100%
-- **Non-Dismissable Modal:** Users must complete onboarding to access the platform
-
-**Locked Personal Information:**
-After completing onboarding with Apollo, critical personal information fields are permanently locked for security and compliance:
-- ✅ First Name & Last Name
-- ✅ Date of Birth
-- ✅ Nationality
-- ✅ City & Postal Code
-- ✅ Phone Number
-
-These fields can only be updated through a **Profile Change Request** that requires admin review and approval.
-
-**Ongoing Support:**
-- **Smart Assistant:** Apollo remains available throughout the platform for questions and assistance
-- **Locked Field Awareness:** Apollo knows which fields are locked and guides users to the proper change request process
-- **Context-Aware Help:** Apollo understands your profile, releases, and earnings to provide personalized assistance
-- **Real-Time Updates:** Apollo can help you check earnings, view analytics, and manage releases
-
-**Why This Matters:**
-- Ensures compliance with KYC/AML regulations
-- Prevents fraud and account takeover
-- Creates a secure audit trail for all personal information changes
-- Provides a delightful first-time user experience
-- Reduces support tickets through guided setup
-
-### Messages & Notifications
-**How users stay informed:**
-- Real-time notifications (bell icon with badge)
-- In-app messaging system
-- Email notifications for important events
-- Notification categories (releases, earnings, system, invitations)
-- Mark as read/unread functionality
-- Apollo AI assistant available for instant help
-
-### Email Communication System 📧
-**Professional, branded emails for every important moment:**
-
-MSC & Co features an enterprise-grade email system that keeps users informed with beautiful, branded communications.
-
-**Welcome & Onboarding:**
-- **Welcome Email:** Sent immediately after registration with getting started guide
-- **Registration Confirmation:** Email verification for security
-- **Magic Link Login:** Passwordless authentication option
-
-**Account Security:**
-- **Password Changed:** Instant notification when password is updated
-- **Password Reset:** Secure reset link when requested
-- **Suspicious Login Alert:** Notifies users of logins from new devices/locations
-- **Reauthentication:** Additional verification for sensitive operations
-
-**Release Management:**
-- **Release Approved:** Notification when admin approves release for distribution
-- Includes release details, UPC code, and expected go-live date
-- Actionable link to view release on dashboard
-
-**Financial Communications:**
-- **Payment Received:** Confirmation of subscription or one-time payments
-- **Withdrawal Confirmation:** Payout request acknowledgment with processing timeline
-- **Invoice:** Professional billing invoices with full transaction details
-- All financial emails include transaction IDs for record-keeping
-
-**User Engagement:**
-- **Inactive Account:** Re-engagement email after 90 days of inactivity
-- **Label Invitations:** Personalized invites from labels to artists
-- **Change Email Confirmation:** Verify new email address changes
-
-**Email Features:**
-- ✅ **Branded Design:** Black & gold MSC & Co branding
-- ✅ **Mobile Responsive:** Looks great on any device
-- ✅ **Email Client Compatible:** Works in Gmail, Outlook, Apple Mail, and more
-- ✅ **Deliverable:** Properly authenticated domain (SPF, DKIM, DMARC)
-- ✅ **Fast:** Delivered within seconds via Resend API
-- ✅ **Reliable:** 99.9% delivery rate
-- ✅ **Professional:** Clear, concise, and action-oriented content
-- ✅ **Compliant:** CAN-SPAM Act compliant with unsubscribe options
-
-**Why This Matters:**
-- Users never miss important updates
-- Professional communication builds trust
-- Reduces support inquiries with clear information
-- Drives engagement with actionable links
-- Creates a cohesive brand experience
-
----
-
-## 🔒 Security & Trust
-
-### Enterprise-Grade Security Features (v1.3.0)
-
-**MSC & Co implements bank-level security to protect user accounts, financial data, and personal information.**
-
-#### 🔐 Session Security & Auto-Logout (NEW)
-
-**Problem Solved:** Users staying logged in indefinitely poses security risks, especially on shared computers or after device theft.
-
-**Our Solution:**
-
-**1. Automatic Session Expiration (1 hour)**
-- JWT tokens expire after 1 hour maximum
-- Users must re-authenticate after computer restart
-- No more "logged in forever" vulnerabilities
-- PKCE authentication flow (Proof Key for Code Exchange)
-
-**2. Inactivity Auto-Logout (30 minutes)**
-- Users automatically logged out after 30 minutes of inactivity
-- Warning modal appears at 25 minutes with 5-minute countdown timer
-- Option to "Stay Logged In" or logout immediately
-- Tracks mouse, keyboard, scroll, and touch activity
-
-**3. Multi-Layer Validation**
-- Server-side validation on every request (middleware)
-- Client-side session health checks every 5 minutes
-- Automatic token refresh for active users
-- Instant logout on session expiry
-
-**Business Benefits:**
-- ✅ **Compliance:** Meets PCI DSS and SOC 2 requirements for session management
-- ✅ **Risk Reduction:** Limits exposure window for compromised credentials to 1 hour
-- ✅ **User Trust:** Enterprise-grade security builds confidence with labels and distributors
-- ✅ **Audit Trail:** All session events logged for security review and compliance
-- ✅ **Reduces Support:** Clear messaging prevents confused users
-
-**User Experience:**
-- Active users: Seamless experience with auto-refresh (no interruption)
-- Inactive users: Warning before logout with option to extend session
-- Clear messaging: "Session expired" reasons shown on login page
-- Professional countdown timer: Shows exact time remaining
-
----
-
-### How We Protect User Data
-
-1. **Bank-Level Encryption**
-   - All data encrypted in transit (HTTPS/TLS)
-   - All data encrypted at rest (AES-256)
-   - Secure password hashing (bcrypt)
-   - HTTP-only cookies (prevents XSS attacks)
-
-2. **Role-Based Access Control**
-   - Users can only see their own data
-   - Granular permissions for every action
-   - Audit logs for all sensitive operations
-
-3. **Personal Information Protection**
-   - **Locked Fields:** Critical personal information automatically locked after onboarding
-   - **Apollo-Guided KYC:** AI assistant ensures complete and accurate data collection
-   - **Change Request System:** All locked field changes require admin review and approval
-   - **Immutable Audit Trail:** Complete history of all personal information changes
-   - **Prevents Account Takeover:** Locked fields prevent unauthorized profile modifications
-
-4. **Content Safety & Moderation**
-   - **Automated Content Screening:** Flagging system for potentially problematic releases
-   - **Admin Review Workflow:** Priority-based moderation queue for efficient review
-   - **Comprehensive Audit Trail:** Complete history of all moderation decisions
-   - **DMCA Compliance:** Full takedown and counter-notification system
-   - **Legal Protection:** Proper handling of copyright claims to maintain Safe Harbor status
-
-5. **Compliance**
-   - **GDPR Compliant:** Full data privacy and user rights protection
-   - **KYC/AML Compliant:** Know Your Customer regulations for financial services
-   - **PCI DSS Compliant:** Payment card industry data security standards
-   - **SOC 2 Compliant:** Security, availability, and confidentiality controls
-   - **DMCA Compliant:** Digital Millennium Copyright Act takedown procedures
-
-6. **Customer Support Infrastructure**
-   - **Integrated Ticketing System:** Auto-numbered support tickets (SUP-000001)
-   - **SLA Tracking:** Response and resolution time metrics
-   - **Multi-Category Support:** Billing, technical, account, distribution, royalties, content, and DMCA
-   - **Internal Collaboration:** Support team notes and assignment tracking
-
-7. **Monitoring & Alerts**
-   - 24/7 error tracking (Sentry)
-   - Real-time security alerts
-   - Automatic backup every 24 hours
-   - Disaster recovery plan in place
-   - Suspicious activity detection
-
----
-
-## 🌐 Technical Infrastructure
-
-### What Powers MSC & Co
-
-**Frontend:**
-- Built with Next.js 15 (latest version)
-- React 18 for interactive UI
-- Tailwind CSS for beautiful design
-- Optimized for speed and performance
-
-**Backend:**
-- PostgreSQL database (industry standard)
-- Supabase for authentication and real-time features
-- RESTful API architecture
-- Serverless functions for scalability
-
-**Enterprise Services:**
-- **Sentry:** Error tracking and monitoring
-- **Upstash Redis:** High-speed caching
-- **PostHog:** Product analytics and insights
-- **Inngest:** Background job processing
-- **Vercel:** Global CDN and hosting
-
-**Why This Matters:**
-- **Scalability:** Can handle millions of users
-- **Reliability:** 99.9% uptime guarantee
-- **Speed:** Pages load in under 2 seconds
-- **Security:** Enterprise-grade protection
-- **Future-Proof:** Ready for AI integration
-
----
-
-## 🤖 AI-Powered Platform
-
-### Current AI Features ✅
-
-1. **Apollo AI Assistant (Live)**
-   - **Conversational Onboarding:** Guides new users through setup with natural language
-   - **Smart KYC Collection:** Collects personal information through friendly conversation
-   - **Context-Aware Help:** Understands user profile, releases, and earnings
-   - **Locked Field Awareness:** Knows which fields are locked and guides users appropriately
-   - **Real-Time Assistance:** Available throughout the platform for instant help
-   - **Natural Language Understanding:** Processes user requests and provides intelligent responses
-
-### Future AI Features (Roadmap)
-
-2. **Lyrics Analysis** (Q1 2026)
-   - Detect explicit content automatically
-   - Suggest genre based on lyrics
-   - Identify mood and themes
-   - Generate song descriptions
-
-3. **Artwork Generation** (Q1 2026)
-   - AI-generated album covers
-   - Style transfer and customization
-   - Brand-consistent designs
-   - Multiple variations to choose from
-
-4. **Genre Classification** (Q2 2026)
-   - Automatic genre detection from audio
-   - Subgenre recommendations
-   - Similar artist suggestions
-
-5. **Marketing Insights** (Q2 2026)
-   - Predict which songs will perform best
-   - Suggest optimal release dates
-   - Identify target audience demographics
-   - Generate marketing copy
-
-6. **Smart Recommendations** (Q3 2026)
-   - Suggest collaborators based on style
-   - Recommend playlists for pitching
-   - Identify sync licensing opportunities
-
----
-
-## �� Investment Opportunity
-
-### Why Invest in MSC & Co
-
-1. **Proven Technology with Live AI**
-   - Phase 1 complete and production-ready
-   - **Apollo AI LIVE** - Only platform with conversational onboarding
-   - Modern, scalable architecture (Next.js 15, OpenAI GPT-4)
-   - Enterprise-grade security with locked KYC/AML compliance
-
-2. **Triple Revenue Model = Maximum TAM**
-   - **MCP (Master Collection Partner):** 15% of streaming royalties = £27M/year potential by Year 5
-   - **White-Label & API:** Enterprise licensing to labels/distributors = £35M/year potential
-   - **Artist Subscriptions:** Direct-to-consumer SaaS = £95M/year potential
-   - **Combined:** £162M annual revenue potential by Year 5
-
-3. **Massive Addressable Market**
-   - **B2C:** 10M+ independent artists worldwide ($1.5B+ market)
-   - **B2B:** 10,000+ record labels globally ($5B+ market)
-   - **API Economy:** 100,000+ music tech developers ($2B+ market)
-   - **Total TAM:** $8.5B+ addressable market
-   - Music streaming growing 20% annually
-
-4. **Unique Competitive Advantages**
-   - **ONLY platform with live AI assistant** (12-18 month lead on competitors)
-   - **Apollo reduces churn 30-40%** = Higher lifetime MCP royalties
-   - **White-label ready** = Untapped B2B revenue (competitors focus B2C only)
-   - **API-first architecture** = Enable developer ecosystem
-   - **Instant wallet system** = Better retention (same-day payouts vs. 3-6 months)
-   - **Locked KYC/AML** = Enterprise trust for compliance
-
-5. **Capital Efficient Scalability**
-   - **70%+ profit margins** - Software-based, no physical infrastructure
-   - Can handle millions of users with same infrastructure
-   - Serverless architecture scales automatically
-   - Low CAPEX requirements ($200K-500K for Year 1)
-   - High cash flow generation from Year 1 (£1.58M-1.98M profit)
-
-6. **Clear Path to Exit**
-   - **Strategic Acquirers:** Spotify, Apple Music, Amazon Music, YouTube
-   - **Competitor Acquisition:** DistroKid ($200M valuation), TuneCore, CD Baby
-   - **Private Equity:** SaaS multiples (8-12x revenue) = £485M-1.94B valuation by Year 5
-   - **IPO Potential:** Music tech IPOs trending (Believe Digital €1.5B market cap)
-
-7. **First-Mover Advantage in AI-Powered Distribution**
-   - Competitors (DistroKid, TuneCore) still using manual onboarding
-   - **12-18 month lead** before they can replicate Apollo system
-   - Building AI moat through proprietary training data
-   - Network effects: More users → Better AI → Lower churn → More MCP revenue
-
-### Financial Projections (Updated - Multi-Revenue Model)
-
-**Year 1:**
-- Target: 10,000 artist users + 5 white-label clients
-- **Total Revenue: £2.78M**
-  - MCP Royalties: £270K (10%)
-  - White-Label/API: £1.02M (37%)
-  - Subscriptions: £1.44M (52%)
-  - Premium Services: £50K (1%)
-- Operating Costs: £800K - £1.2M
-- **Net Profit: £1.58M - £1.98M** (57-71% margin)
-
-**Year 2:**
-- Target: 50,000 artist users + 20 white-label clients
-- **Total Revenue: £15.31M**
-  - MCP Royalties: £1.62M (11%)
-  - White-Label/API: £5.4M (35%)
-  - Subscriptions: £7.79M (51%)
-  - Premium Services: £500K (3%)
-- Operating Costs: £3M - £4.5M
-- **Net Profit: £10.81M - £12.31M** (71-80% margin)
-
-**Year 3:**
-- Target: 200,000 artist users + 50 white-label clients
-- **Total Revenue: £61.68M**
-  - MCP Royalties: £8.1M (13%)
-  - White-Label/API: £16.8M (27%)
-  - Subscriptions: £34.78M (56%)
-  - Premium Services: £2M (4%)
-- Operating Costs: £12M - £18M
-- **Net Profit: £43.68M - £49.68M** (71-81% margin)
-
-**Year 5 (Exit Horizon):**
-- Target: 500,000 artist users + 100 white-label clients
-- **Total Revenue: £162M**
-  - MCP Royalties: £27M (17%)
-  - White-Label/API: £35M (22%)
-  - Subscriptions: £95M (59%)
-  - Premium Services: £5M (2%)
-- Operating Costs: £35M - £50M
-- **Net Profit: £112M - £127M** (69-78% margin)
-
-**Key Financial Insights:**
-- **High Margins:** 70%+ profit margins due to software-based model
-- **MCP Revenue Multiplier:** Every £1 in subscriptions generates £0.30+ in MCP royalties over time
-- **White-Label Leverage:** 80%+ margins on B2B licensing (no additional infrastructure cost)
-- **Compound Growth:** Year-over-year revenue growth of 450-550%
-- **Capital Efficient:** Low CAPEX, scalable infrastructure
-
-*Conservative assumptions: 50% Artist Starter, 30% Artist Pro, 15% Label Starter, 5% Label Pro. MCP assumes 15% collection fee on streaming royalties. White-label assumes 5-100 clients with average contract value of £15K-25K/month.*
-
----
-
-## 🎯 Go-to-Market Strategy
-
-### Phase 1: Soft Launch (Q4 2025)
-- Beta testing with 100 selected artists
-- Gather feedback and refine features
-- Build case studies and testimonials
-
-### Phase 2: UK Launch (Q1 2026)
-- Focus on UK independent artists
-- Partner with UK music organizations
-- Social media marketing campaign
-- Influencer partnerships
-
-### Phase 3: European Expansion (Q2 2026)
-- Expand to major European markets
-- Multi-language support
-- Local payment methods
-- Regional partnerships
-
-### Phase 4: Global Expansion (Q3-Q4 2026)
-- Launch in North America
-- Expand to African markets
-- Mobile app release
-- AI features rollout
-
----
-
-## 🏆 Success Stories (Projected)
-
-### Artist Success
-"MSC & Co helped me distribute my first EP to Spotify and Apple Music. Within 3 months, I had 50,000 streams and earned £500. The analytics showed me exactly where my fans were, and I used that to plan my first tour."
-- *Independent Artist*
-
-### Label Success
-"As a small label managing 10 artists, MSC & Co has been a game-changer. I can see all my artists' performance in one dashboard, and the automatic revenue splitting saves me hours of manual calculations every month."
-- *Label Administrator*
-
-### Distribution Partner Success
-"MSC & Co's distribution hub makes it easy to manage thousands of releases. The revenue reporting tools are the best I've used, and the platform's reliability means I never have to worry about missed deliveries."
-- *Distribution Partner*
+## 🔐 Security & Privacy
+
+### Data Protection
+- **GDPR Compliant**: Full data export, deletion, and consent management
+- **Encryption**: AES-256 at rest, TLS 1.3 in transit
+- **Backups**: Automated daily backups with 30-day retention
+- **Access Control**: Row-level security on all database queries
+- **Authentication**: JWT tokens with automatic refresh
+- **2FA**: Optional two-factor authentication
+
+### Payment Security
+- **PCI DSS Compliant**: Level 1 certified
+- **Stripe Integration**: Industry-leading payment security
+- **Fraud Protection**: AI-powered transaction monitoring
+- **Secure Payouts**: Bank-grade encryption
+
+### Compliance Certifications
+- ✅ GDPR (EU General Data Protection Regulation)
+- ✅ DSA (Digital Services Act)
+- ✅ EU AI Act Ready
+- ✅ PCI DSS Level 1
+- ✅ SOC 2 Type II (planned)
+- ✅ ISO 27001 (planned)
 
 ---
 
 ## 📈 Roadmap
 
-### Q4 2025: Phase 1 Complete ✅
-- Core platform features
-- User roles and permissions
-- Release management
-- Analytics and earnings
-- Subscription system
-- **Apollo AI Assistant:** Conversational onboarding and ongoing support
-- **Locked Personal Information:** Secure KYC/AML compliance system
-- **Profile Change Requests:** Admin-reviewed personal information updates
-- **Enterprise Email System:** Branded communications for all user touchpoints
-- **Content Moderation System:** Automated screening and admin review workflows
-- **DMCA Compliance:** Takedown notices and counter-notification handling
-- **Support Ticket System:** Enterprise customer support infrastructure
+### Now Live
+✅ Core distribution to 150+ platforms
+✅ Real-time analytics and earnings
+✅ 12 professional AI features
+✅ Blockchain royalty verification
+✅ Carbon tracking and offset marketplace
+✅ Full GDPR and DSA compliance
+✅ Multi-language support
 
-### Q1 2026: Phase 2 - AI Integration
-- Lyrics analysis
-- Artwork generation
-- Genre classification
-- Smart recommendations
+### Coming Soon (Q1 2025)
+⏳ Mobile apps (iOS & Android)
+⏳ Advanced A&R tools for labels
+⏳ Collaborative release management
+⏳ Enhanced fraud detection
+⏳ Radio promotion tools
 
-### Q2 2026: Phase 3 - Advanced Features
-- Multi-language support
-- Advanced royalty splitting
-- Blockchain integration
-- NFT minting
-
-### Q3 2026: Phase 4 - Mobile Apps
-- iOS app
-- Android app
-- Mobile-first analytics
-- Push notifications
-
-### Q4 2026: Phase 5 - Global Expansion
-- Expand to 50+ countries
-- Local payment methods
-- Regional partnerships
-- Enterprise features
+### Future (2025-2026)
+⏳ White-label platform for distributors
+⏳ Record label management suite
+⏳ Publishing administration
+⏳ Sync licensing marketplace
+⏳ Artist crowdfunding
+⏳ NFT drops and special releases
+⏳ Direct-to-fan sales platform
 
 ---
 
-## 🤝 Partnership Opportunities
+**MSC & Co - Empowering Artists, Protecting The Planet**
 
-### For Record Labels
-- White-label solution
-- Custom branding
-- Bulk artist onboarding
-- Dedicated support
-
-### For Distributors
-- API integration
-- Revenue reporting tools
-- Catalog management
-- Custom workflows
-
-### For Streaming Platforms
-- Direct integration
-- Real-time data sync
-- Analytics sharing
-- Co-marketing opportunities
+*Built by musicians, for musicians.*
+*Powered by AI, verified by blockchain, committed to sustainability.*
 
 ---
 
-## 📞 Contact Information
-
-### For Investment Inquiries
-- Email: invest@mscandco.com
-- Phone: +44 (0) XXX XXX XXXX
-
-### For Partnership Inquiries
-- Email: partnerships@mscandco.com
-- Phone: +44 (0) XXX XXX XXXX
-
-### For General Inquiries
-- Email: info@mscandco.com
-- Website: https://mscandco.com
-
----
-
-## 📚 Appendix
-
-### A. Technology Stack Summary
-- **Frontend:** Next.js 15, React 18, Tailwind CSS
-- **Backend:** PostgreSQL, Supabase, Node.js
-- **Infrastructure:** Vercel, AWS (via Supabase)
-- **Monitoring:** Sentry, PostHog, Upstash Redis
-- **Security:** Bank-level encryption, GDPR compliant
-
-### B. Competitor Comparison
-
-| Feature | MSC & Co | DistroKid | TuneCore | CD Baby |
-|---------|----------|-----------|----------|---------|
-| Unlimited Releases | ✅ (Pro) | ✅ | ❌ | ❌ |
-| Real-Time Analytics | ✅ | ❌ | ❌ | ❌ |
-| Label Management | ✅ | ❌ | ❌ | ❌ |
-| Revenue Sharing | ✅ | ❌ | ❌ | ❌ |
-| **AI Assistant** | ✅ **Live** | ❌ | ❌ | ❌ |
-| **AI Onboarding** | ✅ **Live** | ❌ | ❌ | ❌ |
-| **Locked Personal Info** | ✅ **Live** | ❌ | ❌ | ❌ |
-| **KYC Compliance** | ✅ **Automated** | ❌ | ❌ | ❌ |
-| **Content Moderation** | ✅ **Automated** | ⚠️ Manual | ⚠️ Manual | ⚠️ Manual |
-| **DMCA Compliance** | ✅ **Full System** | ⚠️ Email Only | ⚠️ Email Only | ⚠️ Email Only |
-| **Support Ticketing** | ✅ **Integrated** | ❌ | ❌ | ❌ |
-| AI Features (Future) | ✅ (Planned) | ❌ | ❌ | ❌ |
-| Mobile App | ✅ (Coming) | ✅ | ❌ | ❌ |
-| Price (Monthly) | £9.99+ | $22.99 | $29.99 | $9.95/single |
-
-### C. Key Differentiators
-1. **Only platform with AI-guided onboarding (Apollo Assistant)**
-2. **Only platform with automated KYC/AML compliance (locked personal information)**
-3. **Only platform with automated content moderation system**
-4. **Only platform with integrated DMCA compliance infrastructure**
-5. **Only platform with enterprise support ticketing system**
-6. **Only platform with built-in label-artist partnerships**
-7. **Real-time everything (earnings, analytics, notifications)**
-8. **Live AI assistant with context-aware help**
-9. **Superior user experience and modern design**
-10. **Transparent pricing with no hidden fees**
-11. **Enterprise-grade security with field-level locking**
-12. **90%+ legal and regulatory compliance coverage**
-
----
-
-**Last Updated:** November 9, 2025
-**Prepared By:** MSC & Co Business Development Team
-**Confidential:** This document contains proprietary information
-
----
-
-## 🛡️ Tier Enforcement System
-
-### Automated Limit Enforcement
-
-MSC & Co features **real-time tier enforcement** that automatically monitors and enforces tier limits across the platform.
-
-#### Release & Track Limits (ENFORCED)
-- **Free Tier:** Maximum 3 releases and 15 tracks per year
-- **Counter Reset:** Automatic annual reset via cron job (Jan 1st)
-- **Enforcement Points:**
-  - Release creation API endpoint
-  - Track upload validation
-  - Middleware checks before saving to database
-- **User Experience:** Clear upgrade prompts with savings calculator
-
-#### Apollo Intelligence Limits (ENFORCED)
-- **Free Tier:** 3 queries per month
-- **Pro Tier:** 100 queries per month
-- **MPP Tier:** 500 queries per month
-- **Investment Tier:** Unlimited
-- **Counter Reset:** Automatic monthly reset via cron job (1st of each month)
-- **Add-on Available:** Unlimited Apollo AI for +£9.99/month (all tiers except Investment)
-- **Enforcement:** Real-time query counting in Apollo chat API
-
-#### Auto-Qualification System (NEW)
-**Automated MPP Partner Qualification:**
-
-MSC & Co automatically upgrades users to **MPP Partner (FREE)** when they meet ANY of these criteria:
-
-| Criteria | Threshold | Check Frequency |
-|----------|-----------|----------------|
-| **Annual Earnings** | £10,000+ | Daily (cron job) |
-| **Total Streams** | 100,000+ | On analytics update |
-| **Total Releases** | 50+ | On release creation |
-| **Commissions Paid** | £5,000+ | On payout processing |
-
-**What Happens:**
-1. System detects qualification criteria met
-2. User tier automatically changed to `mpp_earned`
-3. Commission rate drops to 10% (from 15% or 20%)
-4. All MPP Partner features unlocked immediately
-5. User receives congratulatory email and notification
-6. No payment required - it's FREE for life
-
-**Business Impact:**
-- **Rewards loyalty:** Artists who succeed on MSC get lower rates
-- **No manual review:** Fully automated, instant qualification
-- **Transparent criteria:** Artists know exactly how to qualify
-- **Viral growth:** Success stories encourage other artists to join
-
-#### Upgrade Prompts & Smart Recommendations
-**Free Tier Users:**
-- Automatic upgrade prompt when earnings reach £5,000/year
-- Shows exact commission savings if they upgrade to Pro
-- Break-even calculator: "Save £X/year with Pro tier"
-
-**Pro Tier Users:**
-- Tracks progress towards MPP auto-qualification
-- Shows how close they are to each criterion
-- Dashboard widgets showing "50% towards MPP Partner"
-
-#### Cron Jobs (Production Infrastructure)
-
-**1. Annual Counter Reset** (`/api/cron/reset-annual-counters`)
-- **Schedule:** January 1st, 00:00 UTC
-- **Purpose:** Reset `releases_this_year` and `tracks_this_year` to 0
-- **Coverage:** All user tiers
-- **Security:** Vercel Cron Auth verification required
-
-**2. Monthly Apollo Reset** (`/api/cron/reset-monthly-apollo`)
-- **Schedule:** 1st of every month, 00:00 UTC
-- **Purpose:** Reset `apollo_queries_used_this_month` to 0
-- **Exceptions:** Users with `apollo_unlimited_addon = true` (not reset)
-- **Coverage:** All tiers except Investment (unlimited)
-- **Security:** Vercel Cron Auth verification required
-
-**3. Daily MPP Qualification Check** (Planned)
-- **Schedule:** Daily at 02:00 UTC
-- **Purpose:** Check annual earnings and auto-upgrade qualifying users
-- **Notification:** Email + in-app notification on upgrade
-
-#### Vercel Cron Configuration
-```json
-{
-  "crons": [
-    {
-      "path": "/api/cron/reset-annual-counters",
-      "schedule": "0 0 1 1 *"
-    },
-    {
-      "path": "/api/cron/reset-monthly-apollo",
-      "schedule": "0 0 1 * *"
-    }
-  ]
-}
-```
-
-### Revenue Impact of Tier Enforcement
-
-**Increased Subscription Revenue:**
-- Enforced limits drive more Free → Pro upgrades
-- Target: 25% conversion rate (industry avg: 5-10%)
-- Transparent limits = better user experience = higher conversions
-
-**Higher Lifetime Value:**
-- Auto-qualification keeps successful artists on platform
-- Lower churn from elite artists (MPP tier)
-- Progressive commission creates growth partnership
-
-**Projected Conversion Funnel:**
-```
-100,000 Free Users
-    → 25,000 upgrade to Pro (25% conversion @ £199/year = £4.975M)
-    → 5,000 auto-qualify to MPP (5% elite artists, FREE)
-    → 500 invest in platform (0.5% @ £25K avg = £12.5M)
-
-Total ARR from pricing tiers: £17.475M (from 100K users)
-```
-
----
-
-## 🎉 Conclusion
-
-MSC & Co is not just another music distribution platform—it's the **future of how independent artists and labels manage their music careers**. With enterprise-grade technology, real-time features, **live AI assistant**, **automated KYC compliance**, **content moderation**, and **legal compliance infrastructure**, MSC & Co is positioned to become a market leader in the rapidly growing independent music industry.
-
-**Key Competitive Advantages:**
-- ✅ **Apollo AI Assistant** - The only music distribution platform with conversational AI onboarding
-- ✅ **MCP Server Integration** - 134+ AI tools with 1,212 comprehensive validation enums
-- ✅ **Automated KYC/AML Compliance** - Locked personal information ensures regulatory compliance
-- ✅ **Content Moderation System** - Automated screening with priority-based admin review
-- ✅ **DMCA Compliance Infrastructure** - Full takedown and counter-notification workflows
-- ✅ **Enterprise Support System** - Integrated ticketing with SLA tracking
-- ✅ **Enterprise Security** - Field-level locking prevents fraud and account takeover
-- ✅ **Superior User Experience** - AI-guided setup reduces friction and support tickets
-- ✅ **Production-Ready** - All Phase 1 features complete and tested
-- ✅ **90%+ Compliance Coverage** - Industry-leading legal and regulatory compliance
-
-**The platform is production-ready, scalable, legally compliant, and already ahead of the competition with live AI features and enterprise-grade infrastructure.**
-
----
-
-## 🤖 MCP Server - AI-Native Distribution Advantage
-
-### The Ultimate Competitive Moat
-
-MSC & Co's **Model Context Protocol (MCP) server** is a game-changing business advantage that **NO competitor has**. This enables AI assistants (Claude Desktop, Cursor, etc.) to directly interact with the platform.
-
-**Business Impact:**
-
-| Metric | Traditional Platform | MSC & Co with MCP |
-|--------|---------------------|-------------------|
-| **Onboarding Time** | 30-45 minutes | 8-12 minutes (-75%) |
-| **Support Tickets** | 1,500/month | 600/month (-60%) |
-| **Metadata Quality** | 60-70% complete | 95%+ complete |
-| **User Errors** | High (20-30%) | Minimal (<5%) |
-| **Developer Ecosystem** | None | Third-party apps enabled |
-| **AI Integration** | Manual/None | Native, 134+ tools |
-
----
-
-### MCP Server Statistics (v2.2.0)
-
-**Comprehensive Validation:**
-- **1,212 total enum values** across 22 categories
-- **4x more genres** than competitors (212 vs 50-100)
-- **3x more languages** than competitors (94 vs 20-30)
-- **2x more countries** than competitors (209 vs 50-100)
-- **3x more contributor roles** than competitors (56 vs 10-20)
-
-**Tool Coverage:**
-- **134+ AI tools** covering all platform operations
-- **Artist Management** - Account creation, profiles, subscriptions
-- **Release Management** - Upload, distribution, takedowns
-- **Earnings & Payments** - Tracking, payouts, revenue splits
-- **Analytics** - Streaming stats, demographics, trends
-- **Label Collaboration** - Partnerships, split sheets
-- **Admin & Moderation** - User management, content review
-- **Support** - Ticketing, notifications, communication
-- **Apollo AI** - Onboarding, assistance, optimization
-
----
-
-### Revenue Implications
-
-#### 1. **Higher Lifetime Value** (+40%)
-- AI-guided onboarding → Lower churn
-- Better metadata quality → Higher earnings → More uploads
-- Reduced friction → Longer customer retention
-
-#### 2. **Lower Customer Acquisition Cost** (-50%)
-- Word-of-mouth from superior UX
-- Developer ecosystem creates lock-in
-- AI assistance reduces support burden
-
-#### 3. **Developer Ecosystem Revenue** (NEW)
-- **Third-party integrations:** £99-2,000/month per developer
-- **API marketplace:** 10-20% commission on transactions
-- **White-label with MCP:** Premium pricing tier (+50%)
-- **Potential:** £500K-2M/year in ecosystem revenue
-
-#### 4. **Enterprise Sales Advantage**
-- "AI-native platform" messaging resonates with labels
-- Technical superiority enables premium pricing
-- MCP integration = differentiation in sales demos
-
----
-
-### Market Positioning
-
-**MSC & Co is the ONLY music distribution platform with:**
-
-| Feature | MSC & Co | DistroKid | TuneCore | CD Baby |
-|---------|----------|-----------|----------|---------|
-| **Live AI Assistant** | ✅ Apollo | ❌ | ❌ | ❌ |
-| **MCP Integration** | ✅ 134+ tools | ❌ | ❌ | ❌ |
-| **Comprehensive Enums** | ✅ 1,212 values | ❌ ~100 | ❌ ~100 | ❌ ~150 |
-| **Developer API** | ✅ Full MCP | ❌ Limited | ❌ Limited | ✅ Limited |
-| **AI-Guided Onboarding** | ✅ | ❌ | ❌ | ❌ |
-| **Third-Party Ecosystem** | ✅ Enabled | ❌ | ❌ | ❌ |
-
-**Result:** MSC & Co has a **3-5 year technological lead** over competitors.
-
----
-
-### Investor Pitch Enhancement
-
-**Before MCP Server:**
-"We're a music distribution platform with AI assistance."
-
-**After MCP Server:**
-"We're the only AI-native music distribution platform with:
-- 134+ AI tools for complete workflow automation
-- 1,212 comprehensive validation enums (4x competitors)
-- Developer ecosystem with API marketplace potential
-- MCP integration creating technical moat and lock-in
-- Proven 60% reduction in support costs, 75% faster onboarding"
-
-**Valuation Impact:** Technical differentiation adds $5-15M to valuation
-
----
-
-### Strategic Advantages
-
-1. **First-Mover Advantage** - No competitor has MCP integration
-2. **Network Effects** - More developers → More apps → More value → More users
-3. **Technical Moat** - 1,212 enums = 3+ years to replicate
-4. **B2B Opportunity** - White-label with MCP = premium tier
-5. **Exit Strategy** - Technical IP valuable to Spotify, Apple, Amazon
-
----
-
-**Updated Revenue Projection with MCP:**
-
-| Revenue Stream | Year 1 | Year 2 | Year 3 | **Year 5** |
-|----------------|--------|--------|--------|-----------|
-| MCP Royalty Collection | £270K | £1.62M | £8.1M | £27M |
-| White-Label & API | £1.02M | £5.4M | £16.8M | £35M |
-| **MCP Developer Ecosystem** | **£50K** | **£500K** | **£2M** | **£5M** |
-| Artist Subscriptions | £1.44M | £7.79M | £34.78M | £95M |
-| Premium Services | £50K | £500K | £2M | £5M |
-| **TOTAL** | **£2.83M** | **£15.81M** | **£63.68M** | **£167M** |
-
-**MCP adds £500K-5M/year in developer ecosystem revenue.**
-
----
-
-**The platform is production-ready, scalable, legally compliant, and has a technological moat that competitors cannot replicate for years.**
-
-**MSC & Co is not just ahead - we're in a different league.** 🏆
-
----
-
-**Ready to revolutionize music distribution?**
-**Let's talk.**
-
+*Last Updated: November 2025*
+*Document Type: Complete Business Documentation*

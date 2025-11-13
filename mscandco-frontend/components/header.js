@@ -2,7 +2,7 @@
 
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRealtime } from '@/components/providers/RealtimeProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -370,32 +370,7 @@ function Header({ largeLogo = false }) {
                         Roster
                       </Link>
 
-                      {/* Platform Features - Artist Views */}
-                      {(hasPermission('accessibility:use') || hasPermission('*:*:*')) && (
-                        <Link href="/artist/accessibility" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Accessibility className="w-4 h-4" />
-                          Accessibility
-                        </Link>
-                      )}
-                      {(hasPermission('sustainability:track') || hasPermission('*:*:*')) && (
-                        <Link href="/artist/sustainability" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Leaf className="w-4 h-4" />
-                          Sustainability
-                        </Link>
-                      )}
-                      {(hasPermission('learning:access') || hasPermission('*:*:*')) && (
-                        <Link href="/skills" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <GraduationCap className="w-4 h-4" />
-                          Learning
-                        </Link>
-                      )}
-                      {/* Open Data is public - no permission check needed */}
-                      <Link href="/public/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Database className="w-4 h-4" />
-                        Open Data
-                      </Link>
-
-                      {/* 🎉 ENTERPRISE FEATURES - Artist Views */}
+                      {/* 🎉 PROFESSIONAL FEATURES - 7 Enterprise Features */}
                       {(hasPermission('features:artwork:use') || hasPermission('*:*:*')) && (
                         <Link href="/artist/artwork-generator" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Sparkles className="w-4 h-4" />
@@ -409,7 +384,7 @@ function Header({ largeLogo = false }) {
                         </Link>
                       )}
                       {(hasPermission('features:social:use') || hasPermission('*:*:*')) && (
-                        <Link href="/artist/social-media" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Link href="/artist/social" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Share2 className="w-4 h-4" />
                           Social Media
                         </Link>
@@ -427,11 +402,54 @@ function Header({ largeLogo = false }) {
                         </Link>
                       )}
                       {(hasPermission('features:merch:use') || hasPermission('*:*:*')) && (
-                        <Link href="/artist/merch" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Link href="/artist/merchandise" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <ShoppingBag className="w-4 h-4" />
                           Merchandise
                         </Link>
                       )}
+                      {(hasPermission('features:ai_insights:use') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/ai-insights" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Brain className="w-4 h-4" />
+                          AI Insights
+                        </Link>
+                      )}
+
+                      {/* 🌍 COMMUNITY FEATURES - 5 Community Features */}
+                      {(hasPermission('accessibility:use') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/accessibility" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Accessibility className="w-4 h-4" />
+                          Accessibility
+                        </Link>
+                      )}
+                      {(hasPermission('sustainability:track') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/sustainability" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Leaf className="w-4 h-4" />
+                          Sustainability
+                        </Link>
+                      )}
+                      {(hasPermission('features:lyrics:use') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/lyrics-analysis" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <BookOpen className="w-4 h-4" />
+                          Lyrics Analysis
+                        </Link>
+                      )}
+                      {(hasPermission('features:copyright:use') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Copyright className="w-4 h-4" />
+                          Copyright
+                        </Link>
+                      )}
+                      {(hasPermission('learning:access') || hasPermission('*:*:*')) && (
+                        <Link href="/artist/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <GraduationCap className="w-4 h-4" />
+                          Learning
+                        </Link>
+                      )}
+                      {/* Open Data is public - no permission check needed */}
+                      <Link href="/artist/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Database className="w-4 h-4" />
+                        Open Data
+                      </Link>
                     </>
                   )}
 
@@ -456,6 +474,24 @@ function Header({ largeLogo = false }) {
                       <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         Roster
+                      </Link>
+
+                      {/* Community Features for Label Admins */}
+                      {(hasPermission('features:copyright:use') || hasPermission('*:*:*')) && (
+                        <Link href="/labeladmin/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Copyright className="w-4 h-4" />
+                          Copyright
+                        </Link>
+                      )}
+                      {(hasPermission('learning:access') || hasPermission('*:*:*')) && (
+                        <Link href="/labeladmin/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <GraduationCap className="w-4 h-4" />
+                          Learning
+                        </Link>
+                      )}
+                      <Link href="/labeladmin/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Database className="w-4 h-4" />
+                        Open Data
                       </Link>
                     </>
                   )}
