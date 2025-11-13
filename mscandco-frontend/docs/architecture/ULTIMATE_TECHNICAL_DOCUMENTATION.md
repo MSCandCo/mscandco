@@ -146,8 +146,9 @@ MSC & Co is a next-generation, AI-native music distribution and publishing platf
 | **Polygon Mainnet** | Blockchain verification | $0.005/tx | ✅ LIVE |
 | **DIMPACT API** | Carbon calculations | $0 (research partner) | ✅ LIVE |
 | **Electricity Maps** | Grid carbon intensity | $50/mo | ✅ LIVE |
+| **Cleared API** | Sample clearance detection | $0.07/track (50 free) | ✅ LIVE |
 
-**Total Infrastructure Cost:** $280-950/month (scales with users)
+**Total Infrastructure Cost:** $280-1,000/month (scales with users)
 
 ---
 
@@ -160,7 +161,7 @@ MSC & Co is a next-generation, AI-native music distribution and publishing platf
 - **Connection Pooling:** PgBouncer (automatic)
 - **Backup:** Every 24 hours (automatic)
 - **Security:** Row-Level Security (RLS) on ALL tables
-- **Total Tables:** 95+
+- **Total Tables:** 97+ (includes sample_scan_usage, sample_detection_results)
 - **Total Indexes:** 250+
 - **Total Triggers:** 50+
 
