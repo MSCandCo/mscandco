@@ -8,7 +8,7 @@ export default function TermsOfUsePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Use</h1>
-        <p className="text-gray-600 mb-8">Last updated: January 1, 2025</p>
+        <p className="text-gray-600 mb-8">Last updated: January 13, 2025</p>
 
         <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm">
           <section className="mb-8">
@@ -23,10 +23,19 @@ export default function TermsOfUsePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
             <p className="text-gray-700 mb-4">
-              MSC & Co provides music distribution, licensing, and publishing services for artists,
-              labels, and content creators. Our platform facilitates the distribution of music to digital
-              streaming platforms and provides licensing solutions for various media applications.
+              MSC & Co is an AI-native, blockchain-verified, carbon-neutral music distribution platform. We provide:
             </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Music distribution to 150+ streaming platforms (Spotify, Apple Music, TikTok, YouTube Music, etc.)</li>
+              <li>AI-powered features: hit prediction, artwork generation, audio mastering, playlist matching</li>
+              <li>Blockchain-verified royalty tracking on Polygon blockchain</li>
+              <li>Real-time carbon footprint tracking with Earth/Percent integration</li>
+              <li>Instant same-day payments (vs. industry standard 3-6 months)</li>
+              <li>Real-time analytics and earnings tracking</li>
+              <li>Social media automation (Instagram, TikTok, Twitter, YouTube, Facebook)</li>
+              <li>Live performance management (Ticketmaster, Eventbrite integration)</li>
+              <li>Print-on-demand merchandise (Printful integration)</li>
+            </ul>
           </section>
 
           <section className="mb-8">

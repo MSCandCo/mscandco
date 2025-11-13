@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
+import ConfirmationModal from '@/components/shared/ConfirmationModal'
 import {
   Search,
   UserCircle,
@@ -24,6 +25,8 @@ export default function GhostLoginClient({ user }) {
   const [activeGhostSessions, setActiveGhostSessions] = useState([])
   const [selectedUser, setSelectedUser] = useState(null)
   const [notes, setNotes] = useState('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [pendingUserId, setPendingUserId] = useState(null)
 
   useEffect(() => {
     if (user) {
@@ -87,10 +90,15 @@ export default function GhostLoginClient({ user }) {
   }
 
   const handleGhostLogin = async (targetUserId) => {
-    if (!confirm('Start ghost login session? This action will be logged for security audit.')) {
-      return
-    }
+    setPendingUserId(targetUserId)
+    setShowConfirmModal(true)
+  }
 
+  const confirmGhostLogin = async () => {
+    if (!pendingUserId) return
+    
+    setShowConfirmModal(false)
+    
     try {
       setLoading(true)
 
@@ -104,7 +112,7 @@ export default function GhostLoginClient({ user }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          target_user_id: targetUserId,
+          target_user_id: pendingUserId,
           notes
         })
       })
@@ -120,6 +128,7 @@ export default function GhostLoginClient({ user }) {
         setNotes('')
         setSearchTerm('')
         setUsers([])
+        setPendingUserId(null)
         fetchActiveSessions()
       } else {
         showNotification(data.error || 'Failed to create ghost session', 'error')
@@ -128,6 +137,7 @@ export default function GhostLoginClient({ user }) {
       showNotification('Error creating ghost session', 'error')
     } finally {
       setLoading(false)
+      setPendingUserId(null)
     }
   }
 
@@ -370,6 +380,43 @@ export default function GhostLoginClient({ user }) {
             </div>
           </div>
         )}
+
+        {/* Branded Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => {
+            setShowConfirmModal(false)
+            setPendingUserId(null)
+          }}
+          onConfirm={confirmGhostLogin}
+          title="Start Ghost Login Session?"
+          message={
+            <div className="space-y-3">
+              <p className="text-gray-700">
+                You are about to log in as another user. This action will be logged for security audit purposes.
+              </p>
+              {selectedUser && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-medium text-gray-900 mb-1">Target User:</p>
+                  <p className="text-sm text-gray-700">
+                    {selectedUser.artist_name || `${selectedUser.first_name} ${selectedUser.last_name}`.trim()}
+                  </p>
+                  <p className="text-xs text-gray-600">{selectedUser.email}</p>
+                </div>
+              )}
+              <div className="mt-4 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  <strong>Security Notice:</strong> All ghost login sessions are automatically logged with your SuperAdmin credentials, timestamp, and any notes you provide. Use this feature responsibly.
+                </p>
+              </div>
+            </div>
+          }
+          confirmText="Start Ghost Login"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={loading}
+        />
       </div>
     </div>
   )

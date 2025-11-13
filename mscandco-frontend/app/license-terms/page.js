@@ -8,7 +8,7 @@ export default function LicenseTermsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Music License Terms</h1>
-        <p className="text-gray-600 mb-8">Last updated: January 1, 2025</p>
+        <p className="text-gray-600 mb-8">Last updated: January 13, 2025</p>
 
         <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm">
           <section className="mb-8">

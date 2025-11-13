@@ -16,7 +16,7 @@ export default function RefundPolicyPage() {
             <h1 className="text-4xl font-bold text-gray-900">Refund Policy</h1>
           </div>
           <p className="text-gray-600">
-            Last updated: <strong>January 2, 2025</strong>
+            Last updated: <strong>January 13, 2025</strong>
           </p>
         </div>
 

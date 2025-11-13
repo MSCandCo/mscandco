@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
-        <p className="text-gray-600 mb-8">Last updated: January 1, 2025</p>
+        <p className="text-gray-600 mb-8">Last updated: January 13, 2025</p>
 
         <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm">
           <section className="mb-8">
@@ -26,6 +26,11 @@ export default function PrivacyPolicyPage() {
               <li>Tier usage data (release counts, track counts, Apollo Intelligence query usage)</li>
               <li>Apollo AI conversation data (for improving AI responses and platform support)</li>
               <li>Auto-qualification metrics (earnings, streams, releases, commissions paid)</li>
+              <li>AI-generated content (artwork, lyrics analysis, hit predictions, audio mastering)</li>
+              <li>Blockchain transaction data (royalty distributions, copyright registrations)</li>
+              <li>Carbon footprint data (stream-level CO2 calculations, offset purchases)</li>
+              <li>Earth/Percent donation preferences and contribution history</li>
+              <li>Social media integration data (OAuth tokens for Instagram, TikTok, Twitter, YouTube, Facebook)</li>
             </ul>
           </section>
 
@@ -59,6 +64,12 @@ export default function PrivacyPolicyPage() {
               <li>Service providers who assist in our operations</li>
               <li>OpenAI (for Apollo Intelligence AI processing - conversations are anonymized)</li>
               <li>Vercel (for cron job processing of usage counter resets)</li>
+              <li>Polygon Blockchain (for royalty verification and copyright registration records)</li>
+              <li>DIMPACT API (for carbon footprint calculations)</li>
+              <li>Earth/Percent (for climate action donations - only if you opt-in)</li>
+              <li>Social media platforms (Instagram, TikTok, Twitter, YouTube, Facebook - only if you connect accounts)</li>
+              <li>Printful (for merchandise orders - only if you use merch features)</li>
+              <li>Ticketmaster & Eventbrite (for live performance management - only if you use event features)</li>
             </ul>
           </section>
 
@@ -130,11 +141,47 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. AI-Powered Features</h2>
+            <p className="text-gray-700 mb-4">
+              MSC & Co uses advanced AI technology to provide innovative features:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li><strong>Apollo Intelligence:</strong> AI assistant powered by OpenAI GPT-4 Turbo for platform guidance and support</li>
+              <li><strong>Hit Prediction:</strong> ML models analyze audio features, timing, and social signals to predict commercial success</li>
+              <li><strong>Artwork Generation:</strong> DALL-E 3 generates album artwork based on your preferences</li>
+              <li><strong>Audio Mastering:</strong> AI-powered audio enhancement and mastering services</li>
+              <li><strong>Playlist Matching:</strong> ML algorithms match your music to 15M+ playlists</li>
+              <li><strong>Fraud Detection:</strong> Real-time AI monitoring for streaming anomalies and bot detection</li>
+            </ul>
+            <p className="text-gray-700 mt-4">
+              All AI processing respects your privacy. Personal information is anonymized before being sent to AI providers, and you can request deletion of AI-generated content at any time.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Blockchain & Carbon Tracking</h2>
+            <p className="text-gray-700 mb-4">
+              MSC & Co is committed to transparency and sustainability:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li><strong>Blockchain Verification:</strong> Royalty distributions are recorded on Polygon blockchain for immutable proof. These records are public and permanent.</li>
+              <li><strong>Carbon Tracking:</strong> We calculate CO2 emissions per stream using DIMPACT methodology. This data helps you understand your environmental impact.</li>
+              <li><strong>Earth/Percent Integration:</strong> If you opt-in, a percentage of your earnings can be automatically donated to Earth/Percent climate initiatives. Donation preferences are stored securely.</li>
+              <li><strong>Carbon Offsets:</strong> Purchase data for verified carbon offsets is stored to track your carbon neutrality status.</li>
+            </ul>
+            <p className="text-gray-700 mt-4">
+              Blockchain records are permanent and cannot be deleted. Carbon tracking data can be deleted upon request, but historical blockchain records will remain.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Contact Us</h2>
             <p className="text-gray-700">
               If you have questions about this Privacy Policy, please contact us at:
               <br />
               Email: support@mscandco.com
+              <br />
+              Privacy Email: privacy@mscandco.com
               <br />
               Address: MSC & Co
             </p>

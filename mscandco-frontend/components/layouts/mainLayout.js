@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from "react";
-import Footer from "../footer";
 import GhostModeIndicator from "../admin/GhostModeIndicator";
 // Header removed - navigation handled by _app.js
 import { useUser } from '@/components/providers/SupabaseProvider';
@@ -189,7 +188,7 @@ function MainLayout({ children, className, showSidebar = false }) {
       {!showSidebar && (
         <main className={isGhostMode ? 'pb-16 sm:pb-14' : ''}>{children}</main>
       )}
-      <Footer />
+      {/* Footer removed - already included in root layout */}
       <GhostModeIndicator />
     </div>
   );

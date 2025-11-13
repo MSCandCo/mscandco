@@ -144,23 +144,24 @@ export default function HomeClient() {
             <div className="w-full lg:w-4/12 flex justify-center lg:justify-start lg:items-center">
               <div className="relative max-w-sm mx-auto">
                 {activeMyth === 1 ? (
-                  // Myth 2 (index 1): Show pricing card
+                  // Myth 2 (index 1): Show free tier pricing card
                   <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-800">
                     <div className="text-center">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Artist Starter</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">MSC Free</h3>
                       <div className="mb-6">
-                        <span className="text-4xl font-bold text-gray-800">£9.99</span>
+                        <span className="text-4xl font-bold text-gray-800">£0</span>
                         <span className="text-gray-600">/month</span>
                       </div>
+                      <p className="text-sm text-gray-600 italic mb-4">New & emerging artists</p>
                       <div className="space-y-3 text-sm text-gray-700 mb-8 text-left">
                         {[
-                          'Up to 10 releases per year',
-                          'Basic analytics dashboard',
-                          'Email support only',
-                          'Distribution to 5+ major platforms',
-                          'Basic earnings overview',
-                          'Standard release management',
-                          'Basic artist profile'
+                          'Keep 80% of royalties',
+                          '12 streaming platforms',
+                          'ISRC & UPC codes',
+                          'Basic analytics',
+                          'CSV sales reports',
+                          'Copyright protection',
+                          'Apollo Intelligence: 3 queries/month'
                         ].map((feature, index) => (
                           <div key={index} className="flex items-start">
                             <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -168,11 +169,19 @@ export default function HomeClient() {
                           </div>
                         ))}
                       </div>
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-gray-600 text-left">
+                        <p className="font-semibold mb-1">Limitations:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Max 3 releases/year</li>
+                          <li>Max 15 tracks/year</li>
+                          <li>Standard delivery: 7-10 days</li>
+                        </ul>
+                      </div>
                       <button
                         onClick={() => window.location.href = '/register'}
                         className="w-full bg-transparent text-[#1f2937] border border-[#1f2937] rounded-xl py-3 px-6 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
                       >
-                        Get Started Today
+                        Get Started Free
                       </button>
                     </div>
                   </div>
