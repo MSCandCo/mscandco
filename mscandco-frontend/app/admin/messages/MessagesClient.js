@@ -280,14 +280,7 @@ export default function MessagesClient({ user }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <PageLoading message="Loading..." />
-          <p className="mt-4 text-gray-600">Loading messages...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading messages..." />;
   }
 
   return (

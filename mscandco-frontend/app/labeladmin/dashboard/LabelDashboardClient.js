@@ -97,11 +97,7 @@ export default function LabelDashboardClient({ user }) {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <PageLoading message="Loading your dashboard..." />
-      </div>
-    )
+    return <PageLoading message="Loading message="Loading your dashboard..." />;
   }
 
   return (

@@ -263,10 +263,18 @@ export default function AssetLibraryClient({ user }) {
         body: JSON.stringify(deletePayload)
       })
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response:', text.substring(0, 200))
+        throw new Error(`Server returned non-JSON response: ${response.status} ${response.statusText}`)
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete file(s)')
+        throw new Error(data.error || data.message || 'Failed to delete file(s)')
       }
 
       showNotification(data.message || 'File(s) deleted successfully', 'success')
@@ -346,14 +354,7 @@ export default function AssetLibraryClient({ user }) {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
-          <p className="text-gray-700 font-medium">Loading Asset Library...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading Asset Library..." />;
   }
 
   const tabs = [

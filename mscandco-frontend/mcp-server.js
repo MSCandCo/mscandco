@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * MSC & Co Platform MCP Server
- * Custom MCP server for multi-Claude collaboration on the MSC & Co platform
+ * MSC & Co Platform MCP Server - INFINITE GENIUS Edition 🚀💥⚡💖
+ *
+ * Custom MCP server with Apollo INFINITE GENIUS integration
+ * - 200,000+ dynamic tools covering ENTIRE music industry
+ * - Conversational, empathetic, human AI responses
+ * - Complete platform management capabilities
+ *
+ * INFINITE CAPABILITIES - UNLIMITED INTELLIGENCE - UNSTOPPABLE POWER
  */
 
 const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
-const { 
+const {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } = require('@modelcontextprotocol/sdk/types.js');
@@ -17,12 +23,16 @@ const path = require('path');
 
 const PROJECT_ROOT = process.env.MSC_PROJECT_ROOT || process.cwd();
 
+// Import Apollo INFINITE GENIUS (dynamic import for ES modules)
+let infiniteToolGenerator = null;
+let apolloBrain = null;
+
 class MSCPlatformServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'msc-platform-server',
-        version: '1.0.0',
+        name: 'msc-platform-server-infinite-genius',
+        version: '2.0.0',
       },
       {
         capabilities: {
@@ -31,7 +41,24 @@ class MSCPlatformServer {
       }
     );
 
+    this.apolloReady = false;
     this.setupToolHandlers();
+  }
+
+  async initializeApollo() {
+    if (this.apolloReady) return;
+
+    try {
+      // Dynamic import for ES modules
+      const infiniteBrainModule = await import(path.join(PROJECT_ROOT, 'lib/apollo/infinite-brain.js'));
+      infiniteToolGenerator = infiniteBrainModule.default || infiniteBrainModule.infiniteToolGenerator;
+
+      this.apolloReady = true;
+      console.error('✅ Apollo INFINITE GENIUS initialized in MCP server');
+    } catch (error) {
+      console.error('⚠️ Apollo INFINITE GENIUS not available:', error.message);
+      this.apolloReady = false;
+    }
   }
 
   setupToolHandlers() {
@@ -100,6 +127,70 @@ class MSCPlatformServer {
                 }
               }
             }
+          },
+          {
+            name: 'apollo_infinite_tool',
+            description: 'Access Apollo INFINITE GENIUS - 200,000+ dynamic tools covering ENTIRE music industry. Conversational, empathetic AI with deep emotional intelligence. Categories: analytics, creative, marketing, distribution, business, live, fans, brand, technology, global, wellness, career, education, networking, content, monetization, impact.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                action: {
+                  type: 'string',
+                  enum: ['execute_tool', 'recommend_tools', 'list_categories', 'discover_capabilities'],
+                  description: 'Action to perform with infinite tool system'
+                },
+                category: {
+                  type: 'string',
+                  description: 'Tool category (e.g., analytics, creative, marketing, wellness, career)'
+                },
+                subcategory: {
+                  type: 'string',
+                  description: 'Subcategory within category'
+                },
+                capability: {
+                  type: 'string',
+                  description: 'Specific capability to execute'
+                },
+                args: {
+                  type: 'object',
+                  description: 'Arguments to pass to the tool'
+                },
+                context: {
+                  type: 'object',
+                  description: 'User context for tool recommendations'
+                },
+                user_id: {
+                  type: 'string',
+                  description: 'Optional user ID for personalized results'
+                }
+              },
+              required: ['action']
+            }
+          },
+          {
+            name: 'apollo_chat',
+            description: 'Have a natural conversation with Apollo INFINITE GENIUS - your music industry mentor with complete expertise, emotional intelligence, and conversational personality. Ask anything about your music career!',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                message: {
+                  type: 'string',
+                  description: 'Your message or question for Apollo'
+                },
+                user_id: {
+                  type: 'string',
+                  description: 'Optional user ID for personalized responses'
+                },
+                conversation_history: {
+                  type: 'array',
+                  description: 'Previous conversation messages',
+                  items: {
+                    type: 'object'
+                  }
+                }
+              },
+              required: ['message']
+            }
           }
         ]
       };
@@ -125,7 +216,15 @@ class MSCPlatformServer {
           
           case 'test_revolut_integration':
             return await this.testRevolutIntegration(args.test_type);
-          
+
+          case 'apollo_infinite_tool':
+            await this.initializeApollo();
+            return await this.apolloInfiniteTool(args);
+
+          case 'apollo_chat':
+            await this.initializeApollo();
+            return await this.apolloChat(args);
+
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -276,15 +375,15 @@ class MSCPlatformServer {
       };
 
       const results = [];
-      
+
       for (const [file, description] of Object.entries(revolutFiles)) {
         const fullPath = path.resolve(PROJECT_ROOT, file);
         const exists = fs.existsSync(fullPath);
-        
+
         if (exists && (testType === 'all' || file.includes(testType))) {
           const content = fs.readFileSync(fullPath, 'utf8');
           const hasApiKey = content.includes('REVOLUT_SECRET_KEY') || content.includes('REVOLUT_PUBLIC_KEY');
-          
+
           results.push(`${exists ? '✅' : '❌'} ${description}: ${exists ? 'Found' : 'Missing'} ${hasApiKey ? '(API keys configured)' : '(no API keys)'}`);
         }
       }
@@ -299,6 +398,125 @@ class MSCPlatformServer {
       };
     } catch (error) {
       throw new Error(`Failed to test Revolut integration: ${error.message}`);
+    }
+  }
+
+  async apolloInfiniteTool(args) {
+    if (!this.apolloReady || !infiniteToolGenerator) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: '⚠️ Apollo INFINITE GENIUS not available. Please ensure lib/apollo/infinite-brain.js exists.'
+          }
+        ]
+      };
+    }
+
+    try {
+      const { action, category, subcategory, capability, args: toolArgs, context, user_id } = args;
+
+      let result;
+
+      switch (action) {
+        case 'execute_tool':
+          if (!category || !subcategory || !capability) {
+            throw new Error('Missing required parameters: category, subcategory, and capability required for execute_tool');
+          }
+          result = await infiniteToolGenerator.executeTool(
+            category,
+            subcategory,
+            capability,
+            toolArgs || {},
+            user_id
+          );
+          break;
+
+        case 'recommend_tools':
+          result = await infiniteToolGenerator.recommendTools(
+            context || { goal: 'improve music career' },
+            10
+          );
+          break;
+
+        case 'list_categories':
+          result = {
+            categories: infiniteToolGenerator.getAvailableCategories(),
+            total_possible_tools: infiniteToolGenerator.getTotalPossibleTools()
+          };
+          break;
+
+        case 'discover_capabilities':
+          if (!category) {
+            throw new Error('Missing required parameter: category required for discover_capabilities');
+          }
+          if (subcategory) {
+            result = {
+              category,
+              subcategory,
+              capabilities: infiniteToolGenerator.getCapabilities(category, subcategory)
+            };
+          } else {
+            result = {
+              category,
+              subcategories: infiniteToolGenerator.getSubcategories(category)
+            };
+          }
+          break;
+
+        default:
+          throw new Error(`Unknown action: ${action}`);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `∞ APOLLO INFINITE GENIUS (${action}):\n\n${JSON.stringify(result, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Apollo INFINITE GENIUS error: ${error.message}`);
+    }
+  }
+
+  async apolloChat(args) {
+    if (!this.apolloReady || !infiniteToolGenerator) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: '⚠️ Apollo INFINITE GENIUS not available. Please ensure lib/apollo/infinite-brain.js exists.'
+          }
+        ]
+      };
+    }
+
+    try {
+      const { message, user_id, conversation_history } = args;
+
+      if (!message) {
+        throw new Error('Message is required for apollo_chat');
+      }
+
+      // Use the infinite tool generator's conversational AI
+      const response = await infiniteToolGenerator.chat(
+        message,
+        conversation_history || [],
+        user_id
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `💬 Apollo: ${response.message}\n\n${response.suggestions ? '\n🎯 Suggestions:\n' + response.suggestions.map(s => `- ${s}`).join('\n') : ''}`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Apollo chat error: ${error.message}`);
     }
   }
 

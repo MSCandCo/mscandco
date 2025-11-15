@@ -462,7 +462,7 @@ export default function RoleBasedDashboard() {
             }
           ],
           cards: [
-            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/admin/permissions') },
+            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/superadmin/permissionsroles') },
             { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/admin/users') },
             { title: 'System Analytics', description: 'View platform analytics', icon: BarChart3, onClick: () => router.push('/admin/analytics') },
             { title: 'Platform Settings', description: 'Configure system settings', icon: Settings, onClick: () => router.push('/admin/settings') }
@@ -504,7 +504,7 @@ export default function RoleBasedDashboard() {
             }
           ],
           cards: [
-            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/admin/permissions') },
+            { title: 'Permissions & Roles', description: 'Manage RBAC system', icon: Settings, onClick: () => router.push('/superadmin/permissionsroles') },
             { title: 'User Management', description: 'Manage all platform users', icon: Users, onClick: () => router.push('/admin/users') },
             { title: 'System Analytics', description: 'View platform metrics', icon: BarChart3, onClick: () => router.push('/admin/analytics') },
             { title: 'Platform Settings', description: 'Configure system settings', icon: Settings, onClick: () => router.push('/admin/settings') }

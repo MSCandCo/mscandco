@@ -98,7 +98,7 @@ export async function PUT(request) {
         status: status,
         reviewed_by: session.user.id,
         reviewed_at: new Date().toISOString(),
-        admin_notes: adminNotes,
+        review_notes: adminNotes,
         updated_at: new Date().toISOString()
       })
       .eq('id', requestId)

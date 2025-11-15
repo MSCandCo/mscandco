@@ -1,13 +1,11 @@
 /**
- * Apollo Intelligence - Chat API
- * Handles conversational AI with OpenAI function calling
+ * Apollo Intelligence - Advanced Chat API
+ * The world's most intelligent music industry AI assistant
+ * Full database integration, proactive insights, autonomous actions
  */
 
 import { NextResponse } from 'next/server';
-import { openai, APOLLO_CONFIG } from '@/lib/apollo/client';
-import { MVP_TOOLS } from '@/lib/apollo/tools-mvp';
-import { getSystemPrompt } from '@/lib/apollo/prompts';
-import { executeToolCall } from '@/lib/apollo/tool-executor';
+import { apolloThink } from '@/lib/apollo/brain';
 import { createClient } from '@supabase/supabase-js';
 import { enforceApolloQueryLimit, trackApolloQuery } from '@/lib/middleware/tierEnforcement';
 
@@ -19,16 +17,16 @@ const supabase = createClient(
 export async function POST(request) {
   try {
     const { messages, userId } = await request.json();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },
         { status: 400 }
       );
     }
-    
-    console.log('💬 Apollo chat request from user:', userId);
-    
+
+    console.log('🧠 Apollo Advanced Chat - User:', userId);
+
     // TIER ENFORCEMENT: Check Apollo query limit
     const limitCheck = await enforceApolloQueryLimit(userId);
     if (!limitCheck.allowed) {
@@ -41,127 +39,45 @@ export async function POST(request) {
         currentUsage: limitCheck.currentUsage
       }, { status: 403 });
     }
-    
-    // Get user context for personalization
-    const userContext = await getUserContext(userId);
-    
-    // Detect repeated issues (user complaining about same thing multiple times)
-    const recentMessages = messages.slice(-6); // Last 6 messages (3 exchanges)
-    const userComplaints = recentMessages.filter(m => 
-      m.role === 'user' && (
-        m.content.toLowerCase().includes('not working') ||
-        m.content.toLowerCase().includes('still not') ||
-        m.content.toLowerCase().includes("it's not") ||
-        m.content.toLowerCase().includes("not showing") ||
-        m.content.toLowerCase().includes("not visible") ||
-        m.content.toLowerCase().includes("doesn't work") ||
-        m.content.toLowerCase().includes("not there")
-      )
-    );
-    
-    // Add escalation context if user has complained 2+ times
-    const shouldEscalate = userComplaints.length >= 2;
-    
-    // Create system message with user context
-    const systemMessage = {
-      role: 'system',
-      content: getSystemPrompt(userContext) + (shouldEscalate ? 
-        '\n\n⚠️ ESCALATION ALERT: User has reported the same issue multiple times. Follow the Escalation Protocol - DO NOT repeat the same action. Provide alternative solutions and escalate to human support.' : 
-        ''
-      ),
-    };
-    
-    // Call OpenAI with function calling
-    const response = await openai.chat.completions.create({
-      ...APOLLO_CONFIG,
-      messages: [systemMessage, ...messages],
-      tools: MVP_TOOLS,
-      tool_choice: 'auto', // Let Apollo decide when to use tools
-    });
-    
-    const assistantMessage = response.choices[0].message;
-    
-    console.log('🤖 OpenAI response:', {
-      hasContent: !!assistantMessage.content,
-      hasToolCalls: !!assistantMessage.tool_calls,
-      toolCount: assistantMessage.tool_calls?.length || 0,
-    });
-    
-    // Handle tool calls if any
-    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      const toolResults = [];
-      
-      for (const toolCall of assistantMessage.tool_calls) {
-        console.log(`🔧 Executing tool: ${toolCall.function.name}`);
-        
-        try {
-          const result = await executeToolCall(
-            toolCall.function.name,
-            JSON.parse(toolCall.function.arguments),
-            userId
-          );
-          
-          toolResults.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(result),
-          });
-          
-          console.log(`✅ Tool ${toolCall.function.name} executed successfully`);
-        } catch (error) {
-          console.error(`❌ Tool ${toolCall.function.name} failed:`, error);
-          
-          toolResults.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify({
-              success: false,
-              error: error.message || 'Tool execution failed',
-            }),
-          });
-        }
-      }
-      
-      // Get final response with tool results
-      const finalResponse = await openai.chat.completions.create({
-        ...APOLLO_CONFIG,
-        messages: [
-          systemMessage,
-          ...messages,
-          assistantMessage,
-          ...toolResults,
-        ],
-      });
-      
-      console.log('✅ Final response generated with tool results');
-      
-      // TIER TRACKING: Increment Apollo query counter
-      await trackApolloQuery(userId);
-      
-      return NextResponse.json({
-        response: finalResponse.choices[0].message.content,
-        tool_calls: assistantMessage.tool_calls.map(tc => ({
-          name: tc.function.name,
-          args: JSON.parse(tc.function.arguments),
-        })),
-        usage: limitCheck.currentUsage
-      });
+
+    // Extract the latest user message
+    const latestMessage = messages[messages.length - 1];
+    if (!latestMessage || latestMessage.role !== 'user') {
+      return NextResponse.json(
+        { error: 'Invalid message format' },
+        { status: 400 }
+      );
     }
-    
-    // No tools needed - direct response
-    console.log('✅ Direct response (no tools)');
-    
+
+    // Convert messages to conversation history format
+    const conversationHistory = messages.slice(0, -1).map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp || new Date().toISOString()
+    }));
+
+    // Use Apollo Brain for ultra-intelligent response
+    const result = await apolloThink(latestMessage.content, userId, conversationHistory);
+
+    console.log('✅ Apollo Brain response:', {
+      hasResponse: !!result.response,
+      toolsUsed: result.toolsUsed.length,
+      tools: result.toolsUsed
+    });
+
     // TIER TRACKING: Increment Apollo query counter
     await trackApolloQuery(userId);
-    
+
     return NextResponse.json({
-      response: assistantMessage.content,
-      usage: limitCheck.currentUsage
+      response: result.response,
+      tool_calls: result.toolsUsed,
+      usage: limitCheck.currentUsage,
+      timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
-    console.error('❌ Apollo chat error:', error);
-    
+    console.error('❌ Apollo Advanced Chat error:', error);
+
     return NextResponse.json(
       {
         error: 'Failed to process message',
@@ -172,71 +88,5 @@ export async function POST(request) {
   }
 }
 
-/**
- * Get user context for personalization
- */
-async function getUserContext(userId) {
-  try {
-    // Get user profile
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    // Get earnings summary
-    const { data: earnings } = await supabase
-      .from('earnings_log')
-      .select('amount, platform')
-      .eq('artist_id', userId);
-    
-    const totalEarnings = earnings?.reduce(
-      (sum, e) => sum + parseFloat(e.amount || 0),
-      0
-    ) || 0;
-    
-    // Get top platform
-    const platformTotals = earnings?.reduce((acc, e) => {
-      const platform = e.platform || 'Unknown';
-      acc[platform] = (acc[platform] || 0) + parseFloat(e.amount || 0);
-      return acc;
-    }, {}) || {};
-    
-    const topPlatform = Object.entries(platformTotals)
-      .sort(([, a], [, b]) => b - a)[0]?.[0];
-    
-    // Get releases count
-    const { data: releases } = await supabase
-      .from('releases')
-      .select('id')
-      .eq('artist_id', userId);
-    
-    // Get subscription
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('tier')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .single();
-    
-    return {
-      name: profile?.first_name || profile?.artist_name || 'there',
-      artist_name: profile?.artist_name,
-      role: profile?.role || 'artist',
-      total_releases: releases?.length || 0,
-      total_earnings: totalEarnings.toFixed(2),
-      subscription_tier: subscription?.tier || 'Free',
-      top_platform: topPlatform,
-    };
-  } catch (error) {
-    console.error('Error getting user context:', error);
-    return {
-      name: 'there',
-      role: 'artist',
-      total_releases: 0,
-      total_earnings: '0.00',
-      subscription_tier: 'Free',
-    };
-  }
-}
+// Apollo Brain handles all context automatically
 

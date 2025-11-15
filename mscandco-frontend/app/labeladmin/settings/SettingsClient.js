@@ -144,7 +144,8 @@ const LabelAdminSettingsClient = () => {
     currency: 'GBP',
     timezone: 'Europe/London',
     dateFormat: 'DD/MM/YYYY',
-    emailSignature: ''
+    emailSignature: '',
+    showAccessibilityFeatures: false
   });
 
   // Notifications state (Label Admin specific)
@@ -574,6 +575,37 @@ const LabelAdminSettingsClient = () => {
                     placeholder="Your email signature will appear in messages to artists..."
                   />
                   <p className="text-xs text-gray-500 mt-1">This signature will be automatically added to messages sent to artists</p>
+                </div>
+
+                {/* Accessibility Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Accessibility Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display accessibility features link in the main navigation header
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showAccessibilityFeatures: !prev.showAccessibilityFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showAccessibilityFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showAccessibilityFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showAccessibilityFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 

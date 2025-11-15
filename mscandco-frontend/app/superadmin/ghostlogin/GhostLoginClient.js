@@ -120,9 +120,25 @@ export default function GhostLoginClient({ user }) {
       const data = await response.json()
 
       if (response.ok) {
+        const magicLink = data.ghost_session?.magic_link
+        
+        if (!magicLink) {
+          console.error('No magic link returned:', data)
+          showNotification('Error: No magic link received from server', 'error')
+          return
+        }
+
+        console.log('Ghost session created, opening magic link:', magicLink)
         showNotification('Ghost session created! Opening in new tab...', 'success')
+        
         // Open magic link in new tab
-        window.open(data.ghost_session.magic_link, '_blank')
+        const newWindow = window.open(magicLink, '_blank')
+        
+        if (!newWindow) {
+          showNotification('Popup blocked. Please allow popups and try again.', 'error')
+          return
+        }
+        
         // Reset form
         setSelectedUser(null)
         setNotes('')
@@ -131,10 +147,14 @@ export default function GhostLoginClient({ user }) {
         setPendingUserId(null)
         fetchActiveSessions()
       } else {
-        showNotification(data.error || 'Failed to create ghost session', 'error')
+        const errorMsg = data.error || data.message || 'Failed to create ghost session'
+        const details = data.details ? ` (${data.details})` : ''
+        console.error('Ghost login error:', { status: response.status, error: data })
+        showNotification(`${errorMsg}${details}`, 'error')
       }
     } catch (error) {
-      showNotification('Error creating ghost session', 'error')
+      console.error('Error creating ghost session:', error)
+      showNotification(`Error creating ghost session: ${error.message}`, 'error')
     } finally {
       setLoading(false)
       setPendingUserId(null)

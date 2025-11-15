@@ -109,11 +109,20 @@ export async function POST(request, { params }) {
     console.log(`Successfully updated user ${updatedUser.email} to role ${updatedUser.role}`)
 
     // Update auth.users metadata so it's available on next login
+    // Update both user_metadata and app_metadata for maximum persistence
     try {
+      // Get current user to preserve existing metadata
+      const { data: currentAuthUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+      
       const { error: metadataError } = await supabaseAdmin.auth.admin.updateUserById(
         userId,
         {
           user_metadata: {
+            ...(currentAuthUser?.user?.user_metadata || {}),
+            role: role
+          },
+          app_metadata: {
+            ...(currentAuthUser?.user?.app_metadata || {}),
             role: role
           }
         }
@@ -122,7 +131,7 @@ export async function POST(request, { params }) {
       if (metadataError) {
         console.error('Warning: Failed to update user metadata:', metadataError)
       } else {
-        console.log(`Updated auth metadata for ${updatedUser.email} with role ${role}`)
+        console.log(`Updated auth metadata (user_metadata and app_metadata) for ${updatedUser.email} with role ${role}`)
       }
     } catch (metadataUpdateError) {
       console.error('Warning: Exception updating user metadata:', metadataUpdateError)

@@ -45,12 +45,10 @@ export default function AdminNavigation() {
     { name: 'Asset Library', href: '/admin/assetlibrary', icon: Database },
     { name: 'Split Configuration', href: '/admin/splitconfiguration', icon: ClipboardList },
     { name: 'Master Roster', href: '/admin/masterroster', icon: Music },
-    { name: 'Permissions', href: '/admin/permissions', icon: Shield },
     { name: 'Platform Analytics', href: '/admin/platformanalytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
     { name: 'Requests', href: '/admin/requests', icon: Inbox },
     { name: 'Messages', href: '/admin/messages', icon: Bell },
-    { name: 'Permission Performance', href: '/admin/permission-performance', icon: RefreshCw },
     { name: 'Profile', href: '/admin/profile', icon: Users },
     { name: 'Wallet Management', href: '/admin/walletmanagement', icon: Wallet }
   ]

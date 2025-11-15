@@ -13,7 +13,7 @@
 
 **MSC & Co is a next-generation music distribution and publishing platform that empowers independent artists, record labels, and distribution partners to distribute music globally, track real-time analytics, and get paid instantly—all while maintaining full creative control.**
 
-Think of it as:
+Think of it as: 
 - **For Artists:** The easiest way to get music on Spotify, Apple Music, and 150+ platforms
 - **For Labels:** A complete management system for dozens or hundreds of artists
 - **For Investors:** A scalable SaaS platform in a $8 billion market

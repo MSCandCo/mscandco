@@ -36,90 +36,50 @@ export async function GET(request) {
       query = query.eq('category', category)
     }
 
-    const { data: docs, error } = await query
-
-    if (error && error.code !== 'PGRST116') {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    let docs = []
+    let dbError = null
+    
+    try {
+      const { data, error } = await query
+      if (error) {
+        // If table doesn't exist or other DB error, use comprehensive docs
+        console.log('Database query error (using comprehensive docs):', error.message)
+        dbError = error
+      } else {
+        docs = data || []
+      }
+    } catch (err) {
+      // Catch any exceptions and use comprehensive docs
+      console.log('Exception querying docs (using comprehensive docs):', err.message)
+      dbError = err
     }
 
-    // If no docs, return defaults
-    const defaultDocs = [
-      {
-        id: '1',
-        title: 'Getting Started',
-        description: 'Quick start guide to get up and running with the platform',
-        category: 'Guides',
-        updated_at: new Date().toISOString(),
-        content: 'Welcome to MSC & Co platform...'
-      },
-      {
-        id: '2',
-        title: 'API Authentication',
-        description: 'Learn how to authenticate API requests using API keys and tokens',
-        category: 'API',
-        updated_at: new Date().toISOString(),
-        content: 'API authentication methods...'
-      },
-      {
-        id: '3',
-        title: 'User Management',
-        description: 'Complete guide to managing users, roles, and permissions',
-        category: 'Guides',
-        updated_at: new Date().toISOString(),
-        content: 'User management overview...'
-      },
-      {
-        id: '4',
-        title: 'Database Schema',
-        description: 'Technical reference for database tables and relationships',
-        category: 'Reference',
-        updated_at: new Date().toISOString(),
-        content: 'Database schema documentation...'
-      },
-      {
-        id: '5',
-        title: 'Earnings API',
-        description: 'Calculate and retrieve earnings data via API',
-        category: 'API',
-        updated_at: new Date().toISOString(),
-        content: 'Earnings API endpoints...'
-      },
-      {
-        id: '6',
-        title: 'Analytics Integration',
-        description: 'How to integrate and display analytics data',
-        category: 'Guides',
-        updated_at: new Date().toISOString(),
-        content: 'Analytics integration guide...'
-      },
-      {
-        id: '7',
-        title: 'Release Management',
-        description: 'Managing music releases and distribution',
-        category: 'Guides',
-        updated_at: new Date().toISOString(),
-        content: 'Release management guide...'
-      },
-      {
-        id: '8',
-        title: 'Webhook Events',
-        description: 'Real-time notifications via webhooks',
-        category: 'API',
-        updated_at: new Date().toISOString(),
-        content: 'Webhook events documentation...'
-      },
-      {
-        id: '9',
-        title: 'Security Best Practices',
-        description: 'Security guidelines and best practices',
-        category: 'Reference',
-        updated_at: new Date().toISOString(),
-        content: 'Security best practices...'
+    // Use comprehensive documentation if database is empty or has errors
+    // Database docs take precedence, but comprehensive docs serve as fallback and initial seed
+    let finalDocs = docs && docs.length > 0 ? docs : []
+    
+    // If no database docs, use comprehensive docs
+    if (finalDocs.length === 0) {
+      console.log('Using comprehensive documentation (database empty or error)')
+      try {
+        const docsModule = await import('./comprehensive-docs')
+        const comprehensiveDocs = docsModule.comprehensiveDocs || docsModule.default || []
+        if (Array.isArray(comprehensiveDocs) && comprehensiveDocs.length > 0) {
+          finalDocs = comprehensiveDocs
+          console.log(`✅ Loaded ${comprehensiveDocs.length} comprehensive docs`)
+        } else {
+          console.error('❌ Comprehensive docs is empty or not an array')
+        }
+      } catch (importError) {
+        console.error('❌ Failed to import comprehensive docs:', importError.message)
+        finalDocs = []
       }
-    ]
+    }
+
+    console.log(`Returning ${finalDocs.length} documentation entries`)
 
     return NextResponse.json({ 
-      docs: docs && docs.length > 0 ? docs : defaultDocs 
+      docs: finalDocs 
     })
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

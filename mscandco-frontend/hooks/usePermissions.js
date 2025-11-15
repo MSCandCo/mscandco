@@ -96,40 +96,21 @@ export function usePermissions(userId = null) {
       }
 
       // Get user permissions via API endpoint (server-side with proper permissions)
-      console.log('🔑 usePermissions: Fetching permissions from API...');
-      console.log('🔑 Session available?', !!session);
-      console.log('🔑 Access token available?', !!session?.access_token);
-      console.log('🔑 Access token length:', session?.access_token?.length || 0);
-      
+      // Removed console.logs for performance
       const response = await fetch('/api/user/permissions', {
         headers: {
           'Authorization': `Bearer ${session.access_token || ''}`
         }
       });
 
-      console.log('🔑 API Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('🔑 API Error response:', errorText);
+        console.error('🔑 usePermissions: API Error:', response.status, errorText);
         throw new Error(`Failed to fetch permissions: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('🔑 API Response data:', data);
-      console.log('🔑 API Response data.permissions:', data.permissions);
-      console.log('🔑 API Response data.permissions type:', typeof data.permissions);
-      console.log('🔑 API Response data.permissions isArray?', Array.isArray(data.permissions));
       const permissionNames = data.permissions || [];
-      console.log('🔑 Extracted permissionNames:', permissionNames);
-      console.log('🔑 permissionNames length:', permissionNames.length);
-
-      console.log('🔑 usePermissions hook received:', {
-        user_id: data.user_id,
-        user_email: data.user_email,
-        permissions: permissionNames,
-        hasWildcard: permissionNames.includes('*:*:*')
-      });
 
       // Cache the permissions
       permissionsCache.set(targetUserId, {
@@ -212,15 +193,13 @@ export function usePermissions(userId = null) {
 
     if (!currentUserId && !contextUser) return false;
 
-    // Check wildcard first (super admin)
+    // Check wildcard first (super admin) - no logging for performance
     if (permissions.includes('*:*:*')) {
-      console.log(`✅ hasPermission('${permission}') = true (wildcard match)`);
       return true;
     }
 
     // Check exact match
     if (permissions.includes(permission)) {
-      console.log(`✅ hasPermission('${permission}') = true (exact match)`);
       return true;
     }
 
@@ -229,17 +208,14 @@ export function usePermissions(userId = null) {
 
     // Check resource:*:* (e.g., user:*:* matches user:read:any, user:update:own, etc.)
     if (permissions.includes(`${resource}:*:*`)) {
-      console.log(`✅ hasPermission('${permission}') = true (resource wildcard)`);
       return true;
     }
 
     // Check resource:action:* (e.g., user:read:* matches user:read:any, user:read:own)
     if (permissions.includes(`${resource}:${action}:*`)) {
-      console.log(`✅ hasPermission('${permission}') = true (action wildcard)`);
       return true;
     }
 
-    console.log(`❌ hasPermission('${permission}') = false (no match). Available:`, permissions);
     return false;
   }, [permissions, currentUserId, contextUser, loading]);
 

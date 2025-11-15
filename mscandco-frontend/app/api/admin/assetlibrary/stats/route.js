@@ -47,30 +47,49 @@ export async function GET(request) {
       'profile-pictures',
       'email-templates'
     ]
-    
+
     let allFiles = []
-    
+
+    // Get all files from all buckets (recursively)
+    const getAllFilesRecursive = async (bucket, path = '', allFiles = []) => {
+      const { data, error } = await supabaseAdmin.storage
+        .from(bucket)
+        .list(path, {
+          limit: 1000,
+          offset: 0
+        })
+
+      if (error || !data) return allFiles
+
+      for (const item of data) {
+        if (item.id && item.metadata?.size !== undefined) {
+          // It's a file
+          allFiles.push(item)
+        } else if (!item.name.includes('.')) {
+          // It's likely a folder, recursively list it
+          const folderPath = path ? `${path}/${item.name}` : item.name
+          await getAllFilesRecursive(bucket, folderPath, allFiles)
+        }
+      }
+
+      return allFiles
+    }
+
     // Get all files from all buckets
     for (const bucketName of bucketsToCheck) {
       try {
-        const { data: bucketFiles, error } = await supabaseAdmin.storage
-          .from(bucketName)
-          .list('', {
-            limit: 1000,
-            offset: 0
-          })
-        
-        if (!error && bucketFiles) {
-          // Filter out folders
-          const actualFiles = bucketFiles.filter(f => f.id !== null && f.metadata?.size !== undefined)
-          allFiles.push(...actualFiles)
+        const bucketFiles = await getAllFilesRecursive(bucketName)
+        if (bucketFiles.length > 0) {
+          console.log(`📊 Stats: Found ${bucketFiles.length} files in ${bucketName}`)
+          allFiles.push(...bucketFiles)
         }
       } catch (err) {
         // Silently skip buckets that don't exist
         continue
       }
     }
-    
+
+    console.log(`📊 Stats: Total files across all buckets: ${allFiles.length}`)
     const files = allFiles
 
     // Calculate statistics
@@ -97,12 +116,25 @@ export async function GET(request) {
 
     const otherFiles = totalFiles - audioFiles - imageFiles - documentFiles
 
+    // Calculate recent uploads (last 30 days)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const recentUploads = files?.filter(file => {
+      const createdAt = new Date(file.created_at)
+      return createdAt >= thirtyDaysAgo
+    }).length || 0
+
     return NextResponse.json({
       success: true,
       stats: {
         total_files: totalFiles,
+        active_files: totalFiles,
         total_size: totalSize,
-        total_size_mb: (totalSize / (1024 * 1024)).toFixed(2),
+        total_size_mb: parseFloat((totalSize / (1024 * 1024)).toFixed(2)),
+        total_storage_gb: parseFloat((totalSize / (1024 * 1024 * 1024)).toFixed(2)),
+        recent_uploads: recentUploads,
+        average_file_size_mb: totalFiles > 0 ? parseFloat(((totalSize / totalFiles) / (1024 * 1024)).toFixed(2)) : 0,
         by_type: {
           audio: audioFiles,
           image: imageFiles,

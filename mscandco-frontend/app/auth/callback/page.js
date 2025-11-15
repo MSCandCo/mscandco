@@ -16,6 +16,24 @@ function AuthCallbackContent() {
         // Check for authentication type
         const type = searchParams.get('type')
         const code = searchParams.get('code')
+        
+        // Check if we have hash tokens (magic link authentication)
+        const hasHashTokens = typeof window !== 'undefined' && 
+                              window.location.hash && 
+                              (window.location.hash.includes('access_token') || 
+                               window.location.hash.includes('code'))
+        
+        // If we have hash tokens but no type, assume it's a magic link
+        const isMagicLink = type === 'magiclink' || (hasHashTokens && !type && !code)
+        
+        console.log('🔍 Auth callback debug:', {
+          type,
+          code: code ? 'present' : 'missing',
+          hasHashTokens,
+          isMagicLink,
+          pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+          hash: typeof window !== 'undefined' ? window.location.hash.substring(0, 50) + '...' : 'none'
+        })
 
         // Handle password recovery (reset)
         if (type === 'recovery') {
@@ -48,17 +66,121 @@ function AuthCallbackContent() {
         }
 
         // Handle magic link (passwordless login)
-        if (type === 'magiclink') {
+        if (isMagicLink) {
+          console.log('🔐 Handling magic link authentication...')
+          
+          // Supabase magic links put tokens in the URL hash (fragment), not query params
+          // The Supabase client automatically processes hash-based tokens on initialization
+          // We need to wait for it to process and then check the session
+          
+          // Check for code in query params (some flows use this)
+          const code = searchParams.get('code')
+          
           if (code) {
+            console.log('🔐 Exchanging code for session...')
             const { error } = await supabase.auth.exchangeCodeForSession(code)
             if (error) {
-              console.error('Magic link error:', error)
+              console.error('❌ Magic link code exchange error:', error)
               router.push('/login?error=magic_link_failed')
               return
             }
+          } else {
+            // No code - tokens should be in the hash
+            // Supabase client processes hash automatically, but we need to wait
+            console.log('🔐 Waiting for Supabase client to process hash tokens...')
+            
+            // Wait for the client to process the hash tokens
+            // Retry getting session a few times as it may take a moment
+            let sessionRetries = 0
+            let session = null
+            const maxRetries = 10
+            
+            while (sessionRetries < maxRetries && !session) {
+              const { data: sessionData } = await supabase.auth.getSession()
+              
+              if (sessionData?.session) {
+                session = sessionData.session
+                console.log(`✅ Session established after ${sessionRetries + 1} attempt(s)`)
+                break
+              }
+              
+              sessionRetries++
+              if (sessionRetries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 300))
+              }
+            }
+            
+            if (!session) {
+              console.error('❌ No session after processing hash tokens')
+              // Try to manually parse hash if available
+              if (typeof window !== 'undefined' && window.location.hash) {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1))
+                const accessToken = hashParams.get('access_token')
+                const refreshToken = hashParams.get('refresh_token')
+                
+                if (accessToken && refreshToken) {
+                  console.log('🔐 Setting session from hash tokens...')
+                  const { error: setError } = await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken
+                  })
+                  
+                  if (setError) {
+                    console.error('❌ Error setting session from hash:', setError)
+                    router.push('/login?error=magic_link_failed')
+                    return
+                  }
+                } else {
+                  router.push('/login?error=magic_link_failed')
+                  return
+                }
+              } else {
+                router.push('/login?error=magic_link_failed')
+                return
+              }
+            }
           }
-          // Redirect to dashboard (user is now logged in)
-          router.push('/dashboard')
+          
+          // Final session check
+          const { data: { session: finalSession }, error: sessionError } = await supabase.auth.getSession()
+          
+          if (sessionError || !finalSession) {
+            console.error('❌ Final session check failed:', sessionError)
+            router.push('/login?error=magic_link_failed')
+            return
+          }
+          
+          console.log('✅ Magic link authentication successful for user:', finalSession.user.email)
+          
+          // Determine redirect based on user role
+          const userRole = finalSession.user.user_metadata?.role || 
+                          finalSession.user.app_metadata?.role
+          
+          let redirectTo = '/dashboard'
+          
+          // Role-based redirects
+          if (userRole === 'label_admin') {
+            redirectTo = '/labeladmin/dashboard'
+          } else if (userRole === 'super_admin') {
+            redirectTo = '/superadmin/dashboard'
+          } else if (userRole === 'company_admin' || userRole === 'admin') {
+            redirectTo = '/admin/dashboard'
+          }
+          
+          // Check if we have a redirect parameter in URL (for ghost login)
+          const urlRedirect = searchParams.get('redirect')
+          if (urlRedirect) {
+            redirectTo = urlRedirect
+          }
+          
+          console.log('🚀 Redirecting user to:', redirectTo, 'Role:', userRole)
+          
+          // Wait a bit longer to ensure session cookies are set and permissions can load
+          // This is especially important for ghost login where permissions need to be fetched
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          // Use window.location.href for hard redirect to ensure fresh page load with new session
+          window.location.href = redirectTo
           return
         }
 

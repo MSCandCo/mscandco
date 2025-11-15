@@ -202,29 +202,36 @@ export default function UserManagementClient({ user }) {
       setSaving(true)
       setError(null)
 
+      // Determine new status: toggle between active and inactive
       const newStatus = user.status === 'active' ? 'inactive' : 'active'
+      
+      console.log(`🔄 Toggling user ${user.email} status from ${user.status} to ${newStatus}`)
 
-      // Update user status via Supabase Admin API
-      if (newStatus === 'active') {
-        const { error } = await supabase.auth.admin.updateUserById(
-          user.id,
-          { email_confirm: true }
-        )
-        if (error) throw error
-      } else {
-        // Deactivate by un-confirming email
-        const { error } = await supabase.auth.admin.updateUserById(
-          user.id,
-          { email_confirm: false }
-        )
-        if (error) throw error
+      // Use API route to update status
+      const response = await fetch(`/api/admin/users/${user.id}/update-status`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      const responseData = await response.json()
+      
+      if (!response.ok) {
+        console.error('❌ API Error:', responseData)
+        throw new Error(responseData.error || responseData.message || 'Failed to update status')
       }
 
+      console.log('✅ Status updated successfully:', responseData)
+
+      // Reload data to reflect changes
       await loadData()
 
     } catch (err) {
-      console.error('Error updating status:', err)
-      setError(err.message)
+      console.error('❌ Error updating status:', err)
+      setError(err.message || 'Failed to update user status')
     } finally {
       setSaving(false)
     }

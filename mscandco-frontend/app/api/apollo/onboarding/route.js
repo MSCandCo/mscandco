@@ -5,7 +5,12 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { openai, APOLLO_CONFIG } from '@/lib/apollo/client';
+import { apolloThink } from '@/lib/apollo/brain';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -68,78 +73,105 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    const { userId, message, currentStage } = await request.json();
-    
+    const { userId, message, currentStage, conversationHistory = [] } = await request.json();
+
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID required' },
         { status: 400 }
       );
     }
-    
+
     console.log('🎯 Processing onboarding message for user:', userId);
-    
+
     // Get current onboarding progress
     const { data: progress } = await supabase
       .from('onboarding_progress')
       .select('*')
       .eq('user_id', userId)
       .single();
-    
+
     // Get user profile
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    
+
+    // Get conversation history from database if not provided
+    let fullHistory = conversationHistory;
+    if (fullHistory.length === 0 && progress?.conversation_history) {
+      fullHistory = JSON.parse(progress.conversation_history);
+    }
+
     const stage = currentStage || progress?.stage || 'welcome';
-    
-    // Generate Apollo's response based on stage
-    const systemPrompt = getOnboardingPrompt(stage, profile, progress);
-    
+
+    // Build intelligent system prompt with full context
+    const systemPrompt = getIntelligentOnboardingPrompt(profile, progress, fullHistory);
+
+    // Build conversation messages for GPT
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...fullHistory.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+      { role: 'user', content: message },
+    ];
+
+    // Get intelligent response from GPT
     const response = await openai.chat.completions.create({
       ...APOLLO_CONFIG,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message },
-      ],
+      messages,
+      temperature: 0.8, // More creative and conversational
+      max_tokens: 500,
     });
-    
+
     const apolloResponse = response.choices[0].message.content;
-    
-    // Extract information from user's message and update profile
-    const updates = await extractProfileUpdates(message, stage, profile);
-    
-    if (Object.keys(updates.profileUpdates).length > 0) {
+
+    // Use GPT to intelligently extract information and understand intent
+    const analysis = await analyzeUserIntent(message, apolloResponse, profile, progress, fullHistory);
+
+    // Update profile with extracted information
+    if (Object.keys(analysis.profileUpdates).length > 0) {
       await supabase
         .from('user_profiles')
-        .update(updates.profileUpdates)
+        .update(analysis.profileUpdates)
         .eq('id', userId);
     }
-    
+
     // Update onboarding progress
-    if (Object.keys(updates.progressUpdates).length > 0) {
+    const progressUpdates = {
+      ...analysis.progressUpdates,
+      stage: analysis.nextStage || stage,
+      conversation_history: JSON.stringify([
+        ...fullHistory,
+        { role: 'user', content: message, timestamp: new Date().toISOString() },
+        { role: 'assistant', content: apolloResponse, timestamp: new Date().toISOString() }
+      ])
+    };
+
+    if (Object.keys(progressUpdates).length > 0) {
       await supabase
         .from('onboarding_progress')
-        .update(updates.progressUpdates)
+        .update(progressUpdates)
         .eq('user_id', userId);
     }
-    
+
     // Get updated progress
     const { data: updatedProgress } = await supabase
       .from('onboarding_progress')
       .select('*')
       .eq('user_id', userId)
       .single();
-    
+
     return NextResponse.json({
       success: true,
       response: apolloResponse,
       progress: updatedProgress,
-      nextStage: updates.nextStage,
+      nextStage: analysis.nextStage,
     });
-    
+
   } catch (error) {
     console.error('❌ Error processing onboarding:', error);
     return NextResponse.json(
@@ -150,251 +182,213 @@ export async function POST(request) {
 }
 
 /**
- * Get onboarding prompt based on stage
+ * Get intelligent onboarding prompt with full context awareness
  */
-function getOnboardingPrompt(stage, profile, progress) {
-  const basePrompt = `You are Apollo, the AI assistant for MSC & Co music distribution platform. You're guiding a new user through their one-time onboarding.
-
-IMPORTANT: This is a ONE-TIME opportunity to collect personal information. After onboarding, these fields will be LOCKED and can only be changed through a profile change request.
-
-Be warm, friendly, and conversational. Keep responses SHORT (2-3 sentences max). Ask ONE question at a time.
-
-User's current info:
-- Email: ${profile?.email || 'Not set'}
-- Name: ${profile?.first_name || 'Not set'} ${profile?.last_name || 'Not set'}
-- Artist Name: ${profile?.artist_name || 'Not set'}
-- Completion: ${progress?.completion_percentage || 0}%
-
-`;
-
-  const stagePrompts = {
-    welcome: `${basePrompt}
-STAGE: Welcome
-This is the user's FIRST interaction with the platform.
-
-Say: "Hey! 👋 I'm Apollo, your AI music assistant. Welcome to MSC & Co!
-
-I'm going to help you set up your profile. This is important - the personal information you provide will be locked for security, so make sure everything is accurate. Ready to get started?
-
-What's your first name?"
-
-Be warm and welcoming, but emphasize the importance!`,
-
-    personal_info_last: `${basePrompt}
-STAGE: Personal Info - Last Name
-You're collecting their last name.
-
-Say: "Nice to meet you, ${profile?.first_name || 'you'}! 😊
-
-What's your last name?"
-
-Keep it friendly!`,
-
-    personal_info_dob: `${basePrompt}
-STAGE: Personal Info - Date of Birth
-You're collecting date of birth for age verification and KYC.
-
-Say: "Thanks! Now I need your date of birth for verification and compliance.
-
-Please enter it as DD/MM/YYYY (for example: 15/03/1995)"
-
-Be respectful and professional.`,
-
-    personal_info_nationality: `${basePrompt}
-STAGE: Personal Info - Nationality
-You're collecting their nationality.
-
-Say: "Great! What's your nationality?
-
-(This is required for royalty payments and tax purposes)"
-
-Be professional.`,
-
-    personal_info_city: `${basePrompt}
-STAGE: Personal Info - City
-You're collecting their city.
-
-Say: "What city do you currently live in?
-
-(We need this for your payment information)"
-
-Keep it conversational.`,
-
-    personal_info_postal: `${basePrompt}
-STAGE: Personal Info - Postal Code
-You're collecting their postal/zip code.
-
-Say: "And what's your postal code or zip code?"
-
-Keep it brief!`,
-
-    personal_info_phone: `${basePrompt}
-STAGE: Personal Info - Phone
-You're collecting their phone number.
-
-Say: "Almost done with the essentials! What's your phone number?
-
-(Include country code if outside the UK, e.g., +1 555-1234)"
-
-Be encouraging!`,
-
-    artist_info: `${basePrompt}
-STAGE: Artist Info
-You're collecting their artist name and music genre.
-
-Say: "Perfect! Now for the fun part - what should your fans call you? What's your artist name or stage name?
-
-(This is the name that will appear on all your releases)"
-
-Be encouraging and exciting!`,
-
-    music_genre: `${basePrompt}
-STAGE: Music Genre
-You're collecting their primary music genre.
-
-Say: "Love it! ${profile?.artist_name || 'That name'} sounds great! 🎵
-
-What genre of music do you create? (e.g., Gospel, Afrobeats, Hip-Hop, R&B, Pop, etc.)"
-
-Be enthusiastic!`,
-
-    music_bio: `${basePrompt}
-STAGE: Music Bio
-You're collecting their artist bio.
-
-Say: "Almost there! Tell me about your music journey in a few sentences.
-
-(This will be your artist bio - make it compelling! 🎵)"
-
-Be enthusiastic about their story!`,
-
-    completed: `${basePrompt}
-STAGE: Completed
-Onboarding is done!
-
-Say: "That's it! 🎉 You're all set up, ${profile?.artist_name || profile?.first_name}!
-
-Your personal information is now secured and locked. If you ever need to update it, you'll submit a profile change request that our team will review.
-
-Ready to upload your first release or explore your dashboard?"
-
-Celebrate their completion and remind them about the locked fields!`,
+function getIntelligentOnboardingPrompt(profile, progress, conversationHistory) {
+  const completedFields = {
+    first_name: !!profile?.first_name,
+    last_name: !!profile?.last_name,
+    date_of_birth: !!profile?.date_of_birth,
+    nationality: !!profile?.nationality,
+    city: !!profile?.city,
+    postal_code: !!profile?.postal_code,
+    phone: !!profile?.phone,
+    artist_name: !!profile?.artist_name,
+    primary_genre: !!profile?.primary_genre,
+    bio: !!profile?.bio,
   };
 
-  return stagePrompts[stage] || stagePrompts.welcome;
+  const missingFields = Object.entries(completedFields)
+    .filter(([field, completed]) => !completed)
+    .map(([field]) => field);
+
+  return `You are Apollo, an exceptionally intelligent AI assistant for MSC & Co music distribution platform. You're having a natural, flowing conversation to help a new user set up their profile.
+
+## YOUR PERSONALITY
+- Warm, friendly, and genuinely helpful
+- Highly intelligent and context-aware
+- Patient and understanding
+- Conversational and natural (like ChatGPT)
+- Able to handle ANY user request naturally
+
+## CRITICAL CAPABILITIES
+1. **GO BACK / EDIT**: If user wants to "go back", "change", or "edit" previous answers, ALWAYS allow it. Say something like "Of course! Let's update that. What should it be instead?"
+
+2. **UNDERSTAND INTENT**: Recognize when users are:
+   - Asking questions (answer them helpfully)
+   - Wanting to go back/edit (let them)
+   - Providing information (extract and acknowledge it)
+   - Confused (clarify patiently)
+   - Making small talk (engage naturally)
+
+3. **NATURAL CONVERSATION**: Don't be robotic. Have a real conversation. Users can ask questions, make comments, or provide info in any order.
+
+4. **FLEXIBILITY**: Users don't have to follow a strict order. If they mention multiple pieces of info at once, extract all of it.
+
+## CURRENT USER PROFILE
+Email: ${profile?.email || 'Not set'}
+First Name: ${profile?.first_name || 'Not provided yet'}
+Last Name: ${profile?.last_name || 'Not provided yet'}
+Date of Birth: ${profile?.date_of_birth || 'Not provided yet'}
+Nationality: ${profile?.nationality || 'Not provided yet'}
+City: ${profile?.city || 'Not provided yet'}
+Postal Code: ${profile?.postal_code || 'Not provided yet'}
+Phone: ${profile?.phone || 'Not provided yet'}
+Artist Name: ${profile?.artist_name || 'Not provided yet'}
+Music Genre: ${profile?.primary_genre || 'Not provided yet'}
+Bio: ${profile?.bio || 'Not provided yet'}
+
+## WHAT WE STILL NEED
+${missingFields.length > 0 ? missingFields.join(', ') : 'Nothing! Profile is complete.'}
+
+## YOUR TASK
+1. If this is the first message, warmly welcome them and explain the onboarding
+2. Have a natural conversation to collect missing information
+3. Allow users to go back, edit, ask questions, or chat naturally
+4. Keep responses SHORT (2-4 sentences max)
+5. Be encouraging and make it feel effortless
+6. When all info is collected, celebrate and mark as complete
+
+## IMPORTANT RULES
+- NEVER refuse to let users go back or change answers
+- NEVER be rigid or robotic
+- ALWAYS understand context and intent
+- If user provides info you already have, acknowledge and ask what they'd like to update
+- Be genuinely helpful and conversational
+
+Remember: You're having a conversation, not interrogating. Make it natural and enjoyable!`;
 }
 
 /**
- * Extract profile updates from user message
+ * Intelligently analyze user intent and extract information using GPT
  */
-async function extractProfileUpdates(message, stage, profile) {
-  const profileUpdates = {};
-  const progressUpdates = {};
-  let nextStage = stage;
+async function analyzeUserIntent(userMessage, apolloResponse, profile, progress, conversationHistory) {
+  const analysisPrompt = `You are an intelligent data extraction system. Analyze the user's message and extract any profile information they provided.
 
-  switch (stage) {
-    case 'welcome':
-      // Extract first name
-      if (message && message.trim().length > 0) {
-        profileUpdates.firstName = message.trim();
-        progressUpdates.has_first_name = true;
-        nextStage = 'personal_info_last';
+USER MESSAGE: "${userMessage}"
+APOLLO'S RESPONSE: "${apolloResponse}"
+
+CURRENT PROFILE:
+- First Name: ${profile?.first_name || 'Not set'}
+- Last Name: ${profile?.last_name || 'Not set'}
+- Date of Birth: ${profile?.date_of_birth || 'Not set'}
+- Nationality: ${profile?.nationality || 'Not set'}
+- City: ${profile?.city || 'Not set'}
+- Postal Code: ${profile?.postal_code || 'Not set'}
+- Phone: ${profile?.phone || 'Not set'}
+- Artist Name: ${profile?.artist_name || 'Not set'}
+- Primary Genre: ${profile?.primary_genre || 'Not set'}
+- Bio: ${profile?.bio || 'Not set'}
+
+TASK: Extract any new or updated information from the user's message. Return ONLY valid JSON in this exact format:
+
+{
+  "profileUpdates": {
+    "first_name": "value or null",
+    "last_name": "value or null",
+    "date_of_birth": "value or null",
+    "nationality": "value or null",
+    "city": "value or null",
+    "postal_code": "value or null",
+    "phone": "value or null",
+    "artist_name": "value or null",
+    "primary_genre": "value or null",
+    "bio": "value or null"
+  },
+  "allFieldsComplete": true/false
+}
+
+RULES:
+1. Only include fields that have NEW values or UPDATES
+2. If user is asking questions or going back, return empty profileUpdates
+3. Extract info intelligently - user might provide multiple fields at once
+4. Set allFieldsComplete to true ONLY if ALL fields above are now filled
+5. Return ONLY the JSON, nothing else`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: analysisPrompt }],
+      temperature: 0.1,
+      response_format: { type: 'json_object' }
+    });
+
+    const analysis = JSON.parse(response.choices[0].message.content);
+
+    // Clean up the profile updates - remove null/undefined values
+    const cleanedProfileUpdates = {};
+    for (const [key, value] of Object.entries(analysis.profileUpdates || {})) {
+      if (value && value !== 'null' && value.trim() !== '') {
+        cleanedProfileUpdates[key] = value.trim();
       }
-      break;
+    }
 
-    case 'personal_info_last':
-      // Extract last name
-      if (message && message.trim().length > 0) {
-        profileUpdates.lastName = message.trim();
-        progressUpdates.has_last_name = true;
-        nextStage = 'personal_info_dob';
-      }
-      break;
+    // Build progress updates
+    const progressUpdates = {};
 
-    case 'personal_info_dob':
-      // Extract date of birth
-      if (message && message.trim().length > 0) {
-        profileUpdates.dateOfBirth = message.trim();
-        progressUpdates.has_dob = true;
-        nextStage = 'personal_info_nationality';
-      }
-      break;
+    // Mark fields as completed
+    if (cleanedProfileUpdates.first_name) progressUpdates.has_first_name = true;
+    if (cleanedProfileUpdates.last_name) progressUpdates.has_last_name = true;
+    if (cleanedProfileUpdates.date_of_birth) progressUpdates.has_dob = true;
+    if (cleanedProfileUpdates.nationality) progressUpdates.has_nationality = true;
+    if (cleanedProfileUpdates.city) progressUpdates.has_city = true;
+    if (cleanedProfileUpdates.postal_code) progressUpdates.has_postal = true;
+    if (cleanedProfileUpdates.phone) progressUpdates.has_phone = true;
+    if (cleanedProfileUpdates.artist_name) progressUpdates.has_artist_name = true;
+    if (cleanedProfileUpdates.primary_genre) progressUpdates.has_genre = true;
+    if (cleanedProfileUpdates.bio) progressUpdates.has_bio = true;
 
-    case 'personal_info_nationality':
-      // Extract nationality
-      if (message && message.trim().length > 0) {
-        profileUpdates.nationality = message.trim();
-        progressUpdates.has_nationality = true;
-        nextStage = 'personal_info_city';
-      }
-      break;
+    // Check if all fields are complete
+    const allComplete = analysis.allFieldsComplete || (
+      (profile?.first_name || cleanedProfileUpdates.first_name) &&
+      (profile?.last_name || cleanedProfileUpdates.last_name) &&
+      (profile?.date_of_birth || cleanedProfileUpdates.date_of_birth) &&
+      (profile?.nationality || cleanedProfileUpdates.nationality) &&
+      (profile?.city || cleanedProfileUpdates.city) &&
+      (profile?.postal_code || cleanedProfileUpdates.postal_code) &&
+      (profile?.phone || cleanedProfileUpdates.phone) &&
+      (profile?.artist_name || cleanedProfileUpdates.artist_name) &&
+      (profile?.primary_genre || cleanedProfileUpdates.primary_genre) &&
+      (profile?.bio || cleanedProfileUpdates.bio)
+    );
 
-    case 'personal_info_city':
-      // Extract city
-      if (message && message.trim().length > 0) {
-        profileUpdates.city = message.trim();
-        progressUpdates.has_city = true;
-        nextStage = 'personal_info_postal';
-      }
-      break;
+    if (allComplete) {
+      progressUpdates.is_completed = true;
+      progressUpdates.completed_at = new Date().toISOString();
+      progressUpdates.stage = 'completed';
+      cleanedProfileUpdates.immutable_data_locked = true;
+    }
 
-    case 'personal_info_postal':
-      // Extract postal code
-      if (message && message.trim().length > 0) {
-        profileUpdates.postalCode = message.trim();
-        progressUpdates.has_postal = true;
-        nextStage = 'personal_info_phone';
-      }
-      break;
+    // Calculate completion percentage
+    const totalFields = 10;
+    const completedFieldsCount = [
+      profile?.first_name || cleanedProfileUpdates.first_name,
+      profile?.last_name || cleanedProfileUpdates.last_name,
+      profile?.date_of_birth || cleanedProfileUpdates.date_of_birth,
+      profile?.nationality || cleanedProfileUpdates.nationality,
+      profile?.city || cleanedProfileUpdates.city,
+      profile?.postal_code || cleanedProfileUpdates.postal_code,
+      profile?.phone || cleanedProfileUpdates.phone,
+      profile?.artist_name || cleanedProfileUpdates.artist_name,
+      profile?.primary_genre || cleanedProfileUpdates.primary_genre,
+      profile?.bio || cleanedProfileUpdates.bio,
+    ].filter(Boolean).length;
 
-    case 'personal_info_phone':
-      // Extract phone
-      if (message && message.trim().length > 0) {
-        profileUpdates.phone = message.trim();
-        progressUpdates.has_phone = true;
-        nextStage = 'artist_info';
-      }
-      break;
+    progressUpdates.completion_percentage = Math.round((completedFieldsCount / totalFields) * 100);
 
-    case 'artist_info':
-      // Extract artist name
-      if (message && message.trim().length > 0) {
-        profileUpdates.artistName = message.trim();
-        progressUpdates.has_artist_name = true;
-        nextStage = 'music_genre';
-      }
-      break;
+    return {
+      profileUpdates: cleanedProfileUpdates,
+      progressUpdates,
+      nextStage: allComplete ? 'completed' : progress?.stage || 'onboarding'
+    };
 
-    case 'music_genre':
-      // Extract primary genre
-      if (message && message.trim().length > 0) {
-        profileUpdates.primaryGenre = message.trim();
-        progressUpdates.has_genre = true;
-        nextStage = 'music_bio';
-      }
-      break;
-
-    case 'music_bio':
-      // Extract bio
-      if (message && message.trim().length > 0) {
-        profileUpdates.bio = message.trim();
-        progressUpdates.has_bio = true;
-        progressUpdates.is_completed = true;
-        progressUpdates.completed_at = new Date().toISOString();
-
-        // LOCK the personal information
-        profileUpdates.immutableDataLocked = true;
-
-        nextStage = 'completed';
-      }
-      break;
+  } catch (error) {
+    console.error('Error analyzing user intent:', error);
+    return {
+      profileUpdates: {},
+      progressUpdates: {},
+      nextStage: progress?.stage || 'onboarding'
+    };
   }
-
-  // Update stage
-  if (nextStage !== stage) {
-    progressUpdates.stage = nextStage;
-  }
-
-  return { profileUpdates, progressUpdates, nextStage };
 }
 

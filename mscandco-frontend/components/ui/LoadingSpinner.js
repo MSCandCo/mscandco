@@ -55,7 +55,7 @@ export default function LoadingSpinner({
  */
 export function PageLoading({ message = 'Loading...', color = 'brand' }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <LoadingSpinner size="md" message={message} color={color} />
       </div>

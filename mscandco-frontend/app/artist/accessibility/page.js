@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
+import { useUser } from '@/components/providers/SupabaseProvider';
+import { PageLoading } from '@/components/ui/LoadingSpinner';
 
 export default function AccessibilityPage() {
-  const supabase = createClientComponentClient();
+  const { user } = useUser();
+  const supabase = createClient();
 
   const [releases, setReleases] = useState([]);
   const [accessibilityContent, setAccessibilityContent] = useState([]);
@@ -15,12 +18,15 @@ export default function AccessibilityPage() {
   const [selectedRelease, setSelectedRelease] = useState(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   async function loadData() {
+    if (!user) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
 
       // Load releases
       const { data: releasesData } = await supabase
@@ -111,12 +117,8 @@ export default function AccessibilityPage() {
     mood_description: '😊 Mood Description',
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
-    );
+  if (loading || !user) {
+    return <PageLoading message="Loading accessibility data..." />;
   }
 
   return (

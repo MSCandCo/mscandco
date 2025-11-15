@@ -5,7 +5,7 @@ import { useRealtime } from '@/components/providers/RealtimeProvider';
 import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { formatCurrency, useCurrencySync } from '@/components/shared/CurrencySelector';
 import AdminHeader from './AdminHeader';
@@ -18,12 +18,35 @@ function Header({ largeLogo = false }) {
   const pathname = usePathname();
   const { unreadCount } = useRealtime(); // Use global unread count from RealtimeProvider
   const [profileData, setProfileData] = useState(null);
+  const [showAccessibilityLink, setShowAccessibilityLink] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  // Permissions
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  // Permissions - memoized to prevent excessive re-renders
+  const { hasPermission, loading: permissionsLoading, permissions } = usePermissions();
+  
+  // Memoize common permission checks to avoid re-computing on every render
+  // Directly check permissions array instead of calling hasPermission to avoid function call overhead
+  const hasWildcard = useMemo(() => permissions?.includes('*:*:*'), [permissions]);
+  const checkPermission = useCallback((perm) => {
+    if (hasWildcard) return true;
+    if (permissionsLoading) return false;
+    return permissions?.includes(perm) || false;
+  }, [hasWildcard, permissionsLoading, permissions]);
+  
+  const hasArtworkPermission = useMemo(() => checkPermission('features:artwork:use'), [checkPermission]);
+  const hasPlaylistsPermission = useMemo(() => checkPermission('features:playlists:use'), [checkPermission]);
+  const hasSocialPermission = useMemo(() => checkPermission('features:social:use'), [checkPermission]);
+  const hasFansPermission = useMemo(() => checkPermission('features:fans:use'), [checkPermission]);
+  const hasPerformancesPermission = useMemo(() => checkPermission('features:performances:use'), [checkPermission]);
+  const hasMerchPermission = useMemo(() => checkPermission('features:merch:use'), [checkPermission]);
+  const hasAIInsightsPermission = useMemo(() => checkPermission('features:ai_insights:use'), [checkPermission]);
+  const hasAccessibilityPermission = useMemo(() => checkPermission('accessibility:use'), [checkPermission]);
+  const hasSustainabilityPermission = useMemo(() => checkPermission('sustainability:track'), [checkPermission]);
+  const hasLyricsPermission = useMemo(() => checkPermission('features:lyrics:use'), [checkPermission]);
+  const hasCopyrightPermission = useMemo(() => checkPermission('features:copyright:use'), [checkPermission]);
+  const hasLearningPermission = useMemo(() => checkPermission('learning:access'), [checkPermission]);
   
   // Currency sync - loads from database and syncs across components
   const [selectedCurrency] = useCurrencySync('GBP');
@@ -37,7 +60,6 @@ function Header({ largeLogo = false }) {
     const fetchProfile = async () => {
       // If on login page, always clear profile data
       if (pathname === '/login' || pathname === '/register') {
-        console.log('🧹 Header: On login/register page, clearing profile data');
         setProfileData(null);
         return;
       }
@@ -51,7 +73,6 @@ function Header({ largeLogo = false }) {
 
           if (response.ok) {
             const profileData = await response.json();
-            console.log('📋 Header: Profile API response:', profileData);
             
             // Map API response to expected format (same as ProfileClient)
             const mappedProfile = {
@@ -64,10 +85,7 @@ function Header({ largeLogo = false }) {
               profile_picture_url: profileData.profile_picture_url
             };
             
-            console.log('📋 Header: Mapped profile:', mappedProfile);
-            console.log('📋 Header: artist_name:', mappedProfile.artist_name);
             setProfileData(mappedProfile);
-            console.log('✅ Header: profileData state updated with:', mappedProfile);
           } else {
             console.error('Failed to fetch profile from API:', response.status);
             // Fallback: Use user metadata
@@ -92,7 +110,6 @@ function Header({ largeLogo = false }) {
         }
       } else {
         // Clear profile data when user logs out
-        console.log('🧹 Header: Clearing profile data - user logged out');
         setProfileData(null);
       }
     };
@@ -100,35 +117,53 @@ function Header({ largeLogo = false }) {
     fetchProfile();
   }, [user, session, pathname]);
 
+  // Fetch user preferences for accessibility toggle
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      if (user && session && profileData?.role) {
+        try {
+          let apiUrl = '/api/artist/settings/preferences';
+          if (profileData.role === 'label_admin') {
+            apiUrl = '/api/labeladmin/settings/preferences';
+          }
+
+          const response = await fetch(apiUrl, {
+            headers: { 'Authorization': `Bearer ${session.access_token}` }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setShowAccessibilityLink(data?.data?.showAccessibilityFeatures || false);
+          }
+        } catch (err) {
+          console.error('Error fetching user preferences:', err);
+        }
+      }
+    };
+
+    fetchPreferences();
+  }, [user, session, profileData?.role]);
+
   // Using global unread count from RealtimeProvider
   // RealtimeProvider handles initial fetch and realtime updates
   // This eliminates duplicate subscriptions and reduces database load
 
   // For the button: Artist Name first
   const getButtonDisplayName = () => {
-    console.log('🔍 getButtonDisplayName - profileData:', profileData);
-    console.log('🔍 artist_name:', profileData?.artist_name);
-    console.log('🔍 first_name:', profileData?.first_name);
-    console.log('🔍 last_name:', profileData?.last_name);
-    
     // Priority 1: Artist Name
     if (profileData?.artist_name) {
-      console.log('✅ Using artist_name:', profileData.artist_name);
       return profileData.artist_name;
     }
     // Priority 2: First Name + Last Name
     if (profileData?.first_name && profileData?.last_name) {
-      console.log('✅ Using first+last name');
       return `${profileData.first_name} ${profileData.last_name}`;
     }
     // Priority 3: First Name only
     if (profileData?.first_name) {
-      console.log('✅ Using first_name only');
       return profileData.first_name;
     }
     // Priority 4: Formatted Role
     if (profileData?.role) {
-      console.log('✅ Using role:', profileData.role);
       return profileData.role
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -136,11 +171,9 @@ function Header({ largeLogo = false }) {
     }
     // Priority 5: Email username as fallback
     if (user?.email) {
-      console.log('✅ Using email fallback');
       return user.email.split('@')[0];
     }
     // Priority 6: Final fallback
-    console.log('✅ Using final fallback');
     return 'User';
   }
 
@@ -223,14 +256,6 @@ function Header({ largeLogo = false }) {
   };
 
   // Use single source of truth for role-based header routing
-  // Debug logging
-  console.log('🔍 Header Routing Debug:', {
-    hasUser: !!user,
-    hasProfileData: !!profileData,
-    role: profileData?.role,
-    pathname: pathname,
-    isPlatformAdminResult: profileData?.role ? isPlatformAdmin(profileData.role) : 'N/A'
-  });
 
   // If on login/register page, always show logged-out header
   if (pathname === '/login' || pathname === '/register') {
@@ -250,7 +275,7 @@ function Header({ largeLogo = false }) {
             </div>
 
             {/* Desktop Navigation - Centered Layout */}
-            <div className="hidden lg:flex items-center flex-1 ml-8">
+            <div className="hidden xl:flex items-center flex-1 ml-8">
               {/* Left Spacer for logged out */}
               <div className="flex-1"></div>
               
@@ -298,7 +323,6 @@ function Header({ largeLogo = false }) {
   
   // Show loading header only if user exists but we don't know their role yet
   if (user && !profileData && !userRoleFromMetadata) {
-    console.log('⏳ Header: Showing loading state - waiting for profileData or metadata');
     // Show loading header while profile data is being fetched
     return (
       <header className="bg-white border-b border-gray-200">
@@ -343,7 +367,7 @@ function Header({ largeLogo = false }) {
           </div>
 
           {/* Desktop Navigation - Centered Layout */}
-          <div className="hidden lg:flex items-center flex-1 ml-8">
+          <div className="hidden xl:flex items-center flex-1 ml-8">
             {user ? (
               <>
                 {/* Left Spacer */}
@@ -357,57 +381,70 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/artist/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <BarChart3 className="w-4 h-4" />
-                        Analytics
-                      </Link>
-                      <Link href="/artist/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <DollarSign className="w-4 h-4" />
-                        Earnings
-                      </Link>
                       <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         Roster
                       </Link>
 
+                      {/* Insights Dropdown Group */}
+                      <div className="relative group">
+                        <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <BarChart3 className="w-4 h-4" />
+                          Insights
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                        <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                          <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[160px]">
+                            <Link href="/artist/analytics" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <BarChart3 className="w-4 h-4" />
+                              Analytics
+                            </Link>
+                            <Link href="/artist/earnings" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <DollarSign className="w-4 h-4" />
+                              Earnings
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* 🎉 PROFESSIONAL FEATURES - 7 Enterprise Features */}
-                      {(hasPermission('features:artwork:use') || hasPermission('*:*:*')) && (
+                      {hasArtworkPermission && (
                         <Link href="/artist/artwork-generator" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Sparkles className="w-4 h-4" />
                           AI Artwork
                         </Link>
                       )}
-                      {(hasPermission('features:playlists:use') || hasPermission('*:*:*')) && (
+                      {hasPlaylistsPermission && (
                         <Link href="/artist/playlist-pitching" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Target className="w-4 h-4" />
                           Playlist Pitching
                         </Link>
                       )}
-                      {(hasPermission('features:social:use') || hasPermission('*:*:*')) && (
+                      {hasSocialPermission && (
                         <Link href="/artist/social" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Share2 className="w-4 h-4" />
                           Social Media
                         </Link>
                       )}
-                      {(hasPermission('features:fans:use') || hasPermission('*:*:*')) && (
+                      {hasFansPermission && (
                         <Link href="/artist/fans" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Heart className="w-4 h-4" />
                           Fan Engagement
                         </Link>
                       )}
-                      {(hasPermission('features:performances:use') || hasPermission('*:*:*')) && (
+                      {hasPerformancesPermission && (
                         <Link href="/artist/performances" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Mic className="w-4 h-4" />
                           Performances
                         </Link>
                       )}
-                      {(hasPermission('features:merch:use') || hasPermission('*:*:*')) && (
+                      {hasMerchPermission && (
                         <Link href="/artist/merchandise" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <ShoppingBag className="w-4 h-4" />
                           Merchandise
                         </Link>
                       )}
-                      {(hasPermission('features:ai_insights:use') || hasPermission('*:*:*')) && (
+                      {hasAIInsightsPermission && (
                         <Link href="/artist/ai-insights" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Brain className="w-4 h-4" />
                           AI Insights
@@ -415,31 +452,31 @@ function Header({ largeLogo = false }) {
                       )}
 
                       {/* 🌍 COMMUNITY FEATURES - 5 Community Features */}
-                      {(hasPermission('accessibility:use') || hasPermission('*:*:*')) && (
+                      {hasAccessibilityPermission && showAccessibilityLink && (
                         <Link href="/artist/accessibility" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Accessibility className="w-4 h-4" />
                           Accessibility
                         </Link>
                       )}
-                      {(hasPermission('sustainability:track') || hasPermission('*:*:*')) && (
+                      {hasSustainabilityPermission && (
                         <Link href="/artist/sustainability" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Leaf className="w-4 h-4" />
                           Sustainability
                         </Link>
                       )}
-                      {(hasPermission('features:lyrics:use') || hasPermission('*:*:*')) && (
+                      {hasLyricsPermission && (
                         <Link href="/artist/lyrics-analysis" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <BookOpen className="w-4 h-4" />
                           Lyrics Analysis
                         </Link>
                       )}
-                      {(hasPermission('features:copyright:use') || hasPermission('*:*:*')) && (
+                      {hasCopyrightPermission && (
                         <Link href="/artist/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Copyright className="w-4 h-4" />
                           Copyright
                         </Link>
                       )}
-                      {(hasPermission('learning:access') || hasPermission('*:*:*')) && (
+                      {hasLearningPermission && (
                         <Link href="/artist/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <GraduationCap className="w-4 h-4" />
                           Learning
@@ -463,27 +500,40 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/labeladmin/analytics" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <BarChart3 className="w-4 h-4" />
-                        Analytics
-                      </Link>
-                      <Link href="/labeladmin/earnings" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <DollarSign className="w-4 h-4" />
-                        Earnings
-                      </Link>
                       <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <Users className="w-4 h-4" />
                         Roster
                       </Link>
 
+                      {/* Insights Dropdown Group */}
+                      <div className="relative group">
+                        <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <BarChart3 className="w-4 h-4" />
+                          Insights
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                        <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                          <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[160px]">
+                            <Link href="/labeladmin/analytics" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <BarChart3 className="w-4 h-4" />
+                              Analytics
+                            </Link>
+                            <Link href="/labeladmin/earnings" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <DollarSign className="w-4 h-4" />
+                              Earnings
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Community Features for Label Admins */}
-                      {(hasPermission('features:copyright:use') || hasPermission('*:*:*')) && (
+                      {hasCopyrightPermission && (
                         <Link href="/labeladmin/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Copyright className="w-4 h-4" />
                           Copyright
                         </Link>
                       )}
-                      {(hasPermission('learning:access') || hasPermission('*:*:*')) && (
+                      {hasLearningPermission && (
                         <Link href="/labeladmin/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <GraduationCap className="w-4 h-4" />
                           Learning
@@ -592,30 +642,27 @@ function Header({ largeLogo = false }) {
                         Dashboard
                       </Link>
 
-                      {/* Profile */}
-                      <Link
-                        href={getProfileLink()}
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <User className="w-4 h-4 mr-3 text-gray-400" />
-                        {profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}
-                      </Link>
-
-                      {/* Messages - Permission-gated with optimistic rendering */}
-                      {(permissionsLoading ||
-                        (profileData?.role === 'label_admin' && hasPermission('labeladmin:messages:access')) ||
-                        (profileData?.role !== 'label_admin' && hasPermission('messages:access'))
-                      ) && (
+                      {/* Profile - Hidden for SuperAdmin */}
+                      {profileData?.role !== 'super_admin' && (
                         <Link
-                          href={getMessagesLink()}
+                          href={getProfileLink()}
                           onClick={() => setIsDropdownOpen(false)}
                           className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                          <Mail className="w-4 h-4 mr-3 text-gray-400" />
-                          Messages
+                          <User className="w-4 h-4 mr-3 text-gray-400" />
+                          {profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}
                         </Link>
                       )}
+
+                      {/* Messages - Available for all users */}
+                      <Link
+                        href={getMessagesLink()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <Mail className="w-4 h-4 mr-3 text-gray-400" />
+                        Messages
+                      </Link>
 
                       {/* Settings */}
                       <Link
@@ -676,7 +723,7 @@ function Header({ largeLogo = false }) {
           </div>
 
           {/* Mobile - Right side */}
-          <div className="lg:hidden flex items-center space-x-2 ml-auto">
+          <div className="xl:hidden flex items-center space-x-2 ml-auto">
             {user && (
               <>
                 {/* Apollo AI Button - Mobile */}
@@ -721,7 +768,7 @@ function Header({ largeLogo = false }) {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
+          <div className="xl:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-3 space-y-3">
               {user ? (
                 <>
@@ -766,6 +813,10 @@ function Header({ largeLogo = false }) {
                         <Users className="w-5 h-5" />
                         <span>Roster</span>
                       </Link>
+                      <Link href="/artist/messages" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Mail className="w-5 h-5" />
+                        <span>Messages</span>
+                      </Link>
                     </>
                   )}
 
@@ -786,6 +837,10 @@ function Header({ largeLogo = false }) {
                       <Link href="/labeladmin/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <Users className="w-5 h-5" />
                         <span>Artists</span>
+                      </Link>
+                      <Link href="/labeladmin/messages" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Mail className="w-5 h-5" />
+                        <span>Messages</span>
                       </Link>
                     </>
                   )}
@@ -828,10 +883,13 @@ function Header({ largeLogo = false }) {
                       <LayoutDashboard className="w-5 h-5" />
                       <span>Dashboard</span>
                     </Link>
-                    <Link href={getProfileLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
-                      <User className="w-5 h-5" />
-                      <span>{profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}</span>
-                    </Link>
+                    {/* Profile - Hidden for SuperAdmin */}
+                    {profileData?.role !== 'super_admin' && (
+                      <Link href={getProfileLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <User className="w-5 h-5" />
+                        <span>{profileData?.role === 'label_admin' ? 'Profile (LA)' : 'Profile'}</span>
+                      </Link>
+                    )}
                     <Link href={getSettingsLink()} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                       <Settings className="w-5 h-5" />
                       <span>Settings</span>

@@ -26,7 +26,11 @@ export default function DocsClient() {
       const response = await fetch(`/api/admin/systems/docs?${params}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('📚 Fetched docs:', data.docs?.length || 0, 'entries')
         setDocs(data.docs || [])
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ Failed to fetch docs:', response.status, errorData)
       }
     } catch (error) {
       console.error('Failed to fetch docs:', error)
@@ -48,10 +52,15 @@ export default function DocsClient() {
   }
 
   const filteredDocs = docs.filter(doc => {
+    // Filter by category
+    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory
+    
+    // Filter by search term
     const matchesSearch = searchTerm === '' ||
       doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
+    
+    return matchesCategory && matchesSearch
   })
 
   const getCategoryIcon = (category) => {

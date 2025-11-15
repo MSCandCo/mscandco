@@ -10,7 +10,7 @@ import ExportData from '@/components/settings/ExportData';
 import TwoFactorAuth from '@/components/settings/TwoFactorAuth';
 export default function SettingsClient({ user }) {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState('security')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -283,18 +283,10 @@ export default function SettingsClient({ user }) {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
-        <div className="text-center">
-          <PageLoading message="Loading..." />
-          <p className="text-gray-700 font-medium">Loading settings...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading message="Loading settings..." />;
   }
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'account', label: 'Account Info', icon: Info }
@@ -529,81 +521,114 @@ export default function SettingsClient({ user }) {
             <form onSubmit={handlePasswordChange}>
               <h2 className="text-2xl font-bold mb-6" style={{ color: '#1f2937' }}>Change Password</h2>
 
-              <div className="space-y-6 mb-6 max-w-md">
+              <div className="space-y-6 mb-6 max-w-2xl">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>Current Password</label>
-                  <div className="relative">
+                  <div className="relative inline-block w-full">
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                      style={{
+                        top: '1px',
+                        bottom: '1px',
+                        right: '1px',
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                        zIndex: 10,
+                        width: '48px'
+                      }}
+                    >
+                      {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                     <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 pr-12"
+                      className="w-full px-4 py-4 border rounded-lg focus:outline-none focus:ring-2 text-base block"
                       style={{
                         backgroundColor: '#ffffff',
                         border: '1px solid #d1d5db',
-                        borderRadius: '6px'
+                        borderRadius: '8px',
+                        minHeight: '52px',
+                        paddingRight: '3.5rem'
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>New Password</label>
-                  <div className="relative">
+                  <div className="relative inline-block w-full">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                      style={{
+                        top: '1px',
+                        bottom: '1px',
+                        right: '1px',
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                        zIndex: 10,
+                        width: '48px'
+                      }}
+                    >
+                      {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordData.new_password}
                       onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                       required
                       minLength={8}
-                      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 pr-12"
+                      className="w-full px-4 py-4 border rounded-lg focus:outline-none focus:ring-2 text-base block"
                       style={{
                         backgroundColor: '#ffffff',
                         border: '1px solid #d1d5db',
-                        borderRadius: '6px'
+                        borderRadius: '8px',
+                        minHeight: '52px',
+                        paddingRight: '3.5rem'
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>Confirm New Password</label>
-                  <div className="relative">
+                  <div className="relative inline-block w-full">
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                      style={{
+                        top: '1px',
+                        bottom: '1px',
+                        right: '1px',
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                        zIndex: 10,
+                        width: '48px'
+                      }}
+                    >
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordData.confirm_password}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 pr-12"
+                      className="w-full px-4 py-4 border rounded-lg focus:outline-none focus:ring-2 text-base block"
                       style={{
                         backgroundColor: '#ffffff',
                         border: '1px solid #d1d5db',
-                        borderRadius: '6px'
+                        borderRadius: '8px',
+                        minHeight: '52px',
+                        paddingRight: '3.5rem'
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
                 </div>
               </div>

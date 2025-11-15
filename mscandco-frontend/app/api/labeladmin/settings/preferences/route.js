@@ -50,7 +50,7 @@ export async function GET() {
     // Get preferences from database using admin client
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
-      .select('theme_preference, language_preference, default_currency, timezone, date_format, email_signature')
+      .select('theme_preference, language_preference, default_currency, timezone, date_format, email_signature, show_accessibility_features')
       .eq('id', user.id)
       .single();
 
@@ -66,7 +66,8 @@ export async function GET() {
         currency: data?.default_currency || 'GBP',
         timezone: data?.timezone || 'Europe/London',
         dateFormat: data?.date_format || 'DD/MM/YYYY',
-        emailSignature: data?.email_signature || ''
+        emailSignature: data?.email_signature || '',
+        showAccessibilityFeatures: data?.show_accessibility_features || false
       }
     });
   } catch (error) {
@@ -110,7 +111,7 @@ export async function POST(request) {
       );
     }
     const body = await request.json();
-    const { theme, language, currency, timezone, dateFormat, emailSignature } = body;
+    const { theme, language, currency, timezone, dateFormat, emailSignature, showAccessibilityFeatures } = body;
 
     // Use service role client to bypass RLS
     const supabaseAdmin = createServerClient(
@@ -135,7 +136,8 @@ export async function POST(request) {
         preferred_currency: currency,
         timezone: timezone,
         date_format: dateFormat,
-        email_signature: emailSignature
+        email_signature: emailSignature,
+        show_accessibility_features: showAccessibilityFeatures !== undefined ? showAccessibilityFeatures : false
       })
       .eq('id', user.id);
 
