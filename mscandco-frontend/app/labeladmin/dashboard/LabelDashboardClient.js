@@ -97,7 +97,7 @@ export default function LabelDashboardClient({ user }) {
   }
 
   if (loading) {
-    return <PageLoading message="Loading message="Loading your dashboard..." />;
+    return <PageLoading message="Loading your dashboard..." />;
   }
 
   return (
