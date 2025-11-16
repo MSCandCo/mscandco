@@ -174,8 +174,38 @@ export async function PUT(request) {
 
     console.log('💾 Updating artist profile:', body)
 
+    // Check if email is being changed
+    if (body.email && body.email !== user.email) {
+      console.log('📧 Email change detected:', { oldEmail: user.email, newEmail: body.email })
+
+      // Update Supabase auth email (this sends a verification email to the new address)
+      // The email change will only take effect after the user verifies the new email
+      const { error: authError } = await supabase.auth.admin.updateUserById(
+        userId,
+        {
+          email: body.email,
+          email_confirm: false // Require email verification before change takes effect
+        }
+      )
+
+      if (authError) {
+        console.error('❌ Error updating auth email:', authError)
+        return NextResponse.json(
+          {
+            error: 'Failed to update login email',
+            details: authError.message
+          },
+          { status: 500 }
+        )
+      }
+
+      console.log('✅ Verification email sent to new address:', body.email)
+      console.log('⚠️ Email change will take effect after verification')
+    }
+
     // Map frontend fields to database fields
     const updateData = {
+      email: body.email, // Include email in profile update
       first_name: body.firstName,
       last_name: body.lastName,
       artist_name: body.artistName,
@@ -227,9 +257,19 @@ export async function PUT(request) {
 
     console.log('🔄 Artist releases marked for cache refresh')
 
+    // Prepare response message
+    let responseMessage = 'Profile updated successfully';
+    let emailVerificationRequired = false;
+
+    if (body.email && body.email !== user.email) {
+      responseMessage = 'Profile updated! Please check your new email address for a verification link to complete the email change.';
+      emailVerificationRequired = true;
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Profile updated successfully',
+      message: responseMessage,
+      emailVerificationRequired,
       profile: {
         id: updatedProfile.id,
         email: updatedProfile.email,

@@ -132,13 +132,21 @@ function LoginPageContent() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    console.log('🚀 handleLogin called')
     setLoading(true)
     setError('')
     setResendSuccess(false)
 
+    console.log('🔧 Environment check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    })
+
     // Verify Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.error('❌ Supabase environment variables not configured')
+      console.error('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.error('Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'exists' : 'missing')
       setError('Configuration error. Please contact support.')
       setLoading(false)
       return

@@ -1,15 +1,60 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    
+    // Authenticate user first
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name, value, options) {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove(name, options) {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
+    
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Use service role client to bypass RLS for database operations
+    // Use createServiceClient pattern (same as other working routes)
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ SUPABASE_SERVICE_ROLE_KEY is not set');
+      return NextResponse.json({ 
+        error: 'Service role key is not configured. Please set SUPABASE_SERVICE_ROLE_KEY in your environment variables.',
+      }, { status: 500 });
+    }
+
+    const supabaseAdmin = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    console.log('🔑 Using service role for lyrics operations');
+    console.log('📊 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('🔐 Service key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { lyrics_text, release_id, track_number, track_name, language = 'en' } = await request.json();
 
@@ -18,14 +63,14 @@ export async function POST(request) {
     }
 
     // Get user profile to check subscription tier
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('subscription_tier')
       .eq('id', user.id)
       .single();
 
     // Check feature usage limits
-    const { count: usageCount } = await supabase
+    const { count: usageCount } = await supabaseAdmin
       .from('lyrics')
       .select('*', { count: 'exact', head: true })
       .eq('created_by', user.id)
@@ -48,22 +93,79 @@ export async function POST(request) {
     }
 
     // Save lyrics to database
-    const { data: savedLyrics, error: saveError } = await supabase
+    console.log('💾 Attempting to save lyrics for user:', user.id);
+    console.log('🔑 Using service role client to bypass RLS');
+    console.log('📝 Insert data:', {
+      release_id: release_id || null,
+      track_number: track_number || 1,
+      track_name: track_name || 'Untitled',
+      language,
+      created_by: user.id,
+      lyrics_text_length: lyrics_text?.length || 0
+    });
+    
+    // Verify service role client is working by checking if we can query the table
+    const { data: testQuery, error: testError } = await supabaseAdmin
       .from('lyrics')
-      .upsert({
-        release_id,
+      .select('id')
+      .limit(1);
+    
+    if (testError) {
+      console.error('❌ Service role test query failed:', testError);
+      return NextResponse.json({ 
+        error: 'Service role client cannot access lyrics table. Please verify SUPABASE_SERVICE_ROLE_KEY is correct.',
+        details: testError.message,
+        code: testError.code
+      }, { status: 500 });
+    }
+    console.log('✅ Service role client can access lyrics table');
+    
+    const { data: savedLyrics, error: saveError } = await supabaseAdmin
+      .from('lyrics')
+      .insert({
+        release_id: release_id || null,
         track_number: track_number || 1,
         track_name: track_name || 'Untitled',
         lyrics_text,
         language,
         created_by: user.id,
-      }, {
-        onConflict: 'release_id,track_number'
       })
       .select()
       .single();
 
-    if (saveError) throw saveError;
+    if (saveError) {
+      console.error('❌ Error saving lyrics:', saveError);
+      console.error('Error code:', saveError.code);
+      console.error('Error message:', saveError.message);
+      console.error('Error details:', saveError.details);
+      console.error('Error hint:', saveError.hint);
+      console.error('Full error object:', JSON.stringify(saveError, null, 2));
+      
+      // Provide more helpful error message
+      if (saveError.code === '42501' || saveError.message?.includes('permission denied') || saveError.message?.includes('new row violates row-level security')) {
+        return NextResponse.json({ 
+          error: 'Permission denied. The service role key may not be configured correctly, or RLS is blocking access. Please check your environment variables and database configuration.',
+          details: saveError.message,
+          code: saveError.code,
+          hint: saveError.hint
+        }, { status: 403 });
+      }
+      
+      if (saveError.code === '42P01' || saveError.message?.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'The lyrics table does not exist. Please run the database migration to create it.',
+          details: saveError.message 
+        }, { status: 500 });
+      }
+      
+      return NextResponse.json({ 
+        error: 'Failed to save lyrics',
+        details: saveError.message || 'Unknown error',
+        code: saveError.code
+      }, { status: 500 });
+    }
+
+    console.log('✅ Lyrics saved successfully:', savedLyrics.id);
 
     // Perform AI analysis using OpenAI
     const analyses = [];
@@ -75,54 +177,33 @@ export async function POST(request) {
 
         // Sentiment Analysis
         const sentimentAnalysis = await analyzeSentiment(openai, lyrics_text);
-        await supabase.from('lyrics_analysis').upsert({
-          lyrics_id: savedLyrics.id,
-          analysis_type: 'sentiment',
-          analysis_data: sentimentAnalysis.data,
-          confidence_score: sentimentAnalysis.confidence,
-          analyzed_by: 'openai-gpt4',
-        }, { onConflict: 'lyrics_id,analysis_type' });
         analyses.push(sentimentAnalysis);
 
         // Theme Analysis
         const themeAnalysis = await analyzeThemes(openai, lyrics_text);
-        await supabase.from('lyrics_analysis').upsert({
-          lyrics_id: savedLyrics.id,
-          analysis_type: 'themes',
-          analysis_data: themeAnalysis.data,
-          confidence_score: themeAnalysis.confidence,
-        }, { onConflict: 'lyrics_id,analysis_type' });
         analyses.push(themeAnalysis);
 
         // Readability Analysis
         const readabilityAnalysis = analyzeReadability(lyrics_text);
-        await supabase.from('lyrics_analysis').upsert({
-          lyrics_id: savedLyrics.id,
-          analysis_type: 'readability',
-          analysis_data: readabilityAnalysis.data,
-          confidence_score: 100,
-        }, { onConflict: 'lyrics_id,analysis_type' });
         analyses.push(readabilityAnalysis);
 
         // Profanity Check
         const profanityAnalysis = analyzeProfanity(lyrics_text);
-        await supabase.from('lyrics_analysis').upsert({
-          lyrics_id: savedLyrics.id,
-          analysis_type: 'profanity',
-          analysis_data: profanityAnalysis.data,
-          confidence_score: 100,
-        }, { onConflict: 'lyrics_id,analysis_type' });
         analyses.push(profanityAnalysis);
 
         // Generate Suggestions
         const suggestions = await generateSuggestions(openai, lyrics_text);
-        for (const suggestion of suggestions) {
-          await supabase.from('lyrics_suggestions').insert({
-            lyrics_id: savedLyrics.id,
-            ...suggestion,
-            status: 'pending',
-          });
-        }
+
+        // Update the lyrics record with all analysis results
+        await supabaseAdmin
+          .from('lyrics')
+          .update({
+            sentiment_analysis: sentimentAnalysis.data,
+            themes: themeAnalysis.data,
+            readability_score: readabilityAnalysis.data,
+            suggestions: suggestions,
+          })
+          .eq('id', savedLyrics.id);
 
       } catch (aiError) {
         console.error('AI Analysis Error:', aiError);
@@ -153,7 +234,11 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Lyrics analysis error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error stack:', error.stack);
+    return NextResponse.json({ 
+      error: error.message || 'An unexpected error occurred',
+      details: error.details || error.toString()
+    }, { status: 500 });
   }
 }
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
-import ApolloOnboarding from '@/components/ApolloOnboarding'
+import SimpleOnboarding from '@/components/SimpleOnboarding'
 import { useRealtime } from '@/components/providers/RealtimeProvider'
 import {
   TrendingUp,
@@ -787,9 +787,9 @@ export default function DashboardClient({ user }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Apollo Onboarding Modal */}
-      <ApolloOnboarding 
-        user={user} 
+      {/* Simple Onboarding Form */}
+      <SimpleOnboarding
+        user={user}
         onComplete={() => {
           setOnboardingComplete(true);
           loadDashboardData(); // Reload dashboard after onboarding

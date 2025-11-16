@@ -69,7 +69,7 @@ export default function LyricsAnalysisPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          ✨ Lyrics Analysis AI
+          Lyrics Analysis AI
         </h1>
         <p className="text-gray-600">
           Get AI-powered insights on sentiment, themes, readability, and receive suggestions to improve your lyrics.

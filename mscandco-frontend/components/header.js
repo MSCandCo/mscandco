@@ -2,7 +2,7 @@
 
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRealtime } from '@/components/providers/RealtimeProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -19,6 +19,11 @@ function Header({ largeLogo = false }) {
   const { unreadCount } = useRealtime(); // Use global unread count from RealtimeProvider
   const [profileData, setProfileData] = useState(null);
   const [showAccessibilityLink, setShowAccessibilityLink] = useState(false);
+  const [showOpenDataLink, setShowOpenDataLink] = useState(false);
+  const [showSustainabilityLink, setShowSustainabilityLink] = useState(false);
+  const [showLyricsLink, setShowLyricsLink] = useState(false);
+  const [showCopyrightLink, setShowCopyrightLink] = useState(false);
+  const [showLearningLink, setShowLearningLink] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -43,11 +48,21 @@ function Header({ largeLogo = false }) {
   const hasMerchPermission = useMemo(() => checkPermission('features:merch:use'), [checkPermission]);
   const hasAIInsightsPermission = useMemo(() => checkPermission('features:ai_insights:use'), [checkPermission]);
   const hasAccessibilityPermission = useMemo(() => checkPermission('accessibility:use'), [checkPermission]);
+  const hasOpenDataPermission = useMemo(() => checkPermission('features:open_data:use'), [checkPermission]);
   const hasSustainabilityPermission = useMemo(() => checkPermission('sustainability:track'), [checkPermission]);
   const hasLyricsPermission = useMemo(() => checkPermission('features:lyrics:use'), [checkPermission]);
   const hasCopyrightPermission = useMemo(() => checkPermission('features:copyright:use'), [checkPermission]);
   const hasLearningPermission = useMemo(() => checkPermission('learning:access'), [checkPermission]);
-  
+
+  // Debug accessibility link visibility
+  useEffect(() => {
+    console.log('[Header] Accessibility Debug:', {
+      hasAccessibilityPermission,
+      showAccessibilityLink,
+      willShowLink: hasAccessibilityPermission && showAccessibilityLink
+    });
+  }, [hasAccessibilityPermission, showAccessibilityLink]);
+
   // Currency sync - loads from database and syncs across components
   const [selectedCurrency] = useCurrencySync('GBP');
   
@@ -127,13 +142,39 @@ function Header({ largeLogo = false }) {
             apiUrl = '/api/labeladmin/settings/preferences';
           }
 
+          console.log('[Header] Fetching preferences from:', apiUrl);
           const response = await fetch(apiUrl, {
             headers: { 'Authorization': `Bearer ${session.access_token}` }
           });
 
           if (response.ok) {
             const data = await response.json();
-            setShowAccessibilityLink(data?.data?.showAccessibilityFeatures || false);
+            console.log('[Header] Preferences response:', data);
+            console.log('[Header] Full response data:', JSON.stringify(data, null, 2));
+            console.log('[Header] showAccessibilityFeatures value:', data?.data?.showAccessibilityFeatures);
+            console.log('[Header] showOpenDataFeatures value:', data?.data?.showOpenDataFeatures);
+            console.log('[Header] showSustainabilityFeatures value:', data?.data?.showSustainabilityFeatures);
+            console.log('[Header] showLyricsFeatures value:', data?.data?.showLyricsFeatures);
+            console.log('[Header] showCopyrightFeatures value:', data?.data?.showCopyrightFeatures);
+            console.log('[Header] showLearningFeatures value:', data?.data?.showLearningFeatures);
+
+            const accessVal = data?.data?.showAccessibilityFeatures || false;
+            const openDataVal = data?.data?.showOpenDataFeatures || false;
+            const sustVal = data?.data?.showSustainabilityFeatures || false;
+            const lyricsVal = data?.data?.showLyricsFeatures || false;
+            const copyrightVal = data?.data?.showCopyrightFeatures || false;
+            const learningVal = data?.data?.showLearningFeatures || false;
+
+            console.log('[Header] Setting state values:', { accessVal, openDataVal, sustVal, lyricsVal, copyrightVal, learningVal });
+
+            setShowAccessibilityLink(accessVal);
+            setShowOpenDataLink(openDataVal);
+            setShowSustainabilityLink(sustVal);
+            setShowLyricsLink(lyricsVal);
+            setShowCopyrightLink(copyrightVal);
+            setShowLearningLink(learningVal);
+          } else {
+            console.error('[Header] Preferences fetch failed:', response.status);
           }
         } catch (err) {
           console.error('Error fetching user preferences:', err);
@@ -451,42 +492,85 @@ function Header({ largeLogo = false }) {
                         </Link>
                       )}
 
-                      {/* 🌍 COMMUNITY FEATURES - 5 Community Features */}
-                      {hasAccessibilityPermission && showAccessibilityLink && (
-                        <Link href="/artist/accessibility" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Accessibility className="w-4 h-4" />
-                          Accessibility
-                        </Link>
-                      )}
-                      {hasSustainabilityPermission && (
-                        <Link href="/artist/sustainability" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Leaf className="w-4 h-4" />
-                          Sustainability
-                        </Link>
-                      )}
-                      {hasLyricsPermission && (
-                        <Link href="/artist/lyrics-analysis" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <BookOpen className="w-4 h-4" />
-                          Lyrics Analysis
-                        </Link>
-                      )}
-                      {hasCopyrightPermission && (
-                        <Link href="/artist/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Copyright className="w-4 h-4" />
-                          Copyright
-                        </Link>
-                      )}
-                      {hasLearningPermission && (
-                        <Link href="/artist/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <GraduationCap className="w-4 h-4" />
-                          Learning
-                        </Link>
-                      )}
-                      {/* Open Data is public - no permission check needed */}
-                      <Link href="/artist/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Database className="w-4 h-4" />
-                        Open Data
-                      </Link>
+                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 2+ features */}
+                      {(() => {
+                        const communityFeatures = [
+                          hasAccessibilityPermission && showAccessibilityLink && {
+                            href: '/artist/accessibility',
+                            icon: Accessibility,
+                            label: 'Accessibility'
+                          },
+                          hasSustainabilityPermission && showSustainabilityLink && {
+                            href: '/artist/sustainability',
+                            icon: Leaf,
+                            label: 'Sustainability'
+                          },
+                          hasLyricsPermission && showLyricsLink && {
+                            href: '/artist/lyrics-analysis',
+                            icon: BookOpen,
+                            label: 'Lyrics Analysis'
+                          },
+                          hasCopyrightPermission && showCopyrightLink && {
+                            href: '/artist/copyright',
+                            icon: Copyright,
+                            label: 'Copyright'
+                          },
+                          hasLearningPermission && showLearningLink && {
+                            href: '/artist/learning',
+                            icon: GraduationCap,
+                            label: 'Learning'
+                          },
+                          hasOpenDataPermission && showOpenDataLink && {
+                            href: '/artist/open-data',
+                            icon: Database,
+                            label: 'Open Data'
+                          }
+                        ].filter(Boolean);
+
+                        // If 2 or more features, show dropdown
+                        if (communityFeatures.length >= 2) {
+                          return (
+                            <div className="relative group">
+                              <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                                <Globe className="w-4 h-4" />
+                                Community
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                              <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                                <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[180px]">
+                                  {communityFeatures.map((feature, idx) => {
+                                    const Icon = feature.icon;
+                                    return (
+                                      <Link
+                                        key={idx}
+                                        href={feature.href}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                      >
+                                        <Icon className="w-4 h-4" />
+                                        {feature.label}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // If only 1 feature, show it as a single link
+                        if (communityFeatures.length === 1) {
+                          const feature = communityFeatures[0];
+                          const Icon = feature.icon;
+                          return (
+                            <Link href={feature.href} className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                              <Icon className="w-4 h-4" />
+                              {feature.label}
+                            </Link>
+                          );
+                        }
+
+                        return null;
+                      })()}
                     </>
                   )}
 
@@ -527,22 +611,24 @@ function Header({ largeLogo = false }) {
                       </div>
 
                       {/* Community Features for Label Admins */}
-                      {hasCopyrightPermission && (
+                      {hasCopyrightPermission && showCopyrightLink && (
                         <Link href="/labeladmin/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <Copyright className="w-4 h-4" />
                           Copyright
                         </Link>
                       )}
-                      {hasLearningPermission && (
+                      {hasLearningPermission && showLearningLink && (
                         <Link href="/labeladmin/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                           <GraduationCap className="w-4 h-4" />
                           Learning
                         </Link>
                       )}
-                      <Link href="/labeladmin/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Database className="w-4 h-4" />
-                        Open Data
-                      </Link>
+                      {hasOpenDataPermission && showOpenDataLink && (
+                        <Link href="/labeladmin/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Database className="w-4 h-4" />
+                          Open Data
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>

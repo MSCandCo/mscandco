@@ -145,7 +145,12 @@ const LabelAdminSettingsClient = () => {
     timezone: 'Europe/London',
     dateFormat: 'DD/MM/YYYY',
     emailSignature: '',
-    showAccessibilityFeatures: false
+    showAccessibilityFeatures: false,
+    showOpenDataFeatures: false,
+    showSustainabilityFeatures: false,
+    showLyricsFeatures: false,
+    showCopyrightFeatures: false,
+    showLearningFeatures: false
   });
 
   // Notifications state (Label Admin specific)
@@ -602,6 +607,161 @@ const LabelAdminSettingsClient = () => {
                       <span
                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                           preferences.showAccessibilityFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Open Data Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Open Data Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display Open Data link in the main navigation header for accessing open music industry data
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showOpenDataFeatures: !prev.showOpenDataFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showOpenDataFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showOpenDataFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showOpenDataFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sustainability Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Sustainability Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display Sustainability link in navigation for tracking environmental impact
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showSustainabilityFeatures: !prev.showSustainabilityFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showSustainabilityFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showSustainabilityFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showSustainabilityFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lyrics Analysis Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Lyrics Analysis Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display Lyrics Analysis link in navigation for analyzing and improving lyrics
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showLyricsFeatures: !prev.showLyricsFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showLyricsFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showLyricsFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showLyricsFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Copyright Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Copyright Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display Copyright link in navigation for managing rights and clearances
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showCopyrightFeatures: !prev.showCopyrightFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showCopyrightFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showCopyrightFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showCopyrightFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Learning Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Show Learning Link
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Display Learning link in navigation for accessing courses and educational content
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showLearningFeatures: !prev.showLearningFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showLearningFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showLearningFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showLearningFeatures ? 'translate-x-5' : 'translate-x-0'
                         }`}
                       />
                     </button>

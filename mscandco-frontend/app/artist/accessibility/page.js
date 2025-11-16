@@ -25,45 +25,56 @@ export default function AccessibilityPage() {
 
   async function loadData() {
     if (!user) return;
-    
-    try {
 
-      // Load releases
-      const { data: releasesData } = await supabase
+    try {
+      // Load releases - this table should exist
+      const { data: releasesData, error: releasesError } = await supabase
         .from('releases')
         .select('*')
         .eq('user_id', user.id)
         .order('release_date', { ascending: false });
 
+      if (releasesError) {
+        console.warn('Error loading releases:', releasesError);
+      }
       setReleases(releasesData || []);
 
-      // Load accessibility content
-      const { data: contentData } = await supabase
+      // Load accessibility content - table may not exist yet
+      const { data: contentData, error: contentError } = await supabase
         .from('accessibility_content')
         .select('*, releases(title)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (contentError) {
+        console.warn('Accessibility content table not available:', contentError);
+      }
       setAccessibilityContent(contentData || []);
 
-      // Load compliance summary
-      const { data: complianceData } = await supabase
+      // Load compliance summary - table may not exist yet
+      const { data: complianceData, error: complianceError } = await supabase
         .from('accessibility_compliance')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false})
         .limit(1)
         .single();
 
+      if (complianceError && complianceError.code !== 'PGRST116') {
+        console.warn('Accessibility compliance table not available:', complianceError);
+      }
       setCompliance(complianceData);
 
-      // Load user preferences
-      const { data: prefsData } = await supabase
+      // Load user preferences - table may not exist yet
+      const { data: prefsData, error: prefsError } = await supabase
         .from('accessibility_user_preferences')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      if (prefsError && prefsError.code !== 'PGRST116') {
+        console.warn('Accessibility preferences table not available:', prefsError);
+      }
       setPreferences(prefsData);
 
       setLoading(false);

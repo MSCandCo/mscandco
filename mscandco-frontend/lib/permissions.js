@@ -66,20 +66,31 @@ export async function getUserPermissions(userId, useServiceRole = false) {
     }
 
     // Get role-based permissions
+    // Use direct join query instead of nested select to avoid pagination issues
     const { data: rolePermissions, error: rolePermError } = await supabase
       .from('role_permissions')
-      .select(`
-        permissions (
-          name,
-          description
-        )
-      `)
+      .select('permission_id')
       .eq('role_id', roleData.id);
 
     if (rolePermError) {
-      console.error('Error fetching role permissions:', rolePermError);
+      console.error('Error fetching role permission IDs:', rolePermError);
       return [];
     }
+
+    // Get the actual permission details
+    const permissionIds = rolePermissions?.map(rp => rp.permission_id) || [];
+
+    const { data: permissionDetails, error: permDetailsError } = await supabase
+      .from('permissions')
+      .select('name, description')
+      .in('id', permissionIds);
+
+    if (permDetailsError) {
+      console.error('Error fetching permission details:', permDetailsError);
+      return [];
+    }
+
+    console.log(`✅ getUserPermissions: Found ${permissionDetails?.length || 0} role permissions for user ${userId}`);
 
     // Get user-specific permissions (both granted and denied)
     const { data: userPermissions, error: userPermError } = await supabase
@@ -111,9 +122,9 @@ export async function getUserPermissions(userId, useServiceRole = false) {
 
     // Combine role permissions with granted user permissions
     const allPermissions = [
-      ...(rolePermissions?.map(rp => ({
-        permission_name: rp.permissions.name,
-        description: rp.permissions.description
+      ...(permissionDetails?.map(p => ({
+        permission_name: p.name,
+        description: p.description
       })) || []),
       ...grantedUserPermissions
     ];
@@ -130,9 +141,6 @@ export async function getUserPermissions(userId, useServiceRole = false) {
     uniquePermissions = uniquePermissions.filter(p =>
       !deniedPermissionNames.includes(p.permission_name)
     );
-
-    console.log(`✅ getUserPermissions: Found ${uniquePermissions.length} permissions for user ${userId}`);
-    console.log(`📋 getUserPermissions: Permissions list:`, uniquePermissions.map(p => p.permission_name).join(', '));
 
     return uniquePermissions;
 

@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+
+// Service role client for auth admin operations
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * GET /api/labeladmin/profile
@@ -88,8 +95,38 @@ export async function PATCH(request) {
 
     const body = await request.json()
 
+    // Check if email is being changed
+    if (body.email && body.email !== user.email) {
+      console.log('📧 Email change detected:', { oldEmail: user.email, newEmail: body.email })
+
+      // Update Supabase auth email (this sends a verification email to the new address)
+      // The email change will only take effect after the user verifies the new email
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+        user.id,
+        {
+          email: body.email,
+          email_confirm: false // Require email verification before change takes effect
+        }
+      )
+
+      if (authError) {
+        console.error('❌ Error updating auth email:', authError)
+        return NextResponse.json(
+          {
+            error: 'Failed to update login email',
+            details: authError.message
+          },
+          { status: 500 }
+        )
+      }
+
+      console.log('✅ Verification email sent to new address:', body.email)
+      console.log('⚠️ Email change will take effect after verification')
+    }
+
     // Map camelCase fields back to database snake_case
     const updates = {}
+    if (body.email !== undefined) updates.email = body.email // Include email in profile update
     if (body.labelName !== undefined) updates.artist_name = body.labelName
     if (body.primaryGenre !== undefined) updates.primary_genre = body.primaryGenre
     if (body.secondaryGenre !== undefined) updates.secondary_genre = body.secondaryGenre
@@ -121,9 +158,19 @@ export async function PATCH(request) {
       )
     }
 
+    // Prepare response message
+    let responseMessage = 'Profile updated successfully';
+    let emailVerificationRequired = false;
+
+    if (body.email && body.email !== user.email) {
+      responseMessage = 'Profile updated! Please check your new email address for a verification link to complete the email change.';
+      emailVerificationRequired = true;
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Profile updated successfully',
+      message: responseMessage,
+      emailVerificationRequired,
       profile: updatedProfile
     })
 

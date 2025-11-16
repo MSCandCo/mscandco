@@ -76,7 +76,7 @@ export default function ApolloOnboarding({ user, onComplete }) {
       });
       
       const data = await response.json();
-      
+
       if (data.success) {
         // Add Apollo's response
         setMessages(prev => [...prev, {
@@ -84,10 +84,10 @@ export default function ApolloOnboarding({ user, onComplete }) {
           content: data.response,
           timestamp: new Date(),
         }]);
-        
+
         // Update progress
         setProgress(data.progress);
-        
+
         // Check if completed
         if (data.progress?.is_completed) {
           setTimeout(() => {
@@ -95,13 +95,30 @@ export default function ApolloOnboarding({ user, onComplete }) {
             if (onComplete) onComplete();
           }, 2000);
         }
+      } else {
+        // Handle error response from API
+        let errorMessage = "Sorry, I encountered an error. Please try again.";
+
+        if (data.type === 'quota_exceeded') {
+          errorMessage = "🚫 Apollo is temporarily unavailable due to high demand. Our AI service quota has been exceeded. Please contact support or try again later. We apologize for the inconvenience.";
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMessage,
+          timestamp: new Date(),
+          isError: true,
+        }]);
       }
     } catch (error) {
       console.error('Onboarding error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "Sorry, I encountered an error. Please try again.",
+        content: "Sorry, I encountered a connection error. Please check your internet and try again.",
         timestamp: new Date(),
+        isError: true,
       }]);
     } finally {
       setIsLoading(false);
@@ -156,11 +173,19 @@ export default function ApolloOnboarding({ user, onComplete }) {
                 className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gray-900 text-white'
+                    : msg.isError
+                    ? 'bg-red-50 border-2 border-red-300 text-red-900'
                     : 'bg-white border-2 border-gray-200'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-white/70' : 'text-gray-500'}`}>
+                <p className={`text-xs mt-1 ${
+                  msg.role === 'user'
+                    ? 'text-white/70'
+                    : msg.isError
+                    ? 'text-red-600'
+                    : 'text-gray-500'
+                }`}>
                   {msg.timestamp.toLocaleTimeString()}
                 </p>
               </div>

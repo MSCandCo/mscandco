@@ -50,13 +50,16 @@ export async function GET() {
     // Get preferences from database using admin client
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
-      .select('theme_preference, language_preference, default_currency, timezone, date_format, email_signature, show_accessibility_features')
+      .select('theme_preference, language_preference, default_currency, timezone, date_format, email_signature, show_accessibility_features, show_open_data_features, show_sustainability_features, show_lyrics_features, show_copyright_features, show_learning_features')
       .eq('id', user.id)
       .single();
 
     if (error && error.code !== 'PGRST116') {
       throw error;
     }
+
+    // Log the raw data from database
+    console.log('[Label Admin Preferences API] Raw database data:', data);
 
     return NextResponse.json({
       success: true,
@@ -67,7 +70,12 @@ export async function GET() {
         timezone: data?.timezone || 'Europe/London',
         dateFormat: data?.date_format || 'DD/MM/YYYY',
         emailSignature: data?.email_signature || '',
-        showAccessibilityFeatures: data?.show_accessibility_features || false
+        showAccessibilityFeatures: data?.show_accessibility_features ?? false,
+        showOpenDataFeatures: data?.show_open_data_features ?? false,
+        showSustainabilityFeatures: data?.show_sustainability_features ?? false,
+        showLyricsFeatures: data?.show_lyrics_features ?? false,
+        showCopyrightFeatures: data?.show_copyright_features ?? false,
+        showLearningFeatures: data?.show_learning_features ?? false
       }
     });
   } catch (error) {
@@ -111,7 +119,11 @@ export async function POST(request) {
       );
     }
     const body = await request.json();
-    const { theme, language, currency, timezone, dateFormat, emailSignature, showAccessibilityFeatures } = body;
+    const { theme, language, currency, timezone, dateFormat, emailSignature, showAccessibilityFeatures, showOpenDataFeatures, showSustainabilityFeatures, showLyricsFeatures, showCopyrightFeatures, showLearningFeatures } = body;
+
+    // Log what we're trying to save
+    console.log('[Label Admin Preferences API] Saving preferences for user:', user.id);
+    console.log('[Label Admin Preferences API] Received body:', body);
 
     // Use service role client to bypass RLS
     const supabaseAdmin = createServerClient(
@@ -126,19 +138,28 @@ export async function POST(request) {
       }
     );
 
+    const updateData = {
+      theme_preference: theme,
+      language_preference: language,
+      default_currency: currency,
+      preferred_currency: currency,
+      timezone: timezone,
+      date_format: dateFormat,
+      email_signature: emailSignature,
+      show_accessibility_features: showAccessibilityFeatures ?? false,
+      show_open_data_features: showOpenDataFeatures ?? false,
+      show_sustainability_features: showSustainabilityFeatures ?? false,
+      show_lyrics_features: showLyricsFeatures ?? false,
+      show_copyright_features: showCopyrightFeatures ?? false,
+      show_learning_features: showLearningFeatures ?? false
+    };
+
+    console.log('[Label Admin Preferences API] Update data:', updateData);
+
     // Update preferences in database using admin client
     const { error } = await supabaseAdmin
       .from('user_profiles')
-      .update({
-        theme_preference: theme,
-        language_preference: language,
-        default_currency: currency,
-        preferred_currency: currency,
-        timezone: timezone,
-        date_format: dateFormat,
-        email_signature: emailSignature,
-        show_accessibility_features: showAccessibilityFeatures !== undefined ? showAccessibilityFeatures : false
-      })
+      .update(updateData)
       .eq('id', user.id);
 
     if (error) {

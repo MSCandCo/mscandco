@@ -27,14 +27,14 @@ export default function RealtimeProvider({ children, user }) {
 
     const fetchInitialCount = async () => {
       try {
-        const { count, error } = await supabase
-          .from('notifications')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('read', false)
+        // Use API route instead of direct Supabase query to avoid RLS issues
+        const response = await fetch('/api/notifications/unread-count', {
+          credentials: 'include'
+        })
 
-        if (!error && count !== null) {
-          setUnreadCount(count)
+        if (response.ok) {
+          const data = await response.json()
+          setUnreadCount(data.count || 0)
         }
       } catch (err) {
         console.error('Error fetching initial unread count:', err)
@@ -42,7 +42,7 @@ export default function RealtimeProvider({ children, user }) {
     }
 
     fetchInitialCount()
-  }, [user?.id, supabase])
+  }, [user?.id])
 
   useEffect(() => {
     if (!user?.id) return
@@ -120,14 +120,14 @@ export default function RealtimeProvider({ children, user }) {
   const refreshUnreadCount = async () => {
     if (!user?.id) return
     try {
-      const { count, error } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('read', false)
+      // Use API route instead of direct Supabase query to avoid RLS issues
+      const response = await fetch('/api/notifications/unread-count', {
+        credentials: 'include'
+      })
 
-      if (!error && count !== null) {
-        setUnreadCount(count)
+      if (response.ok) {
+        const data = await response.json()
+        setUnreadCount(data.count || 0)
       }
     } catch (err) {
       console.error('Error refreshing unread count:', err)
