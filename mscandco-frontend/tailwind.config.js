@@ -18,6 +18,9 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        'xl2': '1440px', // Custom breakpoint between xl (1280px) and 2xl (1536px)
+      },
       // MSC & Co Brand Colors
       colors: {
         'msc-blue': {
