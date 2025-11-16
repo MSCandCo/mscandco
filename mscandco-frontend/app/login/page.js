@@ -163,6 +163,8 @@ function LoginPageContent() {
     try {
       console.log('🔐 Attempting login for:', email)
       console.log('🔧 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configured' : 'Missing')
+      console.log('🔧 Environment:', process.env.NODE_ENV || 'unknown')
+      console.log('🔧 Supabase client exists:', !!supabase)
       
       console.log('⏳ Calling Supabase signInWithPassword...')
       
@@ -174,11 +176,24 @@ function LoginPageContent() {
         password,
       })
 
-      console.log('✅ SignInWithPassword response:', { hasData: !!data, hasError: !!error })
+      console.log('✅ SignInWithPassword response:', { 
+        hasData: !!data, 
+        hasError: !!error,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        hasUser: !!data?.user,
+        hasSession: !!data?.session
+      })
 
       if (error) {
         clearTimeout(timeoutId)
         console.error('❌ Login error:', error)
+        console.error('❌ Error details:', {
+          message: error.message,
+          status: error.status,
+          code: error.code,
+          name: error.name
+        })
         
         // Check if MFA is required
         if (error.message?.includes('MFA') || error.message?.includes('factor')) {
@@ -192,7 +207,21 @@ function LoginPageContent() {
           }
         }
 
-        setError(error.message || 'Login failed. Please check your credentials.')
+        // Provide more helpful error messages
+        let errorMessage = error.message || 'Login failed. Please check your credentials.'
+        
+        // Handle specific error cases
+        if (error.status === 400) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.status === 429) {
+          errorMessage = 'Too many login attempts. Please wait a few minutes and try again.'
+        } else if (error.message?.includes('Email not confirmed')) {
+          errorMessage = 'Please verify your email address before logging in. Check your inbox for the confirmation email.'
+        } else if (error.message?.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        }
+
+        setError(errorMessage)
         setLoading(false)
         return
       }

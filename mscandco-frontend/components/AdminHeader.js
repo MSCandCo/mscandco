@@ -405,10 +405,10 @@ function AdminHeader({ largeLogo = false }) {
             </Link>
           </div>
 
-          {/* Mobile Menu Button - Shows below xl breakpoint */}
+          {/* Mobile Menu Button - Shows below 2xl breakpoint */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="xl:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors ml-auto"
+            className="2xl:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors ml-auto"
             aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? (
@@ -419,7 +419,7 @@ function AdminHeader({ largeLogo = false }) {
           </button>
 
           {/* Desktop Navigation - Admin Dropdowns */}
-          <div className="hidden xl:flex items-center flex-1 ml-6">
+          <div className="hidden 2xl:flex items-center flex-1 ml-6">
             {/* Navigation Dropdowns - All wrapped in one ref */}
             <div className="flex items-center flex-1" ref={navDropdownRef}>
               
@@ -862,7 +862,7 @@ function AdminHeader({ largeLogo = false }) {
             </div>
 
             {/* Right Side - Bell, About, Support, Badge, User */}
-            <div className="hidden xl:flex items-center gap-3 ml-auto">
+            <div className="hidden 2xl:flex items-center gap-3 ml-auto">
               {/* Notifications Bell - Permission required */}
               {checkPermission('notifications:read') && (
                 <Link href="/notifications" className="relative">
@@ -997,7 +997,7 @@ function AdminHeader({ largeLogo = false }) {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="xl:hidden border-t border-gray-200 py-4">
+            <div className="2xl:hidden border-t border-gray-200 py-4">
               <div className="space-y-2">
                 {/* User & Access Items */}
                 {!isDistributionPartner && getAllUserAccessItems.map((item) => {
