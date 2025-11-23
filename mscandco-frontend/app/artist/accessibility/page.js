@@ -121,11 +121,11 @@ export default function AccessibilityPage() {
 
   const contentTypeLabels = {
     audio_description: '🎧 Audio Description',
-    lyric_transcription: '📝 Lyric Transcription',
-    lyric_translation: '🌍 Translation',
-    sign_language_video: '👋 Sign Language',
-    instrumental_description: '🎹 Instrumental Description',
-    mood_description: '😊 Mood Description',
+    lyric_transcription: '📄 Lyric Transcription',
+    lyric_translation: '🌐 Translation',
+    sign_language_video: '✋ Sign Language',
+    instrumental_description: '🎼 Instrumental Description',
+    mood_description: '🎭 Mood Description',
   };
 
   if (loading || !user) {
@@ -358,23 +358,23 @@ export default function AccessibilityPage() {
                 <span>AI audio descriptions (GPT-4)</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">📝</span>
+                <span className="mr-2">📄</span>
                 <span>Automated lyric transcription</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">🌍</span>
+                <span className="mr-2">🌐</span>
                 <span>Translation in 94 languages</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">👋</span>
+                <span className="mr-2">✋</span>
                 <span>Sign language video integration</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">✅</span>
+                <span className="mr-2">✓</span>
                 <span>WCAG 2.1 compliance checking</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">🎹</span>
+                <span className="mr-2">🎼</span>
                 <span>Instrumental descriptions</span>
               </li>
             </ul>
