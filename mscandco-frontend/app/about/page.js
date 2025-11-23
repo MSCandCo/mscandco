@@ -87,7 +87,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Platform Capabilities</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
-                <div className="text-2xl mb-3">🤖</div>
+                <div className="text-2xl mb-3">⚙️</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered</h3>
                 <p className="text-sm text-gray-600">
                   Hit prediction, audio mastering, artwork generation, playlist matching, and fraud detection powered by GPT-4 and advanced ML models.
@@ -95,7 +95,7 @@ export default function AboutPage() {
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-indigo-500">
-                <div className="text-2xl mb-3">⛓️</div>
+                <div className="text-2xl mb-3">🔗</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Blockchain Verified</h3>
                 <p className="text-sm text-gray-600">
                   Every royalty payment recorded on Polygon blockchain. Immutable proof of all distributions with timestamped verification certificates.
@@ -103,7 +103,7 @@ export default function AboutPage() {
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
-                <div className="text-2xl mb-3">🌍</div>
+                <div className="text-2xl mb-3">🌐</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Carbon Neutral</h3>
                 <p className="text-sm text-gray-600">
                   Real-time CO2 tracking per stream using DIMPACT methodology. Purchase verified offsets, support Earth/Percent climate initiatives, and achieve carbon neutrality badges.
@@ -126,7 +126,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🤖</span>
+                  <span className="text-2xl">⚙️</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Native Innovation</h3>
                 <p className="text-gray-600">
@@ -146,7 +146,7 @@ export default function AboutPage() {
 
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🌱</span>
+                  <span className="text-2xl">♻️</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Sustainability First</h3>
                 <p className="text-gray-600">
@@ -162,7 +162,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <div className="flex items-center mb-4">
-                  <span className="text-3xl mr-3">🌍</span>
+                  <span className="text-3xl mr-3">🌐</span>
                   <h3 className="text-2xl font-bold text-gray-900">Earth/Percent Partnership</h3>
                 </div>
                 <p className="text-gray-700 mb-4">
@@ -216,7 +216,7 @@ export default function AboutPage() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">🌍 Global Reach, Local Impact</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">🌐 Global Reach, Local Impact</h3>
                   <p className="text-gray-600 mb-3">
                     We're built to serve artists in 209 countries, supporting 94 languages, and empowering 100M+ independent creators worldwide. Our platform breaks down barriers—geographic, financial, and technological.
                   </p>
@@ -225,7 +225,7 @@ export default function AboutPage() {
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">🚀 Market Transformation</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">📈 Market Transformation</h3>
                   <p className="text-gray-600 mb-3">
                     The $8 billion music distribution industry has been stagnant for too long. Legacy platforms rely on outdated technology, slow payments, and limited transparency.
                   </p>
@@ -265,56 +265,56 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Advanced Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎯 AI Hit Prediction</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">📊 AI Hit Prediction</h3>
                 <p className="text-sm text-gray-600">
                   Predict commercial success before release. Our AI analyzes audio features, timing, social signals, and artist momentum to forecast hit potential.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎨 DALL-E 3 Artwork</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🖼️ DALL-E 3 Artwork</h3>
                 <p className="text-sm text-gray-600">
                   Generate professional album artwork with AI. Smart cropping for all platform requirements, unlimited variations.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎵 ML Playlist Pitching</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎼 ML Playlist Pitching</h3>
                 <p className="text-sm text-gray-600">
                   AI matches your music to 15M+ playlists. Automated email campaigns with 15-25% acceptance rates.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">📱 Social Media Automation</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">📲 Social Media Automation</h3>
                 <p className="text-sm text-gray-600">
                   Connect Instagram, TikTok, Twitter, YouTube, Facebook. AI-generated captions and scheduled posts across all platforms.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎤 Audio Mastering AI</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎧 Audio Mastering AI</h3>
                 <p className="text-sm text-gray-600">
                   Professional-grade audio mastering powered by AI. Enhance your tracks automatically with industry-standard quality.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">👥 Fan Analytics</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">👤 Fan Analytics</h3>
                 <p className="text-sm text-gray-600">
                   Churn prediction, lifetime value calculation, and fan segmentation. Understand your audience like never before.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎪 Live Performance</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎭 Live Performance</h3>
                 <p className="text-sm text-gray-600">
                   Create and manage concerts with Ticketmaster and Eventbrite integration. Track ticket sales and post-show analytics.
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">👕 Print-on-Demand</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🛍️ Print-on-Demand</h3>
                 <p className="text-sm text-gray-600">
                   Merchandise store with Printful integration. Create apparel, vinyl, posters—no inventory needed, automatic fulfillment.
                 </p>
@@ -341,7 +341,7 @@ export default function AboutPage() {
               </div>
 
               <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-lg shadow-sm border-2 border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">🌍 Global Distribution</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">🌐 Global Distribution</h3>
                 <p className="text-gray-600">
                   Distribute to 150+ platforms including Spotify, Apple Music, Amazon Music, YouTube Music, TikTok, Tidal, and more. Reach audiences worldwide.
                 </p>
