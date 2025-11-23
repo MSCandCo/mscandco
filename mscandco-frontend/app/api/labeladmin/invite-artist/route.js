@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { query } from '@/lib/db/postgres'
+
+// Use service role to bypass RLS
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * POST /api/labeladmin/invite-artist
  * Send invitation to an artist to join the label
- * Uses direct PostgreSQL connection to bypass Supabase JS client issues
  */
 export async function POST(request) {
   try {
@@ -32,17 +37,24 @@ export async function POST(request) {
       )
     }
 
-    // Search for existing artist by artist_name using direct PostgreSQL
-    // Exclude deleted users (deleted_at IS NOT NULL)
-    const searchResult = await query(
-      `SELECT id, artist_name, email, first_name, last_name
-       FROM user_profiles
-       WHERE artist_name = $1 AND role = $2 AND deleted_at IS NULL
-       LIMIT 1`,
-      [artistName, 'artist']
-    )
+    // Search for existing artist by artist_name using service role
+    const { data: artists, error: searchError } = await supabase
+      .from('user_profiles')
+      .select('id, artist_name, email, first_name, last_name')
+      .eq('artist_name', artistName)
+      .eq('role', 'artist')
+      .is('deleted_at', null)
+      .limit(1)
 
-    if (searchResult.rowCount === 0) {
+    if (searchError) {
+      console.error('❌ Error searching for artist:', searchError)
+      return NextResponse.json(
+        { error: 'Failed to search for artist', details: searchError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!artists || artists.length === 0) {
       console.log(`❌ Artist "${artistName}" not found in system`)
       return NextResponse.json(
         { error: `Artist "${artistName}" not found. Please check the artist name or ensure they have registered on the platform.` },
@@ -50,88 +62,87 @@ export async function POST(request) {
       )
     }
 
-    const existingArtist = searchResult.rows[0]
+    const existingArtist = artists[0]
     const artistId = existingArtist.id
 
     console.log('✅ Artist found:', existingArtist.artist_name, artistId)
 
     // Check if invitation already exists
-    const checkResult = await query(
-      `SELECT id, status 
-       FROM affiliation_requests 
-       WHERE label_admin_id = $1 AND artist_id = $2
-       LIMIT 1`,
-      [labelAdminId, artistId]
-    )
+    const { data: existingRequests, error: checkError } = await supabase
+      .from('affiliation_requests')
+      .select('id, status')
+      .eq('label_admin_id', labelAdminId)
+      .eq('artist_id', artistId)
+      .limit(1)
 
-    if (checkResult.rowCount > 0) {
-      const existingRequest = checkResult.rows[0]
+    if (checkError) {
+      console.error('❌ Error checking existing invitations:', checkError)
+      return NextResponse.json(
+        { error: 'Failed to check existing invitations', details: checkError.message },
+        { status: 500 }
+      )
+    }
+
+    if (existingRequests && existingRequests.length > 0) {
+      const existingRequest = existingRequests[0]
       return NextResponse.json(
         { error: `You already have a ${existingRequest.status} invitation for this artist.` },
         { status: 400 }
       )
     }
 
-    // Create affiliation request using direct PostgreSQL
-    const insertResult = await query(
-      `INSERT INTO affiliation_requests (
-        label_admin_id,
-        artist_id,
-        artist_first_name,
-        artist_last_name,
-        artist_name,
-        label_percentage,
-        message,
-        status,
-        created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-      RETURNING id, status, label_percentage`,
-      [
-        labelAdminId,
-        artistId,
-        firstName,
-        lastName,
-        artistName,
-        labelSplit,
-        message || null,
-        'pending'
-      ]
-    )
+    // Create affiliation request using service role
+    const { data: requestData, error: insertError } = await supabase
+      .from('affiliation_requests')
+      .insert({
+        label_admin_id: labelAdminId,
+        artist_id: artistId,
+        artist_first_name: firstName,
+        artist_last_name: lastName,
+        artist_name: artistName,
+        label_percentage: labelSplit,
+        message: message || null,
+        status: 'pending'
+      })
+      .select('id, status, label_percentage')
+      .single()
 
-    const request_data = insertResult.rows[0]
+    if (insertError) {
+      console.error('❌ Error creating affiliation request:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to create invitation', details: insertError.message },
+        { status: 500 }
+      )
+    }
 
-    console.log('✅ Invitation sent successfully:', request_data.id)
+    console.log('✅ Invitation sent successfully:', requestData.id)
 
     // Create notification for the artist
     try {
-      await query(
-        `INSERT INTO notifications (
-          user_id,
-          type,
-          title,
-          message,
-          data,
-          action_required,
-          read,
-          created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-        [
-          artistId,
-          'invitation',
-          'New Label Invitation',
-          `${existingArtist.first_name || ''} ${existingArtist.last_name || ''}, you have a new label partnership invitation`,
-          JSON.stringify({
-            invitation_id: request_data.id,
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: artistId,
+          type: 'invitation',
+          title: 'New Label Invitation',
+          message: `${firstName || ''} ${lastName || ''}, you have a new label partnership invitation`,
+          data: {
+            invitation_id: requestData.id,
             label_admin_id: labelAdminId,
-            artist_split_percentage: 100 - labelSplit,
+            artist_split_percentage: artistSplit,
             label_split_percentage: labelSplit,
             personal_message: message || null
-          }),
-          true,
-          false
-        ]
-      )
-      console.log('✅ Notification created for artist:', artistId)
+          },
+          action_required: true,
+          read: false
+        })
+
+      if (notifError) {
+        console.error('❌ Error creating notification:', notifError)
+        // Don't fail the whole request if notification fails
+      } else {
+        console.log('✅ Notification created for artist:', artistId)
+      }
     } catch (notifError) {
       console.error('❌ Error creating notification:', notifError)
       // Don't fail the whole request if notification fails
@@ -140,7 +151,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Invitation sent successfully',
-      requestId: request_data.id
+      requestId: requestData.id
     })
 
   } catch (error) {

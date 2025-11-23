@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { query } from '@/lib/db/postgres'
+
+// Use service role to bypass RLS
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * POST /api/artist/respond-invitation
@@ -30,38 +36,34 @@ export async function POST(request) {
       )
     }
 
-    // First, fetch the invitation without artist_id filter to see what's in the DB
-    const checkResult = await query(
-      `SELECT * FROM affiliation_requests WHERE id = $1`,
-      [invitation_id]
-    )
+    // Fetch the invitation using service role
+    const { data: invitations, error: fetchError } = await supabase
+      .from('affiliation_requests')
+      .select('*')
+      .eq('id', invitation_id)
+      .eq('artist_id', artistId)
+      .limit(1)
 
-    console.log('📋 Invitation lookup result:', {
-      found: checkResult.rows.length > 0,
-      invitation: checkResult.rows[0],
-      currentArtistId: artistId
-    })
+    if (fetchError) {
+      console.error('❌ Error fetching invitation:', fetchError)
+      return NextResponse.json(
+        { error: 'Failed to fetch invitation', details: fetchError.message },
+        { status: 500 }
+      )
+    }
 
-    // Fetch the invitation using direct PostgreSQL
-    const invitationResult = await query(
-      `SELECT * FROM affiliation_requests
-       WHERE id = $1 AND artist_id = $2`,
-      [invitation_id, artistId]
-    )
-
-    const invitation = invitationResult.rows[0]
-
-    if (!invitation) {
+    if (!invitations || invitations.length === 0) {
       console.error('❌ Invitation not found for artist:', {
         invitation_id,
-        artistId,
-        checkResult: checkResult.rows[0]
+        artistId
       })
       return NextResponse.json(
         { error: 'Invitation not found or you do not have permission to respond' },
         { status: 404 }
       )
     }
+
+    const invitation = invitations[0]
 
     // Check if already responded
     if (invitation.status !== 'pending') {
@@ -73,37 +75,67 @@ export async function POST(request) {
 
     if (action === 'accept') {
       // Update invitation status to accepted
-      await query(
-        `UPDATE affiliation_requests
-         SET status = 'accepted', updated_at = NOW()
-         WHERE id = $1`,
-        [invitation_id]
-      )
+      const { error: updateError } = await supabase
+        .from('affiliation_requests')
+        .update({ 
+          status: 'accepted', 
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invitation_id)
+
+      if (updateError) {
+        console.error('❌ Error updating invitation:', updateError)
+        return NextResponse.json(
+          { error: 'Failed to update invitation', details: updateError.message },
+          { status: 500 }
+        )
+      }
 
       // Create active affiliation in label_artist_affiliations
-      await query(
-        `INSERT INTO label_artist_affiliations (
-          label_admin_id, artist_id, label_percentage, status, created_at
-        ) VALUES ($1, $2, $3, 'active', NOW())`,
-        [invitation.label_admin_id, artistId, invitation.label_percentage]
-      )
+      const { error: affiliationError } = await supabase
+        .from('label_artist_affiliations')
+        .insert({
+          label_admin_id: invitation.label_admin_id,
+          artist_id: artistId,
+          label_percentage: invitation.label_percentage,
+          status: 'active'
+        })
+
+      if (affiliationError) {
+        console.error('❌ Error creating affiliation:', affiliationError)
+        return NextResponse.json(
+          { error: 'Failed to create affiliation', details: affiliationError.message },
+          { status: 500 }
+        )
+      }
 
       // Create notification for label admin
-      await query(
-        `INSERT INTO notifications (
-          user_id, type, title, message, data, action_required, read, created_at
-        ) VALUES ($1, 'invitation_response', 'Invitation Accepted', $2, $3, false, false, NOW())`,
-        [
-          invitation.label_admin_id,
-          `${invitation.artist_name || 'An artist'} has accepted your partnership invitation!`,
-          JSON.stringify({
-            artist_id: artistId,
-            artist_name: invitation.artist_name,
-            label_percentage: invitation.label_percentage,
-            invitation_id: invitation_id
+      try {
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: invitation.label_admin_id,
+            type: 'invitation_response',
+            title: 'Invitation Accepted',
+            message: `${invitation.artist_name || 'An artist'} has accepted your partnership invitation!`,
+            data: {
+              artist_id: artistId,
+              artist_name: invitation.artist_name,
+              label_percentage: invitation.label_percentage,
+              invitation_id: invitation_id
+            },
+            action_required: false,
+            read: false
           })
-        ]
-      )
+
+        if (notifError) {
+          console.error('❌ Error creating notification:', notifError)
+          // Don't fail the whole request if notification fails
+        }
+      } catch (notifError) {
+        console.error('❌ Error creating notification:', notifError)
+        // Don't fail the whole request if notification fails
+      }
 
       console.log('✅ Invitation accepted and affiliation created')
 
@@ -115,31 +147,50 @@ export async function POST(request) {
 
     } else if (action === 'decline') {
       // Update invitation status to declined
-      await query(
-        `UPDATE affiliation_requests
-         SET status = 'declined', 
-             decline_reason = $1,
-             updated_at = NOW()
-         WHERE id = $2`,
-        [decline_reason || null, invitation_id]
-      )
+      const { error: updateError } = await supabase
+        .from('affiliation_requests')
+        .update({ 
+          status: 'declined',
+          decline_reason: decline_reason || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invitation_id)
+
+      if (updateError) {
+        console.error('❌ Error updating invitation:', updateError)
+        return NextResponse.json(
+          { error: 'Failed to update invitation', details: updateError.message },
+          { status: 500 }
+        )
+      }
 
       // Create notification for label admin
-      await query(
-        `INSERT INTO notifications (
-          user_id, type, title, message, data, action_required, read, created_at
-        ) VALUES ($1, 'invitation_response', 'Invitation Declined', $2, $3, false, false, NOW())`,
-        [
-          invitation.label_admin_id,
-          `${invitation.artist_name || 'An artist'} has declined your partnership invitation.`,
-          JSON.stringify({
-            artist_id: artistId,
-            artist_name: invitation.artist_name,
-            decline_reason: decline_reason || 'No reason provided',
-            invitation_id: invitation_id
+      try {
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: invitation.label_admin_id,
+            type: 'invitation_response',
+            title: 'Invitation Declined',
+            message: `${invitation.artist_name || 'An artist'} has declined your partnership invitation.`,
+            data: {
+              artist_id: artistId,
+              artist_name: invitation.artist_name,
+              decline_reason: decline_reason || 'No reason provided',
+              invitation_id: invitation_id
+            },
+            action_required: false,
+            read: false
           })
-        ]
-      )
+
+        if (notifError) {
+          console.error('❌ Error creating notification:', notifError)
+          // Don't fail the whole request if notification fails
+        }
+      } catch (notifError) {
+        console.error('❌ Error creating notification:', notifError)
+        // Don't fail the whole request if notification fails
+      }
 
       console.log('✅ Invitation declined')
 
@@ -158,4 +209,3 @@ export async function POST(request) {
     )
   }
 }
-
