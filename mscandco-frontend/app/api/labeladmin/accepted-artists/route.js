@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { query } from '@/lib/db/postgres'
+
+// Use service role to bypass RLS
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * GET /api/labeladmin/accepted-artists
@@ -19,16 +25,21 @@ export async function GET(request) {
     const labelAdminId = user.id
     console.log('👥 Fetching accepted artists for label admin:', labelAdminId)
 
-    // Get all active affiliations for this label admin using direct PostgreSQL
-    const affiliationsResult = await query(
-      `SELECT id, artist_id, label_percentage, status, created_at
-       FROM label_artist_affiliations
-       WHERE label_admin_id = $1 AND status = 'active'
-       ORDER BY created_at DESC`,
-      [labelAdminId]
-    )
+    // Get all active affiliations for this label admin using service role
+    const { data: affiliations, error: affiliationsError } = await supabase
+      .from('label_artist_affiliations')
+      .select('id, artist_id, label_percentage, status, created_at')
+      .eq('label_admin_id', labelAdminId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
 
-    const affiliations = affiliationsResult.rows
+    if (affiliationsError) {
+      console.error('❌ Error fetching affiliations:', affiliationsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch affiliations', details: affiliationsError.message },
+        { status: 500 }
+      )
+    }
 
     // If no affiliations, return empty array
     if (!affiliations || affiliations.length === 0) {
@@ -40,17 +51,20 @@ export async function GET(request) {
       })
     }
 
-    // Fetch artist profiles using direct PostgreSQL
+    // Fetch artist profiles using service role
     const artistIds = affiliations.map(a => a.artist_id)
-    const placeholders = artistIds.map((_, i) => `$${i + 1}`).join(',')
-    const profilesResult = await query(
-      `SELECT id, email, first_name, last_name, artist_name, phone, country, city, primary_genre, profile_picture_url
-       FROM user_profiles
-       WHERE id IN (${placeholders})`,
-      artistIds
-    )
+    const { data: profiles, error: profilesError } = await supabase
+      .from('user_profiles')
+      .select('id, email, first_name, last_name, artist_name, phone, country, city, primary_genre, profile_picture_url')
+      .in('id', artistIds)
 
-    const profiles = profilesResult.rows
+    if (profilesError) {
+      console.error('❌ Error fetching artist profiles:', profilesError)
+      return NextResponse.json(
+        { error: 'Failed to fetch artist profiles', details: profilesError.message },
+        { status: 500 }
+      )
+    }
 
     // Create a map of profiles by ID for easy lookup
     const profileMap = {}
@@ -58,19 +72,22 @@ export async function GET(request) {
       profileMap[profile.id] = profile
     })
 
-    // OPTIMIZED: Batch fetch all releases at once instead of one-by-one
-    const allArtistIds = affiliations.map(a => a.artist_id)
-    const releasesPlaceholders = allArtistIds.map((_, i) => `$${i + 1}`).join(',')
-    const allReleasesResult = await query(
-      `SELECT id, artist_id, status FROM releases WHERE artist_id IN (${releasesPlaceholders})`,
-      allArtistIds
-    )
+    // Batch fetch all releases at once
+    const { data: allReleases, error: releasesError } = await supabase
+      .from('releases')
+      .select('id, artist_id, status')
+      .in('artist_id', artistIds)
 
-    const allReleases = allReleasesResult.rows || []
+    if (releasesError) {
+      console.error('❌ Error fetching releases:', releasesError)
+      // Don't fail if releases can't be fetched, just continue without release counts
+    }
+
+    const releases = allReleases || []
     
     // Group releases by artist_id for fast lookup
     const releasesByArtist = {}
-    allReleases.forEach(release => {
+    releases.forEach(release => {
       if (!releasesByArtist[release.artist_id]) {
         releasesByArtist[release.artist_id] = []
       }
@@ -80,11 +97,11 @@ export async function GET(request) {
     // Transform the data for frontend consumption
     const artistsWithCounts = affiliations.map((affiliation) => {
       const profile = profileMap[affiliation.artist_id]
-      const releases = releasesByArtist[affiliation.artist_id] || []
+      const artistReleases = releasesByArtist[affiliation.artist_id] || []
       
-      const totalReleases = releases.length
-      const liveReleases = releases.filter(r => r.status === 'live').length
-      const draftReleases = releases.filter(r => r.status === 'draft').length
+      const totalReleases = artistReleases.length
+      const liveReleases = artistReleases.filter(r => r.status === 'live').length
+      const draftReleases = artistReleases.filter(r => r.status === 'draft').length
 
       return {
         affiliationId: affiliation.id,
@@ -123,4 +140,3 @@ export async function GET(request) {
     )
   }
 }
-
