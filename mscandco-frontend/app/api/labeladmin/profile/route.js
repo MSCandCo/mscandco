@@ -237,6 +237,7 @@ export async function PATCH(request) {
     if (body.tiktok !== undefined) updates.tiktok = body.tiktok
     if (body.spotify !== undefined) updates.spotify = body.spotify
     if (body.apple_music !== undefined) updates.apple_music = body.apple_music
+    if (body.profile_picture_url !== undefined) updates.profile_picture_url = body.profile_picture_url
 
     // Update profile using service role
     const { data: updatedProfile, error: updateError } = await supabase
@@ -267,6 +268,75 @@ export async function PATCH(request) {
       success: true,
       message: responseMessage,
       emailVerificationRequired,
+      profile: updatedProfile
+    })
+
+  } catch (error) {
+    console.error('Profile update API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PUT /api/labeladmin/profile
+ * Update label admin profile data (same as PATCH, for compatibility with ProfilePictureUpload)
+ */
+export async function PUT(request) {
+  try {
+    // Authenticate user
+    const serverSupabase = await createServerClient()
+    const { data: { user }, error: userError } = await serverSupabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userId = user.id
+    const body = await request.json()
+
+    console.log('💾 Updating label admin profile (PUT):', body)
+
+    // Map camelCase fields back to database snake_case
+    const updates = {}
+    if (body.email !== undefined) updates.email = body.email
+    if (body.labelName !== undefined) updates.artist_name = body.labelName
+    if (body.primaryGenre !== undefined) updates.primary_genre = body.primaryGenre
+    if (body.secondaryGenre !== undefined) updates.secondary_genre = body.secondaryGenre
+    if (body.yearsActive !== undefined) updates.years_active = body.yearsActive
+    if (body.companyName !== undefined) updates.company_name = body.companyName
+    if (body.bio !== undefined) updates.bio = body.bio
+    if (body.website !== undefined) updates.website = body.website
+    if (body.instagram !== undefined) updates.instagram = body.instagram
+    if (body.facebook !== undefined) updates.facebook = body.facebook
+    if (body.twitter !== undefined) updates.twitter = body.twitter
+    if (body.youtube !== undefined) updates.youtube = body.youtube
+    if (body.tiktok !== undefined) updates.tiktok = body.tiktok
+    if (body.spotify !== undefined) updates.spotify = body.spotify
+    if (body.apple_music !== undefined) updates.apple_music = body.apple_music
+    if (body.profile_picture_url !== undefined) updates.profile_picture_url = body.profile_picture_url
+
+    // Update profile using service role
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update profile', details: updateError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Profile updated successfully',
       profile: updatedProfile
     })
 

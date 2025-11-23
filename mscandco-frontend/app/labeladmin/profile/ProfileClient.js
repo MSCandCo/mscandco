@@ -221,6 +221,12 @@ export default function LabelAdminProfileClient() {
 
     setSaving(true);
     try {
+      if (!session) {
+        showBrandedNotification('Session expired. Please log in again.', 'error');
+        setSaving(false);
+        return;
+      }
+
       // Prepare data for API (convert snake_case to camelCase)
       const dataToSave = {
         labelName: editedProfile.label_name,
@@ -236,12 +242,16 @@ export default function LabelAdminProfileClient() {
         youtube: editedProfile.youtube,
         tiktok: editedProfile.tiktok,
         spotify: editedProfile.spotify,
-        apple_music: editedProfile.apple_music
+        apple_music: editedProfile.apple_music,
+        profile_picture_url: editedProfile.profile_picture_url
       };
 
       const response = await fetch('/api/labeladmin/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify(dataToSave)
       });
@@ -252,24 +262,18 @@ export default function LabelAdminProfileClient() {
         // Update local state with saved data
         setProfile({ ...editedProfile });
         setEditMode(false);
-
-        // Show success message
-        alert('Profile updated successfully!');
+        setErrors({});
+        showBrandedNotification('Profile updated successfully!');
       } else {
-        const errorData = await response.json();
-        alert(`Failed to update profile: ${errorData.error || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        showBrandedNotification(`Failed to update profile: ${errorData.error || 'Unknown error'}`, 'error');
       }
     } catch (error) {
-
-      alert('An error occurred while saving your profile');
+      console.error('Error saving profile:', error);
+      showBrandedNotification('An error occurred while saving your profile', 'error');
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleProfilePictureUpdate = (newUrl) => {
-    setProfile(prev => ({ ...prev, profile_picture_url: newUrl }));
-    setEditedProfile(prev => ({ ...prev, profile_picture_url: newUrl }));
   };
 
   const showBrandedNotification = (message, type = 'success') => {
@@ -349,9 +353,15 @@ export default function LabelAdminProfileClient() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <ProfilePictureUpload
-                currentPictureUrl={profile.profile_picture_url}
-                onUploadComplete={handleProfilePictureUpdate}
-                userId={user?.id}
+                currentImage={profile.profile_picture_url}
+                onUploadSuccess={(url) => {
+                  setProfile({ ...profile, profile_picture_url: url });
+                  setEditedProfile({ ...editedProfile, profile_picture_url: url });
+                  showBrandedNotification('Profile picture updated successfully!');
+                }}
+                onUploadError={(error) => {
+                  showBrandedNotification(error, 'error');
+                }}
               />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
