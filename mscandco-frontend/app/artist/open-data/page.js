@@ -528,8 +528,9 @@ export default function OpenDataResearch() {
                     }}
                   />
                 </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Data Access Info */}
             <div className="p-6 bg-blue-50 rounded-lg">
