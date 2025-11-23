@@ -220,7 +220,7 @@ export default function OpenDataResearch() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">📊 Open Data & Research API</h1>
+          <h1 className="text-4xl font-bold mb-2">📈 Open Data & Research API</h1>
           <p className="text-gray-600">
             Access anonymized industry data, contribute to music research, and leverage public metrics for insights
           </p>
@@ -267,7 +267,7 @@ export default function OpenDataResearch() {
             }`}
             onClick={() => setActiveTab('api-keys')}
           >
-            🔑 API Keys ({apiKeys.length})
+            🔐 API Keys ({apiKeys.length})
           </button>
           <button
             className={`pb-3 px-4 font-medium whitespace-nowrap ${
@@ -287,7 +287,7 @@ export default function OpenDataResearch() {
             }`}
             onClick={() => setActiveTab('data-export')}
           >
-            💾 Data Export
+            📦 Data Export
           </button>
           <button
             className={`pb-3 px-4 font-medium whitespace-nowrap ${
@@ -297,7 +297,7 @@ export default function OpenDataResearch() {
             }`}
             onClick={() => setActiveTab('research')}
           >
-            🔬 Research & Papers
+            🔍 Research & Papers
           </button>
         </div>
 
@@ -411,7 +411,7 @@ export default function OpenDataResearch() {
 
             {/* Data Access Info */}
             <div className="p-6 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold text-lg mb-2">🔒 Privacy & Data Protection</h3>
+              <h3 className="font-semibold text-lg mb-2">🔐 Privacy & Data Protection</h3>
               <ul className="text-sm text-gray-700 space-y-2">
                 <li>• All data is anonymized and aggregated to protect artist privacy</li>
                 <li>• No personally identifiable information (PII) is ever exposed through the API</li>
@@ -428,7 +428,7 @@ export default function OpenDataResearch() {
           <div className="space-y-6">
             {/* Create New API Key */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-6">🔑 Create API Key</h2>
+              <h2 className="text-2xl font-bold mb-6">🔐 Create API Key</h2>
 
               <div className="space-y-4">
                 <div>
@@ -545,7 +545,7 @@ export default function OpenDataResearch() {
 
             {/* API Documentation Link */}
             <div className="p-6 bg-purple-50 rounded-lg">
-              <h3 className="font-semibold text-lg mb-2">📚 API Documentation</h3>
+              <h3 className="font-semibold text-lg mb-2">📖 API Documentation</h3>
               <p className="text-gray-700 mb-4">
                 Learn how to integrate the MSC & Co Open Data API into your applications with our comprehensive
                 documentation, code examples, and interactive playground.
@@ -638,7 +638,7 @@ export default function OpenDataResearch() {
         {/* TAB: Data Export */}
         {activeTab === 'data-export' && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-6">💾 Export Platform Data</h2>
+            <h2 className="text-2xl font-bold mb-6">📦 Export Platform Data</h2>
 
             <p className="text-gray-700 mb-6">
               Export anonymized, aggregated platform data for research, analysis, or compliance purposes.
@@ -681,7 +681,7 @@ export default function OpenDataResearch() {
             </div>
 
             <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-              <h3 className="font-semibold mb-2">⚠️ Export Guidelines</h3>
+              <h3 className="font-semibold mb-2">ℹ️ Export Guidelines</h3>
               <ul className="text-sm text-gray-700 space-y-1">
                 <li>• Exports are limited to your API tier's data access level</li>
                 <li>• Data is aggregated and anonymized to protect artist privacy</li>
@@ -697,7 +697,7 @@ export default function OpenDataResearch() {
         {activeTab === 'research' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-6">🔬 Research Papers & Collaboration</h2>
+              <h2 className="text-2xl font-bold mb-6">🔍 Research Papers & Collaboration</h2>
 
               <p className="text-gray-700 mb-6">
                 Explore published research using MSC & Co data, submit your own research proposals, or
@@ -747,7 +747,7 @@ export default function OpenDataResearch() {
 
             {/* Research Proposal */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
-              <h3 className="font-semibold text-lg mb-2">🎓 Submit a Research Proposal</h3>
+              <h3 className="font-semibold text-lg mb-2">📋 Submit a Research Proposal</h3>
               <p className="text-gray-700 mb-4">
                 Are you a researcher interested in using MSC & Co data for academic purposes?
                 We offer grants and extended data access for approved research projects.
