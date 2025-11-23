@@ -3,6 +3,22 @@ import { createClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
 import ProfileClient from './ProfileClient'
 
+export const metadata = {
+  title: 'Label Profile',
+  description: 'Manage your label profile - update label information, settings, and preferences',
+  keywords: 'label profile, label management, label settings, label information',
+  openGraph: {
+    title: 'Label Profile | MSC & Co',
+    description: 'Manage your label profile - update label information, settings, and preferences',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Label Profile | MSC & Co',
+    description: 'Manage your label profile - update label information, settings, and preferences',
+  },
+}
+
 export default async function LabelAdminProfilePage() {
   const supabase = await createClient()
 

@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import SkillsAdminClient from './SkillsAdminClient';
 
+export const metadata = {
+  title: 'Skills & Learning Management',
+  description: 'Manage learning resources, skills tracking, and educational content'
+}
+
 export default async function SkillsAdminPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

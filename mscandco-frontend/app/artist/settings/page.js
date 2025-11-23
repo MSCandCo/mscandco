@@ -3,6 +3,22 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import SettingsClient from './SettingsClient'
 
+export const metadata = {
+  title: 'Settings',
+  description: 'Manage your account settings - preferences, notifications, security, and account configuration',
+  keywords: 'account settings, user settings, preferences, account management, security settings',
+  openGraph: {
+    title: 'Settings | MSC & Co',
+    description: 'Manage your account settings - preferences, notifications, security, and account configuration',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Settings | MSC & Co',
+    description: 'Manage your account settings - preferences, notifications, security, and account configuration',
+  },
+}
+
 export default async function ArtistSettingsPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()

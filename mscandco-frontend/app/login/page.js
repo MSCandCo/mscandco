@@ -7,6 +7,9 @@
 
 'use client'
 
+// Note: Metadata for client components should be in a parent server component
+// For now, this will use the default from layout
+
 import { useState, useEffect, useMemo, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'

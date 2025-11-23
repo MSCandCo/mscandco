@@ -3,6 +3,22 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import RosterClient from './RosterClient'
 
+export const metadata = {
+  title: 'Roster',
+  description: 'Manage your artist roster - view collaborators, featured artists, and manage your music network',
+  keywords: 'artist roster, music collaborators, featured artists, music network, artist management',
+  openGraph: {
+    title: 'Roster | MSC & Co',
+    description: 'Manage your artist roster - view collaborators, featured artists, and manage your music network',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Roster | MSC & Co',
+    description: 'Manage your artist roster - view collaborators, featured artists, and manage your music network',
+  },
+}
+
 export default async function ArtistRosterPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()

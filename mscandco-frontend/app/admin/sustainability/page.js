@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import SustainabilityAdminClient from './SustainabilityAdminClient';
 
+export const metadata = {
+  title: 'Sustainability Management',
+  description: 'Track and manage platform sustainability metrics and carbon footprint'
+}
+
 export default async function SustainabilityAdminPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

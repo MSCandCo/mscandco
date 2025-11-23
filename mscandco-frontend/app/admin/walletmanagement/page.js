@@ -10,6 +10,22 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 import WalletManagementClient from './WalletManagementClient'
 
+export const metadata = {
+  title: 'Wallet Management',
+  description: 'Manage platform wallets and financial transactions - process payments, manage balances, and track transactions',
+  keywords: 'wallet management, payment processing, financial transactions, wallet administration, payment management',
+  openGraph: {
+    title: 'Wallet Management | MSC & Co',
+    description: 'Manage platform wallets and financial transactions - process payments, manage balances, and track transactions',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Wallet Management | MSC & Co',
+    description: 'Manage platform wallets and financial transactions - process payments, manage balances, and track transactions',
+  },
+}
+
 export default async function WalletManagementPage() {
   const supabase = await createClient()
 

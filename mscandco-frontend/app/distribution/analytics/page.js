@@ -8,6 +8,22 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
+export const metadata = {
+  title: 'Distribution Analytics',
+  description: 'Track distribution performance - analytics, metrics, and insights across all platforms',
+  keywords: 'distribution analytics, music analytics, distribution metrics, performance tracking, streaming analytics',
+  openGraph: {
+    title: 'Distribution Analytics | MSC & Co',
+    description: 'Track distribution performance - analytics, metrics, and insights across all platforms',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Distribution Analytics | MSC & Co',
+    description: 'Track distribution performance - analytics, metrics, and insights across all platforms',
+  },
+}
+
 export default async function DistributionAnalyticsPage() {
   const supabase = await createClient()
   

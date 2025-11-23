@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import AccessibilityAdminClient from './AccessibilityAdminClient';
 
+export const metadata = {
+  title: 'Accessibility Management',
+  description: 'Manage accessibility requests and ensure platform accessibility compliance'
+}
+
 export default async function AccessibilityAdminPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

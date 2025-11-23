@@ -9,6 +9,22 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import AnalyticsManagementClient from './AnalyticsManagementClient'
 
+export const metadata = {
+  title: 'Analytics Management',
+  description: 'Manage platform analytics - view artist performance metrics, streaming data, and platform insights',
+  keywords: 'analytics management, platform analytics, artist analytics, performance metrics, streaming analytics',
+  openGraph: {
+    title: 'Analytics Management | MSC & Co',
+    description: 'Manage platform analytics - view artist performance metrics, streaming data, and platform insights',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Analytics Management | MSC & Co',
+    description: 'Manage platform analytics - view artist performance metrics, streaming data, and platform insights',
+  },
+}
+
 export default async function AnalyticsManagementPage() {
   const supabase = await createClient()
 

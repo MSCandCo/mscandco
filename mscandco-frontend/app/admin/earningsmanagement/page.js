@@ -8,6 +8,22 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import EarningsManagementClient from './EarningsManagementClient'
 
+export const metadata = {
+  title: 'Earnings Management',
+  description: 'Manage platform earnings and financial data - track revenue, payments, and financial transactions',
+  keywords: 'earnings management, financial management, revenue tracking, payment management, platform earnings',
+  openGraph: {
+    title: 'Earnings Management | MSC & Co',
+    description: 'Manage platform earnings and financial data - track revenue, payments, and financial transactions',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Earnings Management | MSC & Co',
+    description: 'Manage platform earnings and financial data - track revenue, payments, and financial transactions',
+  },
+}
+
 export default async function EarningsManagementPage() {
   const supabase = await createClient()
 

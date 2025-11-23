@@ -10,6 +10,22 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
+export const metadata = {
+  title: 'Distribution Dashboard',
+  description: 'Manage your music distribution - overview, catalog management, and platform metrics',
+  keywords: 'music distribution dashboard, distribution management, catalog management, music platform metrics',
+  openGraph: {
+    title: 'Distribution Dashboard | MSC & Co',
+    description: 'Manage your music distribution - overview, catalog management, and platform metrics',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Distribution Dashboard | MSC & Co',
+    description: 'Manage your music distribution - overview, catalog management, and platform metrics',
+  },
+}
+
 export default async function DistributionDashboardPage() {
   const supabase = await createClient()
   

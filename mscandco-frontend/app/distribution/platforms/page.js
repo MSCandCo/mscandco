@@ -8,6 +8,22 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
+export const metadata = {
+  title: 'Distribution Platforms',
+  description: 'Manage distribution platforms and integrations - connect to streaming services and music stores',
+  keywords: 'distribution platforms, streaming platforms, music stores, platform integration, music distribution services',
+  openGraph: {
+    title: 'Distribution Platforms | MSC & Co',
+    description: 'Manage distribution platforms and integrations - connect to streaming services and music stores',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Distribution Platforms | MSC & Co',
+    description: 'Manage distribution platforms and integrations - connect to streaming services and music stores',
+  },
+}
+
 export default async function DistributionPlatformsPage() {
   const supabase = await createClient()
   

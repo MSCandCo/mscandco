@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import OpenDataAdminClient from './OpenDataAdminClient';
 
+export const metadata = {
+  title: 'Open Data Management',
+  description: 'Manage open data initiatives, API access, and public data sharing'
+}
+
 export default async function OpenDataAdminPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

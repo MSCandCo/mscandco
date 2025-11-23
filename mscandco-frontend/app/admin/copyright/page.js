@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import CopyrightAdminClient from './CopyrightAdminClient';
 
+export const metadata = {
+  title: 'Copyright Management',
+  description: 'Manage copyright verification and clearance requests across the platform'
+}
+
 export default async function CopyrightManagementPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

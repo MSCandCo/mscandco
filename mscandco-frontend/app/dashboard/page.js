@@ -2,6 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './DashboardClient'
 
+export const metadata = {
+  title: 'Dashboard',
+  description: 'Your music distribution dashboard - manage releases, track earnings, and grow your career'
+}
+
 export default async function DashboardPage() {
   console.log('📄 Dashboard Page: Server component rendering')
 

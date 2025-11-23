@@ -3,6 +3,22 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import NotificationsClient from './NotificationsClient'
 
+export const metadata = {
+  title: 'Notifications',
+  description: 'View and manage your notifications - stay updated with platform alerts, messages, and important updates',
+  keywords: 'notifications, alerts, messages, platform updates, user notifications',
+  openGraph: {
+    title: 'Notifications | MSC & Co',
+    description: 'View and manage your notifications - stay updated with platform alerts, messages, and important updates',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Notifications | MSC & Co',
+    description: 'View and manage your notifications - stay updated with platform alerts, messages, and important updates',
+  },
+}
+
 export default async function NotificationsPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()

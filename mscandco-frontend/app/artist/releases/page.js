@@ -2,6 +2,22 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ReleasesClient from './ReleasesClient'
 
+export const metadata = {
+  title: 'My Releases',
+  description: 'Manage your music releases - upload, edit, and distribute your tracks to streaming platforms worldwide',
+  keywords: 'music releases, music distribution, upload music, release management, streaming platforms, music publishing',
+  openGraph: {
+    title: 'My Releases | MSC & Co',
+    description: 'Manage your music releases - upload, edit, and distribute your tracks to streaming platforms worldwide',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'My Releases | MSC & Co',
+    description: 'Manage your music releases - upload, edit, and distribute your tracks to streaming platforms worldwide',
+  },
+}
+
 export default async function ArtistReleasesPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
