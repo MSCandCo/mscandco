@@ -422,10 +422,6 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Users className="w-4 h-4" />
-                        Roster
-                      </Link>
 
                       {/* Insights Dropdown Group */}
                       <div className="relative group">
@@ -571,6 +567,12 @@ function Header({ largeLogo = false }) {
 
                         return null;
                       })()}
+
+                      {/* Roster - Moved to end after Community */}
+                      <Link href="/artist/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Users className="w-4 h-4" />
+                        Roster
+                      </Link>
                     </>
                   )}
 
@@ -583,10 +585,6 @@ function Header({ largeLogo = false }) {
                       <Link href="/labeladmin/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <FileText className="w-4 h-4" />
                         Releases
-                      </Link>
-                      <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Users className="w-4 h-4" />
-                        Roster
                       </Link>
 
                       {/* Insights Dropdown Group */}
@@ -629,6 +627,12 @@ function Header({ largeLogo = false }) {
                           Open Data
                         </Link>
                       )}
+
+                      {/* Roster - Moved to end after Community */}
+                      <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Users className="w-4 h-4" />
+                        Roster
+                      </Link>
                     </>
                   )}
                 </div>
@@ -895,6 +899,8 @@ function Header({ largeLogo = false }) {
                         <DollarSign className="w-5 h-5" />
                         <span>Earnings</span>
                       </Link>
+                      {/* Community features would go here if shown in mobile */}
+                      {/* Roster - Moved to end after Community */}
                       <Link href="/artist/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <Users className="w-5 h-5" />
                         <span>Roster</span>
@@ -920,6 +926,8 @@ function Header({ largeLogo = false }) {
                         <DollarSign className="w-5 h-5" />
                         <span>Earnings</span>
                       </Link>
+                      {/* Community features would go here if shown in mobile */}
+                      {/* Roster - Moved to end after Community */}
                       <Link href="/labeladmin/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <Users className="w-5 h-5" />
                         <span>Artists</span>
