@@ -1,0 +1,63 @@
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+
+export async function GET(request) {
+  try {
+    const supabase = createClient();
+    
+    // Get public metrics from database
+    const { data: metrics, error } = await supabase
+      .from('public_metrics')
+      .select('*')
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching metrics:', error);
+    }
+
+    // If no metrics exist, return empty structure (no dummy data)
+    if (!metrics || error?.code === 'PGRST116') {
+      return NextResponse.json({
+        metrics: {
+          total_artists: null,
+          total_releases: null,
+          total_streams: null,
+          avg_artist_earnings: null,
+          new_artists_this_month: null,
+          genre_distribution: null,
+          growth_trends: null
+        }
+      });
+    }
+
+    // Return actual metrics from database
+    return NextResponse.json({
+      metrics: {
+        total_artists: metrics.total_artists || null,
+        total_releases: metrics.total_releases || null,
+        total_streams: metrics.total_streams || null,
+        avg_artist_earnings: metrics.avg_artist_earnings || null,
+        new_artists_this_month: metrics.new_artists_this_month || null,
+        genre_distribution: metrics.genre_distribution || null,
+        growth_trends: metrics.growth_trends || null
+      }
+    });
+  } catch (error) {
+    console.error('Error in metrics:', error);
+    return NextResponse.json({
+      metrics: {
+        total_artists: null,
+        total_releases: null,
+        total_streams: null,
+        avg_artist_earnings: null,
+        new_artists_this_month: null,
+        genre_distribution: null,
+        growth_trends: null
+      }
+    });
+  }
+}
+

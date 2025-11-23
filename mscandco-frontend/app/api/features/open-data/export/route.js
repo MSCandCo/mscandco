@@ -1,6 +1,141 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+export async function GET(request) {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const format = searchParams.get('format') || 'json';
+
+    // Validate format
+    if (!['csv', 'json', 'xlsx'].includes(format)) {
+      return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
+    }
+
+    // Get user's tier to determine data access level
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('open_data_tier')
+      .eq('id', user.id)
+      .single();
+
+    const tier = profile?.open_data_tier || 'free';
+
+    // Fetch anonymized, aggregated platform data based on tier
+    let data = [];
+
+    if (tier === 'free') {
+      // Free tier: Basic aggregated metrics only
+      const { data: metrics } = await supabase
+        .from('public_metrics')
+        .select('total_artists, total_releases, total_streams, updated_at')
+        .eq('is_public', true)
+        .limit(1)
+        .single();
+      
+      if (metrics) {
+        data = [{
+          metric: 'Total Artists',
+          value: metrics.total_artists || 0,
+          updated_at: metrics.updated_at
+        }, {
+          metric: 'Total Releases',
+          value: metrics.total_releases || 0,
+          updated_at: metrics.updated_at
+        }, {
+          metric: 'Total Streams',
+          value: metrics.total_streams || 0,
+          updated_at: metrics.updated_at
+        }];
+      }
+    } else if (tier === 'research') {
+      // Research tier: Extended historical data
+      const { data: metrics } = await supabase
+        .from('public_metrics')
+        .select('*')
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false })
+        .limit(12); // Last 12 months
+      
+      data = metrics || [];
+    } else if (tier === 'commercial') {
+      // Commercial tier: Full dataset access
+      const { data: metrics } = await supabase
+        .from('public_metrics')
+        .select('*')
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false });
+      
+      data = metrics || [];
+    }
+
+    // Format data based on requested format
+    let exportData;
+    let contentType;
+    let filename;
+
+    switch (format) {
+      case 'json':
+        exportData = JSON.stringify(data, null, 2);
+        contentType = 'application/json';
+        filename = `msc-co-data-export-${Date.now()}.json`;
+        break;
+
+      case 'csv':
+        if (data && data.length > 0) {
+          const headers = Object.keys(data[0]).join(',');
+          const rows = data.map((row) => 
+            Object.values(row).map(val => 
+              typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val
+            ).join(',')
+          );
+          exportData = [headers, ...rows].join('\n');
+        } else {
+          exportData = '';
+        }
+        contentType = 'text/csv';
+        filename = `msc-co-data-export-${Date.now()}.csv`;
+        break;
+
+      case 'xlsx':
+        // For Excel, return JSON (client can convert if needed)
+        // In production, use a library like xlsx to generate actual Excel files
+        exportData = JSON.stringify(data, null, 2);
+        contentType = 'application/json';
+        filename = `msc-co-data-export-${Date.now()}.json`;
+        break;
+
+      default:
+        return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
+    }
+
+    // Log export for audit trail
+    await supabase.from('data_exports').insert({
+      user_id: user.id,
+      format,
+      record_count: data?.length || 0,
+      exported_at: new Date().toISOString(),
+    });
+
+    // Return file download
+    return new NextResponse(exportData, {
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  } catch (error) {
+    console.error('Error in data export:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function POST(request) {
   try {
     const supabase = createClient();

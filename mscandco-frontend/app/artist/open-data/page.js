@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Line, Bar, Pie } from 'react-chartjs-2';
+import BrandedModal from '@/components/modals/BrandedModal';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -50,6 +52,31 @@ export default function OpenDataResearch() {
     purpose: '',
   });
 
+  // Modal states
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [showResearchModal, setShowResearchModal] = useState(false);
+  const [researchForm, setResearchForm] = useState({
+    title: '',
+    institution: '',
+    principal_investigator: '',
+    email: '',
+    phone: '',
+    research_objectives: '',
+    methodology: '',
+    expected_outcomes: '',
+    data_requirements: '',
+    timeline: '',
+    funding_source: '',
+    ethical_approval: false,
+    additional_info: ''
+  });
+  const [submittingResearch, setSubmittingResearch] = useState(false);
+
   const apiTiers = [
     {
       value: 'free',
@@ -94,9 +121,10 @@ export default function OpenDataResearch() {
     try {
       const response = await fetch('/api/features/open-data/api-keys');
       const data = await response.json();
-      setApiKeys(data.keys || []);
+      setApiKeys(data.api_keys || data.keys || []);
     } catch (error) {
       console.error('Failed to load API keys:', error);
+      setApiKeys([]);
     }
   }
 
@@ -104,9 +132,10 @@ export default function OpenDataResearch() {
     try {
       const response = await fetch('/api/features/open-data/usage');
       const data = await response.json();
-      setUsageStats(data.stats);
+      setUsageStats(data.stats || null);
     } catch (error) {
       console.error('Failed to load usage stats:', error);
+      setUsageStats(null);
     }
   }
 
@@ -114,9 +143,10 @@ export default function OpenDataResearch() {
     try {
       const response = await fetch('/api/features/open-data/metrics');
       const data = await response.json();
-      setPublicMetrics(data.metrics);
+      setPublicMetrics(data.metrics || null);
     } catch (error) {
       console.error('Failed to load metrics:', error);
+      setPublicMetrics(null);
     }
   }
 
@@ -145,7 +175,8 @@ export default function OpenDataResearch() {
 
   async function createAPIKey() {
     if (!keyForm.name || !keyForm.purpose) {
-      alert('Please fill in required fields');
+      setErrorMessage('Please fill in all required fields');
+      setShowErrorModal(true);
       return;
     }
 
@@ -153,57 +184,134 @@ export default function OpenDataResearch() {
       const response = await fetch('/api/features/open-data/api-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(keyForm),
+        body: JSON.stringify({
+          key_name: keyForm.name,
+          tier: keyForm.tier,
+          description: keyForm.purpose
+        }),
       });
 
       const data = await response.json();
 
-      if (data.success) {
-        alert(`API Key created successfully!\n\nKey: ${data.api_key}\n\nPlease save this key securely - it won't be shown again.`);
+      if (data.success || data.api_key) {
+        const apiKey = data.api_key?.api_key || data.api_key;
+        setSuccessMessage(`API Key created successfully!\n\nKey: ${apiKey}\n\nPlease save this key securely - it won't be shown again.`);
+        setShowSuccessModal(true);
         setKeyForm({ name: '', tier: 'free', purpose: '' });
         await loadAPIKeys();
       } else {
-        alert('Failed to create API key: ' + data.error);
+        setErrorMessage(data.error || 'Failed to create API key');
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error('Create error:', error);
-      alert('Failed to create API key: ' + error.message);
+      setErrorMessage('Failed to create API key: ' + error.message);
+      setShowErrorModal(true);
     }
   }
 
   async function revokeAPIKey(keyId) {
-    if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) return;
+    setConfirmAction(() => async () => {
+      try {
+        const response = await fetch(`/api/features/open-data/api-keys?id=${keyId}`, {
+          method: 'DELETE',
+        });
 
-    try {
-      const response = await fetch(`/api/features/open-data/api-keys/${keyId}`, {
-        method: 'DELETE',
-      });
+        const data = await response.json();
 
-      if (response.ok) {
-        alert('API key revoked successfully');
-        await loadAPIKeys();
-      } else {
-        alert('Failed to revoke API key');
+        if (response.ok || data.success) {
+          setSuccessMessage('API key revoked successfully');
+          setShowSuccessModal(true);
+          await loadAPIKeys();
+        } else {
+          setErrorMessage(data.error || 'Failed to revoke API key');
+          setShowErrorModal(true);
+        }
+      } catch (error) {
+        console.error('Revoke error:', error);
+        setErrorMessage('Failed to revoke: ' + error.message);
+        setShowErrorModal(true);
       }
-    } catch (error) {
-      console.error('Revoke error:', error);
-      alert('Failed to revoke: ' + error.message);
-    }
+    });
+    setShowConfirmModal(true);
   }
 
   async function exportData(format) {
     try {
       const response = await fetch(`/api/features/open-data/export?format=${format}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Export failed');
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `msc-co-data-export.${format}`;
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        : `msc-co-data-export-${Date.now()}.${format}`;
+      a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url);
+      
+      setSuccessMessage(`Data exported successfully as ${format.toUpperCase()}`);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Export error:', error);
-      alert('Failed to export data: ' + error.message);
+      setErrorMessage('Failed to export data: ' + error.message);
+      setShowErrorModal(true);
+    }
+  }
+
+  async function submitResearchProposal() {
+    if (!researchForm.title || !researchForm.institution || !researchForm.principal_investigator || !researchForm.email || !researchForm.research_objectives) {
+      setErrorMessage('Please fill in all required fields');
+      setShowErrorModal(true);
+      return;
+    }
+
+    setSubmittingResearch(true);
+    try {
+      const response = await fetch('/api/features/open-data/research-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(researchForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccessMessage('Research proposal submitted successfully! We will review your proposal and get back to you soon.');
+        setShowSuccessModal(true);
+        setShowResearchModal(false);
+        setResearchForm({
+          title: '',
+          institution: '',
+          principal_investigator: '',
+          email: '',
+          phone: '',
+          research_objectives: '',
+          methodology: '',
+          expected_outcomes: '',
+          data_requirements: '',
+          timeline: '',
+          funding_source: '',
+          ethical_approval: false,
+          additional_info: ''
+        });
+      } else {
+        setErrorMessage(data.error || 'Failed to submit research proposal');
+        setShowErrorModal(true);
+      }
+    } catch (error) {
+      console.error('Research proposal error:', error);
+      setErrorMessage('Failed to submit research proposal: ' + error.message);
+      setShowErrorModal(true);
+    } finally {
+      setSubmittingResearch(false);
     }
   }
 
@@ -302,42 +410,54 @@ export default function OpenDataResearch() {
         </div>
 
         {/* TAB: Dashboard */}
-        {activeTab === 'dashboard' && publicMetrics && (
+        {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* Public Metrics Overview */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="text-sm text-gray-600 mb-1">Total Platform Artists</div>
-                <div className="text-3xl font-bold">{publicMetrics.total_artists?.toLocaleString()}</div>
-                <div className="text-xs text-green-600 mt-1">+{publicMetrics.new_artists_this_month} this month</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="text-sm text-gray-600 mb-1">Total Releases</div>
-                <div className="text-3xl font-bold text-blue-600">
-                  {publicMetrics.total_releases?.toLocaleString()}
+            {publicMetrics && publicMetrics.total_artists !== null ? (
+              <>
+                {/* Public Metrics Overview */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-sm text-gray-600 mb-1">Total Platform Artists</div>
+                    <div className="text-3xl font-bold">{publicMetrics.total_artists?.toLocaleString() || 0}</div>
+                    {publicMetrics.new_artists_this_month && (
+                      <div className="text-xs text-green-600 mt-1">+{publicMetrics.new_artists_this_month} this month</div>
+                    )}
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-sm text-gray-600 mb-1">Total Releases</div>
+                    <div className="text-3xl font-bold text-blue-600">
+                      {publicMetrics.total_releases?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-xs text-blue-500 mt-1">Across all genres</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-sm text-gray-600 mb-1">Total Streams</div>
+                    <div className="text-3xl font-bold text-purple-600">
+                      {publicMetrics.total_streams?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-xs text-purple-500 mt-1">Last 30 days</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-sm text-gray-600 mb-1">Avg Artist Earnings</div>
+                    <div className="text-3xl font-bold text-green-600">
+                      £{publicMetrics.avg_artist_earnings?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-xs text-green-500 mt-1">Monthly</div>
+                  </div>
                 </div>
-                <div className="text-xs text-blue-500 mt-1">Across all genres</div>
+              </>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <p className="text-gray-500 text-lg">No public metrics available yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Metrics will appear here once data is available.</p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="text-sm text-gray-600 mb-1">Total Streams</div>
-                <div className="text-3xl font-bold text-purple-600">
-                  {publicMetrics.total_streams?.toLocaleString()}
-                </div>
-                <div className="text-xs text-purple-500 mt-1">Last 30 days</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="text-sm text-gray-600 mb-1">Avg Artist Earnings</div>
-                <div className="text-3xl font-bold text-green-600">
-                  £{publicMetrics.avg_artist_earnings?.toLocaleString()}
-                </div>
-                <div className="text-xs text-green-500 mt-1">Monthly</div>
-              </div>
-            </div>
+            )}
 
             {/* Genre Distribution */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-xl font-bold mb-4">Genre Distribution</h3>
-              {publicMetrics.genre_distribution && (
+            {publicMetrics && publicMetrics.genre_distribution && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-xl font-bold mb-4">Genre Distribution</h3>
+                {publicMetrics.genre_distribution && (
                 <div className="h-64">
                   <Pie
                     data={{
@@ -365,13 +485,15 @@ export default function OpenDataResearch() {
                     }}
                   />
                 </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Platform Trends */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-xl font-bold mb-4">Platform Growth Trends</h3>
-              {publicMetrics.growth_trends && (
+            {publicMetrics && publicMetrics.growth_trends && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-xl font-bold mb-4">Platform Growth Trends</h3>
+                {publicMetrics.growth_trends && (
                 <div className="h-80">
                   <Line
                     data={{
@@ -562,38 +684,42 @@ export default function OpenDataResearch() {
         )}
 
         {/* TAB: Usage Stats */}
-        {activeTab === 'usage' && usageStats && (
+        {activeTab === 'usage' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-6">📊 API Usage Statistics</h2>
+            {usageStats ? (
+              <>
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-2xl font-bold mb-6">📊 API Usage Statistics</h2>
 
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Requests This Month</div>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {usageStats.requests_this_month?.toLocaleString()}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-sm text-gray-600">Requests This Month</div>
+                      <div className="text-3xl font-bold text-blue-600">
+                        {usageStats.requests_this_month?.toLocaleString() || 0}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {usageStats.remaining_requests?.toLocaleString() || 0} remaining
+                      </div>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-sm text-gray-600">Successful Requests</div>
+                      <div className="text-3xl font-bold text-green-600">
+                        {usageStats.total_requests > 0 
+                          ? ((usageStats.successful_requests / usageStats.total_requests) * 100).toFixed(1)
+                          : 0}%
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">Success rate</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-sm text-gray-600">Avg Response Time</div>
+                      <div className="text-3xl font-bold text-purple-600">
+                        {usageStats.avg_response_time || 0}ms
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">Endpoint latency</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    {usageStats.remaining_requests?.toLocaleString()} remaining
-                  </div>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Successful Requests</div>
-                  <div className="text-3xl font-bold text-green-600">
-                    {((usageStats.successful_requests / usageStats.total_requests) * 100).toFixed(1)}%
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">Success rate</div>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Avg Response Time</div>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {usageStats.avg_response_time}ms
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">Endpoint latency</div>
-                </div>
-              </div>
 
-              {usageStats.daily_usage && (
+                  {usageStats.daily_usage && usageStats.daily_usage.length > 0 && (
                 <div className="h-64">
                   <Bar
                     data={{
@@ -614,24 +740,31 @@ export default function OpenDataResearch() {
                       },
                     }}
                   />
-                </div>
-              )}
-            </div>
+                  </div>
+                  )}
 
-            {/* Most Used Endpoints */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-xl font-bold mb-4">Most Used Endpoints</h3>
-              {usageStats.top_endpoints && (
-                <div className="space-y-2">
-                  {usageStats.top_endpoints.map((endpoint, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                      <div className="font-mono text-sm">{endpoint.path}</div>
-                      <div className="text-sm text-gray-600">{endpoint.requests?.toLocaleString()} requests</div>
+                  {/* Most Used Endpoints */}
+                  {usageStats.top_endpoints && usageStats.top_endpoints.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-xl font-bold mb-4">Most Used Endpoints</h3>
+                      <div className="space-y-2">
+                        {usageStats.top_endpoints.map((endpoint, idx) => (
+                          <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                            <div className="font-mono text-sm">{endpoint.path}</div>
+                            <div className="text-sm text-gray-600">{endpoint.requests?.toLocaleString()} requests</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <p className="text-gray-500 text-lg">No usage statistics available yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Usage stats will appear here once you start using the API.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -752,12 +885,240 @@ export default function OpenDataResearch() {
                 Are you a researcher interested in using MSC & Co data for academic purposes?
                 We offer grants and extended data access for approved research projects.
               </p>
-              <button className="px-6 py-3 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700">
+              <button 
+                onClick={() => setShowResearchModal(true)}
+                className="px-6 py-3 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700"
+              >
                 Submit Research Proposal
               </button>
             </div>
           </div>
         )}
+
+        {/* Modals */}
+        <BrandedModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          title="Error"
+          size="md"
+          footer={
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="px-6 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          }
+        >
+          <p className="text-gray-700 whitespace-pre-line">{errorMessage}</p>
+        </BrandedModal>
+
+        <BrandedModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="Success"
+          size="md"
+          footer={
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="px-6 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          }
+        >
+          <p className="text-gray-700 whitespace-pre-line">{successMessage}</p>
+        </BrandedModal>
+
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={() => {
+            if (confirmAction) {
+              confirmAction();
+            }
+            setShowConfirmModal(false);
+          }}
+          title="Confirm Action"
+          message="Are you sure you want to revoke this API key? This action cannot be undone."
+          confirmText="Revoke"
+          cancelText="Cancel"
+          type="danger"
+        />
+
+        <BrandedModal
+          isOpen={showResearchModal}
+          onClose={() => setShowResearchModal(false)}
+          title="Submit Research Proposal"
+          size="lg"
+          footer={
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowResearchModal(false)}
+                disabled={submittingResearch}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitResearchProposal}
+                disabled={submittingResearch}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50"
+              >
+                {submittingResearch ? 'Submitting...' : 'Submit Proposal'}
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Research Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={researchForm.title}
+                onChange={(e) => setResearchForm({...researchForm, title: e.target.value})}
+                className="w-full px-4 py-2 border rounded-md"
+                placeholder="e.g., Music Streaming Patterns in the Digital Age"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Institution <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={researchForm.institution}
+                  onChange={(e) => setResearchForm({...researchForm, institution: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="University or Research Institution"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Principal Investigator <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={researchForm.principal_investigator}
+                  onChange={(e) => setResearchForm({...researchForm, principal_investigator: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="Full Name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={researchForm.email}
+                  onChange={(e) => setResearchForm({...researchForm, email: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="contact@institution.edu"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={researchForm.phone}
+                  onChange={(e) => setResearchForm({...researchForm, phone: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Research Objectives <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={researchForm.research_objectives}
+                onChange={(e) => setResearchForm({...researchForm, research_objectives: e.target.value})}
+                className="w-full h-24 px-4 py-2 border rounded-md"
+                placeholder="Describe the main objectives and goals of your research..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Methodology</label>
+              <textarea
+                value={researchForm.methodology}
+                onChange={(e) => setResearchForm({...researchForm, methodology: e.target.value})}
+                className="w-full h-20 px-4 py-2 border rounded-md"
+                placeholder="Describe your research methodology..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Expected Outcomes</label>
+              <textarea
+                value={researchForm.expected_outcomes}
+                onChange={(e) => setResearchForm({...researchForm, expected_outcomes: e.target.value})}
+                className="w-full h-20 px-4 py-2 border rounded-md"
+                placeholder="What outcomes do you expect from this research?"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Data Requirements</label>
+              <textarea
+                value={researchForm.data_requirements}
+                onChange={(e) => setResearchForm({...researchForm, data_requirements: e.target.value})}
+                className="w-full h-20 px-4 py-2 border rounded-md"
+                placeholder="What specific data do you need for your research?"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Timeline</label>
+                <input
+                  type="text"
+                  value={researchForm.timeline}
+                  onChange={(e) => setResearchForm({...researchForm, timeline: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="e.g., 6 months, 1 year"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Funding Source</label>
+                <input
+                  type="text"
+                  value={researchForm.funding_source}
+                  onChange={(e) => setResearchForm({...researchForm, funding_source: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-md"
+                  placeholder="e.g., NSF Grant, University Funding"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={researchForm.ethical_approval}
+                  onChange={(e) => setResearchForm({...researchForm, ethical_approval: e.target.checked})}
+                  className="mr-2"
+                />
+                <span className="text-sm">I have obtained ethical approval for this research</span>
+              </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Additional Information</label>
+              <textarea
+                value={researchForm.additional_info}
+                onChange={(e) => setResearchForm({...researchForm, additional_info: e.target.value})}
+                className="w-full h-20 px-4 py-2 border rounded-md"
+                placeholder="Any additional information you'd like to share..."
+              />
+            </div>
+          </div>
+        </BrandedModal>
       </div>
     </div>
   );

@@ -73,7 +73,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, api_key: data });
+    return NextResponse.json({ 
+      success: true, 
+      api_key: data.api_key,
+      key: data
+    });
   } catch (error) {
     console.error('Error in API key creation:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -103,14 +107,19 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 });
     }
 
-    // Mask API keys for security (show only last 8 characters)
-    const maskedKeys = data.map((key) => ({
+    // Format keys for display
+    const formattedKeys = (data || []).map((key) => ({
       ...key,
-      api_key_masked: `••••••••${key.api_key.slice(-8)}`,
-      api_key_full: key.api_key, // Include full key only in this response
+      name: key.key_name,
+      purpose: key.description,
+      key_preview: key.api_key ? `••••••••${key.api_key.slice(-8)}` : null,
+      requests_this_month: 0, // Will be calculated from usage logs
     }));
 
-    return NextResponse.json({ api_keys: maskedKeys });
+    return NextResponse.json({ 
+      keys: formattedKeys,
+      api_keys: formattedKeys // Support both formats
+    });
   } catch (error) {
     console.error('Error in fetching API keys:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
