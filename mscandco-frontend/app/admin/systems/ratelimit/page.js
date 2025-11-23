@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import RateLimitClient from './RateLimitClient'
 
 export const metadata = {
-  title: 'Rate Limiting | Systems',
+  title: 'Rate Limiting',
   description: 'Configure and monitor API rate limits'
 }
 

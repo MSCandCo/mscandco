@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import AnalyticsClient from './AnalyticsClient'
 
 export const metadata = {
-  title: 'User Analytics | Systems',
+  title: 'User Analytics',
   description: 'Monitor user behavior and platform analytics'
 }
 

@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import EmailClient from './EmailClient'
 
 export const metadata = {
-  title: 'Email System | Systems',
+  title: 'Email System',
   description: 'Manage email templates and delivery monitoring'
 }
 

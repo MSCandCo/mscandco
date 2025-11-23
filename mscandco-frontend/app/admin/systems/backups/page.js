@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import BackupsClient from './BackupsClient'
 
 export const metadata = {
-  title: 'Backup & Recovery | Systems',
+  title: 'Backup & Recovery',
   description: 'Manage database backups and recovery operations'
 }
 

@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import SystemsDashboardClient from './SystemsDashboardClient'
 
 export const metadata = {
-  title: 'Systems Dashboard | Admin',
+  title: 'Systems Dashboard',
   description: 'Enterprise infrastructure monitoring and management'
 }
 

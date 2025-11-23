@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import ErrorTrackingClient from './ErrorTrackingClient'
 
 export const metadata = {
-  title: 'Error Tracking | Systems',
+  title: 'Error Tracking',
   description: 'Monitor and track application errors in real-time'
 }
 

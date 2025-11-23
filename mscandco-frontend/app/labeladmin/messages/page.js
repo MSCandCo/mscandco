@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import LabelAdminMessagesClient from './MessagesClient'
 
 export const metadata = {
-  title: 'Messages | Label Admin',
+  title: 'Messages',
   description: 'View and manage your label admin notifications and messages'
 }
 

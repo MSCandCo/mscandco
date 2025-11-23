@@ -4,7 +4,7 @@ import { userHasPermission } from '@/lib/permissions'
 import SecurityClient from './SecurityClient'
 
 export const metadata = {
-  title: 'Security Management | Systems',
+  title: 'Security Management',
   description: 'Monitor security events and manage security policies'
 }
 
