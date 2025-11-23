@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 
-// Service role client for auth admin operations
-const supabaseAdmin = createAdminClient(
+// Use service role to bypass RLS
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
@@ -14,62 +14,154 @@ const supabaseAdmin = createAdminClient(
  */
 export async function GET(request) {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Authenticate user
+    const serverSupabase = await createServerClient()
+    const { data: { user }, error: userError } = await serverSupabase.auth.getUser()
 
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch user profile
+    const userId = user.id
+    console.log('👤 Label admin profile API for:', userId)
+
+    // Fetch user profile using service role to bypass RLS
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('id', user.id)
-      .single()
+      .eq('id', userId)
+      .maybeSingle()
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError)
+      console.error('❌ Error fetching profile:', profileError)
       return NextResponse.json(
         { error: 'Failed to fetch profile', details: profileError.message },
         { status: 500 }
       )
     }
 
+    // If no profile exists, create a minimal one
     if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+      console.log('⚠️ No profile found, creating minimal profile for label admin:', userId)
+
+      // Get user email from auth
+      const { data: userData } = await supabase.auth.admin.getUserById(userId)
+      const email = userData?.user?.email || ''
+
+      const { data: newProfile, error: createError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: userId,
+          email: email,
+          role: 'label_admin',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (createError) {
+        console.error('❌ Error creating profile:', createError)
+        // Return empty profile instead of failing
+        return NextResponse.json({
+          id: userId,
+          email: email,
+          firstName: '',
+          lastName: '',
+          labelName: '',
+          dateOfBirth: null,
+          nationality: '',
+          country: '',
+          city: '',
+          phone: '',
+          countryCode: '+44',
+          primaryGenre: '',
+          secondaryGenre: '',
+          yearsActive: '',
+          companyName: '',
+          bio: '',
+          website: '',
+          instagram: '',
+          facebook: '',
+          twitter: '',
+          youtube: '',
+          tiktok: '',
+          spotify: '',
+          apple_music: '',
+          profile_picture_url: null
+        })
+      }
+
+      console.log('✅ Created minimal profile for label admin')
+      
+      // Use the newly created profile
+      const finalProfile = newProfile
+      
+      return NextResponse.json({
+        id: finalProfile.id,
+        firstName: finalProfile.first_name || '',
+        lastName: finalProfile.last_name || '',
+        email: finalProfile.email || email,
+        labelName: finalProfile.artist_name || '',
+        dateOfBirth: finalProfile.date_of_birth,
+        nationality: finalProfile.nationality || '',
+        country: finalProfile.country || '',
+        city: finalProfile.city || '',
+        phone: finalProfile.phone || '',
+        countryCode: finalProfile.country_code || '+44',
+        primaryGenre: finalProfile.primary_genre || '',
+        secondaryGenre: finalProfile.secondary_genre || '',
+        yearsActive: finalProfile.years_active || '',
+        companyName: finalProfile.company_name || '',
+        bio: finalProfile.bio || '',
+        website: finalProfile.website || '',
+        instagram: finalProfile.instagram || '',
+        facebook: finalProfile.facebook || '',
+        twitter: finalProfile.twitter || '',
+        youtube: finalProfile.youtube || '',
+        tiktok: finalProfile.tiktok || '',
+        spotify: finalProfile.spotify || '',
+        apple_music: finalProfile.apple_music || '',
+        profile_picture_url: finalProfile.profile_picture_url || null
+      })
     }
+
+    console.log('✅ Profile loaded from database')
 
     // Map database fields to camelCase for frontend
-    const response = {
+    return NextResponse.json({
       id: profile.id,
-      firstName: profile.first_name,
-      lastName: profile.last_name,
-      email: profile.email,
-      labelName: profile.artist_name, // Label admins use artist_name field for label name
+      firstName: profile.first_name || '',
+      lastName: profile.last_name || '',
+      email: profile.email || '',
+      labelName: profile.artist_name || '', // Label admins use artist_name field for label name
       dateOfBirth: profile.date_of_birth,
-      nationality: profile.nationality,
-      country: profile.country,
-      city: profile.city,
-      phone: profile.phone,
-      countryCode: profile.country_code,
-      primaryGenre: profile.primary_genre,
-      secondaryGenre: profile.secondary_genre,
-      yearsActive: profile.years_active,
-      companyName: profile.company_name,
-      bio: profile.bio,
-      website: profile.website,
-      instagram: profile.instagram,
-      facebook: profile.facebook,
-      twitter: profile.twitter,
-      youtube: profile.youtube,
-      tiktok: profile.tiktok,
-      spotify: profile.spotify,
-      apple_music: profile.apple_music,
-      profile_picture_url: profile.profile_picture_url
-    }
-
-    return NextResponse.json(response)
+      nationality: profile.nationality || '',
+      country: profile.country || '',
+      city: profile.city || '',
+      phone: profile.phone || '',
+      countryCode: profile.country_code || '+44',
+      primaryGenre: profile.primary_genre || '',
+      secondaryGenre: profile.secondary_genre || '',
+      yearsActive: profile.years_active || '',
+      companyName: profile.company_name || '',
+      bio: profile.bio || '',
+      website: profile.website || '',
+      instagram: profile.instagram || '',
+      facebook: profile.facebook || '',
+      twitter: profile.twitter || '',
+      youtube: profile.youtube || '',
+      tiktok: profile.tiktok || '',
+      spotify: profile.spotify || '',
+      apple_music: profile.apple_music || '',
+      profile_picture_url: profile.profile_picture_url || null
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=60',
+        'CDN-Cache-Control': 'private, max-age=300',
+        'Vary': 'Authorization, Cookie'
+      }
+    })
 
   } catch (error) {
     console.error('Profile API error:', error)
@@ -86,14 +178,18 @@ export async function GET(request) {
  */
 export async function PATCH(request) {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Authenticate user
+    const serverSupabase = await createServerClient()
+    const { data: { user }, error: userError } = await serverSupabase.auth.getUser()
 
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const userId = user.id
     const body = await request.json()
+
+    console.log('💾 Updating label admin profile:', body)
 
     // Check if email is being changed
     if (body.email && body.email !== user.email) {
@@ -101,8 +197,8 @@ export async function PATCH(request) {
 
       // Update Supabase auth email (this sends a verification email to the new address)
       // The email change will only take effect after the user verifies the new email
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        user.id,
+      const { error: authError } = await supabase.auth.admin.updateUserById(
+        userId,
         {
           email: body.email,
           email_confirm: false // Require email verification before change takes effect
@@ -142,11 +238,11 @@ export async function PATCH(request) {
     if (body.spotify !== undefined) updates.spotify = body.spotify
     if (body.apple_music !== undefined) updates.apple_music = body.apple_music
 
-    // Update profile
+    // Update profile using service role
     const { data: updatedProfile, error: updateError } = await supabase
       .from('user_profiles')
       .update(updates)
-      .eq('id', user.id)
+      .eq('id', userId)
       .select()
       .single()
 

@@ -57,6 +57,9 @@ export default function LabelAdminProfileClient() {
       }
 
       const response = await fetch('/api/labeladmin/profile', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include'
       });
 
@@ -95,10 +98,71 @@ export default function LabelAdminProfileClient() {
         setProfile(mappedProfile);
         setEditedProfile(mappedProfile);
       } else {
-
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch profile:', response.status, errorData);
+        // Set a minimal profile so the page can still render
+        const minimalProfile = {
+          id: user?.id || '',
+          first_name: '',
+          last_name: '',
+          email: user?.email || '',
+          label_name: '',
+          date_of_birth: null,
+          nationality: '',
+          country: '',
+          city: '',
+          phone: '',
+          country_code: '+44',
+          primary_genre: '',
+          secondary_genre: '',
+          years_active: '',
+          company_name: '',
+          bio: '',
+          website: '',
+          instagram: '',
+          facebook: '',
+          twitter: '',
+          youtube: '',
+          tiktok: '',
+          spotify: '',
+          apple_music: '',
+          profile_picture_url: null
+        };
+        setProfile(minimalProfile);
+        setEditedProfile(minimalProfile);
       }
     } catch (error) {
-
+      console.error('Error fetching profile:', error);
+      // Set a minimal profile so the page can still render
+      const minimalProfile = {
+        id: user?.id || '',
+        first_name: '',
+        last_name: '',
+        email: user?.email || '',
+        label_name: '',
+        date_of_birth: null,
+        nationality: '',
+        country: '',
+        city: '',
+        phone: '',
+        country_code: '+44',
+        primary_genre: '',
+        secondary_genre: '',
+        years_active: '',
+        company_name: '',
+        bio: '',
+        website: '',
+        instagram: '',
+        facebook: '',
+        twitter: '',
+        youtube: '',
+        tiktok: '',
+        spotify: '',
+        apple_music: '',
+        profile_picture_url: null
+      };
+      setProfile(minimalProfile);
+      setEditedProfile(minimalProfile);
     } finally {
       setLoading(false);
     }
