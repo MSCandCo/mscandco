@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import SuperadminMessagesClient from './SuperadminMessagesClient'
 
 export const metadata = {
-  title: 'Platform Messages | MSC & Co',
+  title: 'Platform Messages',
   description: 'View and manage platform-wide communications'
 }
 

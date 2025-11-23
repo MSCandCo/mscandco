@@ -27,7 +27,10 @@ const inter = Inter({
 })
 
 export const metadata = {
-  title: 'MSC & Co - AI-Native Music Distribution Platform',
+  title: {
+    template: '%s | MSC & Co',
+    default: 'MSC & Co'
+  },
   description: 'The first and only AI-native music distribution platform. Manage releases, track earnings, and grow your career through AI-powered insights. Built for gospel, Christian, and general music creators.',
 }
 

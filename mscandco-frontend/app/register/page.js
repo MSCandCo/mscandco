@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import RegisterClient from './RegisterClient'
 
 export const metadata = {
-  title: 'Register | MSC & Co',
+  title: 'Register',
   description: 'Create your free account with MSC & Co'
 }
 

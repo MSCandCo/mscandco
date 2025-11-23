@@ -1,7 +1,7 @@
 import { DollarSign, AlertCircle, Mail, Clock } from 'lucide-react'
 
 export const metadata = {
-  title: 'Refund Policy | MSC & Co',
+  title: 'Refund Policy',
   description: 'Learn about our refund and cancellation policies for subscriptions and distribution services.'
 }
 

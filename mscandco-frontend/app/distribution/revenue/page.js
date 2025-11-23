@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import RevenueReportingClient from './RevenueReportingClient'
 
 export const metadata = {
-  title: 'Revenue Reporting | MSC & Co',
+  title: 'Revenue Reporting',
   description: 'Revenue and analytics reporting for distributed releases'
 }
 

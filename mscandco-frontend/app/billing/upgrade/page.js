@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import UpgradeClient from './UpgradeClient'
 
 export const metadata = {
-  title: 'Upgrade Your Plan | MSC & Co',
+  title: 'Upgrade Your Plan',
   description: 'Upgrade to unlock more features and lower commission rates'
 }
 

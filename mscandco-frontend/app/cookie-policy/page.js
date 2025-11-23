@@ -1,7 +1,7 @@
 import { Cookie } from 'lucide-react'
 
 export const metadata = {
-  title: 'Cookie Policy | MSC & Co',
+  title: 'Cookie Policy',
   description: 'Learn about how MSC & Co uses cookies and similar technologies.'
 }
 

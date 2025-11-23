@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import DistributionHubClient from './DistributionHubClient'
 
 export const metadata = {
-  title: 'Distribution Hub | MSC & Co',
+  title: 'Distribution Hub',
   description: 'Review and manage submitted releases and revisions'
 }
 
