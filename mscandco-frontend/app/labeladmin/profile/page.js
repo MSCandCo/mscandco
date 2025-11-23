@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
-import ProfileClient from './ProfileClient'
+import LabelAdminProfileClient from './ProfileClient'
 
 export const metadata = {
   title: 'Label Profile',
@@ -35,5 +35,5 @@ export default async function LabelAdminProfilePage() {
     redirect('/dashboard')
   }
 
-  return <ProfileClient />
+  return <LabelAdminProfileClient />
 }

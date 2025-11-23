@@ -608,25 +608,85 @@ function Header({ largeLogo = false }) {
                         </div>
                       </div>
 
-                      {/* Community Features for Label Admins */}
-                      {hasCopyrightPermission && showCopyrightLink && (
-                        <Link href="/labeladmin/copyright" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Copyright className="w-4 h-4" />
-                          Copyright
-                        </Link>
-                      )}
-                      {hasLearningPermission && showLearningLink && (
-                        <Link href="/labeladmin/learning" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <GraduationCap className="w-4 h-4" />
-                          Learning
-                        </Link>
-                      )}
-                      {hasOpenDataPermission && showOpenDataLink && (
-                        <Link href="/labeladmin/open-data" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                          <Database className="w-4 h-4" />
-                          Open Data
-                        </Link>
-                      )}
+                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 2+ features */}
+                      {(() => {
+                        const communityFeatures = [
+                          hasAccessibilityPermission && showAccessibilityLink && {
+                            href: '/labeladmin/accessibility',
+                            icon: Accessibility,
+                            label: 'Accessibility'
+                          },
+                          hasSustainabilityPermission && showSustainabilityLink && {
+                            href: '/labeladmin/sustainability',
+                            icon: Leaf,
+                            label: 'Sustainability'
+                          },
+                          hasLyricsPermission && showLyricsLink && {
+                            href: '/labeladmin/lyrics-analysis',
+                            icon: BookOpen,
+                            label: 'Lyrics Analysis'
+                          },
+                          hasCopyrightPermission && showCopyrightLink && {
+                            href: '/labeladmin/copyright',
+                            icon: Copyright,
+                            label: 'Copyright'
+                          },
+                          hasLearningPermission && showLearningLink && {
+                            href: '/labeladmin/learning',
+                            icon: GraduationCap,
+                            label: 'Learning'
+                          },
+                          hasOpenDataPermission && showOpenDataLink && {
+                            href: '/labeladmin/open-data',
+                            icon: Database,
+                            label: 'Open Data'
+                          }
+                        ].filter(Boolean);
+
+                        // If 2 or more features, show dropdown
+                        if (communityFeatures.length >= 2) {
+                          return (
+                            <div className="relative group">
+                              <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                                <Globe className="w-4 h-4" />
+                                Community
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                              <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                                <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[180px]">
+                                  {communityFeatures.map((feature, idx) => {
+                                    const Icon = feature.icon;
+                                    return (
+                                      <Link
+                                        key={idx}
+                                        href={feature.href}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                      >
+                                        <Icon className="w-4 h-4" />
+                                        {feature.label}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // If only 1 feature, show it as a single link
+                        if (communityFeatures.length === 1) {
+                          const feature = communityFeatures[0];
+                          const Icon = feature.icon;
+                          return (
+                            <Link href={feature.href} className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                              <Icon className="w-4 h-4" />
+                              {feature.label}
+                            </Link>
+                          );
+                        }
+
+                        return null;
+                      })()}
 
                       {/* Roster - Moved to end after Community */}
                       <Link href="/labeladmin/roster" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
