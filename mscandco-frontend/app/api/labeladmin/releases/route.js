@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { query } from '@/lib/db/postgres'
+import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
+
+// Use service role to bypass RLS
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 /**
  * GET /api/labeladmin/releases
@@ -9,8 +15,9 @@ import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
  */
 export async function GET(request) {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Authenticate user
+    const serverSupabase = await createServerClient()
+    const { data: { user }, error: userError } = await serverSupabase.auth.getUser()
 
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -20,42 +27,75 @@ export async function GET(request) {
 
     console.log('📋 Fetching releases for label admin:', labelAdminId)
 
-    // Get all affiliated artist IDs using direct PostgreSQL
-    const affiliationsResult = await query(
-      `SELECT artist_id 
-       FROM label_artist_affiliations
-       WHERE label_admin_id = $1 AND status = 'active'`,
-      [labelAdminId]
-    )
+    // Get all affiliated artist IDs using service role
+    const { data: affiliations, error: affiliationsError } = await supabase
+      .from('label_artist_affiliations')
+      .select('artist_id')
+      .eq('label_admin_id', labelAdminId)
+      .eq('status', 'active')
 
-    const artistIds = affiliationsResult.rows.map(row => row.artist_id)
+    if (affiliationsError) {
+      console.error('❌ Error fetching affiliations:', affiliationsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch affiliations', details: affiliationsError.message },
+        { status: 500 }
+      )
+    }
+
+    const artistIds = affiliations?.map(row => row.artist_id) || []
 
     if (artistIds.length === 0) {
       console.log('✅ No affiliated artists found')
-      return NextResponse.json([])
+      return cachedJsonResponse([], CACHE_HEADERS.RELEASES)
     }
 
     console.log(`📊 Found ${artistIds.length} affiliated artists`)
 
-    // Fetch all releases from these artists using direct PostgreSQL
-    const placeholders = artistIds.map((_, i) => `$${i + 1}`).join(',')
-    const releasesResult = await query(
-      `SELECT 
-        r.*,
-        up.artist_name,
-        up.profile_picture_url as artist_profile_picture
-       FROM releases r
-       LEFT JOIN user_profiles up ON r.artist_id = up.id
-       WHERE r.artist_id IN (${placeholders})
-       ORDER BY r.created_at DESC`,
-      artistIds
-    )
+    // Fetch all releases from these artists using service role
+    const { data: releases, error: releasesError } = await supabase
+      .from('releases')
+      .select('*')
+      .in('artist_id', artistIds)
+      .order('created_at', { ascending: false })
 
-    const releases = releasesResult.rows
+    if (releasesError) {
+      console.error('❌ Error fetching releases:', releasesError)
+      return NextResponse.json(
+        { error: 'Failed to fetch releases', details: releasesError.message },
+        { status: 500 }
+      )
+    }
 
-    console.log(`✅ Loaded ${releases.length} releases from all affiliated artists`)
+    // Fetch artist profiles for these releases
+    const { data: profiles, error: profilesError } = await supabase
+      .from('user_profiles')
+      .select('id, artist_name, profile_picture_url')
+      .in('id', artistIds)
 
-    return cachedJsonResponse(releases, CACHE_HEADERS.RELEASES)
+    if (profilesError) {
+      console.error('❌ Error fetching artist profiles:', profilesError)
+      // Don't fail if profiles can't be fetched, just continue without artist info
+    }
+
+    // Create a map of profiles by ID for easy lookup
+    const profileMap = {}
+    profiles?.forEach(profile => {
+      profileMap[profile.id] = profile
+    })
+
+    // Transform the data to include artist info
+    const releasesWithArtistInfo = (releases || []).map(release => {
+      const artist = profileMap[release.artist_id] || {}
+      return {
+        ...release,
+        artist_name: artist.artist_name || null,
+        artist_profile_picture: artist.profile_picture_url || null
+      }
+    })
+
+    console.log(`✅ Loaded ${releasesWithArtistInfo.length} releases from all affiliated artists`)
+
+    return cachedJsonResponse(releasesWithArtistInfo, CACHE_HEADERS.RELEASES)
 
   } catch (error) {
     console.error('❌ Label admin releases API error:', error)
@@ -65,4 +105,3 @@ export async function GET(request) {
     )
   }
 }
-
