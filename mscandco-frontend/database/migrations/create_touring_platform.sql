@@ -601,6 +601,7 @@ ALTER TABLE tour_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Organizations: Users can see orgs they're members of
+DROP POLICY IF EXISTS "Users can view their organizations" ON organizations;
 CREATE POLICY "Users can view their organizations"
   ON organizations FOR SELECT
   USING (
@@ -612,6 +613,7 @@ CREATE POLICY "Users can view their organizations"
   );
 
 -- Tours: Users can see their own tours or org tours
+DROP POLICY IF EXISTS "Users can view own tours" ON tours;
 CREATE POLICY "Users can view own tours"
   ON tours FOR SELECT
   USING (
@@ -622,19 +624,23 @@ CREATE POLICY "Users can view own tours"
     )
   );
 
+DROP POLICY IF EXISTS "Users can create own tours" ON tours;
 CREATE POLICY "Users can create own tours"
   ON tours FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update own tours" ON tours;
 CREATE POLICY "Users can update own tours"
   ON tours FOR UPDATE
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can delete own tours" ON tours;
 CREATE POLICY "Users can delete own tours"
   ON tours FOR DELETE
   USING (user_id = auth.uid());
 
 -- Tour Dates: Inherit from tours
+DROP POLICY IF EXISTS "Users can view tour dates" ON tour_dates;
 CREATE POLICY "Users can view tour dates"
   ON tour_dates FOR SELECT
   USING (
@@ -643,6 +649,7 @@ CREATE POLICY "Users can view tour dates"
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage tour dates" ON tour_dates;
 CREATE POLICY "Users can manage tour dates"
   ON tour_dates FOR ALL
   USING (
@@ -652,6 +659,7 @@ CREATE POLICY "Users can manage tour dates"
   );
 
 -- Crew: Inherit from tours
+DROP POLICY IF EXISTS "Users can view tour crew" ON tour_crew;
 CREATE POLICY "Users can view tour crew"
   ON tour_crew FOR SELECT
   USING (
@@ -660,6 +668,7 @@ CREATE POLICY "Users can view tour crew"
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage tour crew" ON tour_crew;
 CREATE POLICY "Users can manage tour crew"
   ON tour_crew FOR ALL
   USING (
@@ -669,6 +678,7 @@ CREATE POLICY "Users can manage tour crew"
   );
 
 -- Guest Lists: Inherit from tour dates
+DROP POLICY IF EXISTS "Users can view guest lists" ON guest_lists;
 CREATE POLICY "Users can view guest lists"
   ON guest_lists FOR SELECT
   USING (
@@ -679,6 +689,7 @@ CREATE POLICY "Users can view guest lists"
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage guest lists" ON guest_lists;
 CREATE POLICY "Users can manage guest lists"
   ON guest_lists FOR ALL
   USING (
@@ -690,19 +701,23 @@ CREATE POLICY "Users can manage guest lists"
   );
 
 -- Songs: Users can see their own songs
+DROP POLICY IF EXISTS "Users can view own songs" ON songs;
 CREATE POLICY "Users can view own songs"
   ON songs FOR SELECT
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can manage own songs" ON songs;
 CREATE POLICY "Users can manage own songs"
   ON songs FOR ALL
   USING (user_id = auth.uid());
 
 -- Notifications: Users can only see their own
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
 CREATE POLICY "Users can view own notifications"
   ON notifications FOR SELECT
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 CREATE POLICY "Users can update own notifications"
   ON notifications FOR UPDATE
   USING (user_id = auth.uid());
@@ -721,30 +736,39 @@ END;
 $$ language 'plpgsql';
 
 -- Add updated_at triggers to all tables
+DROP TRIGGER IF EXISTS update_tours_updated_at ON tours;
 CREATE TRIGGER update_tours_updated_at BEFORE UPDATE ON tours
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_tour_dates_updated_at ON tour_dates;
 CREATE TRIGGER update_tour_dates_updated_at BEFORE UPDATE ON tour_dates
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
 CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON organizations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_tour_crew_updated_at ON tour_crew;
 CREATE TRIGGER update_tour_crew_updated_at BEFORE UPDATE ON tour_crew
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_hotels_updated_at ON hotels;
 CREATE TRIGGER update_hotels_updated_at BEFORE UPDATE ON hotels
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_travel_items_updated_at ON travel_items;
 CREATE TRIGGER update_travel_items_updated_at BEFORE UPDATE ON travel_items
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_guest_lists_updated_at ON guest_lists;
 CREATE TRIGGER update_guest_lists_updated_at BEFORE UPDATE ON guest_lists
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_songs_updated_at ON songs;
 CREATE TRIGGER update_songs_updated_at BEFORE UPDATE ON songs
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_setlists_updated_at ON setlists;
 CREATE TRIGGER update_setlists_updated_at BEFORE UPDATE ON setlists
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
