@@ -136,10 +136,22 @@ export default function ApolloAIChatPage() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.details || errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('❌ Apollo API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
+      
+      if (!data.response) {
+        console.error('❌ Apollo API returned invalid response:', data);
+        throw new Error('Invalid response from Apollo');
+      }
       
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -148,11 +160,13 @@ export default function ApolloAIChatPage() {
         timestamp: new Date(),
       }]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('❌ Chat error:', error);
+      const errorMessage = error.message || "Sorry, I encountered an error. Please try again or rephrase your question.";
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "Sorry, I encountered an error. Please try again or rephrase your question.",
+        content: `Sorry, I encountered an error: ${errorMessage}. Please try again or contact support if the issue persists.`,
         timestamp: new Date(),
+        isError: true,
       }]);
     } finally {
       setIsLoading(false);
