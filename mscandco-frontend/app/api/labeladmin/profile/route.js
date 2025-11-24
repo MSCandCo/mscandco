@@ -239,6 +239,20 @@ export async function PATCH(request) {
     if (body.apple_music !== undefined) updates.apple_music = body.apple_music
     if (body.profile_picture_url !== undefined) updates.profile_picture_url = body.profile_picture_url
 
+    // Always update the updated_at timestamp
+    updates.updated_at = new Date().toISOString()
+
+    // Check if there are any updates to make
+    if (Object.keys(updates).length === 0) {
+      console.log('⚠️ No fields to update')
+      return NextResponse.json(
+        { error: 'No fields to update', details: 'No changes were provided' },
+        { status: 400 }
+      )
+    }
+
+    console.log('💾 Updating profile with fields:', Object.keys(updates))
+
     // Update profile using service role
     const { data: updatedProfile, error: updateError } = await supabase
       .from('user_profiles')
@@ -248,9 +262,19 @@ export async function PATCH(request) {
       .single()
 
     if (updateError) {
-      console.error('Error updating profile:', updateError)
+      console.error('❌ Error updating profile:', updateError)
+      console.error('❌ Update error details:', {
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      })
       return NextResponse.json(
-        { error: 'Failed to update profile', details: updateError.message },
+        { 
+          error: 'Failed to update profile', 
+          details: updateError.message || updateError.details || 'Unknown error',
+          code: updateError.code
+        },
         { status: 500 }
       )
     }
