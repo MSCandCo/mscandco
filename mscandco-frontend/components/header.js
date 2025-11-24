@@ -422,6 +422,10 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
+                      <Link href="/touring" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Music className="w-4 h-4" />
+                        Touring
+                      </Link>
 
                       {/* Insights Dropdown Group */}
                       <div className="relative group">
@@ -585,6 +589,10 @@ function Header({ largeLogo = false }) {
                       <Link href="/labeladmin/releases" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
                         <FileText className="w-4 h-4" />
                         Releases
+                      </Link>
+                      <Link href="/touring" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                        <Music className="w-4 h-4" />
+                        Touring
                       </Link>
 
                       {/* Insights Dropdown Group */}
@@ -951,6 +959,10 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-5 h-5" />
                         <span>Releases</span>
                       </Link>
+                      <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Music className="w-5 h-5" />
+                        <span>Touring</span>
+                      </Link>
                       <Link href="/artist/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <BarChart3 className="w-5 h-5" />
                         <span>Analytics</span>
@@ -977,6 +989,10 @@ function Header({ largeLogo = false }) {
                       <Link href="/labeladmin/releases" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <FileText className="w-5 h-5" />
                         <span>Releases</span>
+                      </Link>
+                      <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
+                        <Music className="w-5 h-5" />
+                        <span>Touring</span>
                       </Link>
                       <Link href="/labeladmin/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <BarChart3 className="w-5 h-5" />
