@@ -381,7 +381,8 @@ export default function ReleasesClient({ user: userProp }) {
         }
 
         if (token) {
-          const profileResponse = await fetch('/api/artist/profile', {
+          // Fetch label admin profile to get label name
+          const profileResponse = await fetch('/api/labeladmin/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (profileResponse.ok) {
@@ -740,7 +741,9 @@ export default function ReleasesClient({ user: userProp }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">My Releases</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {profileData?.labelName ? `${profileData.labelName} Releases` : 'Label Releases'}
+                </h1>
                 <p className="mt-2 text-gray-600">Manage your music releases and track their progress</p>
 
                 {/* Show plan status for all users */}
