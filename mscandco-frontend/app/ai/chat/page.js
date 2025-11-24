@@ -404,17 +404,27 @@ export default function ApolloAIChatPage() {
             </div>
           ))}
           
-          {/* Loading indicator */}
-          {isLoading && (
+          {/* Thinking indicator */}
+          {isLoading && thinkingMessages.length > 0 && (
             <div className="flex justify-start">
-              <div className="bg-white border rounded-2xl px-6 py-4 shadow-md">
-                <div className="flex items-center gap-2">
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gray-900 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
+                <div className="space-y-2">
+                  {thinkingMessages.map((msg, idx) => (
+                    <div 
+                      key={idx}
+                      className="text-sm text-gray-500 italic animate-fade-in"
+                      style={{ animationDelay: `${idx * 0.1}s` }}
+                    >
+                      {msg}
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex space-x-1">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
                   </div>
-                  <span className="text-sm text-gray-500">Apollo is thinking...</span>
                 </div>
               </div>
             </div>
