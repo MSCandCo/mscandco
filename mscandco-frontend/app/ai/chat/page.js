@@ -20,8 +20,10 @@ export default function ApolloAIChatPage() {
   const [greetingLoaded, setGreetingLoaded] = useState(false);
   const [insights, setInsights] = useState([]);
   const [insightsLoaded, setInsightsLoaded] = useState(false);
+  const [thinkingMessages, setThinkingMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
+  const thinkingIntervalRef = useRef(null);
   
   // Load greeting on mount (memoized)
   const loadGreeting = useCallback(async () => {
@@ -109,6 +111,39 @@ export default function ApolloAIChatPage() {
     }
   };
   
+  // Thinking messages that rotate while processing
+  const thinkingSteps = [
+    "Analyzing your question...",
+    "Gathering relevant information from your account...",
+    "Checking your releases and earnings data...",
+    "Processing insights and patterns...",
+    "Formulating the best response...",
+    "Almost ready..."
+  ];
+
+  const startThinkingIndicator = () => {
+    let currentStep = 0;
+    setThinkingMessages([thinkingSteps[0]]);
+    
+    thinkingIntervalRef.current = setInterval(() => {
+      currentStep++;
+      if (currentStep < thinkingSteps.length) {
+        setThinkingMessages(prev => [...prev, thinkingSteps[currentStep]]);
+      } else {
+        // Cycle back or stop
+        clearInterval(thinkingIntervalRef.current);
+      }
+    }, 2000); // Show new thinking message every 2 seconds
+  };
+
+  const stopThinkingIndicator = () => {
+    if (thinkingIntervalRef.current) {
+      clearInterval(thinkingIntervalRef.current);
+      thinkingIntervalRef.current = null;
+    }
+    setThinkingMessages([]);
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
     
@@ -121,6 +156,7 @@ export default function ApolloAIChatPage() {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    startThinkingIndicator();
     
     try {
       const response = await fetch('/api/apollo/chat', {
@@ -153,6 +189,8 @@ export default function ApolloAIChatPage() {
         throw new Error('Invalid response from Apollo');
       }
       
+      stopThinkingIndicator();
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.response,
@@ -161,6 +199,7 @@ export default function ApolloAIChatPage() {
       }]);
     } catch (error) {
       console.error('❌ Chat error:', error);
+      stopThinkingIndicator();
       const errorMessage = error.message || "Sorry, I encountered an error. Please try again or rephrase your question.";
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -227,6 +266,9 @@ export default function ApolloAIChatPage() {
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+      }
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
       }
     };
   }, []);
