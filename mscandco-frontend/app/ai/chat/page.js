@@ -278,7 +278,20 @@ export default function ApolloAIChatPage() {
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-6 py-4 shadow-sm">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
