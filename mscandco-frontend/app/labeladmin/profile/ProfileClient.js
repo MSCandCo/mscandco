@@ -266,7 +266,9 @@ export default function LabelAdminProfileClient() {
         showBrandedNotification('Profile updated successfully!');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        showBrandedNotification(`Failed to update profile: ${errorData.error || 'Unknown error'}`, 'error');
+        const errorMessage = errorData.details || errorData.error || errorData.message || 'Unknown error occurred';
+        console.error('Profile update error:', errorData);
+        showBrandedNotification(`Failed to update profile: ${errorMessage}`, 'error');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
