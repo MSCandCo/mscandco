@@ -15,9 +15,9 @@ export default async function HomePage() {
   // Check if user is authenticated
   const { data: { session } } = await supabase.auth.getSession()
 
-  // If authenticated, redirect to dashboard
+  // If authenticated, redirect to Apollo AI
   if (session?.user) {
-    redirect('/dashboard')
+    redirect('/ai')
   }
 
   // Show public homepage

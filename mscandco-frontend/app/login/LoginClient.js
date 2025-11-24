@@ -98,15 +98,9 @@ function LoginPageContent() {
                       sessionData.session.user.app_metadata?.role
           }
 
-          // Determine redirect based on role
-          let redirectTo = '/dashboard'
-          if (userRole === 'label_admin') {
-            redirectTo = '/labeladmin/dashboard'
-          } else if (userRole === 'super_admin') {
-            redirectTo = '/superadmin/dashboard'
-          } else if (userRole === 'company_admin' || userRole === 'admin') {
-            redirectTo = '/admin/dashboard'
-          }
+          // Determine redirect based on role - all users go to Apollo AI by default
+          let redirectTo = '/ai'
+          // Admins can still access their dashboards via "Use Regular Version" button
 
           console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
           window.location.href = redirectTo
@@ -300,20 +294,12 @@ function LoginPageContent() {
                       session.user.user_metadata?.role || 
                       session.user.app_metadata?.role
 
-      // Determine redirect based on role
+      // Determine redirect based on role - all users go to Apollo AI by default
       let redirectTo = searchParams.get('redirectedFrom')
 
       if (!redirectTo) {
-        // Role-based redirects
-        if (userRole === 'label_admin') {
-          redirectTo = '/labeladmin/dashboard'
-        } else if (userRole === 'super_admin') {
-          redirectTo = '/superadmin/dashboard'
-        } else if (userRole === 'company_admin' || userRole === 'admin') {
-          redirectTo = '/admin/dashboard'
-        } else {
-          redirectTo = '/dashboard'
-        }
+        // All users go to Apollo AI by default
+        redirectTo = '/ai'
       }
 
       console.log(`🚀 Redirecting ${userRole || 'user'} to: ${redirectTo}`)
@@ -395,20 +381,12 @@ function LoginPageContent() {
                         session.user.user_metadata?.role || 
                         session.user.app_metadata?.role
         
-        // Determine redirect based on role
+        // Determine redirect based on role - all users go to Apollo AI by default
         let redirectTo = searchParams.get('redirectedFrom')
         
         if (!redirectTo) {
-          // Role-based redirects
-          if (userRole === 'label_admin') {
-            redirectTo = '/labeladmin/dashboard'
-          } else if (userRole === 'super_admin') {
-            redirectTo = '/superadmin/dashboard'
-          } else if (userRole === 'company_admin' || userRole === 'admin') {
-            redirectTo = '/admin/dashboard'
-          } else {
-            redirectTo = '/dashboard'
-          }
+          // All users go to Apollo AI by default
+          redirectTo = '/ai'
         }
         
         console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)

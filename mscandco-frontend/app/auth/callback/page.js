@@ -152,20 +152,14 @@ function AuthCallbackContent() {
           
           console.log('✅ Magic link authentication successful for user:', finalSession.user.email)
           
-          // Determine redirect based on user role
+          // Determine redirect based on user role - all users go to Apollo AI by default
           const userRole = finalSession.user.user_metadata?.role || 
                           finalSession.user.app_metadata?.role
           
-          let redirectTo = '/dashboard'
+          let redirectTo = '/ai'
           
-          // Role-based redirects
-          if (userRole === 'label_admin') {
-            redirectTo = '/labeladmin/dashboard'
-          } else if (userRole === 'super_admin') {
-            redirectTo = '/superadmin/dashboard'
-          } else if (userRole === 'company_admin' || userRole === 'admin') {
-            redirectTo = '/admin/dashboard'
-          }
+          // All users go to Apollo AI by default
+          // Admins can access their dashboards via "Use Regular Version" button
           
           // Check if we have a redirect parameter in URL (for ghost login)
           const urlRedirect = searchParams.get('redirect')

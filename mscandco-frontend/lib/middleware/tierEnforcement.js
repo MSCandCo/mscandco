@@ -162,7 +162,7 @@ export async function enforceApolloQueryLimit(userId) {
   try {
     const { data: user, error } = await supabase
       .from('user_profiles')
-      .select('apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon, tier')
+      .select('apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon, tier, role')
       .eq('id', userId)
       .single();
 
@@ -174,8 +174,14 @@ export async function enforceApolloQueryLimit(userId) {
       };
     }
 
-    // Unlimited addon or Investment tier = no limit
-    if (user.apollo_unlimited_addon || user.tier === 'investment') {
+    // Admins get unlimited Apollo access
+    const isAdmin = user.role === 'super_admin' || 
+                   user.role === 'company_admin' || 
+                   user.role === 'admin' ||
+                   user.role === 'label_admin';
+
+    // Unlimited addon, Investment tier, or Admin = no limit
+    if (user.apollo_unlimited_addon || user.tier === 'investment' || isAdmin) {
       return {
         allowed: true,
         error: null
@@ -256,14 +262,20 @@ export async function trackApolloQuery(userId) {
   try {
     const { data: user } = await supabase
       .from('user_profiles')
-      .select('apollo_queries_used_this_month, apollo_unlimited_addon, tier')
+      .select('apollo_queries_used_this_month, apollo_unlimited_addon, tier, role')
       .eq('id', userId)
       .single();
 
     if (!user) return;
 
-    // Don't increment if unlimited
-    if (user.apollo_unlimited_addon || user.tier === 'investment') {
+    // Admins get unlimited Apollo access
+    const isAdmin = user.role === 'super_admin' || 
+                   user.role === 'company_admin' || 
+                   user.role === 'admin' ||
+                   user.role === 'label_admin';
+
+    // Don't increment if unlimited or admin
+    if (user.apollo_unlimited_addon || user.tier === 'investment' || isAdmin) {
       return;
     }
 

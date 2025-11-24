@@ -19,12 +19,11 @@ async function testEventricConnection() {
     // Test 1: Check credentials
     console.log('✓ Credentials loaded from .env.local:');
     console.log(`  Base URL: ${eventricClient.baseUrl}`);
-    console.log(`  Username: ${eventricClient.username || 'N/A'}`);
-    console.log(`  Consumer Key: ${eventricClient.consumerKey?.substring(0, 10)}...`);
-    console.log(`  Access Token: ${eventricClient.accessToken?.substring(0, 10)}... ${eventricClient.accessToken ? '(pre-loaded)' : '(will fetch)'}`);
+    console.log(`  API Key: ${eventricClient.consumerKey?.substring(0, 10)}...`);
+    console.log(`  API Secret: ${eventricClient.consumerSecret?.substring(0, 10)}...`);
     console.log();
 
-    // Test 2: Fetch tours (authentication happens automatically if needed)
+    // Test 2: Fetch tours
     console.log('📋 Fetching tours...');
     const tours = await eventricClient.getTours();
     console.log('✓ Tours fetched successfully!');
@@ -50,12 +49,17 @@ async function testEventricConnection() {
     console.error('\n❌ TEST FAILED!');
     console.error('Error:', error.message);
 
-    if (error.message.includes('Authentication failed')) {
+    if (error.message.includes('not configured')) {
       console.error('\n💡 Troubleshooting:');
-      console.error('   1. Check your Eventric credentials in .env.local');
-      console.error('   2. Verify username and password are correct');
-      console.error('   3. Ensure OAuth consumer keys are valid');
-      console.error('   4. Visit https://my.eventric.com/portal to verify account');
+      console.error('   1. Check EVENTRIC_API_KEY in .env.local');
+      console.error('   2. Check EVENTRIC_API_SECRET in .env.local');
+      console.error('   3. Get credentials from https://my.eventric.com/portal');
+      console.error('   4. Or contact support@eventric.com for API keys');
+    } else if (error.message.includes('404')) {
+      console.error('\n💡 Troubleshooting:');
+      console.error('   1. Verify API base URL is correct');
+      console.error('   2. Check if API access is enabled for your account');
+      console.error('   3. Contact support@eventric.com to verify API endpoint');
     }
 
     process.exit(1);

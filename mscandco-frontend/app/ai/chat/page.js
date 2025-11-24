@@ -299,7 +299,7 @@ export default function ApolloAIChatPage() {
             className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Back to Dashboard</span>
+            <span className="text-sm font-medium">Use Regular Version</span>
           </Link>
         </div>
       </div>
