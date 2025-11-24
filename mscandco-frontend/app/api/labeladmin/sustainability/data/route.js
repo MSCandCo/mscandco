@@ -75,12 +75,14 @@ export async function GET(request) {
     const releaseIds = releases?.map(r => r.id) || []
 
     // Fetch carbon footprint tracking for all releases
+    // Note: carbon_footprint_tracking uses user_id (artist_id) and release_id
     let carbonData = []
     if (releaseIds.length > 0) {
       const { data: carbonTracking, error: carbonError } = await supabase
         .from('carbon_footprint_tracking')
         .select('*')
         .in('release_id', releaseIds)
+        .in('user_id', artistIds) // Also filter by artist IDs for safety
 
       if (carbonError) {
         console.error('❌ Error fetching carbon tracking:', carbonError)
