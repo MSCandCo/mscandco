@@ -175,28 +175,55 @@ export async function enforceApolloQueryLimit(userId) {
     }
 
     // Unlimited addon or Investment tier = no limit
-    if (user.apollo_unlimited_addon || user.tier === 'investment' || user.apollo_query_limit === null) {
+    if (user.apollo_unlimited_addon || user.tier === 'investment') {
       return {
         allowed: true,
         error: null
       };
     }
 
+    // Set default limits based on tier if limit is null or 0
+    let queryLimit = user.apollo_query_limit;
+    if (queryLimit === null || queryLimit === 0 || queryLimit === undefined) {
+      // Set defaults based on tier
+      if (user.tier === 'free') {
+        queryLimit = 10; // Free tier: 10 queries/month
+      } else if (user.tier === 'pro') {
+        queryLimit = 100; // Pro tier: 100 queries/month
+      } else if (user.tier === 'mpp' || user.tier === 'mpp_partner') {
+        queryLimit = 500; // MPP tier: 500 queries/month
+      } else {
+        // Default for other tiers or unknown tiers
+        queryLimit = 50;
+      }
+      
+      // Update the user's limit in database for future queries
+      await supabase
+        .from('user_profiles')
+        .update({ apollo_query_limit: queryLimit })
+        .eq('id', userId);
+      
+      console.log(`✅ Set default Apollo limit for user ${userId}: ${queryLimit} (tier: ${user.tier})`);
+    }
+
+    // Ensure used count is a number
+    const usedCount = user.apollo_queries_used_this_month || 0;
+
     // Check if limit reached
-    if (user.apollo_queries_used_this_month >= user.apollo_query_limit) {
+    if (usedCount >= queryLimit) {
       const tierName = user.tier === 'free' ? 'MSC Free' : user.tier === 'pro' ? 'MSC Pro' : 'MPP Partner';
       const nextTier = user.tier === 'free' ? 'pro' : 'mpp';
       const nextLimit = user.tier === 'free' ? 100 : 500;
 
       return {
         allowed: false,
-        error: `Apollo Intelligence limit reached: You've used all ${user.apollo_query_limit} queries this month (${tierName} tier).`,
+        error: `Apollo Intelligence limit reached: You've used all ${queryLimit} queries this month (${tierName} tier).`,
         upgradeMessage: `Upgrade to ${nextTier === 'pro' ? 'MSC Pro' : 'MPP Partner'} for ${nextLimit} queries/month, or add unlimited AI for £9.99/month.`,
         upgradeUrl: `/billing/upgrade?tier=${nextTier}&reason=apollo_limit`,
         addonUrl: '/billing/addons?addon=apollo_unlimited',
         currentUsage: {
-          used: user.apollo_queries_used_this_month,
-          limit: user.apollo_query_limit,
+          used: usedCount,
+          limit: queryLimit,
           remaining: 0
         }
       };
@@ -206,9 +233,9 @@ export async function enforceApolloQueryLimit(userId) {
       allowed: true,
       error: null,
       currentUsage: {
-        used: user.apollo_queries_used_this_month,
-        limit: user.apollo_query_limit,
-        remaining: user.apollo_query_limit - user.apollo_queries_used_this_month
+        used: usedCount,
+        limit: queryLimit,
+        remaining: queryLimit - usedCount
       }
     };
   } catch (error) {
