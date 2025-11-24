@@ -57,13 +57,36 @@ export async function POST(request) {
     }));
 
     // Use Apollo Brain for ultra-intelligent response
-    const result = await apolloThink(latestMessage.content, userId, conversationHistory);
+    let result;
+    try {
+      console.log('🧠 Calling apolloThink with:', {
+        messageLength: latestMessage.content.length,
+        userId,
+        conversationHistoryLength: conversationHistory.length
+      });
+      
+      result = await apolloThink(latestMessage.content, userId, conversationHistory);
 
-    console.log('✅ Apollo Brain response:', {
-      hasResponse: !!result.response,
-      toolsUsed: result.toolsUsed.length,
-      tools: result.toolsUsed
-    });
+      console.log('✅ Apollo Brain response:', {
+        hasResponse: !!result?.response,
+        responseLength: result?.response?.length || 0,
+        toolsUsed: result?.toolsUsed?.length || 0,
+        tools: result?.toolsUsed || []
+      });
+    } catch (apolloError) {
+      console.error('❌ Apollo Brain error:', {
+        message: apolloError.message,
+        stack: apolloError.stack,
+        name: apolloError.name
+      });
+      throw new Error(`Apollo Brain error: ${apolloError.message}`);
+    }
+
+    // Validate result
+    if (!result || !result.response) {
+      console.error('❌ Apollo Brain returned invalid result:', result);
+      throw new Error('Apollo Brain returned an invalid response');
+    }
 
     // TIER TRACKING: Increment Apollo query counter
     await trackApolloQuery(userId);
