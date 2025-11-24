@@ -219,20 +219,30 @@ export default function LabelDashboardClient({ user }) {
               <div className="space-y-3">
                 {recentReleases.map((release) => (
                   <div key={release.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         release.status === 'live' ? 'bg-green-500' :
                         release.status === 'completed' ? 'bg-blue-500' :
                         'bg-gray-400'
                       }`} />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Release #{release.id.slice(0, 8)}</p>
-                        <p className="text-xs text-gray-500">{formatTimeAgo(release.created_at)}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {release.title || 'Untitled Release'}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {release.artist_name && (
+                            <p className="text-xs text-gray-500 truncate">{release.artist_name}</p>
+                          )}
+                          <span className="text-xs text-gray-400">•</span>
+                          <p className="text-xs text-gray-500">{formatTimeAgo(release.created_at)}</p>
+                        </div>
                       </div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded ${
+                    <span className={`text-xs px-2 py-1 rounded flex-shrink-0 ml-2 ${
                       release.status === 'live' ? 'bg-green-100 text-green-700' :
                       release.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                      release.status === 'submitted' ? 'bg-yellow-100 text-yellow-700' :
+                      release.status === 'draft' ? 'bg-gray-100 text-gray-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {release.status}

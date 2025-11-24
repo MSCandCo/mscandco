@@ -39,8 +39,9 @@ export async function GET(request) {
     const { data: releases, error: releasesError } = artistIds.length > 0
       ? await supabaseAdmin
           .from('releases')
-          .select('id, status, created_at')
+          .select('id, title, artist_name, status, created_at')
           .in('artist_id', artistIds)
+          .order('created_at', { ascending: false })
       : { data: [], error: null }
 
     // Get total earnings from shared_earnings
@@ -67,6 +68,8 @@ export async function GET(request) {
     // Recent releases (last 5)
     const recentReleases = releases?.slice(0, 5).map(r => ({
       id: r.id,
+      title: r.title || 'Untitled Release',
+      artist_name: r.artist_name || null,
       status: r.status,
       created_at: r.created_at
     })) || []
