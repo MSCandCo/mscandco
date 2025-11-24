@@ -228,23 +228,26 @@ export default function LabelAdminProfileClient() {
       }
 
       // Prepare data for API (convert snake_case to camelCase)
-      const dataToSave = {
-        labelName: editedProfile.label_name,
-        primaryGenre: editedProfile.primary_genre,
-        secondaryGenre: editedProfile.secondary_genre,
-        yearsActive: editedProfile.years_active,
-        companyName: editedProfile.company_name,
-        bio: editedProfile.bio,
-        website: editedProfile.website,
-        instagram: editedProfile.instagram,
-        facebook: editedProfile.facebook,
-        twitter: editedProfile.twitter,
-        youtube: editedProfile.youtube,
-        tiktok: editedProfile.tiktok,
-        spotify: editedProfile.spotify,
-        apple_music: editedProfile.apple_music,
-        profile_picture_url: editedProfile.profile_picture_url
-      };
+      // Only include fields that have actually changed or have values
+      const dataToSave = {}
+      
+      if (editedProfile.label_name !== undefined) dataToSave.labelName = editedProfile.label_name
+      if (editedProfile.primary_genre !== undefined) dataToSave.primaryGenre = editedProfile.primary_genre
+      if (editedProfile.secondary_genre !== undefined) dataToSave.secondaryGenre = editedProfile.secondary_genre
+      if (editedProfile.years_active !== undefined) dataToSave.yearsActive = editedProfile.years_active
+      if (editedProfile.company_name !== undefined) dataToSave.companyName = editedProfile.company_name
+      if (editedProfile.bio !== undefined) dataToSave.bio = editedProfile.bio
+      if (editedProfile.website !== undefined) dataToSave.website = editedProfile.website
+      if (editedProfile.instagram !== undefined) dataToSave.instagram = editedProfile.instagram
+      if (editedProfile.facebook !== undefined) dataToSave.facebook = editedProfile.facebook
+      if (editedProfile.twitter !== undefined) dataToSave.twitter = editedProfile.twitter
+      if (editedProfile.youtube !== undefined) dataToSave.youtube = editedProfile.youtube
+      if (editedProfile.tiktok !== undefined) dataToSave.tiktok = editedProfile.tiktok
+      if (editedProfile.spotify !== undefined) dataToSave.spotify = editedProfile.spotify
+      if (editedProfile.apple_music !== undefined) dataToSave.apple_music = editedProfile.apple_music
+      if (editedProfile.profile_picture_url !== undefined) dataToSave.profile_picture_url = editedProfile.profile_picture_url
+
+      console.log('💾 Saving profile data:', dataToSave)
 
       const response = await fetch('/api/labeladmin/profile', {
         method: 'PATCH',
@@ -266,8 +269,18 @@ export default function LabelAdminProfileClient() {
         showBrandedNotification('Profile updated successfully!');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.details || errorData.error || errorData.message || 'Unknown error occurred';
-        console.error('Profile update error:', errorData);
+        console.error('❌ Profile update error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        
+        // Use details first, then error, then message, avoiding duplication
+        const errorMessage = errorData.details || 
+                            (errorData.error && errorData.error !== errorData.details ? errorData.error : null) ||
+                            errorData.message || 
+                            `HTTP ${response.status}: ${response.statusText}`;
+        
         showBrandedNotification(`Failed to update profile: ${errorMessage}`, 'error');
       }
     } catch (error) {
