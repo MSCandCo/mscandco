@@ -64,22 +64,39 @@ function LoginPageContent() {
     // Check if user is already logged in - redirect to dashboard
     const checkExistingSession = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession()
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError) {
+          console.log('⚠️ Session check error (this is normal if not logged in):', sessionError.message)
+          return
+        }
 
         if (sessionData?.session?.user) {
           console.log('✅ User already logged in, fetching role for redirect...')
 
-          // Fetch user role for proper redirect
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('role')
-            .eq('id', sessionData.session.user.id)
-            .maybeSingle()
+          // Fetch user role for proper redirect - handle errors gracefully
+          let userRole = null
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('role')
+              .eq('id', sessionData.session.user.id)
+              .maybeSingle()
 
-          // Determine role with fallbacks
-          const userRole = profile?.role ||
-                          sessionData.session.user.user_metadata?.role ||
-                          sessionData.session.user.app_metadata?.role
+            if (profileError && profileError.code !== 'PGRST116') {
+              console.warn('⚠️ Profile fetch warning (using metadata fallback):', profileError.message)
+            }
+
+            // Determine role with fallbacks
+            userRole = profile?.role ||
+                        sessionData.session.user.user_metadata?.role ||
+                        sessionData.session.user.app_metadata?.role
+          } catch (profileError) {
+            console.warn('⚠️ Profile fetch error (using metadata fallback):', profileError)
+            // Use metadata as fallback
+            userRole = sessionData.session.user.user_metadata?.role ||
+                      sessionData.session.user.app_metadata?.role
+          }
 
           // Determine redirect based on role
           let redirectTo = '/dashboard'
@@ -96,8 +113,9 @@ function LoginPageContent() {
           return
         }
       } catch (error) {
-        console.error('Error checking session:', error)
+        console.error('❌ Error checking session:', error)
         // Don't redirect on error, let user stay on login page
+        // This is normal if there's no session
       }
     }
     
