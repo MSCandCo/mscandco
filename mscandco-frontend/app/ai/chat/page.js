@@ -81,10 +81,26 @@ export default function ApolloAIChatPage() {
     loadInsights();
   }, [loadInsights]);
   
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (but not on initial load)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Only auto-scroll if there are messages and we're not at the initial load
+    if (messages.length > 0 && greetingLoaded) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [messages, greetingLoaded]);
+  
+  // Prevent scroll restoration on page load
+  useEffect(() => {
+    // Scroll to top on mount to prevent weird scroll positions
+    window.scrollTo(0, 0);
+    // Disable browser scroll restoration
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
   
   // Handle insight action
   const handleInsightAction = async (insight) => {
@@ -280,7 +296,7 @@ export default function ApolloAIChatPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0">
+      <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
@@ -305,8 +321,8 @@ export default function ApolloAIChatPage() {
         </div>
       </div>
       
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0">
+      {/* Messages - Scrollable area that takes remaining space */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0 overscroll-contain">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           
           {/* Proactive Insights */}
@@ -435,8 +451,8 @@ export default function ApolloAIChatPage() {
         </div>
       </div>
       
-      {/* Input */}
-      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+      {/* Input - Fixed at bottom */}
+      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2 sm:gap-3">
             {/* Voice button */}
