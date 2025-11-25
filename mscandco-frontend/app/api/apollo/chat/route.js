@@ -36,11 +36,26 @@ export async function POST(request) {
       allowed: limitCheck.allowed,
       bypassReason: limitCheck.bypassReason,
       isAdmin: limitCheck.isAdmin,
-      currentUsage: limitCheck.currentUsage
+      currentUsage: limitCheck.currentUsage,
+      warning: limitCheck.warning
     });
     
     if (!limitCheck.allowed) {
       console.log(`⚠️ Apollo limit blocked for user ${userId}:`, limitCheck.error);
+      console.log(`📊 Limit details:`, limitCheck.currentUsage);
+      
+      // TEMPORARY DEBUGGING: Log full user profile to understand the issue
+      try {
+        const { data: debugUser } = await supabase
+          .from('user_profiles')
+          .select('id, role, tier, apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon')
+          .eq('id', userId)
+          .single();
+        console.log(`🔍 DEBUG - User profile data:`, debugUser);
+      } catch (debugError) {
+        console.error('Error fetching debug user data:', debugError);
+      }
+      
       return NextResponse.json({
         error: 'Apollo Intelligence limit reached',
         message: limitCheck.error,
@@ -54,6 +69,9 @@ export async function POST(request) {
     // Log successful access
     if (limitCheck.bypassReason) {
       console.log(`✅ Apollo access granted (bypass: ${limitCheck.bypassReason}) for user ${userId}`);
+      if (limitCheck.warning) {
+        console.log(`⚠️ Warning: ${limitCheck.warning}`);
+      }
     }
 
     // Extract the latest user message

@@ -160,6 +160,17 @@ export async function trackReleaseCreation(userId, trackCount = 0) {
  */
 export async function enforceApolloQueryLimit(userId) {
   try {
+    // TEMPORARY BYPASS: Allow all users during debugging (can be disabled via env var)
+    const BYPASS_LIMITS = process.env.APOLLO_BYPASS_LIMITS === 'true';
+    if (BYPASS_LIMITS) {
+      console.log(`⚠️ BYPASS MODE: Apollo limits disabled for user ${userId}`);
+      return {
+        allowed: true,
+        error: null,
+        bypassReason: 'bypass_mode_enabled'
+      };
+    }
+
     // First, try to get user from user_profiles
     const { data: user, error } = await supabase
       .from('user_profiles')
@@ -179,6 +190,16 @@ export async function enforceApolloQueryLimit(userId) {
                 userRole === 'company_admin' || 
                 userRole === 'admin' ||
                 userRole === 'label_admin';
+      
+      console.log(`👤 User profile found:`, {
+        userId,
+        role: userRole,
+        tier: user.tier,
+        isAdmin,
+        apollo_queries_used: user.apollo_queries_used_this_month,
+        apollo_query_limit: user.apollo_query_limit,
+        apollo_unlimited_addon: user.apollo_unlimited_addon
+      });
     } else if (error) {
       // Fallback: Check auth.users metadata
       console.log(`⚠️ User not found in user_profiles, checking auth.users for ${userId}`);
@@ -209,15 +230,15 @@ export async function enforceApolloQueryLimit(userId) {
       };
     }
 
-    // If no user found at all, fail open
+    // If no user found at all, fail open (allow access)
     if (error || !user) {
-      console.error('Error fetching Apollo limit:', error);
+      console.error('⚠️ Error fetching Apollo limit - FAILING OPEN (allowing access):', error);
       // FAIL OPEN: Allow access on error to not break functionality
       return {
         allowed: true,
         error: null,
         bypassReason: 'error_fetching_user',
-        warning: 'User profile not found, allowing access'
+        warning: 'User profile not found, allowing access for reliability'
       };
     }
 
@@ -263,16 +284,49 @@ export async function enforceApolloQueryLimit(userId) {
       limit: queryLimitNum,
       tier: user.tier,
       role: user.role,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      unlimited_addon: user.apollo_unlimited_addon
     });
 
-    // Check if limit reached (only if we have a valid limit)
-    if (queryLimitNum > 0 && usedCount >= queryLimitNum) {
+    // SAFETY: If limit is 0 or invalid, allow access (fail open)
+    if (queryLimitNum <= 0) {
+      console.log(`⚠️ Invalid or zero limit (${queryLimitNum}) - ALLOWING ACCESS for user ${userId}`);
+      return {
+        allowed: true,
+        error: null,
+        bypassReason: 'invalid_limit',
+        currentUsage: {
+          used: usedCount,
+          limit: queryLimitNum,
+          remaining: 'unlimited'
+        }
+      };
+    }
+
+    // Check if limit reached (only if we have a valid limit > 0)
+    if (usedCount >= queryLimitNum) {
       const tierName = user.tier === 'free' ? 'MSC Free' : user.tier === 'pro' ? 'MSC Pro' : 'MPP Partner';
       const nextTier = user.tier === 'free' ? 'pro' : 'mpp';
       const nextLimit = user.tier === 'free' ? 100 : 500;
 
-      console.log(`⚠️ Apollo limit reached for user ${userId}: ${usedCount}/${queryLimitNum}`);
+      console.log(`⚠️ Apollo limit reached for user ${userId}: ${usedCount}/${queryLimitNum} (tier: ${user.tier})`);
+
+      // TEMPORARY: For debugging, allow access even if limit reached (remove this in production)
+      const ALLOW_OVERRIDE = process.env.APOLLO_ALLOW_OVERRIDE === 'true';
+      if (ALLOW_OVERRIDE) {
+        console.log(`⚠️ OVERRIDE MODE: Allowing access despite limit being reached`);
+        return {
+          allowed: true,
+          error: null,
+          bypassReason: 'override_mode',
+          warning: `Limit reached (${usedCount}/${queryLimitNum}) but override enabled`,
+          currentUsage: {
+            used: usedCount,
+            limit: queryLimitNum,
+            remaining: 0
+          }
+        };
+      }
 
       return {
         allowed: false,
@@ -288,7 +342,7 @@ export async function enforceApolloQueryLimit(userId) {
       };
     }
 
-    console.log(`✅ Apollo access granted for user ${userId}: ${usedCount}/${queryLimitNum} used`);
+    console.log(`✅ Apollo access granted for user ${userId}: ${usedCount}/${queryLimitNum} used (${queryLimitNum - usedCount} remaining)`);
 
     return {
       allowed: true,
