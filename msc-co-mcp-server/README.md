@@ -1,4 +1,4 @@
-# 🎵 MSC & Co MCP Server v2.5.0
+# 🎵 MSC & Co MCP Server v3.0.0
 
 **The Most Comprehensive Music Distribution MCP Ever Built!**
 
@@ -18,16 +18,16 @@ For licensing inquiries: legal@audiomsc.com
 
 ---
 
-Manage your music releases, check earnings, and analyze performance directly from Claude Desktop, Cursor, or any MCP-compatible AI assistant.
+Manage your music releases, check earnings, analyze performance, and manage tours directly from Claude Desktop, Cursor, or any MCP-compatible AI assistant.
 
-**NEW in v2.5.0**: 169+ tools including copyright protection, accessibility services, sustainability tracking, learning modules, and open research data platform! Plus 1,220+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, 26 musical keys, and complete workflow statuses!
+**NEW in v3.0.0**: 195+ tools including **AI-Native Touring Platform** (30+ tools), copyright protection, accessibility services, sustainability tracking, learning modules, and open research data platform! Plus 1,220+ comprehensive enums including 94 languages, 209 countries, 102 instruments, 57 mood tags, 26 musical keys, and complete workflow statuses!
 
 ---
 
 ## 🎯 What Makes This Special
 
-- **169+ Tools** - Complete coverage of music distribution + copyright protection, accessibility, sustainability, learning, and open data
-- **900+ Comprehensive Enums** - Industry-standard validation for all fields
+- **195+ Tools** - Complete coverage of music distribution + **AI-Native Touring Platform** + copyright protection, accessibility, sustainability, learning, and open data
+- **1,220+ Comprehensive Enums** - Industry-standard validation for all fields
 - **212 Music Genres** - From Hip-Hop to Afrobeats to Classical
 - **94 Languages (ISO 639-1)** - Global language support
 - **209 Countries (ISO 3166-1)** - Worldwide distribution coverage
@@ -36,6 +36,7 @@ Manage your music releases, check earnings, and analyze performance directly fro
 - **57 Mood Tags** - Rich categorization for discovery
 - **27 Track Versions** - All variations (remixes, acoustic, live, etc.)
 - **30 Territories** - Granular distribution control
+- **30+ Touring Tools** - Complete tour management, route optimization, financial tracking, and AI-powered tour creation ✨ NEW
 - **Production-Ready** - Professional-grade metadata validation
 
 ---
@@ -71,12 +72,27 @@ Manage your music releases, check earnings, and analyze performance directly fro
 - 🔔 **Notifications** - 16 notification types including earnings, releases, analytics
 - 📧 **Support** - Contact support with 16 specialized categories
 
-### Platform Features (NEW in v2.5.0)
+### Platform Features
 - ©️ **Copyright Protection** - AI-powered copyright verification for releases and tracks
 - ♿ **Accessibility Services** - Generate transcriptions, audio descriptions, sign language content
 - 🌱 **Sustainability Tracking** - Track carbon footprint, purchase offsets, earn achievements
 - 🎓 **Learning & Skills** - Access learning modules, AI tutor, quizzes, and certificates
 - 📊 **Open Research Data** - Query public metrics, access datasets, create API keys
+
+### Touring Platform (NEW in v3.0.0) ✨
+- 🎸 **Tour Management** - Create tours, manage dates, crew, venues, guest lists
+- 🗺️ **Route Optimization** - AI-powered route optimization to minimize distance, time, and cost
+- 💰 **Financial Tracking** - Track expenses, revenue, P&L, generate financial reports
+- 📅 **Calendar Export** - Export tour dates to Google Calendar, Apple Calendar, Outlook
+- 📄 **Reports Generation** - Generate day sheets, financial reports (PDF/CSV)
+- ✈️ **Flight Tracking** - Real-time flight status via FlightAware integration
+- 🎫 **AI Tour Creation** - Create tours from ticket links (Eventbrite, Ticketmaster, etc.)
+- 💡 **Smart Suggestions** - AI-powered tour name suggestions, crew recommendations, budget estimates
+- 🏢 **Venue Matching** - AI-powered venue matching based on capacity, location, type
+- 🎵 **Set List Builder** - Manage song library and build set lists for tour dates
+- 🏨 **Hotel & Travel** - Book hotels, manage travel arrangements
+- 📋 **Itinerary Management** - Build detailed day-by-day itineraries
+- 🔔 **Real-Time Notifications** - Push notifications for tour updates
 
 ---
 

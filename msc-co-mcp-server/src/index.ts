@@ -2790,10 +2790,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
 
       // ==========================================
-      // PLATFORM FEATURES TOOLS (35 tools)
+      // PLATFORM FEATURES TOOLS (65+ tools)
       // Copyright Protection, Accessibility Services,
       // Sustainability & Carbon Tracking, Learning & Skills,
-      // Open Research Data Platform
+      // Open Research Data Platform, Touring Platform ✨ NEW
       // ==========================================
       ...PLATFORM_FEATURES_TOOLS,
 
@@ -3635,7 +3635,167 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
       }
 
-      // For all new tools, return a placeholder implementation
+      // ==========================================
+      // TOURING PLATFORM TOOLS ✨ NEW
+      // ==========================================
+      case "create_tour":
+      case "list_tours":
+      case "get_tour_details":
+      case "add_tour_date":
+      case "add_crew_member":
+      case "search_venues":
+      case "add_guest_to_tour_date":
+      case "approve_guest":
+      case "add_itinerary_item":
+      case "add_hotel_booking":
+      case "add_travel_item":
+      case "add_expense":
+      case "add_revenue":
+      case "get_tour_financials":
+      case "optimize_tour_route":
+      case "generate_day_sheet":
+      case "generate_financial_report":
+      case "export_tour_calendar":
+      case "track_flight":
+      case "create_tour_from_ticket_link":
+      case "create_tour_from_multiple_tickets":
+      case "get_tour_suggestions":
+      case "find_matching_venues":
+      case "add_song_to_tour":
+      case "update_setlist":
+      case "get_tour_analytics":
+      case "sync_eventbrite_event": {
+        // Resolve endpoint based on tool name and args
+        let endpoint = "";
+        const params = args as any || {};
+        
+        switch (name) {
+          case "create_tour":
+            endpoint = "/api/touring/tours";
+            break;
+          case "list_tours":
+            endpoint = "/api/touring/tours";
+            break;
+          case "get_tour_details":
+            endpoint = `/api/touring/tours/${params.tour_id}`;
+            break;
+          case "add_tour_date":
+            endpoint = `/api/touring/tours/${params.tour_id}/dates`;
+            break;
+          case "add_crew_member":
+            endpoint = `/api/touring/tours/${params.tour_id}/crew`;
+            break;
+          case "search_venues":
+            endpoint = `/api/touring/venues?query=${encodeURIComponent(params.query || '')}`;
+            break;
+          case "add_guest_to_tour_date":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/guest-list`;
+            break;
+          case "approve_guest":
+            endpoint = `/api/touring/guest-lists/${params.guest_id}`;
+            break;
+          case "add_itinerary_item":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/itinerary`;
+            break;
+          case "add_hotel_booking":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/hotels`;
+            break;
+          case "add_travel_item":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/travel`;
+            break;
+          case "add_expense":
+            endpoint = `/api/touring/tours/${params.tour_id}/expenses`;
+            break;
+          case "add_revenue":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/revenue`;
+            break;
+          case "get_tour_financials":
+            endpoint = `/api/touring/tours/${params.tour_id}/financial`;
+            break;
+          case "optimize_tour_route":
+            endpoint = "/api/touring/route-optimization";
+            break;
+          case "generate_day_sheet":
+            endpoint = `/api/touring/reports/day-sheet?tourDateId=${params.tour_date_id}`;
+            break;
+          case "generate_financial_report":
+            endpoint = `/api/touring/reports/financial?tourId=${params.tour_id}&format=${params.format || 'html'}`;
+            break;
+          case "export_tour_calendar":
+            if (params.tour_date_id) {
+              endpoint = `/api/touring/calendar/export?tourDateId=${params.tour_date_id}`;
+            } else {
+              endpoint = `/api/touring/calendar/export?tourId=${params.tour_id}`;
+            }
+            break;
+          case "track_flight":
+            if (params.travel_item_id) {
+              endpoint = `/api/touring/flightaware?travelItemId=${params.travel_item_id}`;
+            } else {
+              endpoint = `/api/touring/flightaware?flightNumber=${params.flight_number}`;
+            }
+            break;
+          case "create_tour_from_ticket_link":
+            endpoint = "/api/touring/apollo/create-from-ticket";
+            break;
+          case "create_tour_from_multiple_tickets":
+            endpoint = "/api/touring/apollo/create-from-ticket-multi";
+            break;
+          case "get_tour_suggestions":
+            endpoint = "/api/touring/suggestions";
+            break;
+          case "find_matching_venues":
+            endpoint = "/api/touring/venue-matching";
+            break;
+          case "add_song_to_tour":
+            endpoint = `/api/touring/tours/${params.tour_id}/songs`;
+            break;
+          case "update_setlist":
+            endpoint = `/api/touring/tour-dates/${params.tour_date_id}/setlist`;
+            break;
+          case "get_tour_analytics":
+            endpoint = `/api/touring/tours/${params.tour_id}/analytics`;
+            break;
+          case "sync_eventbrite_event":
+            endpoint = "/api/touring/integrations/eventbrite";
+            break;
+        }
+
+        const method = name.startsWith("create_") || name.startsWith("add_") || name.startsWith("update_") || name.startsWith("sync_") || name.startsWith("approve_")
+          ? "POST"
+          : "GET";
+
+        try {
+          const data = await apiCall(endpoint, {
+            method,
+            body: method === "POST" ? JSON.stringify(params) : undefined,
+          });
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                data,
+                message: `✅ Touring platform action completed: ${name}`,
+              }, null, 2)
+            }],
+          };
+        } catch (error: any) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                success: false,
+                error: error.message,
+                message: `Failed to execute ${name}`,
+              }, null, 2)
+            }],
+            isError: true,
+          };
+        }
+      }
+
+      // For all other tools, return a placeholder implementation
       default: {
         // Check if it's an enterprise feature tool
         const enterpriseTool = enterpriseFeaturesTools.find(t => t.name === name);
@@ -3670,8 +3830,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
-  console.error("🎵 MSC & Co MCP Server v2.4.0");
-  console.error("🚀 125+ Tools with 1,220 Comprehensive Enums");
+  console.error("🎵 MSC & Co MCP Server v3.0.0");
+  console.error("🚀 195+ Tools with 1,220 Comprehensive Enums");
+  console.error("🎸 NEW: Touring Platform Tools (30+ tools)");
   console.error(`📡 API: ${API_BASE_URL}`);
   console.error(`🔑 API Key: ${API_KEY?.substring(0, 8)}...`);
   console.error("");
