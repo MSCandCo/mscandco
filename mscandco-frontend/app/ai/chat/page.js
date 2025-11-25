@@ -81,17 +81,6 @@ export default function ApolloAIChatPage() {
     loadInsights();
   }, [loadInsights]);
   
-  // Auto-scroll to bottom when new messages arrive (but not on initial load)
-  useEffect(() => {
-    // Only auto-scroll if there are messages and we're not at the initial load
-    if (messages.length > 0 && greetingLoaded) {
-      // Small delay to ensure DOM is updated
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  }, [messages, greetingLoaded]);
-  
   // Prevent scroll restoration on page load
   useEffect(() => {
     // Scroll to top on mount to prevent weird scroll positions
@@ -100,6 +89,13 @@ export default function ApolloAIChatPage() {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
+  }, []);
+  
+  // Auto-scroll to bottom only when user sends a message (not on initial load)
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }, []);
   
   // Handle insight action
@@ -174,6 +170,9 @@ export default function ApolloAIChatPage() {
     setIsLoading(true);
     startThinkingIndicator();
     
+    // Scroll to bottom when user sends a message
+    scrollToBottom();
+    
     try {
       const response = await fetch('/api/apollo/chat', {
         method: 'POST',
@@ -213,6 +212,9 @@ export default function ApolloAIChatPage() {
         tool_calls: data.tool_calls,
         timestamp: new Date(),
       }]);
+      
+      // Scroll to bottom after assistant responds
+      scrollToBottom();
     } catch (error) {
       console.error('❌ Chat error:', error);
       stopThinkingIndicator();
@@ -223,6 +225,9 @@ export default function ApolloAIChatPage() {
         timestamp: new Date(),
         isError: true,
       }]);
+      
+      // Scroll to bottom after error message
+      scrollToBottom();
     } finally {
       setIsLoading(false);
     }
@@ -294,7 +299,7 @@ export default function ApolloAIChatPage() {
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden" style={{ height: '100vh', maxHeight: '100vh' }}>
       {/* Header */}
       <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -322,7 +327,7 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Messages - Scrollable area that takes remaining space */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0 overscroll-contain">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0 overscroll-contain" style={{ flex: '1 1 auto', overflowY: 'auto' }}>
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           
           {/* Proactive Insights */}
