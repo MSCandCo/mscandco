@@ -457,21 +457,21 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Input - Fixed at bottom */}
-      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 z-10 shadow-lg">
+      <div className="bg-white border-t px-4 sm:px-6 py-2 sm:py-2.5 flex-shrink-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto">
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2 items-center">
             {/* Voice button */}
             <button
               onClick={startVoiceInput}
               disabled={isLoading}
-              className={`p-2.5 sm:p-3 rounded-xl transition-all flex-shrink-0 ${
+              className={`p-2 rounded-lg transition-all flex-shrink-0 ${
                 isListening
                   ? 'bg-red-600 text-white shadow-lg scale-110 animate-pulse'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
               title={isListening ? 'Stop listening' : 'Start voice input'}
             >
-              {isListening ? <MicOff size={18} className="sm:w-5 sm:h-5" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
+              {isListening ? <MicOff size={16} className="sm:w-4 sm:h-4" /> : <Mic size={16} className="sm:w-4 sm:h-4" />}
             </button>
             
             {/* Text input */}
@@ -482,25 +482,25 @@ export default function ApolloAIChatPage() {
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask Apollo anything..."
               disabled={isLoading}
-              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-3 sm:px-4 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             
             {/* Send button */}
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              className="px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
-              <Send size={18} className="sm:w-5 sm:h-5" />
+              <Send size={16} className="sm:w-4 sm:h-4" />
             </button>
           </div>
           
-          {/* Helper text */}
-          <div className="mt-2 sm:mt-3 text-xs text-center text-gray-500">
-            <p className="mb-1 hidden sm:block">
-              <span className="font-semibold">Try asking:</span> "Which platform pays me the most?" • "Show my wallet balance" • "I want to release a song"
+          {/* Helper text - Compact */}
+          <div className="mt-1.5 text-xs text-center text-gray-400">
+            <p className="hidden sm:block text-gray-500">
+              <span className="font-semibold">Try:</span> "Which platform pays me the most?" • "Show my wallet balance" • "I want to release a song"
             </p>
-            <p className="text-gray-400 text-xs">
+            <p className="text-xs text-gray-400">
               Powered by OpenAI GPT-4o-mini {isListening && '• 🎤 Listening...'}
             </p>
           </div>
