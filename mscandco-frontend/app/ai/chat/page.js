@@ -328,7 +328,7 @@ export default function ApolloAIChatPage() {
       
       {/* Messages - Scrollable area that takes remaining space */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 sm:py-3 min-h-0 overscroll-contain" style={{ flex: '1 1 auto', overflowY: 'auto' }}>
-        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4 pb-20">
           
           {/* Proactive Insights */}
           {insights.length > 0 && (
