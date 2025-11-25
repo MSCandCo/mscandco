@@ -197,7 +197,7 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex space-x-8">
-            {['overview', 'guest-list', 'itinerary', 'hotels', 'travel', 'setlist'].map((tab) => (
+            {['overview', 'guest-list', 'itinerary', 'hotels', 'travel', 'setlist', 'integrations'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -630,6 +630,35 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Integrations Tab */}
+        {activeTab === 'integrations' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">External Integrations</h2>
+              <Link
+                href={`/touring/tours/${tourId}/dates/${dateId}/integrations`}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+              >
+                <Link2 size={18} />
+                Manage Integrations
+              </Link>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+              <Link2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Connect External Services</h3>
+              <p className="text-gray-600 mb-6">Sync with Eventbrite, manage payments with Revolut</p>
+              <Link
+                href={`/touring/tours/${tourId}/dates/${dateId}/integrations`}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+              >
+                <Link2 size={20} />
+                Manage Integrations
+              </Link>
+            </div>
           </div>
         )}
         

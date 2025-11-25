@@ -65,7 +65,7 @@ export async function POST(request, { params }) {
     const { tourId } = params;
     const body = await request.json();
     
-    const { tour_date_id, category, amount, description, date, vendor, payment_method, submitted_by } = body;
+    const { tour_date_id, category, amount, description, date, vendor, payment_method, submitted_by, revolut_order_id } = body;
     
     if (!category || !amount || !description || !date || !submitted_by) {
       return NextResponse.json(
@@ -86,8 +86,9 @@ export async function POST(request, { params }) {
         vendor: vendor || null,
         payment_method: payment_method || null,
         submitted_by,
+        revolut_order_id: revolut_order_id || null,
         status: 'pending',
-        currency: 'USD'
+        currency: 'GBP' // Changed to GBP to match Revolut default
       })
       .select()
       .single();

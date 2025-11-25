@@ -57,7 +57,7 @@ export async function POST(request, { params }) {
     const { dateId } = params;
     const body = await request.json();
     
-    const { source, amount, description, payment_method, reference_number, recorded_by } = body;
+    const { source, amount, description, payment_method, reference_number, recorded_by, revolut_order_id } = body;
     
     if (!source || !amount || !recorded_by) {
       return NextResponse.json(
@@ -76,7 +76,8 @@ export async function POST(request, { params }) {
         payment_method: payment_method || null,
         reference_number: reference_number || null,
         recorded_by,
-        currency: 'USD'
+        revolut_order_id: revolut_order_id || null,
+        currency: 'GBP' // Changed to GBP to match Revolut default
       })
       .select()
       .single();
