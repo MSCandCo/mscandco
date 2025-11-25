@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Calendar, MapPin, Clock, Users, DollarSign, Plus, 
   CheckCircle, XCircle, Clock as ClockIcon, Hotel, Plane, Music,
-  Edit, Trash2
+  Edit, Trash2, Car, Train, Ship, Link2
 } from 'lucide-react';
 
 export default function TourDateDetailClient({ tourId, dateId, userId }) {
