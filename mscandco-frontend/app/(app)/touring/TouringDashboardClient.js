@@ -104,7 +104,7 @@ export default function TouringDashboardClient({ userId }) {
         )}
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -150,6 +150,19 @@ export default function TouringDashboardClient({ userId }) {
               <Users className="w-8 h-8 text-gray-400" />
             </div>
           </div>
+          
+          <Link
+            href="/touring/analytics"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-6 shadow-sm border border-purple-200 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white/90 mb-1">Analytics</p>
+                <p className="text-2xl font-bold text-white">View Insights</p>
+              </div>
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+          </Link>
         </div>
         
         {/* Tours List */}

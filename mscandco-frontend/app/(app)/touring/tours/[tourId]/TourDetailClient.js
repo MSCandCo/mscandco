@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp } from 'lucide-react';
 
 export default function TourDetailClient({ tourId, userId }) {
   const router = useRouter();
@@ -100,10 +100,19 @@ export default function TourDetailClient({ tourId, userId }) {
               <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(tour.status)}`}>
                 {tour.status}
               </span>
-              <button className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors">
-                <Edit size={18} />
-                Edit
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/touring/tours/${tourId}/financial`}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                >
+                  <DollarSign size={18} />
+                  Financial
+                </Link>
+                <button className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors">
+                  <Edit size={18} />
+                  Edit
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -169,17 +178,20 @@ export default function TourDetailClient({ tourId, userId }) {
               <Calendar size={20} />
               Tour Dates
             </h2>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+            <Link
+              href={`/touring/tours/${tourId}/dates/create`}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
               <Plus size={18} />
               Add Date
-            </button>
+            </Link>
           </div>
           
           {dates.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
               <p>No tour dates yet</p>
-              <button className="mt-4 text-blue-600 hover:underline">Add your first date</button>
+              <Link href={`/touring/tours/${tourId}/dates/create`} className="mt-4 inline-block text-blue-600 hover:underline">Add your first date</Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -187,6 +199,7 @@ export default function TourDetailClient({ tourId, userId }) {
                 <Link
                   key={date.id}
                   href={`/touring/tours/${tourId}/dates/${date.id}`}
+                  className="block"
                   className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -232,17 +245,20 @@ export default function TourDetailClient({ tourId, userId }) {
               <Users size={20} />
               Crew
             </h2>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+            <Link
+              href={`/touring/tours/${tourId}/crew/add`}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
               <Plus size={18} />
               Add Crew Member
-            </button>
+            </Link>
           </div>
           
           {crew.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
               <p>No crew members yet</p>
-              <button className="mt-4 text-blue-600 hover:underline">Add your first crew member</button>
+              <Link href={`/touring/tours/${tourId}/crew/add`} className="mt-4 inline-block text-blue-600 hover:underline">Add your first crew member</Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
