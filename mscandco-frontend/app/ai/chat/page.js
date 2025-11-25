@@ -447,7 +447,7 @@ export default function ApolloAIChatPage() {
             </div>
           )}
           
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="h-1" />
         </div>
       </div>
       
