@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Calendar, MapPin, Clock, Users, DollarSign, Plus, 
   CheckCircle, XCircle, Clock as ClockIcon, Hotel, Plane, Music,
-  Edit, Trash2, Car, Train, Ship, Link2
+  Edit, Trash2, Car, Train, Ship, Link2, FileText
 } from 'lucide-react';
 
 export default function TourDateDetailClient({ tourId, dateId, userId }) {
@@ -197,7 +197,7 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex space-x-8">
-            {['overview', 'guest-list', 'itinerary', 'hotels', 'travel', 'setlist', 'integrations'].map((tab) => (
+            {['overview', 'guest-list', 'itinerary', 'hotels', 'travel', 'setlist', 'integrations', 'reports'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -630,6 +630,35 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Reports Tab */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Reports & Exports</h2>
+              <Link
+                href={`/touring/tours/${tourId}/dates/${dateId}/reports`}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+              >
+                <FileText size={18} />
+                Generate Reports
+              </Link>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Generate Reports</h3>
+              <p className="text-gray-600 mb-6">Create day sheets, financial reports, and calendar exports</p>
+              <Link
+                href={`/touring/tours/${tourId}/dates/${dateId}/reports`}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+              >
+                <FileText size={20} />
+                Generate Reports
+              </Link>
+            </div>
           </div>
         )}
         

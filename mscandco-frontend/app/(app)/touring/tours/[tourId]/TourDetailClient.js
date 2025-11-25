@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp, Route } from 'lucide-react';
 
 export default function TourDetailClient({ tourId, userId }) {
   const router = useRouter();
@@ -101,6 +101,13 @@ export default function TourDetailClient({ tourId, userId }) {
                 {tour.status}
               </span>
               <div className="flex items-center gap-3">
+                <Link
+                  href={`/touring/tours/${tourId}/route-optimization`}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  <Route size={18} />
+                  Optimize Route
+                </Link>
                 <Link
                   href={`/touring/tours/${tourId}/financial`}
                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
