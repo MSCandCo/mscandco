@@ -168,23 +168,37 @@ export async function enforceApolloQueryLimit(userId) {
 
     if (error || !user) {
       console.error('Error fetching Apollo limit:', error);
+      // FAIL OPEN: Allow access on error to not break functionality
       return {
-        allowed: true, // Allow on error to not break functionality
-        error: null
+        allowed: true,
+        error: null,
+        bypassReason: 'error_fetching_user'
       };
     }
 
-    // Admins get unlimited Apollo access
+    // CRITICAL: Check admin roles FIRST before any limit checks
+    // Admins get unlimited Apollo access - check this immediately
     const isAdmin = user.role === 'super_admin' || 
                    user.role === 'company_admin' || 
                    user.role === 'admin' ||
                    user.role === 'label_admin';
 
-    // Unlimited addon, Investment tier, or Admin = no limit
-    if (user.apollo_unlimited_addon || user.tier === 'investment' || isAdmin) {
+    if (isAdmin) {
+      console.log(`✅ Admin user ${userId} (role: ${user.role}) - Unlimited Apollo access granted`);
       return {
         allowed: true,
-        error: null
+        error: null,
+        bypassReason: 'admin_role',
+        isAdmin: true
+      };
+    }
+
+    // Unlimited addon or Investment tier = no limit
+    if (user.apollo_unlimited_addon || user.tier === 'investment') {
+      return {
+        allowed: true,
+        error: null,
+        bypassReason: 'unlimited_addon_or_investment'
       };
     }
 
@@ -213,42 +227,58 @@ export async function enforceApolloQueryLimit(userId) {
     }
 
     // Ensure used count is a number
-    const usedCount = user.apollo_queries_used_this_month || 0;
+    const usedCount = Number(user.apollo_queries_used_this_month) || 0;
+    const queryLimitNum = Number(queryLimit) || 0;
 
-    // Check if limit reached
-    if (usedCount >= queryLimit) {
+    console.log(`📊 Apollo limit check for user ${userId}:`, {
+      used: usedCount,
+      limit: queryLimitNum,
+      tier: user.tier,
+      role: user.role,
+      isAdmin: isAdmin
+    });
+
+    // Check if limit reached (only if we have a valid limit)
+    if (queryLimitNum > 0 && usedCount >= queryLimitNum) {
       const tierName = user.tier === 'free' ? 'MSC Free' : user.tier === 'pro' ? 'MSC Pro' : 'MPP Partner';
       const nextTier = user.tier === 'free' ? 'pro' : 'mpp';
       const nextLimit = user.tier === 'free' ? 100 : 500;
 
+      console.log(`⚠️ Apollo limit reached for user ${userId}: ${usedCount}/${queryLimitNum}`);
+
       return {
         allowed: false,
-        error: `Apollo Intelligence limit reached: You've used all ${queryLimit} queries this month (${tierName} tier).`,
+        error: `Apollo Intelligence limit reached: You've used all ${queryLimitNum} queries this month (${tierName} tier).`,
         upgradeMessage: `Upgrade to ${nextTier === 'pro' ? 'MSC Pro' : 'MPP Partner'} for ${nextLimit} queries/month, or add unlimited AI for £9.99/month.`,
         upgradeUrl: `/billing/upgrade?tier=${nextTier}&reason=apollo_limit`,
         addonUrl: '/billing/addons?addon=apollo_unlimited',
         currentUsage: {
           used: usedCount,
-          limit: queryLimit,
+          limit: queryLimitNum,
           remaining: 0
         }
       };
     }
+
+    console.log(`✅ Apollo access granted for user ${userId}: ${usedCount}/${queryLimitNum} used`);
 
     return {
       allowed: true,
       error: null,
       currentUsage: {
         used: usedCount,
-        limit: queryLimit,
-        remaining: queryLimit - usedCount
+        limit: queryLimitNum,
+        remaining: Math.max(0, queryLimitNum - usedCount)
       }
     };
   } catch (error) {
-    console.error('Apollo limit check error:', error);
+    console.error('❌ Apollo limit check error:', error);
+    // FAIL OPEN: Always allow on error to prevent breaking functionality
     return {
-      allowed: true, // Allow on error
-      error: null
+      allowed: true,
+      error: null,
+      bypassReason: 'error_in_check',
+      errorDetails: error.message
     };
   }
 }
@@ -268,7 +298,7 @@ export async function trackApolloQuery(userId) {
 
     if (!user) return;
 
-    // Admins get unlimited Apollo access
+    // Admins get unlimited Apollo access - check FIRST
     const isAdmin = user.role === 'super_admin' || 
                    user.role === 'company_admin' || 
                    user.role === 'admin' ||
@@ -276,6 +306,9 @@ export async function trackApolloQuery(userId) {
 
     // Don't increment if unlimited or admin
     if (user.apollo_unlimited_addon || user.tier === 'investment' || isAdmin) {
+      if (isAdmin) {
+        console.log(`✅ Admin user ${userId} (role: ${user.role}) - Skipping Apollo query tracking`);
+      }
       return;
     }
 

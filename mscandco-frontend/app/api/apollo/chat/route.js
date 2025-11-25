@@ -29,7 +29,18 @@ export async function POST(request) {
 
     // TIER ENFORCEMENT: Check Apollo query limit
     const limitCheck = await enforceApolloQueryLimit(userId);
+    
+    // Log the limit check result for debugging
+    console.log('🔍 Apollo limit check result:', {
+      userId,
+      allowed: limitCheck.allowed,
+      bypassReason: limitCheck.bypassReason,
+      isAdmin: limitCheck.isAdmin,
+      currentUsage: limitCheck.currentUsage
+    });
+    
     if (!limitCheck.allowed) {
+      console.log(`⚠️ Apollo limit blocked for user ${userId}:`, limitCheck.error);
       return NextResponse.json({
         error: 'Apollo Intelligence limit reached',
         message: limitCheck.error,
@@ -38,6 +49,11 @@ export async function POST(request) {
         addonUrl: limitCheck.addonUrl,
         currentUsage: limitCheck.currentUsage
       }, { status: 403 });
+    }
+    
+    // Log successful access
+    if (limitCheck.bypassReason) {
+      console.log(`✅ Apollo access granted (bypass: ${limitCheck.bypassReason}) for user ${userId}`);
     }
 
     // Extract the latest user message
