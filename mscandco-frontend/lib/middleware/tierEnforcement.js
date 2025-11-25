@@ -160,36 +160,64 @@ export async function trackReleaseCreation(userId, trackCount = 0) {
  */
 export async function enforceApolloQueryLimit(userId) {
   try {
+    // First, try to get user from user_profiles
     const { data: user, error } = await supabase
       .from('user_profiles')
       .select('apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon, tier, role')
       .eq('id', userId)
       .single();
 
+    // If user_profiles doesn't have the user, check auth.users as fallback
+    let userRole = null;
+    let isAdmin = false;
+
+    if (user) {
+      userRole = user.role;
+      // CRITICAL: Check admin roles FIRST before any limit checks
+      // Admins get unlimited Apollo access - check this immediately
+      isAdmin = userRole === 'super_admin' || 
+                userRole === 'company_admin' || 
+                userRole === 'admin' ||
+                userRole === 'label_admin';
+    } else if (error) {
+      // Fallback: Check auth.users metadata
+      console.log(`⚠️ User not found in user_profiles, checking auth.users for ${userId}`);
+      try {
+        const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+        if (authUser?.user) {
+          userRole = authUser.user.user_metadata?.role || authUser.user.app_metadata?.role;
+          isAdmin = userRole === 'super_admin' || 
+                   userRole === 'company_admin' || 
+                   userRole === 'admin' ||
+                   userRole === 'label_admin';
+          console.log(`📋 Found role in auth metadata: ${userRole}, isAdmin: ${isAdmin}`);
+        }
+      } catch (authError) {
+        console.error('Error checking auth.users:', authError);
+      }
+    }
+
+    // If admin, grant unlimited access immediately
+    if (isAdmin) {
+      console.log(`✅ Admin user ${userId} (role: ${userRole}) - Unlimited Apollo access granted`);
+      return {
+        allowed: true,
+        error: null,
+        bypassReason: 'admin_role',
+        isAdmin: true,
+        role: userRole
+      };
+    }
+
+    // If no user found at all, fail open
     if (error || !user) {
       console.error('Error fetching Apollo limit:', error);
       // FAIL OPEN: Allow access on error to not break functionality
       return {
         allowed: true,
         error: null,
-        bypassReason: 'error_fetching_user'
-      };
-    }
-
-    // CRITICAL: Check admin roles FIRST before any limit checks
-    // Admins get unlimited Apollo access - check this immediately
-    const isAdmin = user.role === 'super_admin' || 
-                   user.role === 'company_admin' || 
-                   user.role === 'admin' ||
-                   user.role === 'label_admin';
-
-    if (isAdmin) {
-      console.log(`✅ Admin user ${userId} (role: ${user.role}) - Unlimited Apollo access granted`);
-      return {
-        allowed: true,
-        error: null,
-        bypassReason: 'admin_role',
-        isAdmin: true
+        bypassReason: 'error_fetching_user',
+        warning: 'User profile not found, allowing access'
       };
     }
 
