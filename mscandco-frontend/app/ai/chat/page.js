@@ -327,8 +327,8 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Messages - Scrollable area that takes remaining space */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0 overscroll-contain" style={{ flex: '1 1 auto', overflowY: 'auto' }}>
-        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 sm:py-3 min-h-0 overscroll-contain" style={{ flex: '1 1 auto', overflowY: 'auto' }}>
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
           
           {/* Proactive Insights */}
           {insights.length > 0 && (
@@ -457,7 +457,7 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Input - Fixed at bottom */}
-      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 z-10 shadow-lg">
+      <div className="bg-white border-t px-4 sm:px-6 py-2.5 sm:py-3 flex-shrink-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2 sm:gap-3">
             {/* Voice button */}
