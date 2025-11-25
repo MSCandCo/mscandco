@@ -140,8 +140,12 @@ export async function POST(request) {
       throw new Error('Apollo Brain returned an invalid response');
     }
 
-    // TIER TRACKING: Increment Apollo query counter
-    await trackApolloQuery(userId);
+    // TIER TRACKING: Increment Apollo query counter (skip if bypassing)
+    if (!FORCE_BYPASS_ALL && limitCheck.bypassReason !== 'force_bypass_all_enabled') {
+      await trackApolloQuery(userId);
+    } else {
+      console.log(`⏭️ Skipping Apollo query tracking (bypass mode)`);
+    }
 
     return NextResponse.json({
       response: result.response,
