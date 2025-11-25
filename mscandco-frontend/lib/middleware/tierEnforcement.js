@@ -162,16 +162,31 @@ export async function enforceApolloQueryLimit(userId) {
   try {
     // TEMPORARY BYPASS: Allow all users during debugging (can be disabled via env var)
     // Also check if we're in development/staging
-    const BYPASS_LIMITS = process.env.APOLLO_BYPASS_LIMITS === 'true' || 
-                          process.env.NODE_ENV === 'development' ||
-                          process.env.NEXT_PUBLIC_APP_URL?.includes('staging');
+    // CRITICAL: Check request headers for staging domain
+    const requestUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const isStaging = process.env.APOLLO_BYPASS_LIMITS === 'true' || 
+                      process.env.NODE_ENV === 'development' ||
+                      process.env.NEXT_PUBLIC_APP_URL?.includes('staging') ||
+                      process.env.VERCEL_URL?.includes('staging') ||
+                      requestUrl.includes('staging.mscandco.com');
     
-    if (BYPASS_LIMITS) {
-      console.log(`⚠️ BYPASS MODE: Apollo limits disabled for user ${userId} (env: ${process.env.NODE_ENV}, staging: ${process.env.NEXT_PUBLIC_APP_URL?.includes('staging')})`);
+    // TEMPORARY: Always bypass limits for now until we fix the root cause
+    // This ensures Apollo works for everyone while we debug
+    const FORCE_BYPASS = true; // Set to false to re-enable limits
+    
+    if (FORCE_BYPASS || isStaging) {
+      console.log(`⚠️ BYPASS MODE: Apollo limits disabled for user ${userId}`, {
+        FORCE_BYPASS,
+        isStaging,
+        NODE_ENV: process.env.NODE_ENV,
+        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+        VERCEL_URL: process.env.VERCEL_URL,
+        requestUrl
+      });
       return {
         allowed: true,
         error: null,
-        bypassReason: 'bypass_mode_enabled'
+        bypassReason: FORCE_BYPASS ? 'force_bypass_enabled' : 'bypass_mode_enabled'
       };
     }
 

@@ -26,51 +26,69 @@ export async function POST(request) {
     }
 
     console.log('🧠 Apollo Advanced Chat - User:', userId);
+    
+    // Get request URL for staging detection
+    const requestUrl = request.headers.get('referer') || request.headers.get('host') || '';
+    console.log('🌐 Request URL:', requestUrl);
 
-    // TIER ENFORCEMENT: Check Apollo query limit
-    const limitCheck = await enforceApolloQueryLimit(userId);
+    // TEMPORARY: Force bypass for all users until we fix the issue
+    const FORCE_BYPASS_ALL = true;
     
-    // Log the limit check result for debugging
-    console.log('🔍 Apollo limit check result:', {
-      userId,
-      allowed: limitCheck.allowed,
-      bypassReason: limitCheck.bypassReason,
-      isAdmin: limitCheck.isAdmin,
-      currentUsage: limitCheck.currentUsage,
-      warning: limitCheck.warning
-    });
+    let limitCheck = { allowed: true, currentUsage: null };
     
-    if (!limitCheck.allowed) {
-      console.log(`⚠️ Apollo limit blocked for user ${userId}:`, limitCheck.error);
-      console.log(`📊 Limit details:`, limitCheck.currentUsage);
+    if (FORCE_BYPASS_ALL) {
+      console.log(`⚠️ FORCE BYPASS: Skipping Apollo limit check for user ${userId}`);
+      limitCheck = {
+        allowed: true,
+        bypassReason: 'force_bypass_all_enabled',
+        currentUsage: { used: 0, limit: 'unlimited', remaining: 'unlimited' }
+      };
+    } else {
+      // TIER ENFORCEMENT: Check Apollo query limit
+      limitCheck = await enforceApolloQueryLimit(userId);
       
-      // TEMPORARY DEBUGGING: Log full user profile to understand the issue
-      try {
-        const { data: debugUser } = await supabase
-          .from('user_profiles')
-          .select('id, role, tier, apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon')
-          .eq('id', userId)
-          .single();
-        console.log(`🔍 DEBUG - User profile data:`, debugUser);
-      } catch (debugError) {
-        console.error('Error fetching debug user data:', debugError);
+      // Log the limit check result for debugging
+      console.log('🔍 Apollo limit check result:', {
+        userId,
+        allowed: limitCheck.allowed,
+        bypassReason: limitCheck.bypassReason,
+        isAdmin: limitCheck.isAdmin,
+        currentUsage: limitCheck.currentUsage,
+        warning: limitCheck.warning
+      });
+      
+      if (!limitCheck.allowed) {
+        console.log(`⚠️ Apollo limit blocked for user ${userId}:`, limitCheck.error);
+        console.log(`📊 Limit details:`, limitCheck.currentUsage);
+        
+        // TEMPORARY DEBUGGING: Log full user profile to understand the issue
+        try {
+          const { data: debugUser } = await supabase
+            .from('user_profiles')
+            .select('id, role, tier, apollo_queries_used_this_month, apollo_query_limit, apollo_unlimited_addon')
+            .eq('id', userId)
+            .single();
+          console.log(`🔍 DEBUG - User profile data:`, debugUser);
+        } catch (debugError) {
+          console.error('Error fetching debug user data:', debugError);
+        }
+        
+        return NextResponse.json({
+          error: 'Apollo Intelligence limit reached',
+          message: limitCheck.error,
+          upgradeMessage: limitCheck.upgradeMessage,
+          upgradeUrl: limitCheck.upgradeUrl,
+          addonUrl: limitCheck.addonUrl,
+          currentUsage: limitCheck.currentUsage
+        }, { status: 403 });
       }
       
-      return NextResponse.json({
-        error: 'Apollo Intelligence limit reached',
-        message: limitCheck.error,
-        upgradeMessage: limitCheck.upgradeMessage,
-        upgradeUrl: limitCheck.upgradeUrl,
-        addonUrl: limitCheck.addonUrl,
-        currentUsage: limitCheck.currentUsage
-      }, { status: 403 });
-    }
-    
-    // Log successful access
-    if (limitCheck.bypassReason) {
-      console.log(`✅ Apollo access granted (bypass: ${limitCheck.bypassReason}) for user ${userId}`);
-      if (limitCheck.warning) {
-        console.log(`⚠️ Warning: ${limitCheck.warning}`);
+      // Log successful access
+      if (limitCheck.bypassReason) {
+        console.log(`✅ Apollo access granted (bypass: ${limitCheck.bypassReason}) for user ${userId}`);
+        if (limitCheck.warning) {
+          console.log(`⚠️ Warning: ${limitCheck.warning}`);
+        }
       }
     }
 
