@@ -161,9 +161,13 @@ export async function trackReleaseCreation(userId, trackCount = 0) {
 export async function enforceApolloQueryLimit(userId) {
   try {
     // TEMPORARY BYPASS: Allow all users during debugging (can be disabled via env var)
-    const BYPASS_LIMITS = process.env.APOLLO_BYPASS_LIMITS === 'true';
+    // Also check if we're in development/staging
+    const BYPASS_LIMITS = process.env.APOLLO_BYPASS_LIMITS === 'true' || 
+                          process.env.NODE_ENV === 'development' ||
+                          process.env.NEXT_PUBLIC_APP_URL?.includes('staging');
+    
     if (BYPASS_LIMITS) {
-      console.log(`⚠️ BYPASS MODE: Apollo limits disabled for user ${userId}`);
+      console.log(`⚠️ BYPASS MODE: Apollo limits disabled for user ${userId} (env: ${process.env.NODE_ENV}, staging: ${process.env.NEXT_PUBLIC_APP_URL?.includes('staging')})`);
       return {
         allowed: true,
         error: null,
