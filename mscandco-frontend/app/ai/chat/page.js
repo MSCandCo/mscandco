@@ -278,35 +278,36 @@ export default function ApolloAIChatPage() {
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4 shadow-sm">
+      <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center shadow-lg">
-              <Music className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+              <Music className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Apollo Intelligence
               </h1>
-              <p className="text-sm text-gray-600">Your music intelligence assistant</p>
+              <p className="text-xs sm:text-sm text-gray-600">Your music intelligence assistant</p>
             </div>
           </div>
           
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm"
           >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Use Regular Version</span>
+            <ArrowLeft size={16} />
+            <span className="hidden sm:inline font-medium">Use Regular Version</span>
+            <span className="sm:hidden font-medium">Regular</span>
           </Link>
         </div>
       </div>
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           
           {/* Proactive Insights */}
           {insights.length > 0 && (
@@ -325,7 +326,7 @@ export default function ApolloAIChatPage() {
                       : insight.priority === 'medium'
                       ? 'from-green-50 to-teal-50 border-green-200'
                       : 'from-gray-50 to-slate-50 border-gray-200'
-                  } border-2 rounded-2xl p-4 shadow-sm`}
+                  } border-2 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-2xl flex-shrink-0">{insight.icon}</div>
@@ -365,7 +366,7 @@ export default function ApolloAIChatPage() {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-2xl rounded-2xl px-6 py-4 shadow-md ${
+                className={`max-w-[85%] sm:max-w-2xl rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gray-900 text-white'
                     : 'bg-white border border-gray-200'
@@ -407,7 +408,7 @@ export default function ApolloAIChatPage() {
           {/* Thinking indicator */}
           {isLoading && thinkingMessages.length > 0 && (
             <div className="flex justify-start">
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 shadow-sm max-w-2xl">
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm max-w-[85%] sm:max-w-2xl">
                 <div className="space-y-2">
                   {thinkingMessages.map((msg, idx) => (
                     <div 
@@ -435,21 +436,21 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Input */}
-      <div className="bg-white border-t px-6 py-4">
+      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
         <div className="max-w-4xl mx-auto">
-          <div className="flex space-x-3">
+          <div className="flex gap-2 sm:gap-3">
             {/* Voice button */}
             <button
               onClick={startVoiceInput}
               disabled={isLoading}
-              className={`p-3 rounded-xl transition-all flex-shrink-0 ${
+              className={`p-2.5 sm:p-3 rounded-xl transition-all flex-shrink-0 ${
                 isListening
                   ? 'bg-red-600 text-white shadow-lg scale-110 animate-pulse'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
               title={isListening ? 'Stop listening' : 'Start voice input'}
             >
-              {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+              {isListening ? <MicOff size={18} className="sm:w-5 sm:h-5" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
             </button>
             
             {/* Text input */}
@@ -460,26 +461,26 @@ export default function ApolloAIChatPage() {
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask Apollo anything..."
               disabled={isLoading}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             
             {/* Send button */}
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
-              <Send size={20} />
+              <Send size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
           
           {/* Helper text */}
-          <div className="mt-3 text-xs text-center text-gray-500">
-            <p className="mb-1">
+          <div className="mt-2 sm:mt-3 text-xs text-center text-gray-500">
+            <p className="mb-1 hidden sm:block">
               <span className="font-semibold">Try asking:</span> "Which platform pays me the most?" • "Show my wallet balance" • "I want to release a song"
             </p>
-            <p className="text-gray-400">
-              Powered by OpenAI GPT-4o-mini • {isListening && '🎤 Listening...'}
+            <p className="text-gray-400 text-xs">
+              Powered by OpenAI GPT-4o-mini {isListening && '• 🎤 Listening...'}
             </p>
           </div>
         </div>
