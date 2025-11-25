@@ -457,7 +457,7 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Input - Fixed at bottom */}
-      <div className="bg-white border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 z-10 shadow-lg">
+      <div className="bg-white border-t px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2 sm:gap-3">
             {/* Voice button */}
