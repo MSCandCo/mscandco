@@ -2,7 +2,7 @@
 
 import { useUser } from '@/components/providers/SupabaseProvider';
 import { useRealtime } from '@/components/providers/RealtimeProvider';
-import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen, Globe } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, Bell, ChevronDown, Music, BarChart3, DollarSign, Users, Wallet, HelpCircle, Info, Menu, X, FileText, Mail, Sparkles, Accessibility, GraduationCap, Leaf, Database, Shield, Target, Share2, Heart, Mic, ShoppingBag, Brain, Copyright, BookOpen, Globe, Calendar, MapPin, Plane, Hotel, Route, Plus, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -24,6 +24,7 @@ function Header({ largeLogo = false }) {
   const [showLyricsLink, setShowLyricsLink] = useState(false);
   const [showCopyrightLink, setShowCopyrightLink] = useState(false);
   const [showLearningLink, setShowLearningLink] = useState(false);
+  const [showTouringLink, setShowTouringLink] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -157,6 +158,7 @@ function Header({ largeLogo = false }) {
             console.log('[Header] showLyricsFeatures value:', data?.data?.showLyricsFeatures);
             console.log('[Header] showCopyrightFeatures value:', data?.data?.showCopyrightFeatures);
             console.log('[Header] showLearningFeatures value:', data?.data?.showLearningFeatures);
+            console.log('[Header] showTouringFeatures value:', data?.data?.showTouringFeatures);
 
             const accessVal = data?.data?.showAccessibilityFeatures || false;
             const openDataVal = data?.data?.showOpenDataFeatures || false;
@@ -164,8 +166,9 @@ function Header({ largeLogo = false }) {
             const lyricsVal = data?.data?.showLyricsFeatures || false;
             const copyrightVal = data?.data?.showCopyrightFeatures || false;
             const learningVal = data?.data?.showLearningFeatures || false;
+            const touringVal = data?.data?.showTouringFeatures || false;
 
-            console.log('[Header] Setting state values:', { accessVal, openDataVal, sustVal, lyricsVal, copyrightVal, learningVal });
+            console.log('[Header] Setting state values:', { accessVal, openDataVal, sustVal, lyricsVal, copyrightVal, learningVal, touringVal });
 
             setShowAccessibilityLink(accessVal);
             setShowOpenDataLink(openDataVal);
@@ -173,6 +176,7 @@ function Header({ largeLogo = false }) {
             setShowLyricsLink(lyricsVal);
             setShowCopyrightLink(copyrightVal);
             setShowLearningLink(learningVal);
+            setShowTouringLink(touringVal);
           } else {
             console.error('[Header] Preferences fetch failed:', response.status);
           }
@@ -422,10 +426,27 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/touring" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Music className="w-4 h-4" />
-                        Touring
-                      </Link>
+
+                      {/* 🎸 TOURING DROPDOWN - Main touring features dropdown */}
+                      <div className="relative group">
+                        <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Music className="w-4 h-4" />
+                          Touring
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                        <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                          <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[200px]">
+                            <Link href="/touring" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <LayoutDashboard className="w-4 h-4" />
+                              Touring Dashboard
+                            </Link>
+                            <Link href="/touring/tours/create" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <Plus className="w-4 h-4" />
+                              Create Tour
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Insights Dropdown Group */}
                       <div className="relative group">
@@ -590,10 +611,27 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-4 h-4" />
                         Releases
                       </Link>
-                      <Link href="/touring" className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
-                        <Music className="w-4 h-4" />
-                        Touring
-                      </Link>
+
+                      {/* 🎸 TOURING DROPDOWN - Main touring features dropdown */}
+                      <div className="relative group">
+                        <button className="flex items-center gap-2 transition-colors duration-200 text-gray-700 hover:text-gray-900 font-medium whitespace-nowrap">
+                          <Music className="w-4 h-4" />
+                          Touring
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                        <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
+                          <div className="bg-white rounded-md shadow-lg py-1 border border-gray-200 min-w-[200px]">
+                            <Link href="/touring" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <LayoutDashboard className="w-4 h-4" />
+                              Touring Dashboard
+                            </Link>
+                            <Link href="/touring/tours/create" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                              <Plus className="w-4 h-4" />
+                              Create Tour
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Insights Dropdown Group */}
                       <div className="relative group">
@@ -959,10 +997,18 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-5 h-5" />
                         <span>Releases</span>
                       </Link>
-                      <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
-                        <Music className="w-5 h-5" />
-                        <span>Touring</span>
-                      </Link>
+                      {/* Touring Section - Mobile */}
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Touring</p>
+                        <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900">
+                          <LayoutDashboard className="w-5 h-5" />
+                          <span>Touring Dashboard</span>
+                        </Link>
+                        <Link href="/touring/tours/create" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900">
+                          <Plus className="w-5 h-5" />
+                          <span>Create Tour</span>
+                        </Link>
+                      </div>
                       <Link href="/artist/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <BarChart3 className="w-5 h-5" />
                         <span>Analytics</span>
@@ -990,10 +1036,18 @@ function Header({ largeLogo = false }) {
                         <FileText className="w-5 h-5" />
                         <span>Releases</span>
                       </Link>
-                      <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
-                        <Music className="w-5 h-5" />
-                        <span>Touring</span>
-                      </Link>
+                      {/* Touring Section - Mobile */}
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Touring</p>
+                        <Link href="/touring" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900">
+                          <LayoutDashboard className="w-5 h-5" />
+                          <span>Touring Dashboard</span>
+                        </Link>
+                        <Link href="/touring/tours/create" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900">
+                          <Plus className="w-5 h-5" />
+                          <span>Create Tour</span>
+                        </Link>
+                      </div>
                       <Link href="/labeladmin/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <BarChart3 className="w-5 h-5" />
                         <span>Analytics</span>

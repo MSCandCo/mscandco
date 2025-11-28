@@ -643,6 +643,7 @@ export default function DashboardClient({ user }) {
       { icon: Music, label: 'My Releases', href: '/artist/releases', color: 'bg-purple-500', requiredPermission: 'releases:access' },
       { icon: BarChart3, label: 'Analytics', href: '/artist/analytics', color: 'bg-blue-500', requiredPermission: 'analytics:access' },
       { icon: DollarSign, label: 'Earnings', href: '/artist/earnings', color: 'bg-green-500', requiredPermission: 'earnings:access' },
+      { icon: Calendar, label: 'Touring', href: '/artist/touring', color: 'bg-pink-500', requiredPermission: 'touring:access' },
       { icon: MessageSquare, label: 'Messages', href: '/artist/messages', color: 'bg-orange-500', requiredPermission: 'messages:access' },
       { icon: Users, label: 'Roster', href: '/artist/roster', color: 'bg-indigo-500', requiredPermission: 'roster:access' },
       { icon: Settings, label: 'Settings', href: '/artist/settings', color: 'bg-gray-500', requiredPermission: 'settings:access' },
@@ -652,7 +653,8 @@ export default function DashboardClient({ user }) {
       { icon: Music, label: 'Releases', href: '/labeladmin/releases', color: 'bg-blue-500', requiredPermission: 'labeladmin:releases:access' },
       { icon: BarChart3, label: 'Analytics', href: '/labeladmin/analytics', color: 'bg-green-500', requiredPermission: 'labeladmin:analytics:access' },
       { icon: DollarSign, label: 'Earnings', href: '/labeladmin/earnings', color: 'bg-orange-500', requiredPermission: 'labeladmin:earnings:access' },
-      { icon: MessageSquare, label: 'Messages', href: '/labeladmin/messages', color: 'bg-pink-500', requiredPermission: 'labeladmin:messages:access' },
+      { icon: Calendar, label: 'Touring', href: '/labeladmin/touring', color: 'bg-pink-500', requiredPermission: 'labeladmin:touring:access' },
+      { icon: MessageSquare, label: 'Messages', href: '/labeladmin/messages', color: 'bg-teal-500', requiredPermission: 'labeladmin:messages:access' },
       { icon: Users, label: 'Roster', href: '/labeladmin/roster', color: 'bg-indigo-500', requiredPermission: 'labeladmin:roster:access' },
       { icon: Settings, label: 'Settings', href: '/labeladmin/settings', color: 'bg-gray-500', requiredPermission: 'labeladmin:settings:access' },
 

@@ -959,29 +959,9 @@ function AdminHeader({ largeLogo = false }) {
                     <button
                       onClick={async () => {
                         setIsUserDropdownOpen(false)
-                        // Sign out immediately and redirect
-                        try {
-                          const supabase = createClient()
-                          // Clear ghost mode if active
-                          if (typeof window !== 'undefined') {
-                            sessionStorage.removeItem('ghost_mode')
-                            sessionStorage.removeItem('ghost_session')
-                            sessionStorage.removeItem('original_admin_user')
-                            sessionStorage.removeItem('ghost_target_user')
-                          }
-                          // Sign out (non-blocking)
-                          supabase.auth.signOut().catch(console.error)
-                          // Clear storage
-                          if (typeof window !== 'undefined') {
-                            localStorage.clear()
-                            sessionStorage.clear()
-                          }
-                          // Immediate redirect to login
-                          window.location.href = '/login'
-                        } catch (error) {
-                          console.error('Logout error:', error)
-                          window.location.href = '/login'
-                        }
+                        // Use force logout utility for comprehensive cleanup
+                        const { forceLogout } = await import('@/lib/auth/logout-utils')
+                        await forceLogout({ redirectTo: '/login', silent: false })
                       }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     >
@@ -1116,24 +1096,9 @@ function AdminHeader({ largeLogo = false }) {
                   <button
                     onClick={async () => {
                       setIsMobileMenuOpen(false);
-                      try {
-                        const supabase = createClient();
-                        if (typeof window !== 'undefined') {
-                          sessionStorage.removeItem('ghost_mode');
-                          sessionStorage.removeItem('ghost_session');
-                          sessionStorage.removeItem('original_admin_user');
-                          sessionStorage.removeItem('ghost_target_user');
-                        }
-                        supabase.auth.signOut().catch(console.error);
-                        if (typeof window !== 'undefined') {
-                          localStorage.clear();
-                          sessionStorage.clear();
-                        }
-                        window.location.href = '/login';
-                      } catch (error) {
-                        console.error('Logout error:', error);
-                        window.location.href = '/login';
-                      }
+                      // Use force logout utility for comprehensive cleanup
+                      const { forceLogout } = await import('@/lib/auth/logout-utils');
+                      await forceLogout({ redirectTo: '/login', silent: false });
                     }}
                     className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   >

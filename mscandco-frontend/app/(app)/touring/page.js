@@ -22,6 +22,7 @@ export default async function TouringDashboardPage() {
     redirect('/login');
   }
   
+  // Pass userId for reference, but API route handles auth server-side
   return <TouringDashboardClient userId={session.user.id} />;
 }
 

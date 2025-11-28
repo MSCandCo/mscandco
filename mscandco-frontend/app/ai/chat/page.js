@@ -24,16 +24,50 @@ export default function ApolloAIChatPage() {
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const thinkingIntervalRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
   
+  // Track page visits for context-aware greetings
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Get the referrer to know where user came from
+      const referrer = document.referrer;
+      const currentPath = window.location.pathname;
+      
+      // Extract meaningful page context from referrer
+      let recentPage = null;
+      if (referrer) {
+        try {
+          const referrerUrl = new URL(referrer);
+          recentPage = referrerUrl.pathname;
+        } catch (e) {
+          // Invalid URL, use as-is
+          recentPage = referrer;
+        }
+      }
+      
+      // Store in sessionStorage for greeting API
+      if (recentPage) {
+        sessionStorage.setItem('apollo_recent_page', recentPage);
+      }
+    }
+  }, []);
+
   // Load greeting on mount (memoized)
   const loadGreeting = useCallback(async () => {
     if (!user || greetingLoaded) return;
     
     try {
+      // Get recent page visit from sessionStorage to make greeting context-aware
+      const recentPage = typeof window !== 'undefined' ? sessionStorage.getItem('apollo_recent_page') : null;
+      
       const response = await fetch('/api/apollo/greeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ 
+          userId: user.id,
+          recentPage: recentPage 
+        }),
       });
       
       const data = await response.json();
@@ -55,9 +89,35 @@ export default function ApolloAIChatPage() {
     }
   }, [user, greetingLoaded]);
   
+  // Check if user is near bottom of scroll container (define first)
+  const isNearBottom = useCallback(() => {
+    if (!messagesContainerRef.current) return true;
+    const container = messagesContainerRef.current;
+    const threshold = 100; // pixels from bottom
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  }, []);
+
+  // Auto-scroll to bottom only if user is near bottom (define before useEffects)
+  const scrollToBottom = useCallback((force = false) => {
+    if (!force && !shouldAutoScrollRef.current) return;
+    if (!force && !isNearBottom()) return;
+    
+    setTimeout(() => {
+      if (messagesEndRef.current && messagesContainerRef.current) {
+        const container = messagesContainerRef.current;
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 50);
+  }, [isNearBottom]);
+  
   useEffect(() => {
     loadGreeting();
-  }, [loadGreeting]);
+    // Scroll to bottom after greeting loads
+    setTimeout(() => {
+      shouldAutoScrollRef.current = true;
+      scrollToBottom(true);
+    }, 500);
+  }, [loadGreeting, scrollToBottom]);
   
   // Load insights on mount
   const loadInsights = useCallback(async () => {
@@ -81,22 +141,32 @@ export default function ApolloAIChatPage() {
     loadInsights();
   }, [loadInsights]);
   
-  // Prevent scroll restoration on page load
+  // Prevent scroll restoration on page load and scroll to bottom on initial load
   useEffect(() => {
-    // Scroll to top on mount to prevent weird scroll positions
-    window.scrollTo(0, 0);
     // Disable browser scroll restoration
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
-  }, []);
-  
-  // Auto-scroll to bottom only when user sends a message (not on initial load)
-  const scrollToBottom = useCallback(() => {
+    
+    // Scroll to bottom on initial load after a short delay to ensure DOM is ready
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }, []);
+      shouldAutoScrollRef.current = true;
+      scrollToBottom(true);
+    }, 300);
+  }, [scrollToBottom]);
+
+  // Track scroll position to determine if we should auto-scroll
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      shouldAutoScrollRef.current = isNearBottom();
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isNearBottom]);
   
   // Handle insight action
   const handleInsightAction = async (insight) => {
@@ -123,8 +193,34 @@ export default function ApolloAIChatPage() {
     }
   };
   
+  // DEMO MODE: Platform distribution animation
+  const DEMO_MODE = true; // Set to true for demo
+  const platforms = [
+    "Spotify",
+    "Apple Music",
+    "Amazon Music",
+    "YouTube Music",
+    "Tidal",
+    "Deezer",
+    "SoundCloud",
+    "Pandora",
+    "iHeartRadio",
+    "TikTok",
+    "Instagram Music",
+    "Facebook Music",
+    "Snapchat",
+    "Twitch",
+    "Bandcamp"
+  ];
+
   // Thinking messages that rotate while processing
-  const thinkingSteps = [
+  const thinkingSteps = DEMO_MODE ? [
+    "Distributing music to digital platforms...",
+    "Scanning comprehensive platform list...",
+    "Sending music to streaming services...",
+    "Finalizing distribution...",
+    "Almost ready..."
+  ] : [
     "Analyzing your question...",
     "Gathering relevant information from your account...",
     "Checking your releases and earnings data...",
@@ -133,19 +229,37 @@ export default function ApolloAIChatPage() {
     "Almost ready..."
   ];
 
+  const [distributedPlatforms, setDistributedPlatforms] = useState([]);
+  const thinkingStartTimeRef = useRef(null);
+
   const startThinkingIndicator = () => {
-    let currentStep = 0;
-    setThinkingMessages([thinkingSteps[0]]);
-    
-    thinkingIntervalRef.current = setInterval(() => {
-      currentStep++;
-      if (currentStep < thinkingSteps.length) {
-        setThinkingMessages(prev => [...prev, thinkingSteps[currentStep]]);
-      } else {
-        // Cycle back or stop
-        clearInterval(thinkingIntervalRef.current);
-      }
-    }, 2000); // Show new thinking message every 2 seconds
+    if (DEMO_MODE) {
+      // Demo mode: Show platform distribution
+      thinkingStartTimeRef.current = Date.now();
+      setDistributedPlatforms([]);
+      let platformIndex = 0;
+      
+      thinkingIntervalRef.current = setInterval(() => {
+        if (platformIndex < platforms.length) {
+          setDistributedPlatforms(prev => [...prev, platforms[platformIndex]]);
+          platformIndex++;
+        }
+        // Don't clear interval here - let it continue until we explicitly stop it
+      }, 300); // Add a platform every 300ms
+    } else {
+      // Normal mode: Show thinking steps
+      let currentStep = 0;
+      setThinkingMessages([thinkingSteps[0]]);
+      
+      thinkingIntervalRef.current = setInterval(() => {
+        currentStep++;
+        if (currentStep < thinkingSteps.length) {
+          setThinkingMessages(prev => [...prev, thinkingSteps[currentStep]]);
+        } else {
+          clearInterval(thinkingIntervalRef.current);
+        }
+      }, 2000);
+    }
   };
 
   const stopThinkingIndicator = () => {
@@ -154,6 +268,7 @@ export default function ApolloAIChatPage() {
       thinkingIntervalRef.current = null;
     }
     setThinkingMessages([]);
+    setDistributedPlatforms([]);
   };
 
   const sendMessage = async () => {
@@ -170,8 +285,9 @@ export default function ApolloAIChatPage() {
     setIsLoading(true);
     startThinkingIndicator();
     
-    // Scroll to bottom when user sends a message
-    scrollToBottom();
+    // Force scroll to bottom when user sends a message
+    shouldAutoScrollRef.current = true;
+    scrollToBottom(true);
     
     try {
       const response = await fetch('/api/apollo/chat', {
@@ -188,7 +304,8 @@ export default function ApolloAIChatPage() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.details || errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        // Use user-friendly error message from API
+        const errorMessage = errorData.error || errorData.message || errorData.details || `I encountered an issue. Please try again.`;
         console.error('❌ Apollo API error:', {
           status: response.status,
           statusText: response.statusText,
@@ -204,32 +321,105 @@ export default function ApolloAIChatPage() {
         throw new Error('Invalid response from Apollo');
       }
       
-      stopThinkingIndicator();
-      
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.response,
-        tool_calls: data.tool_calls,
-        timestamp: new Date(),
-      }]);
-      
-      // Scroll to bottom after assistant responds
-      scrollToBottom();
+      if (DEMO_MODE && data.demo) {
+        // Demo mode: Wait at least 6 seconds for thinking phase, then show response
+        const minThinkingDuration = 6000; // 6 seconds minimum
+        const thinkingStartTime = thinkingStartTimeRef.current || Date.now();
+        
+        const checkAndStartResponse = () => {
+          const elapsed = Date.now() - thinkingStartTime;
+          const remaining = Math.max(0, minThinkingDuration - elapsed);
+          
+          setTimeout(() => {
+            stopThinkingIndicator();
+            
+            // Demo mode: Stream response line by line
+            const lines = data.response.split('\n').filter(line => line.trim());
+            
+            // Add assistant message placeholder
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: '',
+              tool_calls: data.tool_calls,
+              timestamp: new Date(),
+            }]);
+            
+            let currentLine = 0;
+            let currentContent = '';
+            
+            const streamInterval = setInterval(() => {
+              if (currentLine < lines.length) {
+                currentContent += lines[currentLine] + '\n';
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.content = currentContent;
+                  }
+                  return newMessages;
+                });
+                currentLine++;
+                // Only scroll if user hasn't scrolled up
+                if (shouldAutoScrollRef.current) {
+                  scrollToBottom();
+                }
+              } else {
+                clearInterval(streamInterval);
+                setIsLoading(false);
+                // Scroll to bottom when done
+                if (shouldAutoScrollRef.current) {
+                  scrollToBottom(true);
+                }
+              }
+            }, 800); // Show each line every 800ms
+          }, remaining);
+        };
+        
+        checkAndStartResponse();
+      } else {
+        // Normal mode: Show full response immediately
+        setIsLoading(false);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: data.response,
+          tool_calls: data.tool_calls,
+          timestamp: new Date(),
+        }]);
+        
+        // Scroll to bottom after assistant responds (only if user is near bottom)
+        scrollToBottom();
+      }
     } catch (error) {
       console.error('❌ Chat error:', error);
       stopThinkingIndicator();
-      const errorMessage = error.message || "Sorry, I encountered an error. Please try again or rephrase your question.";
+      setIsLoading(false);
+      
+      // Extract user-friendly error message from response
+      let errorMessage = "I encountered an issue processing your request. Please try again.";
+      
+      try {
+        // Try to parse error response if it's JSON
+        if (error.response) {
+          const errorData = await error.response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } else if (error.message) {
+          // Use the error message directly if it's user-friendly
+          errorMessage = error.message;
+        }
+      } catch (e) {
+        // If parsing fails, use default message
+        errorMessage = error.message || errorMessage;
+      }
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `Sorry, I encountered an error: ${errorMessage}. Please try again or contact support if the issue persists.`,
+        content: errorMessage,
         timestamp: new Date(),
         isError: true,
       }]);
       
       // Scroll to bottom after error message
       scrollToBottom();
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -299,9 +489,9 @@ export default function ApolloAIChatPage() {
   }
   
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden" style={{ height: '100vh', maxHeight: '100vh' }}>
+    <div className="flex flex-col bg-gray-50 overflow-hidden" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0 z-10">
+      <div className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex-shrink-0 z-10" style={{ flexShrink: 0 }}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
@@ -327,8 +517,21 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Messages - Scrollable area that takes remaining space */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 sm:py-3 min-h-0 overscroll-contain" style={{ flex: '1 1 auto', overflowY: 'auto' }}>
-        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4 pb-20">
+      <div
+        ref={messagesContainerRef}
+        className="overflow-y-auto px-4 sm:px-6 py-2 sm:py-3 overscroll-contain" 
+        style={{ 
+          flex: '1 1 auto',
+          overflowY: 'auto',
+          height: 0, // Force flex to calculate height properly
+          minHeight: 0
+        }}
+        onScroll={() => {
+          // Update auto-scroll preference based on scroll position
+          shouldAutoScrollRef.current = isNearBottom();
+        }}
+      >
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4 pb-4">
           
           {/* Proactive Insights */}
           {insights.length > 0 && (
@@ -399,24 +602,43 @@ export default function ApolloAIChatPage() {
                 </div>
                 
                 {/* Show tool calls if any */}
-                {msg.tool_calls && msg.tool_calls.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                      <Sparkles size={12} />
-                      Actions taken:
-                    </p>
-                    <div className="space-y-1">
-                      {msg.tool_calls.map((tool, i) => (
-                        <div
-                          key={i}
-                          className="text-xs bg-gray-100 rounded-lg px-3 py-1.5 font-medium text-gray-700"
-                        >
-                          {formatToolName(tool.name)}
-                        </div>
-                      ))}
+                {msg.tool_calls && msg.tool_calls.length > 0 && (() => {
+                  // Extract tool names - handle both string arrays and object arrays
+                  const toolNames = msg.tool_calls
+                    .map(tool => {
+                      if (typeof tool === 'string') return tool;
+                      if (tool && typeof tool === 'object') return tool.name || tool.tool_name;
+                      return null;
+                    })
+                    .filter(name => name && name !== 'undefined' && name !== 'null' && name.trim() !== ''); // Filter out invalid values
+                  
+                  // Format tool names and filter out any that return null
+                  const formattedTools = toolNames
+                    .map(toolName => formatToolName(toolName))
+                    .filter(formatted => formatted !== null && formatted !== undefined && formatted.trim() !== '');
+                  
+                  // Only show if we have valid formatted tool names
+                  if (formattedTools.length === 0) return null;
+                  
+                  return (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                        <Sparkles size={12} />
+                        What I did:
+                      </p>
+                      <div className="space-y-1">
+                        {formattedTools.map((formattedTool, i) => (
+                          <div
+                            key={i}
+                            className="text-xs bg-gray-100 rounded-lg px-3 py-1.5 font-medium text-gray-700"
+                          >
+                            {formattedTool}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 
                 {/* Timestamp */}
                 <div className={`text-xs mt-2 ${msg.role === 'user' ? 'text-white/70' : 'text-gray-500'}`}>
@@ -427,27 +649,45 @@ export default function ApolloAIChatPage() {
           ))}
           
           {/* Thinking indicator */}
-          {isLoading && thinkingMessages.length > 0 && (
+          {isLoading && (DEMO_MODE ? distributedPlatforms.length > 0 : thinkingMessages.length > 0) && (
             <div className="flex justify-start">
               <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm max-w-[85%] sm:max-w-2xl">
-                <div className="space-y-2">
-                  {thinkingMessages.map((msg, idx) => (
-                    <div 
-                      key={idx}
-                      className="text-sm text-gray-500 italic animate-fade-in"
-                      style={{ animationDelay: `${idx * 0.1}s` }}
-                    >
-                      {msg}
+                {DEMO_MODE ? (
+                  <div className="space-y-1.5">
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Distributing music to DSPs...
                     </div>
-                  ))}
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex space-x-1">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    {distributedPlatforms.map((platform, idx) => (
+                      <div 
+                        key={idx}
+                        className="text-sm text-gray-600 flex items-center gap-2 animate-fade-in"
+                        style={{ animationDelay: `${idx * 0.05}s` }}
+                      >
+                        <span className="text-green-500 font-bold">✓</span>
+                        <span>{platform} - Music sent</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {thinkingMessages.map((msg, idx) => (
+                      <div 
+                        key={idx}
+                        className="text-sm text-gray-500 italic animate-fade-in"
+                        style={{ animationDelay: `${idx * 0.1}s` }}
+                      >
+                        {msg}
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex space-x-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -457,7 +697,7 @@ export default function ApolloAIChatPage() {
       </div>
       
       {/* Input - Fixed at bottom */}
-      <div className="bg-white border-t px-4 sm:px-6 py-2.5 sm:py-3 flex-shrink-0 z-10 shadow-lg">
+      <div className="bg-white border-t px-4 sm:px-6 py-12 sm:py-15 flex-shrink-0 z-10 shadow-lg" style={{ flexShrink: 0 }}>
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2 sm:gap-3">
             {/* Voice button */}
@@ -478,13 +718,21 @@ export default function ApolloAIChatPage() {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Prevent auto-scroll while typing
+                shouldAutoScrollRef.current = false;
+              }}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              onFocus={() => {
+                // Re-enable auto-scroll when input is focused (user is ready to send)
+                shouldAutoScrollRef.current = isNearBottom();
+              }}
               placeholder="Ask Apollo anything..."
               disabled={isLoading}
               className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            
+
             {/* Send button */}
             <button
               onClick={sendMessage}
@@ -514,6 +762,11 @@ export default function ApolloAIChatPage() {
  * Format tool names for display
  */
 function formatToolName(toolName) {
+  // Handle undefined/null/empty values
+  if (!toolName || toolName === 'undefined' || toolName === 'null') {
+    return null;
+  }
+  
   const names = {
     get_earnings_summary: '📊 Analyzed earnings',
     compare_platforms: '🔍 Compared platforms',

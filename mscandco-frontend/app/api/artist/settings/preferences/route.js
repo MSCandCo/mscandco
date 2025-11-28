@@ -50,7 +50,7 @@ export async function GET() {
     // Get preferences from database using admin client
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
-      .select('theme_preference, language_preference, default_currency, timezone, date_format, show_accessibility_features, show_open_data_features, show_sustainability_features, show_lyrics_features, show_copyright_features, show_learning_features')
+      .select('theme_preference, language_preference, default_currency, timezone, date_format, show_accessibility_features, show_open_data_features, show_sustainability_features, show_lyrics_features, show_copyright_features, show_learning_features, show_touring_features')
       .eq('id', user.id)
       .single();
 
@@ -74,7 +74,8 @@ export async function GET() {
         showSustainabilityFeatures: data?.show_sustainability_features ?? false,
         showLyricsFeatures: data?.show_lyrics_features ?? false,
         showCopyrightFeatures: data?.show_copyright_features ?? false,
-        showLearningFeatures: data?.show_learning_features ?? false
+        showLearningFeatures: data?.show_learning_features ?? false,
+        showTouringFeatures: data?.show_touring_features ?? false
       }
     });
   } catch (error) {
@@ -119,7 +120,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { theme, language, currency, timezone, dateFormat, showAccessibilityFeatures, showOpenDataFeatures, showSustainabilityFeatures, showLyricsFeatures, showCopyrightFeatures, showLearningFeatures } = body;
+    const { theme, language, currency, timezone, dateFormat, showAccessibilityFeatures, showOpenDataFeatures, showSustainabilityFeatures, showLyricsFeatures, showCopyrightFeatures, showLearningFeatures, showTouringFeatures } = body;
 
     // Log what we're trying to save
     console.log('[Preferences API] Saving preferences for user:', user.id);
@@ -150,7 +151,8 @@ export async function POST(request) {
       show_sustainability_features: showSustainabilityFeatures ?? false,
       show_lyrics_features: showLyricsFeatures ?? false,
       show_copyright_features: showCopyrightFeatures ?? false,
-      show_learning_features: showLearningFeatures ?? false
+      show_learning_features: showLearningFeatures ?? false,
+      show_touring_features: showTouringFeatures ?? false
     };
 
     console.log('[Preferences API] Update data:', updateData);

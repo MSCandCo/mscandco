@@ -31,6 +31,7 @@ function hasLabelAdminAccess(permissions) {
     (p.startsWith('earnings:') && !p.startsWith('admin:')) ||
     (p.startsWith('roster:') && !p.startsWith('admin:')) ||
     (p.startsWith('artists:') && !p.startsWith('admin:')) ||
+    (p.startsWith('touring:') && !p.startsWith('admin:')) ||
     p === 'dashboard:access'
   )
 

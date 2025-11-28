@@ -481,24 +481,24 @@ export default function HomeClient() {
       </section>
 
       {/* Pricing CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+      <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl mb-8 opacity-90">
+          <p className="text-xl mb-8 text-gray-600">
             Choose the plan that's right for you. No hidden fees, no surprises.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => window.location.href = '/pricing'}
-              className="bg-white text-indigo-600 rounded-xl px-8 py-3 font-bold shadow-lg transition-all duration-300 hover:bg-gray-100 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-white"
+              className="bg-white text-[#1f2937] border-2 border-[#1f2937] rounded-xl px-8 py-3 font-bold shadow-lg transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
             >
               View Pricing Plans
             </button>
             <button
               onClick={() => window.location.href = '/register'}
-              className="bg-transparent text-white border-2 border-white rounded-xl px-8 py-3 font-bold shadow-lg transition-all duration-300 hover:bg-white hover:text-indigo-600 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-white"
+              className="bg-[#1f2937] text-white border-2 border-[#1f2937] rounded-xl px-8 py-3 font-bold shadow-lg transition-all duration-300 hover:bg-gray-800 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
             >
               Start Free Trial
             </button>

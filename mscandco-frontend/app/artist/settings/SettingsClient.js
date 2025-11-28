@@ -149,7 +149,8 @@ const SettingsClient = () => {
     showSustainabilityFeatures: false,
     showLyricsFeatures: false,
     showCopyrightFeatures: false,
-    showLearningFeatures: false
+    showLearningFeatures: false,
+    showTouringFeatures: false
   });
 
   // Notifications state
@@ -762,6 +763,37 @@ const SettingsClient = () => {
                       <span
                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                           preferences.showLearningFeatures ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Touring Features Toggle */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Touring Features
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Show Touring link in navigation for managing tours, dates, crew, and tour logistics
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreferences(prev => ({ ...prev, showTouringFeatures: !prev.showTouringFeatures }));
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        preferences.showTouringFeatures ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                      role="switch"
+                      aria-checked={preferences.showTouringFeatures}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          preferences.showTouringFeatures ? 'translate-x-5' : 'translate-x-0'
                         }`}
                       />
                     </button>

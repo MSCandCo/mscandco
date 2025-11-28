@@ -26,6 +26,7 @@ function hasArtistAccess(permissions) {
     (p.startsWith('releases:') && !p.startsWith('admin:') && !p.startsWith('labeladmin:')) ||
     (p.startsWith('analytics:') && !p.startsWith('admin:') && !p.startsWith('labeladmin:')) ||
     (p.startsWith('earnings:') && !p.startsWith('admin:') && !p.startsWith('labeladmin:')) ||
+    (p.startsWith('touring:') && !p.startsWith('admin:') && !p.startsWith('labeladmin:')) ||
     p === 'dashboard:access'
   )
 

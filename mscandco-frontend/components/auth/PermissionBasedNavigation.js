@@ -214,30 +214,9 @@ export default function PermissionBasedNavigation() {
   const handleLogout = useCallback(async () => {
     setIsDropdownOpen(false);
 
-    try {
-      // Sign out from Supabase first
-      await supabase.auth.signOut();
-
-      // Clear all storage
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Remove all cookies
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
-      }
-
-      // Force redirect using window.location for complete refresh
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Force redirect even on error
-      window.location.href = '/';
-    }
+    // Use force logout utility for comprehensive cleanup
+    const { forceLogout } = await import('@/lib/auth/logout-utils');
+    await forceLogout({ redirectTo: '/login', silent: false });
   }, []);
 
   // Check if user has ANY admin permissions (V2)

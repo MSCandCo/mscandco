@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
  */
 export async function GET(request, { params }) {
   try {
-    const { tourId } = params;
+    const { tourId } = await params;
     
     const { data: dates, error } = await supabaseAdmin
       .from('tour_dates')

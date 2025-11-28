@@ -108,36 +108,74 @@ export async function POST(request) {
       timestamp: msg.timestamp || new Date().toISOString()
     }));
 
-    // Use Apollo Brain for ultra-intelligent response
+    // DEMO MODE: Return demo response
+    const DEMO_MODE = true; // Set to true for demo
+    
     let result;
     try {
-      console.log('🧠 Calling apolloThink with:', {
-        messageLength: latestMessage.content.length,
-        userId,
-        conversationHistoryLength: conversationHistory.length
-      });
-      
-      result = await apolloThink(latestMessage.content, userId, conversationHistory);
+      if (DEMO_MODE) {
+        // Demo response - line by line format
+        result = {
+          response: `Release live on 15+ Platforms
 
-      console.log('✅ Apollo Brain response:', {
-        hasResponse: !!result?.response,
-        responseLength: result?.response?.length || 0,
-        toolsUsed: result?.toolsUsed?.length || 0,
-        tools: result?.toolsUsed || []
-      });
+Metadata optimized.
+
+Copyright registered.
+
+ISRC generated.
+
+Carbon calculated.
+
+Playlist pitched.
+
+Blockchain verified.
+
+Music distribution only took 4minutes and 16 seconds
+
+Now lets move on to a release strategy, I can help you position your release for maximum impact`,
+          toolsUsed: []
+        };
+      } else {
+        console.log('🧠 Calling apolloThink with:', {
+          messageLength: latestMessage.content.length,
+          userId,
+          conversationHistoryLength: conversationHistory.length
+        });
+        
+        result = await apolloThink(latestMessage.content, userId, conversationHistory);
+
+        console.log('✅ Apollo Brain response:', {
+          hasResponse: !!result?.response,
+          responseLength: result?.response?.length || 0,
+          toolsUsed: result?.toolsUsed?.length || 0,
+          tools: result?.toolsUsed || []
+        });
+      }
     } catch (apolloError) {
-      console.error('❌ Apollo Brain error:', {
+      console.error('❌ Apollo processing error:', {
         message: apolloError.message,
         stack: apolloError.stack,
         name: apolloError.name
       });
-      throw new Error(`Apollo Brain error: ${apolloError.message}`);
+      
+      // Provide user-friendly error messages
+      let userMessage = 'I encountered an issue processing your request.';
+      
+      if (apolloError.message.includes('429') || apolloError.message.includes('rate limit') || apolloError.message.includes('TPM')) {
+        userMessage = 'I\'m currently handling a lot of requests. Please wait a moment and try again.';
+      } else if (apolloError.message.includes('timeout')) {
+        userMessage = 'Your request took too long to process. Please try again with a simpler question.';
+      } else if (apolloError.message.includes('invalid') || apolloError.message.includes('format')) {
+        userMessage = 'There was an issue with the request format. Please try rephrasing your question.';
+      }
+      
+      throw new Error(userMessage);
     }
 
     // Validate result
     if (!result || !result.response) {
-      console.error('❌ Apollo Brain returned invalid result:', result);
-      throw new Error('Apollo Brain returned an invalid response');
+      console.error('❌ Apollo returned invalid result:', result);
+      throw new Error('I couldn\'t generate a proper response. Please try again.');
     }
 
     // TIER TRACKING: Increment Apollo query counter (skip if bypassing)
@@ -151,16 +189,19 @@ export async function POST(request) {
       response: result.response,
       tool_calls: result.toolsUsed,
       usage: limitCheck.currentUsage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      demo: DEMO_MODE // Flag to indicate demo mode
     });
 
   } catch (error) {
-    console.error('❌ Apollo Advanced Chat error:', error);
+    console.error('❌ Apollo Chat error:', error);
+
+    // Return user-friendly error message
+    const userMessage = error.message || 'I encountered an issue. Please try again or contact support if the problem persists.';
 
     return NextResponse.json(
       {
-        error: 'Failed to process message',
-        details: error.message,
+        error: userMessage,
       },
       { status: 500 }
     );

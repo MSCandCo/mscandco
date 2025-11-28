@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePathname } from 'next/navigation'
 
@@ -23,8 +23,10 @@ export function InactivityLogout({
   const timeoutRef = useRef(null)
   const warningTimeoutRef = useRef(null)
   const countdownIntervalRef = useRef(null)
+  const logoutTimeoutRef = useRef(null) // Separate timeout for final logout
   const showWarningRef = useRef(false)
   const warningStartTimeRef = useRef(null) // Track when warning started
+  const isLoggingOutRef = useRef(false) // Prevent multiple logout calls
   const [showWarning, setShowWarning] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(warningMinutes * 60)
 
@@ -32,14 +34,7 @@ export function InactivityLogout({
   const publicPaths = ['/login', '/register', '/reset-password', '/']
   const isPublicPage = publicPaths.includes(pathname)
 
-  const logout = async () => {
-    // Clear countdown interval if it's running
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current)
-      countdownIntervalRef.current = null
-    }
-
-    // Clear all timeouts
+  const clearAllTimers = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
@@ -48,6 +43,23 @@ export function InactivityLogout({
       clearTimeout(warningTimeoutRef.current)
       warningTimeoutRef.current = null
     }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
+    if (logoutTimeoutRef.current) {
+      clearTimeout(logoutTimeoutRef.current)
+      logoutTimeoutRef.current = null
+    }
+  }, [])
+
+  const logout = useCallback(async () => {
+    // Prevent multiple logout calls
+    if (isLoggingOutRef.current) return
+    isLoggingOutRef.current = true
+
+    // Clear all timers first
+    clearAllTimers()
 
     try {
       // Sign out first with proper scope
@@ -73,26 +85,25 @@ export function InactivityLogout({
     if (typeof window !== 'undefined') {
       window.location.href = '/login?reason=inactivity'
     }
-  }
+  }, [supabase, clearAllTimers])
 
-  const updateCountdown = () => {
-    if (!warningStartTimeRef.current) return
+  const updateCountdown = useCallback(() => {
+    if (!warningStartTimeRef.current || !showWarningRef.current) return
     
     const elapsed = Math.floor((Date.now() - warningStartTimeRef.current) / 1000)
-    const remaining = Math.max(0, (warningMinutes * 60) - elapsed)
+    const totalWarningSeconds = warningMinutes * 60
+    const remaining = Math.max(0, totalWarningSeconds - elapsed)
     
     setRemainingSeconds(remaining)
     
+    // If timer reaches 0 or goes negative, logout immediately
     if (remaining <= 0) {
-      if (countdownIntervalRef.current) {
-        clearInterval(countdownIntervalRef.current)
-        countdownIntervalRef.current = null
-      }
+      clearAllTimers()
       logout()
     }
-  }
+  }, [warningMinutes, clearAllTimers, logout])
 
-  const resetTimeout = () => {
+  const resetTimeout = useCallback(() => {
     // Don't reset on public pages
     if (isPublicPage) return
 
@@ -100,69 +111,70 @@ export function InactivityLogout({
     if (showWarningRef.current) return
 
     // Clear existing timeouts and intervals
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current)
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+    clearAllTimers()
+
+    const totalTimeoutMs = timeoutMinutes * 60 * 1000
+    const warningTimeMs = (timeoutMinutes - warningMinutes) * 60 * 1000
 
     // Set warning timeout (shown N minutes before actual logout)
-    const warningTime = (timeoutMinutes - warningMinutes) * 60 * 1000
-    if (warningTime > 0) {
+    if (warningTimeMs > 0) {
       warningTimeoutRef.current = setTimeout(() => {
+        // Double-check we're not already showing warning
+        if (showWarningRef.current) return
+
         showWarningRef.current = true
         setShowWarning(true)
         warningStartTimeRef.current = Date.now() // Record when warning started
         setRemainingSeconds(warningMinutes * 60)
 
-        // Start countdown using timestamps (works even when page is in background)
-        // Update every second for smooth countdown display
+        // Start countdown interval - update every 100ms for reliability and smooth display
         countdownIntervalRef.current = setInterval(() => {
-          updateCountdown()
-        }, 1000) // Update every second
-        
-        // Backup timeout to ensure logout happens
-        timeoutRef.current = setTimeout(() => {
-          if (countdownIntervalRef.current) {
-            clearInterval(countdownIntervalRef.current)
-            countdownIntervalRef.current = null
+          if (showWarningRef.current && warningStartTimeRef.current) {
+            updateCountdown()
+          } else {
+            // Clean up if warning was dismissed
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current)
+              countdownIntervalRef.current = null
+            }
           }
-          logout()
-        }, warningMinutes * 60 * 1000)
-      }, warningTime)
+        }, 100) // Update every 100ms for reliability
+        
+        // Set final logout timeout as backup (should fire at same time as countdown reaches 0)
+        // Add small buffer (500ms) to ensure countdown check runs first
+        logoutTimeoutRef.current = setTimeout(() => {
+          // Only logout if countdown hasn't already triggered it
+          if (showWarningRef.current && !isLoggingOutRef.current) {
+            clearAllTimers()
+            logout()
+          }
+        }, (warningMinutes * 60 * 1000) + 500)
+      }, warningTimeMs)
     }
 
     // Set actual logout timeout (only if warning hasn't been shown yet)
-    if (!showWarningRef.current) {
-      timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
+      // Only logout if warning hasn't been shown
+      if (!showWarningRef.current && !isLoggingOutRef.current) {
+        clearAllTimers()
         logout()
-      }, timeoutMinutes * 60 * 1000)
-    }
-  }
+      }
+    }, totalTimeoutMs)
+  }, [isPublicPage, timeoutMinutes, warningMinutes, clearAllTimers, updateCountdown, logout])
 
-  const extendSession = () => {
-    // Clear countdown interval if it's running
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current)
-      countdownIntervalRef.current = null
-    }
-    if (warningTimeoutRef.current) {
-      clearTimeout(warningTimeoutRef.current)
-      warningTimeoutRef.current = null
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
+  const extendSession = useCallback(() => {
+    // Clear all timers
+    clearAllTimers()
+    
+    // Reset state
     warningStartTimeRef.current = null
     showWarningRef.current = false
     setShowWarning(false)
+    isLoggingOutRef.current = false
+    
+    // Reset timeout
     resetTimeout()
-  }
-
-  const handleLogout = (e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    logout()
-  }
+  }, [clearAllTimers, resetTimeout])
 
   useEffect(() => {
     if (isPublicPage) return
@@ -182,7 +194,7 @@ export function InactivityLogout({
         // Page is hidden - timestamps will handle the countdown
         return
       } else {
-        // Page is visible again - update countdown immediately
+        // Page is visible again - update countdown immediately if warning is showing
         if (showWarningRef.current && warningStartTimeRef.current) {
           updateCountdown()
         }
@@ -199,16 +211,14 @@ export function InactivityLogout({
     resetTimeout()
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current)
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
-
+      clearAllTimers()
       events.forEach(event => {
         document.removeEventListener(event, handleActivity)
       })
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [isPublicPage, pathname])
+  }, [isPublicPage, pathname, resetTimeout, updateCountdown, clearAllTimers])
+
 
   if (isPublicPage || !showWarning) return null
 
