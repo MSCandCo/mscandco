@@ -304,25 +304,14 @@ function LoginPageContent() {
 
       console.log(`🚀 Redirecting ${userRole || 'user'} to: ${redirectTo}`)
       clearTimeout(timeoutId)
+      setLoading(false) // Clear loading state before redirect
 
       // Small delay to ensure SupabaseProvider updates state
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      // Try router.push first, fallback to window.location.href
-      try {
-        router.push(redirectTo)
-        // If router.push doesn't work within 2 seconds, force redirect
-        setTimeout(() => {
-          if (window.location.pathname === '/login') {
-            console.log('⚠️ Router.push failed, forcing redirect')
-            window.location.href = redirectTo
-          }
-        }, 2000)
-      } catch (redirectError) {
-        console.error('❌ Router redirect error:', redirectError)
-        // Fallback to window.location.href
-        window.location.href = redirectTo
-      }
+      // Use window.location.href for reliable redirect (forces full page reload with fresh session)
+      console.log('🔄 Performing redirect to:', redirectTo)
+      window.location.href = redirectTo
     } catch (err) {
       clearTimeout(timeoutId)
       console.error('❌ Login exception:', err)
