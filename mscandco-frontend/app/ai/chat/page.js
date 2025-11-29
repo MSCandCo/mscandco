@@ -194,7 +194,7 @@ export default function ApolloAIChatPage() {
   };
   
   // DEMO MODE: Platform distribution animation
-  const DEMO_MODE = true; // Set to true for demo
+  const DEMO_MODE = false; // Set to true for demo
   const platforms = [
     "Spotify",
     "Apple Music",

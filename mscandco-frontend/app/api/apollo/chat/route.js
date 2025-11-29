@@ -109,7 +109,7 @@ export async function POST(request) {
     }));
 
     // DEMO MODE: Return demo response
-    const DEMO_MODE = true; // Set to true for demo
+    const DEMO_MODE = false; // Set to true for demo
     
     let result;
     try {
