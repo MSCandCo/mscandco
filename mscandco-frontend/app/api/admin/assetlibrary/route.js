@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
-import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-
 // Lazy initialization to avoid build-time errors
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -34,6 +31,7 @@ export async function GET(request) {
     }
 
     // Check if user is admin
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('role')

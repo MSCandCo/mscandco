@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
-import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-
 // Lazy initialization to avoid build-time errors
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
