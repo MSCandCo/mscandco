@@ -222,7 +222,8 @@ export async function DELETE(request) {
     }
 
     // Get user role
-    const { data: profile } = await supabaseAdmin
+    const supabaseAdminDelete = getSupabaseAdmin()
+    const { data: profile } = await supabaseAdminDelete
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
@@ -250,7 +251,7 @@ export async function DELETE(request) {
     }
 
     // Deactivate the override instead of deleting
-    let query = supabaseAdmin
+    let query = supabaseAdminDelete
       .from('revenue_splits')
       .update({
         is_active: false,
