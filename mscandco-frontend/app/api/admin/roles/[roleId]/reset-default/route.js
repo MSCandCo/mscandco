@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { NextResponse } from 'next/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Lazy initialization to avoid build-time errors
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase configuration is missing')
+  }
+  
+  const { createClient } = require('@supabase/supabase-js')
+  return createClient(supabaseUrl, serviceRoleKey)
+}
 /**
  * Get default permission IDs for a role based on the RBAC system
  * This matches the logic from database/migrations/create_rbac_system.sql

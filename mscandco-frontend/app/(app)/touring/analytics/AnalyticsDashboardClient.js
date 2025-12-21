@@ -8,8 +8,10 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Users, Calendar, Sparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import CurrencySelector, { useCurrencySync, formatCurrency } from '@/components/shared/CurrencySelector';
 
 export default function AnalyticsDashboardClient({ userId }) {
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -108,12 +110,20 @@ export default function AnalyticsDashboardClient({ userId }) {
                 AI-powered insights and performance metrics
               </p>
             </div>
-            <Link
-              href="/touring"
-              className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
-            >
-              Back to Tours
-            </Link>
+            <div className="flex items-center gap-4">
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+                showExchangeRate={true}
+              />
+              <Link
+                href="/touring"
+                className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
+              >
+                Back to Tours
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -128,7 +138,7 @@ export default function AnalyticsDashboardClient({ userId }) {
               <DollarSign className="w-5 h-5 text-green-500" />
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              ${stats.totalRevenue.toLocaleString()}
+              {formatCurrency(stats.totalRevenue, selectedCurrency)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Across all tours</p>
           </div>
@@ -139,7 +149,7 @@ export default function AnalyticsDashboardClient({ userId }) {
               <DollarSign className="w-5 h-5 text-red-500" />
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              ${stats.totalExpenses.toLocaleString()}
+              {formatCurrency(stats.totalExpenses, selectedCurrency)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Across all tours</p>
           </div>
@@ -154,7 +164,7 @@ export default function AnalyticsDashboardClient({ userId }) {
               )}
             </div>
             <p className={`text-3xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${netProfit.toLocaleString()}
+              {formatCurrency(netProfit, selectedCurrency)}
             </p>
             <p className="text-xs text-gray-500 mt-1">{profitMargin}% margin</p>
           </div>

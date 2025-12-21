@@ -8,8 +8,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Link2, RefreshCw, CheckCircle, XCircle, DollarSign, Users } from 'lucide-react';
+import CurrencySelector, { useCurrencySync, formatCurrency } from '@/components/shared/CurrencySelector';
 
 export default function IntegrationsClient({ tourId, dateId, userId }) {
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [eventbriteConnected, setEventbriteConnected] = useState(false);
@@ -149,6 +151,12 @@ export default function IntegrationsClient({ tourId, dateId, userId }) {
               <h1 className="text-3xl font-bold text-gray-900">External Integrations</h1>
               <p className="text-gray-600 mt-1">Connect with Eventbrite and manage payments</p>
             </div>
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+              compact={true}
+              showExchangeRate={true}
+            />
           </div>
         </div>
       </div>
@@ -235,7 +243,7 @@ export default function IntegrationsClient({ tourId, dateId, userId }) {
                       <p className="text-sm text-gray-600">Revenue</p>
                     </div>
                     <p className="text-2xl font-bold text-gray-900">
-                      £{ticketSales.totalRevenue.toLocaleString()}
+                      {formatCurrency(ticketSales.totalRevenue, selectedCurrency)}
                     </p>
                   </div>
                 </div>

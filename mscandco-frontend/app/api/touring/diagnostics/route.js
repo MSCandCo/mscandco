@@ -88,7 +88,7 @@ export async function GET(request) {
 
       // Check RLS status
       try {
-        const { data: rlsData, error: rlsError } = await supabaseAdmin.rpc('check_rls_enabled', {
+        const { data: rlsData, error: rlsError } = await (getSupabaseAdmin()).rpc('check_rls_enabled', {
           table_name: 'tours'
         }).catch(() => {
           // If RPC doesn't exist, try direct query

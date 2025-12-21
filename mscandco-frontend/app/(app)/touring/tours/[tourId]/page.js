@@ -13,13 +13,15 @@ export const metadata = {
 
 export default async function TourDetailPage({ params }) {
   const supabase = await createClient();
-  
+
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   if (!session?.user) {
     redirect('/login');
   }
-  
-  return <TourDetailClient tourId={params.tourId} userId={session.user.id} />;
+
+  const { tourId } = await params;
+
+  return <TourDetailClient tourId={tourId} userId={session.user.id} />;
 }
 

@@ -7,7 +7,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp, Route } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp, Route, MoreVertical, Archive, Trash2, Copy, FileText, X } from 'lucide-react';
+import { subscribeToTable, handleRealtimeUpdate } from '@/lib/supabase/realtime';
+import CurrencySelector, { useCurrencySync, formatCurrency, convertCurrency } from '@/components/shared/CurrencySelector';
 
 export default function TourDetailClient({ tourId, userId }) {
   const router = useRouter();
@@ -16,11 +18,64 @@ export default function TourDetailClient({ tourId, userId }) {
   const [crew, setCrew] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Currency selector with sync across platform
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
+
   useEffect(() => {
     fetchTourData();
   }, [tourId]);
-  
+
+  // Real-time subscriptions
+  useEffect(() => {
+    if (!tourId) return;
+
+    const subscriptions = [];
+
+    // Subscribe to tour updates
+    subscriptions.push(
+      subscribeToTable('tours', (payload) => {
+        if (payload.eventType === 'UPDATE' && payload.new.id === tourId) {
+          setTour(payload.new);
+        }
+      }, { column: 'id', value: tourId })
+    );
+
+    // Subscribe to tour dates
+    subscriptions.push(
+      subscribeToTable('tour_dates', (payload) => {
+        handleRealtimeUpdate(payload, dates, setDates);
+      }, { column: 'tour_id', value: tourId })
+    );
+
+    // Subscribe to crew changes
+    subscriptions.push(
+      subscribeToTable('tour_crew', (payload) => {
+        // Only update if crew member is active
+        if (payload.eventType === 'INSERT' && payload.new.active) {
+          setCrew([...crew, payload.new]);
+        } else if (payload.eventType === 'UPDATE') {
+          setCrew(crew.map(member =>
+            member.id === payload.new.id ? payload.new : member
+          ).filter(member => member.active));
+        } else if (payload.eventType === 'DELETE') {
+          setCrew(crew.filter(member => member.id !== payload.old.id));
+        }
+      }, { column: 'tour_id', value: tourId })
+    );
+
+    console.log('[Real-time] Subscribed to tour updates:', tourId);
+
+    return () => {
+      subscriptions.forEach(sub => sub.unsubscribe());
+      console.log('[Real-time] Unsubscribed from tour updates');
+    };
+  }, [tourId]);
+
   const fetchTourData = async () => {
     try {
       setLoading(true);
@@ -51,6 +106,180 @@ export default function TourDetailClient({ tourId, userId }) {
       case 'completed': return 'bg-gray-100 text-gray-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const handleUpdateTour = async (updates) => {
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/touring/tours/${tourId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update tour');
+      }
+      
+      setTour(data.tour);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error('Error updating tour:', err);
+      alert('Failed to update tour: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+  
+  const handleArchiveTour = async () => {
+    if (!confirm('Are you sure you want to archive this tour? You can restore it later.')) {
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      await handleUpdateTour({ status: 'completed' });
+      alert('Tour archived successfully');
+    } catch (err) {
+      alert('Failed to archive tour: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+  
+  const handleDeleteTour = async () => {
+    if (!confirm('Are you sure you want to delete this tour? This action cannot be undone and will delete all related data (dates, crew, expenses, etc.).')) {
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/touring/tours/${tourId}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete tour');
+      }
+      
+      router.push('/touring');
+    } catch (err) {
+      console.error('Error deleting tour:', err);
+      alert('Failed to delete tour: ' + err.message);
+      setActionLoading(false);
+    }
+  };
+  
+  const handleDuplicateTour = async () => {
+    if (!confirm('This will create a copy of this tour with all dates and crew. Continue?')) {
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      
+      // Create new tour with same data but new name
+      const response = await fetch('/api/touring/tours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          name: `${tour.name} (Copy)`,
+          artist_name: tour.artist_name,
+          start_date: tour.start_date,
+          end_date: tour.end_date,
+          description: tour.description,
+          budget: tour.budget,
+          currency: tour.currency || 'GBP',
+          tour_type: tour.tour_type,
+          status: 'planning'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to duplicate tour');
+      }
+      
+      const newTourId = data.tour.id;
+      
+      // Duplicate tour dates
+      for (const date of dates) {
+        await fetch(`/api/touring/tours/${newTourId}/dates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: date.date,
+            venue_id: date.venue_id,
+            city: date.city,
+            state_province: date.state_province,
+            country: date.country,
+            status: 'pending'
+          })
+        });
+      }
+      
+      // Duplicate crew
+      for (const member of crew) {
+        await fetch(`/api/touring/tours/${newTourId}/crew`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: member.name,
+            role: member.role,
+            email: member.email,
+            phone: member.phone
+          })
+        });
+      }
+      
+      router.push(`/touring/tours/${newTourId}`);
+      alert('Tour duplicated successfully!');
+    } catch (err) {
+      console.error('Error duplicating tour:', err);
+      alert('Failed to duplicate tour: ' + err.message);
+      setActionLoading(false);
+    }
+  };
+  
+  const handleSaveAsTemplate = async () => {
+    const templateName = prompt('Enter a name for this template:');
+    if (!templateName) return;
+    
+    try {
+      setActionLoading(true);
+      
+      // Save to localStorage as template (or you could create an API endpoint for templates)
+      const template = {
+        id: `template_${Date.now()}`,
+        name: templateName,
+        created_at: new Date().toISOString(),
+        tour_data: {
+          artist_name: tour.artist_name,
+          tour_type: tour.tour_type,
+          description: tour.description,
+          crew_roles: crew.map(m => ({ role: m.role, name: m.name })),
+          default_settings: {
+            budget: tour.budget
+          }
+        }
+      };
+      
+      const existingTemplates = JSON.parse(localStorage.getItem('tour_templates') || '[]');
+      existingTemplates.push(template);
+      localStorage.setItem('tour_templates', JSON.stringify(existingTemplates));
+      
+      alert(`Template "${templateName}" saved successfully!`);
+    } catch (err) {
+      console.error('Error saving template:', err);
+      alert('Failed to save template: ' + err.message);
+      setActionLoading(false);
     }
   };
   
@@ -97,6 +326,12 @@ export default function TourDetailClient({ tourId, userId }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+                showExchangeRate={false}
+              />
               <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(tour.status)}`}>
                 {tour.status}
               </span>
@@ -115,10 +350,63 @@ export default function TourDetailClient({ tourId, userId }) {
                   <DollarSign size={18} />
                   Financial
                 </Link>
-                <button className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors">
-                  <Edit size={18} />
-                  Edit
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    <MoreVertical size={18} />
+                    Actions
+                  </button>
+                  
+                  {showMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div className="py-1">
+                          <button
+                            onClick={() => { setShowMenu(false); setShowEditModal(true); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <Edit size={18} />
+                            Edit Tour
+                          </button>
+                          {tour.status !== 'completed' && (
+                            <button
+                              onClick={() => { setShowMenu(false); handleArchiveTour(); }}
+                              className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                              <Archive size={18} />
+                              Archive Tour
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { setShowMenu(false); handleDuplicateTour(); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <Copy size={18} />
+                            Duplicate Tour
+                          </button>
+                          <button
+                            onClick={() => { setShowMenu(false); handleSaveAsTemplate(); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <FileText size={18} />
+                            Save as Template
+                          </button>
+                          <div className="border-t border-gray-200 my-1"></div>
+                          <button
+                            onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 size={18} />
+                            Delete Tour
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -155,7 +443,7 @@ export default function TourDetailClient({ tourId, userId }) {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Budget</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {tour.currency || 'USD'} {parseFloat(tour.budget).toLocaleString()}
+                    {formatCurrency(parseFloat(tour.budget), selectedCurrency)}
                   </p>
                 </div>
                 <DollarSign className="w-8 h-8 text-gray-400" />
@@ -281,6 +569,233 @@ export default function TourDetailClient({ tourId, userId }) {
             </div>
           )}
         </div>
+      </div>
+      
+      {/* Edit Tour Modal */}
+      {showEditModal && (
+        <EditTourModal
+          tour={tour}
+          selectedCurrency={selectedCurrency}
+          updateCurrency={updateCurrency}
+          onSave={(updates) => handleUpdateTour(updates)}
+          onClose={() => setShowEditModal(false)}
+          loading={actionLoading}
+        />
+      )}
+      
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Delete Tour</h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{tour.name}"? This action cannot be undone and will delete all related data (dates, crew, expenses, revenue, etc.).
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTour}
+                disabled={actionLoading}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? 'Deleting...' : 'Delete Tour'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Edit Tour Modal Component
+function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose, loading }) {
+  const [formData, setFormData] = useState({
+    name: tour.name,
+    artist_name: tour.artist_name,
+    start_date: tour.start_date || '',
+    end_date: tour.end_date || '',
+    description: tour.description || '',
+    budget: tour.budget ? convertCurrency(parseFloat(tour.budget), 'GBP', selectedCurrency).toFixed(2) : '',
+    tour_type: tour.tour_type || 'headline',
+    status: tour.status || 'planning'
+  });
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Convert budget back to GBP
+    const budgetInGBP = formData.budget 
+      ? convertCurrency(parseFloat(formData.budget), selectedCurrency, 'GBP')
+      : null;
+    
+    onSave({
+      name: formData.name,
+      artist_name: formData.artist_name,
+      start_date: formData.start_date || null,
+      end_date: formData.end_date || null,
+      description: formData.description || null,
+      budget: budgetInGBP,
+      tour_type: formData.tour_type,
+      status: formData.status
+    });
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Edit Tour</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Tour Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Artist Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.artist_name}
+              onChange={(e) => setFormData({ ...formData, artist_name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Tour Type
+              </label>
+              <select
+                value={formData.tour_type}
+                onChange={(e) => setFormData({ ...formData, tour_type: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+              >
+                <option value="headline">Headline</option>
+                <option value="support">Support</option>
+                <option value="festival">Festival</option>
+                <option value="club">Club</option>
+                <option value="residency">Residency</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+              >
+                <option value="planning">Planning</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Budget <span className="text-xs text-gray-500">(in {selectedCurrency})</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                step="0.01"
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+                placeholder="0.00"
+              />
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+                showExchangeRate={false}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          
+          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

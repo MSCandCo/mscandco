@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, MapPin, Users, TrendingUp, Sparkles, Music, DollarSign, TrendingDown } from 'lucide-react';
 import Link from 'next/link';
+import CurrencySelector, { useCurrencySync, formatCurrency } from '@/components/shared/CurrencySelector';
 
 export default function TouringDashboardClient({ userId }) {
   const router = useRouter();
@@ -25,6 +26,9 @@ export default function TouringDashboardClient({ userId }) {
     totalExpenses: 0,
     avgAttendance: 0
   });
+
+  // Currency selector with sync across platform
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
 
   useEffect(() => {
     console.log('[TouringDashboard] Component mounted');
@@ -210,13 +214,21 @@ export default function TouringDashboardClient({ userId }) {
                 AI-powered tour management - Plan, execute, and optimize your tours
               </p>
             </div>
-            <button
-              onClick={handleCreateTour}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors shadow-lg"
-            >
-              <Plus size={20} />
-              Create New Tour
-            </button>
+            <div className="flex items-center gap-4">
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+                showExchangeRate={true}
+              />
+              <button
+                onClick={handleCreateTour}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors shadow-lg"
+              >
+                <Plus size={20} />
+                Create New Tour
+              </button>
+            </div>
           </div>
 
           {/* Tabs */}
@@ -414,7 +426,7 @@ export default function TouringDashboardClient({ userId }) {
                   <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                     <TrendingUp size={16} />
                     <span>
-                      Budget: {tour.currency || 'USD'} {parseFloat(tour.budget).toLocaleString()}
+                      Budget: {formatCurrency(parseFloat(tour.budget), selectedCurrency)}
                     </span>
                   </div>
                 )}
@@ -436,7 +448,7 @@ export default function TouringDashboardClient({ userId }) {
                   <DollarSign className="w-5 h-5 text-green-500" />
                 </div>
                 <p className="text-3xl font-bold text-gray-900">
-                  ${stats.totalRevenue.toLocaleString()}
+                  {formatCurrency(stats.totalRevenue, selectedCurrency)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Across all tours</p>
               </div>
@@ -447,7 +459,7 @@ export default function TouringDashboardClient({ userId }) {
                   <DollarSign className="w-5 h-5 text-red-500" />
                 </div>
                 <p className="text-3xl font-bold text-gray-900">
-                  ${stats.totalExpenses.toLocaleString()}
+                  {formatCurrency(stats.totalExpenses, selectedCurrency)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Across all tours</p>
               </div>
@@ -462,7 +474,7 @@ export default function TouringDashboardClient({ userId }) {
                   )}
                 </div>
                 <p className={`text-3xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${netProfit.toLocaleString()}
+                  {formatCurrency(netProfit, selectedCurrency)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">{profitMargin}% margin</p>
               </div>

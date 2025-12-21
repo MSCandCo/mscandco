@@ -8,9 +8,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import CurrencySelector, { useCurrencySync, convertCurrency } from '@/components/shared/CurrencySelector';
 
 export default function CreateTourClient({ userId }) {
   const router = useRouter();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -21,7 +23,6 @@ export default function CreateTourClient({ userId }) {
     end_date: '',
     description: '',
     budget: '',
-    currency: 'USD',
     tour_type: 'headline'
   });
   
@@ -31,13 +32,19 @@ export default function CreateTourClient({ userId }) {
     setError(null);
     
     try {
+      // Convert budget from selected currency to GBP for storage
+      const budgetInGBP = formData.budget 
+        ? convertCurrency(parseFloat(formData.budget), selectedCurrency, 'GBP')
+        : null;
+
       const response = await fetch('/api/touring/tours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
           ...formData,
-          budget: formData.budget ? parseFloat(formData.budget) : null
+          budget: budgetInGBP,
+          currency: 'GBP' // Always store in GBP
         })
       });
       
@@ -68,10 +75,16 @@ export default function CreateTourClient({ userId }) {
             >
               <ArrowLeft size={20} className="text-gray-600" />
             </Link>
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900">Create New Tour</h1>
               <p className="text-gray-600 mt-1">Set up your tour with AI assistance</p>
             </div>
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={updateCurrency}
+              compact={true}
+              showExchangeRate={true}
+            />
           </div>
         </div>
       </div>
@@ -160,35 +173,21 @@ export default function CreateTourClient({ userId }) {
           </div>
           
           {/* Budget */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Budget
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.budget}
-                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Currency
-              </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="CAD">CAD (C$)</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Budget <span className="text-xs text-gray-500">(in {selectedCurrency})</span>
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.budget}
+              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Budget will be stored in GBP and converted for display across the platform
+            </p>
           </div>
           
           {/* Description */}

@@ -16,7 +16,7 @@ const supabaseAdmin = createClient(
  */
 export async function GET(request, { params }) {
   try {
-    const { tourId } = params;
+    const { tourId } = await params;
     
     if (!tourId) {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function GET(request, { params }) {
  */
 export async function PATCH(request, { params }) {
   try {
-    const { tourId } = params;
+    const { tourId } = await params;
     const body = await request.json();
     
     if (!tourId) {
@@ -129,7 +129,7 @@ export async function PATCH(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { tourId } = params;
+    const { tourId } = await params;
     
     if (!tourId) {
       return NextResponse.json(

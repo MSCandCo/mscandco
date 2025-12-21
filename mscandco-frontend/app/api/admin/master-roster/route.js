@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
 
 /**
  * GET /api/admin/master-roster
@@ -25,6 +20,7 @@ export async function GET(request) {
     }
 
     // Get all user profiles with role information
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: profiles, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, email, first_name, last_name, artist_name, role, created_at, updated_at')

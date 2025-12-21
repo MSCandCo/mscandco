@@ -392,5 +392,16 @@ uploads/
 temp/
 logs/
 *.log 
+
+# Gmail API credentials (keep secure!)
+gmail-credentials.json
+gmail-token.json
+
 # Archived/obsolete code (local reference only)
 _archived/
+
+# Gmail API credentials and tokens
+scripts/gmail/gmail-credentials.json
+scripts/gmail/gmail-token.json
+logs/*.txt
+

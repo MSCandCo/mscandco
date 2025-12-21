@@ -13,14 +13,19 @@ import {
   CheckCircle, XCircle, Clock as ClockIcon, Hotel, Plane, Music,
   Edit, Trash2, Car, Train, Ship, Link2, FileText
 } from 'lucide-react';
+import CurrencySelector, { useCurrencySync, formatCurrency } from '@/components/shared/CurrencySelector';
 
 export default function TourDateDetailClient({ tourId, dateId, userId }) {
   const router = useRouter();
+  const [selectedCurrency, updateCurrency] = useCurrencySync('GBP');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [date, setDate] = useState(null);
   const [guests, setGuests] = useState([]);
   const [itinerary, setItinerary] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [travel, setTravel] = useState([]);
+  const [setlist, setSetlist] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   
   useEffect(() => {
@@ -177,6 +182,12 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onCurrencyChange={updateCurrency}
+                compact={true}
+                showExchangeRate={true}
+              />
               <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
                 date.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                 date.status === 'hold' ? 'bg-yellow-100 text-yellow-800' :
@@ -281,7 +292,7 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   <p className="text-sm text-gray-600 mb-1">Revenue</p>
                   <p className="text-3xl font-bold text-green-600">
-                    ${parseFloat(date.revenue).toLocaleString()}
+                    {formatCurrency(parseFloat(date.revenue), selectedCurrency)}
                   </p>
                 </div>
               )}
@@ -290,7 +301,7 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   <p className="text-sm text-gray-600 mb-1">Expenses</p>
                   <p className="text-3xl font-bold text-red-600">
-                    ${parseFloat(date.expenses).toLocaleString()}
+                    {formatCurrency(parseFloat(date.expenses), selectedCurrency)}
                   </p>
                 </div>
               )}
@@ -537,7 +548,7 @@ export default function TourDateDetailClient({ tourId, dateId, userId }) {
                             <div>
                               <p className="text-gray-500">Total Cost</p>
                               <p className="font-semibold text-gray-900">
-                                ${parseFloat(hotel.total_cost).toLocaleString()}
+                                {formatCurrency(parseFloat(hotel.total_cost), selectedCurrency)}
                               </p>
                             </div>
                           )}
