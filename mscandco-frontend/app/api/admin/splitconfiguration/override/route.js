@@ -9,7 +9,7 @@ import { hasPermission } from '@/lib/rbac/roles'
 
 
 // Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
+async function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
@@ -17,7 +17,7 @@ function getSupabaseAdmin() {
     throw new Error('Supabase configuration is missing')
   }
   
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(supabaseUrl, serviceRoleKey)
 }
 export async function POST(request) {
@@ -34,7 +34,7 @@ export async function POST(request) {
     }
 
     // Get user role
-    const supabaseAdminPost = getSupabaseAdmin()
+    const supabaseAdminPost = await getSupabaseAdmin()
     const { data: profile } = await supabaseAdminPost
       .from('user_profiles')
       .select('role')
@@ -223,7 +223,7 @@ export async function DELETE(request) {
     }
 
     // Get user role
-    const supabaseAdminDelete = getSupabaseAdmin()
+    const supabaseAdminDelete = await getSupabaseAdmin()
     const { data: profile } = await supabaseAdminDelete
       .from('user_profiles')
       .select('role')
