@@ -34,6 +34,7 @@ export async function GET(request) {
     }
 
     // Get user role
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
@@ -215,7 +216,8 @@ export async function PUT(request) {
     }
 
     // Get user role
-    const { data: profile } = await supabaseAdmin
+    const supabaseAdminPut = getSupabaseAdmin()
+    const { data: profile } = await supabaseAdminPut
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
@@ -251,7 +253,7 @@ export async function PUT(request) {
     }
 
     // Check if config exists
-    const { data: existingConfig } = await supabaseAdmin
+    const { data: existingConfig } = await supabaseAdminPut
       .from('revenue_split_config')
       .select('company_id')
       .eq('company_id', 'msc-co')
@@ -269,7 +271,7 @@ export async function PUT(request) {
     let result
     if (existingConfig) {
       // Update existing config
-      const { data, error: updateError } = await supabaseAdmin
+      const { data, error: updateError } = await supabaseAdminPut
         .from('revenue_split_config')
         .update(updateData)
         .eq('company_id', 'msc-co')
@@ -278,7 +280,7 @@ export async function PUT(request) {
       result = { data, error: updateError }
     } else {
       // Insert new config
-      const { data, error: insertError } = await supabaseAdmin
+      const { data, error: insertError } = await supabaseAdminPut
         .from('revenue_split_config')
         .insert({
           company_id: 'msc-co',
