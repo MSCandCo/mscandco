@@ -34,7 +34,8 @@ export async function POST(request) {
     }
 
     // Get user role
-    const { data: profile } = await supabaseAdmin
+    const supabaseAdminPost = getSupabaseAdmin()
+    const { data: profile } = await supabaseAdminPost
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
@@ -69,7 +70,6 @@ export async function POST(request) {
 
     // Check if override already exists (including inactive ones)
     // We want to find ANY existing override for this user, regardless of active status
-    const supabaseAdminPost = getSupabaseAdmin()
     let query = supabaseAdminPost
       .from('revenue_splits')
       .select('id, is_active, artist_id, label_admin_id')
