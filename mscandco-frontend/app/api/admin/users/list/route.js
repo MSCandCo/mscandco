@@ -10,7 +10,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { cachedJsonResponse, CACHE_HEADERS } from '@/lib/apiCache'
 
 // Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
+async function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
@@ -18,7 +18,7 @@ function getSupabaseAdmin() {
     throw new Error('Supabase configuration is missing')
   }
   
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(supabaseUrl, serviceRoleKey)
 }
 export async function GET(request) {

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 
 // Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
+async function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Supabase configuration is missing')
   }
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(supabaseUrl, serviceRoleKey)
 }
 
@@ -20,7 +20,7 @@ function getSupabaseAdmin() {
 export async function GET() {
   try {
     // Fetch all permissions directly using service role
-    const supabase = getSupabaseAdmin()
+    const supabase = await getSupabaseAdmin()
     const { data: permissions, error } = await supabase
       .from('permissions')
       .select('*')

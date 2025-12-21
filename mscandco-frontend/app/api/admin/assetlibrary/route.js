@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
+async function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
@@ -10,7 +10,7 @@ function getSupabaseAdmin() {
     throw new Error('Supabase configuration is missing')
   }
   
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = await import('@supabase/supabase-js')
   return createClient(supabaseUrl, serviceRoleKey)
 }
 /**
@@ -31,7 +31,7 @@ export async function GET(request) {
     }
 
     // Check if user is admin
-    const supabaseAdmin = getSupabaseAdmin()
+    const supabaseAdmin = await getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
