@@ -22,10 +22,25 @@ export function SupabaseProvider({ children }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.warn('SupabaseProvider: Error getting session:', error.message)
+          // Set to null on error - treat as no session
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+      } catch (error) {
+        // Handle network errors, connection issues, etc.
+        console.warn('SupabaseProvider: Failed to get session:', error.message)
+        setSession(null)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
     getInitialSession()
@@ -33,9 +48,16 @@ export function SupabaseProvider({ children }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
+        try {
+          setSession(session)
+          setUser(session?.user ?? null)
+        } catch (error) {
+          console.warn('SupabaseProvider: Error in auth state change:', error.message)
+          setSession(null)
+          setUser(null)
+        } finally {
+          setLoading(false)
+        }
       }
     )
 

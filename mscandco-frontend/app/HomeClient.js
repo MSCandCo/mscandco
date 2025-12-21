@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Check } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 
 export default function HomeClient() {
   const [activeMyth, setActiveMyth] = useState(1) // Default to index 1 (Digital Distribution is Too Expensive)
   const timeoutRef = useRef(null)
+  const [selectedVideo, setSelectedVideo] = useState(null)
 
   const myths = [
     { text: "You Need a Major Label to Succeed", image: "/images/myth-1.png" },
@@ -142,36 +143,38 @@ export default function HomeClient() {
 
             {/* Middle Column - Pricing Card or Image */}
             <div className="w-full lg:w-4/12 flex justify-center lg:justify-start lg:items-center">
-              <div className="relative max-w-sm mx-auto">
+              <div className="relative max-w-sm mx-auto w-full">
                 {activeMyth === 1 ? (
                   // Myth 2 (index 1): Show free tier pricing card
-                  <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-800">
-                    <div className="text-center">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">MSC Free</h3>
-                      <div className="mb-6">
-                        <span className="text-4xl font-bold text-gray-800">£0</span>
-                        <span className="text-gray-600">/month</span>
+                  <div className="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-800 w-full flex flex-col" style={{ aspectRatio: '2000/2500' }}>
+                    <div className="text-center flex-shrink-0">
+                      <h3 className="text-lg font-bold text-gray-900 mb-0.5">MSC Free</h3>
+                      <div className="mb-2">
+                        <span className="text-2xl font-bold text-gray-800">£0</span>
+                        <span className="text-gray-600 text-sm">/month</span>
                       </div>
-                      <p className="text-sm text-gray-600 italic mb-4">New & emerging artists</p>
-                      <div className="space-y-3 text-sm text-gray-700 mb-8 text-left">
-                        {[
-                          'Keep 80% of royalties',
-                          '12 streaming platforms',
-                          'ISRC & UPC codes',
-                          'Basic analytics',
-                          'CSV sales reports',
-                          'Copyright protection',
-                          'Apollo Intelligence: 3 queries/month'
-                        ].map((feature, index) => (
-                          <div key={index} className="flex items-start">
-                            <Check className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                            {feature}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-gray-600 text-left">
-                        <p className="font-semibold mb-1">Limitations:</p>
-                        <ul className="list-disc list-inside space-y-1">
+                      <p className="text-xs text-gray-600 italic mb-2">New & emerging artists</p>
+                    </div>
+                    <div className="space-y-1 text-xs text-gray-700 mb-2 text-left flex-grow overflow-y-auto">
+                      {[
+                        'Keep 80% of royalties',
+                        '12 streaming platforms',
+                        'ISRC & UPC codes',
+                        'Basic analytics',
+                        'CSV sales reports',
+                        'Copyright protection',
+                        'Apollo Intelligence: 3 queries/month'
+                      ].map((feature, index) => (
+                        <div key={index} className="flex items-start">
+                          <Check className="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className="mb-2 p-1.5 bg-blue-50 border border-blue-200 rounded text-xs text-gray-600 text-left">
+                        <p className="font-semibold mb-0.5 text-xs">Limitations:</p>
+                        <ul className="list-disc list-inside space-y-0 text-[10px] leading-tight">
                           <li>Max 3 releases/year</li>
                           <li>Max 15 tracks/year</li>
                           <li>Standard delivery: 7-10 days</li>
@@ -179,7 +182,7 @@ export default function HomeClient() {
                       </div>
                       <button
                         onClick={() => window.location.href = '/register'}
-                        className="w-full bg-transparent text-[#1f2937] border border-[#1f2937] rounded-xl py-3 px-6 font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
+                        className="w-full bg-transparent text-[#1f2937] border border-[#1f2937] rounded-lg py-1.5 px-3 text-xs font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
                       >
                         Get Started Free
                       </button>
@@ -225,7 +228,7 @@ export default function HomeClient() {
                 <div
                   key={videoId}
                   className="flex-shrink-0 group cursor-pointer"
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}
+                  onClick={() => setSelectedVideo(videoId)}
                 >
                   <div className="relative w-96 h-60 bg-gray-900 rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                     {/* Thumbnail as background while video loads */}
@@ -249,7 +252,7 @@ export default function HomeClient() {
                 <div
                   key={`${videoId}-duplicate-${index}`}
                   className="flex-shrink-0 group cursor-pointer"
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}
+                  onClick={() => setSelectedVideo(videoId)}
                 >
                   <div className="relative w-96 h-60 bg-gray-900 rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                     {/* Thumbnail as background while video loads */}
@@ -272,6 +275,37 @@ export default function HomeClient() {
           </div>
         </div>
       </section>
+
+      {/* Video Lightbox Modal */}
+      {selectedVideo && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+          onClick={() => setSelectedVideo(null)}
+        >
+          <div 
+            className="relative w-full max-w-4xl bg-black rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 transition-colors bg-black bg-opacity-50 rounded-full p-2"
+              aria-label="Close video"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="aspect-video w-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&modestbranding=1&rel=0`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                frameBorder="0"
+                title="YouTube video player"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes scroll {
