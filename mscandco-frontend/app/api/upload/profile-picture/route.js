@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // Use service role for storage uploads
-import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // Lazy initialization to avoid build-time errors
 function getSupabaseAdmin() {

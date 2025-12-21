@@ -31,6 +31,7 @@ export async function GET(request) {
     }
 
     // Check if user is admin
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
