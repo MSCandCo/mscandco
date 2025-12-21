@@ -69,7 +69,8 @@ export async function POST(request) {
 
     // Check if override already exists (including inactive ones)
     // We want to find ANY existing override for this user, regardless of active status
-    let query = supabaseAdmin
+    const supabaseAdminPost = getSupabaseAdmin()
+    let query = supabaseAdminPost
       .from('revenue_splits')
       .select('id, is_active, artist_id, label_admin_id')
 
@@ -128,7 +129,7 @@ export async function POST(request) {
         updateData.artist_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       }
 
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabaseAdminPost
         .from('revenue_splits')
         .update(updateData)
         .eq('id', existing.id)
@@ -170,7 +171,7 @@ export async function POST(request) {
         insertData.artist_percentage = Math.round((100 - percentage) * 100) / 100  // Round to 2 decimal places
       }
 
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await supabaseAdminPost
         .from('revenue_splits')
         .insert(insertData)
 
