@@ -3,14 +3,9 @@
  * GET /api/admin/get-artists - Fetch artists and label admins
  */
 
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
 
 export async function GET(request) {
   try {
@@ -28,6 +23,7 @@ export async function GET(request) {
     console.log('📊 Fetching artists and label admins for earnings management')
 
     // Get all auth users
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: authResult } = await supabaseAdmin.auth.admin.listUsers()
     const authUsers = authResult?.users || []
 

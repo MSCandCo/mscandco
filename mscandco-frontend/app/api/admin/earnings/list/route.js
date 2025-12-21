@@ -7,10 +7,17 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// Lazy initialization to avoid build-time errors
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase configuration is missing')
+  }
+  
+  return createClient(supabaseUrl, serviceRoleKey)
+}
 
 export async function GET(request) {
   try {
@@ -35,6 +42,7 @@ export async function GET(request) {
     console.log(`📊 Loading earnings list for artist: ${artist_id}`)
 
     // Fetch all earnings for the artist from earnings_log table
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: earnings, error: earningsError } = await supabaseAdmin
       .from('earnings_log')
       .select('*')
