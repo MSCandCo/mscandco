@@ -8,18 +8,6 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { hasPermission } from '@/lib/rbac/roles'
 
 
-// Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Supabase configuration is missing')
-  }
-  
-  const { createClient } = await import('@supabase/supabase-js')
-  return createClient(supabaseUrl, serviceRoleKey)
-}
 export async function GET(request) {
   try {
     // Check authentication
@@ -31,6 +19,17 @@ export async function GET(request) {
         error: 'Unauthorized',
         message: 'No authorization token provided'
       }, { status: 401 })
+    }
+
+    // Lazy initialization to avoid build-time errors
+    const getSupabaseAdmin = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (!supabaseUrl || !serviceRoleKey) {
+        throw new Error('Supabase configuration is missing')
+      }
+      const { createClient } = await import('@supabase/supabase-js')
+      return createClient(supabaseUrl, serviceRoleKey)
     }
 
     // Get user role
@@ -213,6 +212,17 @@ export async function PUT(request) {
         error: 'Unauthorized',
         message: 'No authorization token provided'
       }, { status: 401 })
+    }
+
+    // Lazy initialization to avoid build-time errors
+    const getSupabaseAdmin = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (!supabaseUrl || !serviceRoleKey) {
+        throw new Error('Supabase configuration is missing')
+      }
+      const { createClient } = await import('@supabase/supabase-js')
+      return createClient(supabaseUrl, serviceRoleKey)
     }
 
     // Get user role
