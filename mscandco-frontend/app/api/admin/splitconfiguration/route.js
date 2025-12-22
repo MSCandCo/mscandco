@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { hasPermission } from '@/lib/rbac/roles'
 
+// Force dynamic rendering to avoid build-time evaluation
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET(request) {
   try {
