@@ -5,17 +5,13 @@
 
 import { NextResponse } from 'next/server';
 // Enterprise pattern: Dynamic imports to prevent build-time analysis
-import OpenAI from 'openai';
-import { APOLLO_CONFIG } from '@/lib/apollo/client';
-import { APOLLO_TOOLS, executeTool } from '@/lib/apollo/tools';
+// All imports deferred to runtime
 
 // Force dynamic rendering to avoid build-time evaluation
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 
 /**
@@ -23,6 +19,9 @@ const openai = new OpenAI({
  */
 export async function GET(request) {
   try {
+    // Enterprise pattern: Dynamic imports prevent build-time analysis
+    const { apolloThink } = await import('@/lib/apollo/brain');
+    
     // Lazy load Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
