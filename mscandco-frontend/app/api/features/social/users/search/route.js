@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 /**
@@ -11,6 +10,11 @@ import { NextResponse } from 'next/server';
  * - limit: Max results (default 20)
  * - role: Filter by role (artist, label, etc.)
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request) {
   try {
     const supabase = await createClient();

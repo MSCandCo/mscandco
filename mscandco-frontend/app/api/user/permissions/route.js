@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { getUserPermissions } from '@/lib/permissions'
 
 /**
  * GET /api/user/permissions
  * Fetch user permissions for the authenticated user
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request) {
   try {
     // Authenticate user

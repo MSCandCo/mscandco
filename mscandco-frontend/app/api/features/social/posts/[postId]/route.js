@@ -1,10 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 /**
  * GET /api/features/social/posts/[postId]
  * Get a specific social media post
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request, { params }) {
   try {
     const supabase = await createClient();

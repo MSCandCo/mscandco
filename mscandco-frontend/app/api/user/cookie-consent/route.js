@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 
 /**
  * POST /api/user/cookie-consent
@@ -7,6 +6,11 @@ import { createClient } from '@/lib/supabase/server'
  * Save user's cookie consent preferences
  * Can be called by authenticated or anonymous users
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request) {
   try {
     const supabase = await createClient()

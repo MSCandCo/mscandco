@@ -1,5 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { TIER_CONFIG } from '@/lib/pricing/tierLimits'
+
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function POST(request) {
   try {

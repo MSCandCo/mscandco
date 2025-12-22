@@ -5,7 +5,6 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createClient as createServerClient } from '@/lib/supabase/server';
 
 function getSupabaseAdmin() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -30,6 +29,11 @@ function getSupabaseAdmin() {
 /**
  * GET - Fetch a specific tour
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request, { params }) {
   try {
     const serverSupabase = await createServerClient();
@@ -39,7 +43,13 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
+    // Lazy load Supabase admin client
+
+
+    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+
+
+    const supabaseAdmin = await createServiceRoleClient();;
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -86,7 +96,13 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
+    // Lazy load Supabase admin client
+
+
+    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+
+
+    const supabaseAdmin = await createServiceRoleClient();;
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -136,7 +152,13 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
+    // Lazy load Supabase admin client
+
+
+    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+
+
+    const supabaseAdmin = await createServiceRoleClient();;
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }

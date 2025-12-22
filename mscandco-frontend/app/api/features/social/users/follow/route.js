@@ -1,10 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 /**
  * POST /api/features/social/users/follow
  * Follow a user
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request) {
   try {
     const supabase = await createClient();

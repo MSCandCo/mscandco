@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
 
 /**
  * GET /api/admin/systems/sentry-stats
  * Get Sentry error tracking statistics
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request) {
   try {
     const serverSupabase = await createServerClient()

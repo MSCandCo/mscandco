@@ -5,7 +5,6 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createClient as createServerClient } from '@/lib/supabase/server';
 
 // Helper function to get admin client (initialized fresh each time to avoid stale connections)
 function getSupabaseAdmin() {
@@ -31,6 +30,11 @@ function getSupabaseAdmin() {
 /**
  * GET - Fetch tours for authenticated user
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request) {
   try {
     // Validate environment variables
@@ -70,7 +74,13 @@ export async function GET(request) {
       );
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
+    // Lazy load Supabase admin client
+
+
+    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+
+
+    const supabaseAdmin = await createServiceRoleClient();;
     if (!supabaseAdmin) {
       console.error('❌ Supabase admin client initialization failed');
       return NextResponse.json(
@@ -179,7 +189,13 @@ export async function POST(request) {
       );
     }
 
-    const supabaseAdmin = getSupabaseAdmin();
+    // Lazy load Supabase admin client
+
+
+    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+
+
+    const supabaseAdmin = await createServiceRoleClient();;
     if (!supabaseAdmin) {
       return NextResponse.json(
         { error: 'Server configuration error', details: 'Supabase admin client not initialized. Check environment variables.' },

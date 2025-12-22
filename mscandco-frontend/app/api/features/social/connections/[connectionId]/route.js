@@ -1,10 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 /**
  * DELETE /api/features/social/connections/[connectionId]
  * Delete/disconnect a social media connection
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function DELETE(request, { params }) {
   try {
     const supabase = await createClient();

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
 import { getRedis } from '@/lib/cache/redis'
 
@@ -7,6 +6,11 @@ import { getRedis } from '@/lib/cache/redis'
  * GET /api/admin/systems/redis-stats
  * Get Upstash Redis statistics
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request) {
   try {
     const serverSupabase = await createServerClient()

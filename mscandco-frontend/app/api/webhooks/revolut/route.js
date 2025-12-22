@@ -1,9 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
 
 /**
  * Revolut Webhook Handler
  * Processes payment events from Revolut for subscriptions and tier upgrades
  */
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request) {
   try {
     const supabase = await createClient()
