@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 
-// Use service role to bypass RLS
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// Force dynamic rendering to avoid build-time evaluation
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * POST /api/ai/learn
@@ -14,6 +11,15 @@ const supabase = createClient(
  */
 export async function POST(request) {
   try {
+    // Lazy load Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
+
     const body = await request.json()
     const {
       userId,
@@ -59,29 +65,29 @@ export async function POST(request) {
     switch (interactionCategory) {
       case 'navigation':
         learningUpdate.navigation = {
-          mostVisitedPages: await getMostVisitedPages(userId),
-          preferredTimeOfDay: await getPreferredTimeOfDay(userId),
-          navigationPatterns: await getNavigationPatterns(userId),
+          mostVisitedPages: await getMostVisitedPages(supabase, userId),
+          preferredTimeOfDay: await getPreferredTimeOfDay(supabase, userId),
+          navigationPatterns: await getNavigationPatterns(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
 
       case 'releases':
         learningUpdate.releases = {
-          ...(await getReleaseLearning(userId)),
+          ...(await getReleaseLearning(supabase, userId)),
           lastReleaseType: interactionData.releaseType,
           lastReleaseGenre: interactionData.genre,
-          releaseFrequency: await getReleaseFrequency(userId),
-          preferredReleaseDates: await getPreferredReleaseDates(userId),
+          releaseFrequency: await getReleaseFrequency(supabase, userId),
+          preferredReleaseDates: await getPreferredReleaseDates(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
 
       case 'analytics':
         learningUpdate.analytics = {
-          mostViewedMetrics: await getMostViewedMetrics(userId),
-          preferredTimeframes: await getPreferredTimeframes(userId),
-          topPlatforms: await getTopPlatforms(userId),
+          mostViewedMetrics: await getMostViewedMetrics(supabase, userId),
+          preferredTimeframes: await getPreferredTimeframes(supabase, userId),
+          topPlatforms: await getTopPlatforms(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
@@ -89,8 +95,8 @@ export async function POST(request) {
       case 'earnings':
         learningUpdate.earnings = {
           preferredCurrency: interactionData.currency,
-          paymentPreferences: await getPaymentPreferences(userId),
-          earningsViewFrequency: await getEarningsViewFrequency(userId),
+          paymentPreferences: await getPaymentPreferences(supabase, userId),
+          earningsViewFrequency: await getEarningsViewFrequency(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
@@ -107,16 +113,16 @@ export async function POST(request) {
 
       case 'social':
         learningUpdate.social = {
-          mostUsedPlatforms: await getMostUsedSocialPlatforms(userId),
-          engagementPatterns: await getEngagementPatterns(userId),
+          mostUsedPlatforms: await getMostUsedSocialPlatforms(supabase, userId),
+          engagementPatterns: await getEngagementPatterns(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
 
       case 'collaboration':
         learningUpdate.collaboration = {
-          collaborationFrequency: await getCollaborationFrequency(userId),
-          preferredCollaborators: await getPreferredCollaborators(userId),
+          collaborationFrequency: await getCollaborationFrequency(supabase, userId),
+          preferredCollaborators: await getPreferredCollaborators(supabase, userId),
           lastUpdated: new Date().toISOString(),
         }
         break
@@ -166,7 +172,7 @@ export async function POST(request) {
 }
 
 // Helper functions for learning analysis
-async function getMostVisitedPages(userId) {
+async function getMostVisitedPages(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('interaction_data')
@@ -190,7 +196,7 @@ async function getMostVisitedPages(userId) {
     .map(([page]) => page)
 }
 
-async function getPreferredTimeOfDay(userId) {
+async function getPreferredTimeOfDay(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('created_at')
@@ -210,7 +216,7 @@ async function getPreferredTimeOfDay(userId) {
   return mostActiveHour ? `${mostActiveHour}:00` : null
 }
 
-async function getNavigationPatterns(userId) {
+async function getNavigationPatterns(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('interaction_data, created_at')
@@ -232,7 +238,7 @@ async function getNavigationPatterns(userId) {
   return flows.slice(0, 10)
 }
 
-async function getReleaseLearning(userId) {
+async function getReleaseLearning(supabase, userId) {
   const { data: releases } = await supabase
     .from('releases')
     .select('release_type, genre, release_date, created_at')
@@ -260,7 +266,7 @@ async function getReleaseLearning(userId) {
   }
 }
 
-async function getReleaseFrequency(userId) {
+async function getReleaseFrequency(supabase, userId) {
   const { data: releases } = await supabase
     .from('releases')
     .select('created_at')
@@ -280,7 +286,7 @@ async function getReleaseFrequency(userId) {
   return Math.round(avgInterval)
 }
 
-async function getPreferredReleaseDates(userId) {
+async function getPreferredReleaseDates(supabase, userId) {
   const { data: releases } = await supabase
     .from('releases')
     .select('release_date')
@@ -303,7 +309,7 @@ async function getPreferredReleaseDates(userId) {
   return preferredDay !== undefined ? dayNames[preferredDay] : null
 }
 
-async function getMostViewedMetrics(userId) {
+async function getMostViewedMetrics(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('interaction_data')
@@ -325,7 +331,7 @@ async function getMostViewedMetrics(userId) {
     .map(([metric]) => metric)
 }
 
-async function getPreferredTimeframes(userId) {
+async function getPreferredTimeframes(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('interaction_data')
@@ -347,13 +353,13 @@ async function getPreferredTimeframes(userId) {
     .map(([timeframe]) => timeframe)
 }
 
-async function getTopPlatforms(userId) {
+async function getTopPlatforms(supabase, userId) {
   // This would analyze analytics data to find top platforms
   // For now, return empty array - can be enhanced with actual analytics queries
   return []
 }
 
-async function getPaymentPreferences(userId) {
+async function getPaymentPreferences(supabase, userId) {
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('preferred_currency, payment_method')
@@ -366,7 +372,7 @@ async function getPaymentPreferences(userId) {
   }
 }
 
-async function getEarningsViewFrequency(userId) {
+async function getEarningsViewFrequency(supabase, userId) {
   const { data } = await supabase
     .from('user_interaction_logs')
     .select('created_at')
@@ -387,7 +393,7 @@ async function getEarningsViewFrequency(userId) {
   return Math.round(avgInterval)
 }
 
-async function getMostUsedSocialPlatforms(userId) {
+async function getMostUsedSocialPlatforms(supabase, userId) {
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('instagram, twitter, facebook, youtube, tiktok, spotify')
@@ -405,19 +411,19 @@ async function getMostUsedSocialPlatforms(userId) {
   return platforms
 }
 
-async function getEngagementPatterns(userId) {
+async function getEngagementPatterns(supabase, userId) {
   // Analyze social media engagement patterns
   // Can be enhanced with actual engagement data
   return {}
 }
 
-async function getCollaborationFrequency(userId) {
+async function getCollaborationFrequency(supabase, userId) {
   // Analyze collaboration patterns
   // Can be enhanced with actual collaboration data
   return null
 }
 
-async function getPreferredCollaborators(userId) {
+async function getPreferredCollaborators(supabase, userId) {
   // Analyze preferred collaborators
   // Can be enhanced with actual collaboration data
   return []
