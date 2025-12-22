@@ -7,20 +7,24 @@
  * Body: { "type": "welcome", "email": "test@example.com" }
  */
 
-import {
-  sendWelcomeEmail,
-  sendPasswordResetEmail,
-  sendPasswordChangedEmail,
-  sendReleaseApprovedEmail,
-  sendPaymentReceivedEmail,
-  sendWithdrawalConfirmationEmail,
-  sendInvoiceEmail,
-  sendInactiveAccountEmail,
-  sendSuspiciousLoginEmail,
-  sendRegistrationConfirmationEmail,
-} from '@/lib/email/emailService'
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function POST(request) {
+  // Dynamic import to prevent build-time evaluation
+  const {
+    sendWelcomeEmail,
+    sendPasswordResetEmail,
+    sendPasswordChangedEmail,
+    sendReleaseApprovedEmail,
+    sendPaymentReceivedEmail,
+    sendWithdrawalConfirmationEmail,
+    sendInvoiceEmail,
+    sendInactiveAccountEmail,
+    sendSuspiciousLoginEmail,
+    sendRegistrationConfirmationEmail,
+  } = await import('@/lib/email/emailService')
   const { type, email } = await request.json()
 
   if (!email) {
