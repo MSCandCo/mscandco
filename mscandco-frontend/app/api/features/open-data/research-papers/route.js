@@ -16,7 +16,6 @@ export async function GET(request) {
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    const supabase = createClient();
     
     // Get published research papers from database
     const { data: papers, error } = await supabase

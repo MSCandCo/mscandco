@@ -21,7 +21,6 @@ export async function POST(request) {
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -108,7 +107,6 @@ export async function GET(request) {
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -159,7 +157,6 @@ export async function DELETE(request) {
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
