@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
-import { checkUpgradePrompt } from '@/lib/middleware/tierEnforcement'
+// Enterprise pattern: Dynamic imports to prevent build-time analysis
 
 /**
  * Get Upgrade Prompts API
@@ -7,8 +6,12 @@ import { checkUpgradePrompt } from '@/lib/middleware/tierEnforcement'
  */
 export async function POST(request) {
   try {
-    const supabase = await createClient()
-    const { userId } = await request.json()
+    // Enterprise pattern: Dynamic imports prevent build-time analysis
+    const { createClient } = await import('@/lib/supabase/server');
+    const { checkUpgradePrompt } = await import('@/lib/middleware/tierEnforcement');
+    
+    const supabase = await createClient();
+    const { userId } = await request.json();
 
     // Get current user
     const { data: { user: authUser } } = await supabase.auth.getUser()
