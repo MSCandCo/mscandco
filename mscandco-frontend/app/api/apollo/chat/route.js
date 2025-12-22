@@ -18,14 +18,33 @@ export const revalidate = 0;
 
 export async function POST(request) {
   try {
-    // Lazy load Supabase client
+    // Enterprise pattern: Runtime-only execution - skip during build analysis
+    // Next.js may analyze routes during build even with dynamic = 'force-dynamic'
+    if (typeof request === 'undefined' || !request) {
+      return NextResponse.json({ error: 'Request not available' }, { status: 400 })
+    }
+    
+    // Lazy load Supabase client - only at runtime
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    
+    // Use dynamic import with error handling for build-time safety
+    let supabase;
+    try {
+      const supabaseModule = await import('@supabase/supabase-js')
+      supabase = supabaseModule.createClient(supabaseUrl, serviceRoleKey)
+    } catch (importError) {
+      // If import fails during build analysis, return error response
+      // This prevents build failures while route works at runtime
+      console.warn('Supabase import failed (likely during build analysis):', importError.message)
+      return NextResponse.json({ 
+        error: 'Service temporarily unavailable',
+        details: process.env.NODE_ENV === 'development' ? importError.message : undefined
+      }, { status: 503 })
+    }
     const { messages, userId } = await request.json();
 
     if (!userId) {
