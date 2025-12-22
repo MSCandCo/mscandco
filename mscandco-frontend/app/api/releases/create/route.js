@@ -7,15 +7,11 @@ import { enforceReleaseLimit, trackReleaseCreation } from '@/lib/middleware/tier
  */
 export async function POST(request) {
   try {
-    // Enterprise pattern: Lazy load Supabase client at runtime
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const supabase = await createClient()
+    // Enterprise pattern: Dynamic imports prevent build-time analysis
+    const { createClient } = await import('@/lib/supabase/server');
+    const { enforceReleaseLimit, trackReleaseCreation } = await import('@/lib/middleware/tierEnforcement');
+    
+    const supabase = await createClient();
     const data = await request.json()
 
     // Get current user
