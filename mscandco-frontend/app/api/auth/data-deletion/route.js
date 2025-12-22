@@ -44,6 +44,12 @@ function parseSignedRequest(signedRequest, secret) {
   }
 }
 
+// Enterprise pattern: Dynamic imports to prevent build-time analysis
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export async function POST(request) {
   try {
     // Lazy load Supabase client
