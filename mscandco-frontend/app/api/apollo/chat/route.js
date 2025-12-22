@@ -9,8 +9,12 @@ import { apolloThink } from '@/lib/apollo/brain';
 import { enforceApolloQueryLimit, trackApolloQuery } from '@/lib/middleware/tierEnforcement';
 
 // Force dynamic rendering to avoid build-time evaluation
+// Enterprise-grade configuration: ensure route is never statically analyzed
 export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function POST(request) {
   try {
