@@ -46,7 +46,7 @@ export async function GET(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
     const supabaseAdmin = await createServiceRoleClient();;
@@ -119,7 +119,7 @@ export async function POST(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
     const supabaseAdmin = await createServiceRoleClient();;
@@ -207,7 +207,7 @@ export async function PATCH(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
     const supabaseAdmin = await createServiceRoleClient();;
@@ -290,7 +290,7 @@ export async function DELETE(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import(\'@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
     const supabaseAdmin = await createServiceRoleClient();;
