@@ -46,10 +46,10 @@ export async function GET(request, { params }) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }

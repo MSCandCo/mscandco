@@ -46,10 +46,10 @@ export async function GET(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -115,10 +115,10 @@ export async function POST(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -204,10 +204,10 @@ export async function PATCH(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -274,10 +274,10 @@ export async function DELETE(request) {
     // Lazy load Supabase admin client
 
 
-    const { createServiceRoleClient } = await import('@/lib/supabase/server\');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
