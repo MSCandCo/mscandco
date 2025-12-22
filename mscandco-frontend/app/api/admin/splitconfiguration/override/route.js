@@ -216,7 +216,7 @@ export async function DELETE(request) {
 
     // Get user role - lazy load Supabase admin client
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabaseAdminPost = await createServiceRoleClient();
+    const supabaseAdminDelete = await createServiceRoleClient();
     const { data: profile } = await supabaseAdminDelete
       .from('user_profiles')
       .select('role')
