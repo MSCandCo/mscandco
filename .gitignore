@@ -394,14 +394,21 @@ logs/
 *.log 
 
 # Gmail API credentials (keep secure!)
-gmail-credentials.json
-gmail-token.json
+# Use leading slash to match only at repository root
+/gmail-credentials.json
+/gmail-token.json
+
+# Gmail API credentials in scripts directory
+scripts/gmail/gmail-credentials.json
+scripts/gmail/gmail-token.json
+
+# Gmail API credentials in Cursor Email Automation directories
+Cursor Email Automation/**/config/gmail-credentials.json
+Cursor Email Automation/**/config/gmail-token.json
 
 # Archived/obsolete code (local reference only)
 _archived/
 
-# Gmail API credentials and tokens
-scripts/gmail/gmail-credentials.json
-scripts/gmail/gmail-token.json
+# Log files
 logs/*.txt
 
