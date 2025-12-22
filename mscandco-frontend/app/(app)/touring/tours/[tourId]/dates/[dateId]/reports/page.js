@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import ReportsClient from './ReportsClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function ReportsPage({ params }) {
   const supabase = await createClient();
   

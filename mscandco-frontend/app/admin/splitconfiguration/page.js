@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import SplitConfigurationClient from './SplitConfigurationClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Split Configuration',
   description: 'Configure revenue splits and royalty distribution - manage split percentages and payment configurations',
   keywords: 'split configuration, revenue splits, royalty distribution, payment splits, split management',

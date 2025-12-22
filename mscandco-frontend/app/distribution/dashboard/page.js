@@ -11,6 +11,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Distribution Dashboard',
   description: 'Manage your music distribution - overview, catalog management, and platform metrics',
   keywords: 'music distribution dashboard, distribution management, catalog management, music platform metrics',

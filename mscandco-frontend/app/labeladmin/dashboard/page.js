@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import LabelDashboardClient from './LabelDashboardClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Label Dashboard',
   description: 'Your label dashboard - manage artists, releases, and track label performance'
 }

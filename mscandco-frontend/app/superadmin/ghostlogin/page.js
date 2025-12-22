@@ -9,6 +9,9 @@ import { redirect } from 'next/navigation'
 import GhostLoginClient from './GhostLoginClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Ghost Login',
   description: 'Login as other users for support and troubleshooting purposes',
   keywords: 'ghost login, user impersonation, support tools, admin tools',

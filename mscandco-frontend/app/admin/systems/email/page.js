@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import EmailClient from './EmailClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Email System',
   description: 'Manage email templates and delivery monitoring'
 }

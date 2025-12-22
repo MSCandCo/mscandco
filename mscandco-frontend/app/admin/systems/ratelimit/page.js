@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import RateLimitClient from './RateLimitClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Rate Limiting',
   description: 'Configure and monitor API rate limits'
 }

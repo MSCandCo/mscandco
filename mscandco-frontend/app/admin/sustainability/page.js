@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions';
 import SustainabilityAdminClient from './SustainabilityAdminClient';
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Sustainability Management',
   description: 'Track and manage platform sustainability metrics and carbon footprint'
 }

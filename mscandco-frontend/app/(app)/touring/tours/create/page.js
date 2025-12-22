@@ -7,6 +7,9 @@ import { redirect } from 'next/navigation';
 import CreateTourClient from './CreateTourClient';
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Create Tour | Touring Platform',
   description: 'Create a new tour with AI assistance'
 };

@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import PerformanceClient from './PerformanceClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Performance Monitoring',
   description: 'Monitor application performance and resource usage'
 }

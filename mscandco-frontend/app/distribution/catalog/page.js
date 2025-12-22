@@ -9,6 +9,9 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Distribution Catalog',
   description: 'Manage your distribution catalog - browse releases, manage content, and organize your music library',
   keywords: 'music catalog, distribution catalog, music library, release management, content management',

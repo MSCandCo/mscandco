@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import ErrorTrackingClient from './ErrorTrackingClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Error Tracking',
   description: 'Monitor and track application errors in real-time'
 }

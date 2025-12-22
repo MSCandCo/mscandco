@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import SystemsDashboardClient from './SystemsDashboardClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Systems Dashboard',
   description: 'Enterprise infrastructure monitoring and management'
 }

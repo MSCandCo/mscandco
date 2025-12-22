@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import ReleasesClient from './ReleasesClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'My Releases',
   description: 'Manage your music releases - upload, edit, and distribute your tracks to streaming platforms worldwide',
   keywords: 'music releases, music distribution, upload music, release management, streaming platforms, music publishing',

@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AddTravelClient from './AddTravelClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function AddTravelPage({ params }) {
   const supabase = await createClient();
   

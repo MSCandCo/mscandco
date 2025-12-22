@@ -8,6 +8,9 @@ import { redirect } from 'next/navigation'
 import DistributionHubClient from './DistributionHubClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Distribution Hub',
   description: 'Review and manage submitted releases and revisions'
 }

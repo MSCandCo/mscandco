@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import AnalyticsClient from './AnalyticsClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Analytics',
   description: 'Track your music performance - streams, listeners, revenue, and detailed analytics across all platforms',
   keywords: 'music analytics, streaming analytics, music statistics, performance tracking, music insights, streaming data',

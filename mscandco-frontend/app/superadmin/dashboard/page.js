@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import SuperadminDashboardClient from './SuperadminDashboardClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Superadmin Dashboard',
   description: 'Platform administration dashboard - manage users, permissions, and system configuration'
 }

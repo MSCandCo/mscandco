@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import ProfileClient from './ProfileClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Artist Profile',
   description: 'Manage your artist profile - update bio, photos, social links, and public information',
   keywords: 'artist profile, music profile, artist bio, music artist page, artist information',

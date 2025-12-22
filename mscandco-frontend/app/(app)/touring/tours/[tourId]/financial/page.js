@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import FinancialTrackingClient from './FinancialTrackingClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function FinancialTrackingPage({ params }) {
   const supabase = await createClient();
   

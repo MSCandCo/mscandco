@@ -9,6 +9,9 @@ import { redirect } from 'next/navigation'
 import RegisterClient from './RegisterClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Register',
   description: 'Create your free account with MSC & Co'
 }

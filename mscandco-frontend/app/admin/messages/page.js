@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import MessagesClient from './MessagesClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Admin Messages',
   description: 'Manage platform messages and communications - view and respond to user inquiries',
   keywords: 'admin messages, platform communications, support messages, admin notifications',

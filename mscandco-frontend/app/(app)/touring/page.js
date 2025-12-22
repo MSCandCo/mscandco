@@ -8,6 +8,9 @@ import { redirect } from 'next/navigation';
 import TouringDashboardClient from './TouringDashboardClient';
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Touring Platform | MSC & Co',
   description: 'AI-powered touring management platform - plan tours, manage venues, crew, and guest lists'
 };

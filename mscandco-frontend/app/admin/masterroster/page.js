@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import MasterRosterClient from './MasterRosterClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Master Roster',
   description: 'Manage platform master roster - view all artists, labels, and users across the platform',
   keywords: 'master roster, platform roster, artist management, user management, roster administration',

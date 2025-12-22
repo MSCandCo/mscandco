@@ -7,6 +7,9 @@ import { redirect } from 'next/navigation';
 import AddTourDateClient from './AddTourDateClient';
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Add Tour Date | Touring Platform'
 };
 

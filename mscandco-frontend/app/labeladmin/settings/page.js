@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
 import SettingsClient from './SettingsClient'
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function LabelAdminSettingsPage() {
   const supabase = await createClient()
 

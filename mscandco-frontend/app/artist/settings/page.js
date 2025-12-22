@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import SettingsClient from './SettingsClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Settings',
   description: 'Manage your account settings - preferences, notifications, security, and account configuration',
   keywords: 'account settings, user settings, preferences, account management, security settings',

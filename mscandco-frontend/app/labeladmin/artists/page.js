@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import ArtistsClient from './ArtistsClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Label Artists',
   description: 'Manage your label artists - roster management, artist profiles, and collaboration tools',
   keywords: 'label artists, roster management, artist management, label administration, music label',

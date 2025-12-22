@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import LabelAdminMessagesClient from './MessagesClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Messages',
   description: 'View and manage your label admin notifications and messages'
 }

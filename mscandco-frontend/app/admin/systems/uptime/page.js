@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import UptimeClient from './UptimeClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Uptime Monitoring',
   description: 'Monitor system uptime and service availability'
 }

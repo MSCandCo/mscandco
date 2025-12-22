@@ -8,6 +8,9 @@ import { redirect } from 'next/navigation'
 import UpgradeClient from './UpgradeClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Upgrade Your Plan',
   description: 'Upgrade to unlock more features and lower commission rates'
 }

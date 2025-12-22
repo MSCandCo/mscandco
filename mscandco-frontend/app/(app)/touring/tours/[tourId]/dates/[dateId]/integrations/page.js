@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import IntegrationsClient from './IntegrationsClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function IntegrationsPage({ params }) {
   const supabase = await createClient();
   

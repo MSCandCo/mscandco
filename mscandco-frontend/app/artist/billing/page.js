@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import BillingClient from './BillingClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Billing',
   description: 'Manage your billing and subscription - view invoices, update payment methods, and manage your plan',
   keywords: 'music distribution billing, subscription management, payment methods, invoices, music platform billing',

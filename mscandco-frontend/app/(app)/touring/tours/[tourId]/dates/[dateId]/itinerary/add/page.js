@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AddItineraryItemClient from './AddItineraryItemClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function AddItineraryItemPage({ params }) {
   const supabase = await createClient();
   

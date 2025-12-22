@@ -7,6 +7,9 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import TourDetailClient from './TourDetailClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function TourDetailPage({ params }) {
   const supabase = await createClient();
 

@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import RouteOptimizationClient from './RouteOptimizationClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function RouteOptimizationPage({ params }) {
   const supabase = await createClient();
   

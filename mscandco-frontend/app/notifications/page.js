@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation'
 import NotificationsClient from './NotificationsClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Notifications',
   description: 'View and manage your notifications - stay updated with platform alerts, messages, and important updates',
   keywords: 'notifications, alerts, messages, platform updates, user notifications',

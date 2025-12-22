@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import DashboardClient from '@/app/dashboard/DashboardClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Artist Dashboard',
   description: 'Your artist dashboard - manage releases, track performance, and grow your music career'
 }

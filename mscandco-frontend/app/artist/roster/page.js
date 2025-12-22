@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import RosterClient from './RosterClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Roster',
   description: 'Manage your artist roster - view collaborators, featured artists, and manage your music network',
   keywords: 'artist roster, music collaborators, featured artists, music network, artist management',

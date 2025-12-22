@@ -4,6 +4,9 @@ import { userHasPermission } from '@/lib/permissions'
 import BackupsClient from './BackupsClient'
 
 export const metadata = {
+
+export const dynamic = 'force-dynamic'
+
   title: 'Backup & Recovery',
   description: 'Manage database backups and recovery operations'
 }

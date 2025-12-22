@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AddHotelClient from './AddHotelClient';
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function AddHotelPage({ params }) {
   const supabase = await createClient();
   
