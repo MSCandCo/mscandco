@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 
 /**
  * DATA DELETION CALLBACK URL
@@ -12,10 +11,6 @@ import { createClient } from '@supabase/supabase-js';
  * - This must be an HTTPS URL (use your production domain)
  */
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 // Parse Facebook signed request
 function parseSignedRequest(signedRequest, secret) {
@@ -51,6 +46,15 @@ function parseSignedRequest(signedRequest, secret) {
 
 export async function POST(request) {
   try {
+    // Lazy load Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
+
     const body = await request.json();
     const { signed_request } = body;
 
