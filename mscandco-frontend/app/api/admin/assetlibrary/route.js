@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
-// Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * GET /api/admin/assetlibrary
  * Fetch files from Supabase Storage (asset-library bucket)
  */
 export async function GET(request) {
   try {
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     // Authenticate user
-    const supabase = await createServerClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -24,7 +28,6 @@ export async function GET(request) {
     }
 
     // Check if user is admin
-    const supabaseAdmin = await getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
