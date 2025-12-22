@@ -42,7 +42,6 @@ export async function GET(request) {
     console.log(`📊 Loading earnings list for artist: ${artist_id}`)
 
     // Fetch all earnings for the artist from earnings_log table
-    const supabaseAdmin = getSupabaseAdmin()
     const { data: earnings, error: earningsError } = await supabaseAdmin
       .from('earnings_log')
       .select('*')

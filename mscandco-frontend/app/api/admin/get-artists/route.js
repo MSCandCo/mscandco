@@ -4,13 +4,21 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET(request) {
   try {
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     // Check authentication using App Router server client
-    const supabase = await createServerClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -23,7 +31,6 @@ export async function GET(request) {
     console.log('📊 Fetching artists and label admins for earnings management')
 
     // Get all auth users
-    const supabaseAdmin = getSupabaseAdmin()
     const { data: authResult } = await supabaseAdmin.auth.admin.listUsers()
     const authUsers = authResult?.users || []
 

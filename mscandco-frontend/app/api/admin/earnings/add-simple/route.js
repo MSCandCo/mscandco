@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
-// Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Supabase configuration is missing')
-  }
-  
-  return createClient(supabaseUrl, serviceRoleKey)
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * POST /api/admin/earnings/add-simple
@@ -20,8 +10,12 @@ function getSupabaseAdmin() {
  */
 export async function POST(request) {
   try {
-    // Authenticate user
-    const supabase = await createServerClient()
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -32,7 +26,6 @@ export async function POST(request) {
     }
 
     // Check if user is admin
-    const supabaseAdmin = getSupabaseAdmin()
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('role')

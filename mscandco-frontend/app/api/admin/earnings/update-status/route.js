@@ -3,26 +3,22 @@
  * PUT /api/admin/earnings/update-status - Update status of earnings entry
  */
 
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
-// Lazy initialization to avoid build-time errors
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Supabase configuration is missing')
-  }
-  
-  return createClient(supabaseUrl, serviceRoleKey)
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function PUT(request) {
   try {
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     // Check authentication using App Router server client
-    const supabase = await createServerClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -67,7 +63,6 @@ export async function PUT(request) {
     }
 
     // Update earnings entry in earnings_log table
-    const supabaseAdmin = getSupabaseAdmin()
     const { data: updatedEntry, error: updateError } = await supabaseAdmin
       .from('earnings_log')
       .update(updateData)
