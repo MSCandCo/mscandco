@@ -26,7 +26,7 @@ export async function POST(request) {
 
     // Get user role - lazy load Supabase admin client
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
+    const supabaseAdminPost = await createServiceRoleClient();
     const { data: profile } = await supabaseAdminPost
       .from('user_profiles')
       .select('role')
@@ -216,7 +216,7 @@ export async function DELETE(request) {
 
     // Get user role - lazy load Supabase admin client
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
+    const supabaseAdminPost = await createServiceRoleClient();
     const { data: profile } = await supabaseAdminDelete
       .from('user_profiles')
       .select('role')
