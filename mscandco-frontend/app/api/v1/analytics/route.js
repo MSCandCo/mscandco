@@ -15,6 +15,10 @@ export const runtime = 'nodejs'
 
 export const GET = withAPIAuth(async (request, { userId }) => {
   try {
+    // Lazy load Supabase client
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
+    
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get('timeframe') || 'month';
     const metric = searchParams.get('metric'); // optional: 'streams', 'earnings', 'countries', 'platforms'
