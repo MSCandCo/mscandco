@@ -9,9 +9,6 @@ import { redirect } from 'next/navigation'
 import RevenueReportingClient from './RevenueReportingClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Revenue Reporting',
   description: 'Revenue and analytics reporting for distributed releases'
 }

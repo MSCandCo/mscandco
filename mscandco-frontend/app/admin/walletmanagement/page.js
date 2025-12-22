@@ -11,9 +11,6 @@ import { redirect } from 'next/navigation'
 import WalletManagementClient from './WalletManagementClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Wallet Management',
   description: 'Manage platform wallets and financial transactions - process payments, manage balances, and track transactions',
   keywords: 'wallet management, payment processing, financial transactions, wallet administration, payment management',

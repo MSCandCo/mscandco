@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import ProfileClient from './ProfileClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Admin Profile',
   description: 'Manage your admin profile - update account information, preferences, and administrative settings',
   keywords: 'admin profile, account management, admin settings, profile management',

@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import EarningsClient from './EarningsClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Label Earnings',
   description: 'Track your label earnings and revenue - view payments, royalties, and income from all label artists',
   keywords: 'label earnings, label revenue, label royalties, label income, label payments',

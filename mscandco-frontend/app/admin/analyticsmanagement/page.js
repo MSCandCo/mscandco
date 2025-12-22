@@ -10,9 +10,6 @@ import { userHasPermission } from '@/lib/permissions'
 import AnalyticsManagementClient from './AnalyticsManagementClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Analytics Management',
   description: 'Manage platform analytics - view artist performance metrics, streaming data, and platform insights',
   keywords: 'analytics management, platform analytics, artist analytics, performance metrics, streaming analytics',

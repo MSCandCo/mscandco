@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions'
 import LabelAdminSustainabilityClient from './SustainabilityClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Label Sustainability',
   description: 'Track and offset carbon footprint from all your artists\' music streaming',
   keywords: 'label sustainability, carbon footprint, music streaming carbon, carbon offset, label admin sustainability',

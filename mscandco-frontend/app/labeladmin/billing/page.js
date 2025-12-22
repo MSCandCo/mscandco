@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions'
 import BillingClient from './BillingClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Label Billing',
   description: 'Manage your label billing and subscription - invoices, payment methods, and plan management',
   keywords: 'label billing, label subscription, label payment, label invoices, label account management',

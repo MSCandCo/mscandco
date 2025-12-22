@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions';
 import AccessibilityAdminClient from './AccessibilityAdminClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Accessibility Management',
   description: 'Manage accessibility requests and ensure platform accessibility compliance'
 }

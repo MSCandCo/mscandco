@@ -8,9 +8,6 @@ import { redirect } from 'next/navigation';
 import AnalyticsDashboardClient from './AnalyticsDashboardClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Touring Analytics | Touring Platform'
 };
 

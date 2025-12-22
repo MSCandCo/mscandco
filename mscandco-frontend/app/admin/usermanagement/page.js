@@ -9,9 +9,6 @@ import { redirect } from 'next/navigation'
 import UserManagementClient from './UserManagementClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'User Management',
   description: 'Manage platform users, roles, and permissions - user administration and access control',
   keywords: 'user management, admin panel, user administration, role management, access control',

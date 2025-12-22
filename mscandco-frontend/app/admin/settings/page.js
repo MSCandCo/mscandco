@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import SettingsClient from './SettingsClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Admin Settings',
   description: 'Configure platform settings - system configuration, preferences, and administrative options',
   keywords: 'admin settings, platform configuration, system settings, administrative options',

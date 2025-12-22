@@ -9,9 +9,6 @@ import { createClient } from '@/lib/supabase/server'
 import LabelPricingClient from './LabelPricingClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Label Pricing',
   description: 'Progressive label pricing that rewards growth. Lower commission rates as you scale. 25% → 18% → 12% → 5%'
 }

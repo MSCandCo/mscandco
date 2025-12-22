@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions';
 import SkillsAdminClient from './SkillsAdminClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Skills & Learning Management',
   description: 'Manage learning resources, skills tracking, and educational content'
 }

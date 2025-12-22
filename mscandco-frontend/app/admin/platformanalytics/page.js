@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import PlatformAnalyticsClient from './PlatformAnalyticsClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Platform Analytics',
   description: 'View platform-wide analytics and insights - track growth, user engagement, and platform performance',
   keywords: 'platform analytics, platform insights, growth metrics, user engagement, platform performance',

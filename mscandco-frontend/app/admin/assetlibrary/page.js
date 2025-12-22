@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import AssetLibraryClient from './AssetLibraryClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Asset Library',
   description: 'Manage platform asset library - browse and manage music files, artwork, and media assets',
   keywords: 'asset library, media library, music files, artwork management, asset management',

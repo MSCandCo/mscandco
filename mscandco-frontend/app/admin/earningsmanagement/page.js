@@ -9,9 +9,6 @@ import { redirect } from 'next/navigation'
 import EarningsManagementClient from './EarningsManagementClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Earnings Management',
   description: 'Manage platform earnings and financial data - track revenue, payments, and financial transactions',
   keywords: 'earnings management, financial management, revenue tracking, payment management, platform earnings',

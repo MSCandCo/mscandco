@@ -9,9 +9,6 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Distribution Platforms',
   description: 'Manage distribution platforms and integrations - connect to streaming services and music stores',
   keywords: 'distribution platforms, streaming platforms, music stores, platform integration, music distribution services',

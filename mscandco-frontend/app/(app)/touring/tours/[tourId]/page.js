@@ -7,9 +7,6 @@ import { redirect } from 'next/navigation';
 import TourDetailClient from './TourDetailClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Tour Details | Touring Platform',
   description: 'Manage your tour details, dates, crew, and more'
 };

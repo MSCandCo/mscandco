@@ -9,9 +9,6 @@ import { redirect } from 'next/navigation'
 import SuperadminMessagesClient from './SuperadminMessagesClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Platform Messages',
   description: 'View and manage platform-wide communications'
 }

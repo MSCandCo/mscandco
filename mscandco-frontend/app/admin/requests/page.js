@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import RequestsClient from './RequestsClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Admin Requests',
   description: 'Manage platform requests - review and process user requests, support tickets, and administrative tasks',
   keywords: 'admin requests, support requests, user requests, request management, admin tasks',

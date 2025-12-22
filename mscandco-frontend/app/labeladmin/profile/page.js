@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions'
 import LabelAdminProfileClient from './ProfileClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Label Profile',
   description: 'Manage your label profile - update label information, settings, and preferences',
   keywords: 'label profile, label management, label settings, label information',

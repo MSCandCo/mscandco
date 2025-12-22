@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions';
 import OpenDataAdminClient from './OpenDataAdminClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Open Data Management',
   description: 'Manage open data initiatives, API access, and public data sharing'
 }

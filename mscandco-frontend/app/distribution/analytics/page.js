@@ -9,9 +9,6 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Distribution Analytics',
   description: 'Track distribution performance - analytics, metrics, and insights across all platforms',
   keywords: 'distribution analytics, music analytics, distribution metrics, performance tracking, streaming analytics',

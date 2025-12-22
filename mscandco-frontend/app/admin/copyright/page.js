@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions';
 import CopyrightAdminClient from './CopyrightAdminClient';
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Copyright Management',
   description: 'Manage copyright verification and clearance requests across the platform'
 }

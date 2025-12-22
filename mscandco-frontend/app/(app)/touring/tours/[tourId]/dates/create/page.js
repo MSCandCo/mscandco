@@ -7,11 +7,10 @@ import { redirect } from 'next/navigation';
 import AddTourDateClient from './AddTourDateClient';
 
 export const metadata = {
+  title: 'Add Tour Date | Touring Platform'
+}
 
 export const dynamic = 'force-dynamic'
-
-  title: 'Add Tour Date | Touring Platform'
-};
 
 export default async function AddTourDatePage({ params }) {
   const supabase = await createClient();

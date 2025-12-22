@@ -4,9 +4,6 @@ import { userHasPermission } from '@/lib/permissions'
 import DocsClient from './DocsClient'
 
 export const metadata = {
-
-export const dynamic = 'force-dynamic'
-
   title: 'Documentation Hub',
   description: 'Access system documentation and API references'
 }
