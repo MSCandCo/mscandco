@@ -5,8 +5,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { apolloThink } from '@/lib/apollo/brain';
-import { enforceApolloQueryLimit, trackApolloQuery } from '@/lib/middleware/tierEnforcement';
+// Enterprise pattern: Defer all imports until runtime to prevent build-time analysis
+// Dynamic imports prevent webpack from analyzing code paths during build
 
 // Force dynamic rendering to avoid build-time evaluation
 // Enterprise-grade configuration: ensure route is never statically analyzed
@@ -18,33 +18,11 @@ export const revalidate = 0;
 
 export async function POST(request) {
   try {
-    // Enterprise pattern: Runtime-only execution - skip during build analysis
-    // Next.js may analyze routes during build even with dynamic = 'force-dynamic'
-    if (typeof request === 'undefined' || !request) {
-      return NextResponse.json({ error: 'Request not available' }, { status: 400 })
-    }
+    // Enterprise pattern: Complete runtime-only execution
+    // Dynamically import all dependencies to prevent build-time analysis
+    const { apolloThink } = await import('@/lib/apollo/brain');
+    const { enforceApolloQueryLimit, trackApolloQuery } = await import('@/lib/middleware/tierEnforcement');
     
-    // Lazy load Supabase client - only at runtime
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    
-    // Use dynamic import with error handling for build-time safety
-    let supabase;
-    try {
-      const supabaseModule = await import('@supabase/supabase-js')
-      supabase = supabaseModule.createClient(supabaseUrl, serviceRoleKey)
-    } catch (importError) {
-      // If import fails during build analysis, return error response
-      // This prevents build failures while route works at runtime
-      console.warn('Supabase import failed (likely during build analysis):', importError.message)
-      return NextResponse.json({ 
-        error: 'Service temporarily unavailable',
-        details: process.env.NODE_ENV === 'development' ? importError.message : undefined
-      }, { status: 503 })
-    }
     const { messages, userId } = await request.json();
 
     if (!userId) {
