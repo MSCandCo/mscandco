@@ -13,23 +13,22 @@ Gmail **requires** an App-Specific Password (your regular password won't work).
 5. Click "Generate"
 6. Copy the 16-character password (format: `xxxx xxxx xxxx xxxx`)
 
-### Step 2: Update the Script
+### Step 2: Set Environment Variables
 
-Edit `gmail-cleanup.js` and replace:
-```javascript
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'sales4htay2025';
-```
+**SECURITY:** Never hardcode passwords in source files! Use environment variables instead.
 
-With your app-specific password (remove spaces):
-```javascript
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'your16charapppassword';
-```
-
-**OR** use environment variable (more secure):
+Set your credentials as environment variables:
 ```bash
-export GMAIL_APP_PASSWORD='your16charapppassword'
-node gmail-cleanup.js --dry-run
+export GMAIL_USERNAME="your-email@gmail.com"
+export GMAIL_APP_PASSWORD="your-app-specific-password"
 ```
+
+Or run scripts with inline environment variables:
+```bash
+GMAIL_USERNAME="your-email@gmail.com" GMAIL_APP_PASSWORD="your-password" node gmail-cleanup.js --dry-run
+```
+
+**Note:** The scripts now require environment variables and will exit with an error if they're not set. This prevents accidental credential exposure.
 
 ### Step 3: Test It
 
@@ -94,8 +93,10 @@ node gmail-cleanup.js --stats
 npm install imap mailparser
 ```
 
-## 📧 Your Account
+## 📧 Configuration
 
-- **Email**: sales4htay@gmail.com
-- **Password**: Use App-Specific Password (see Step 1)
+- **Email**: Set via `GMAIL_USERNAME` environment variable
+- **Password**: Set via `GMAIL_APP_PASSWORD` environment variable (App-Specific Password)
+
+**Security Note:** Never hardcode credentials in source files or documentation. Always use environment variables.
 
