@@ -21,19 +21,14 @@ export async function POST(request) {
       }, { status: 401 })
     }
 
-    // Lazy initialization to avoid build-time errors
-    const getSupabaseAdmin = async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      if (!supabaseUrl || !serviceRoleKey) {
-        throw new Error('Supabase configuration is missing')
-      }
-      const { createClient } = await import('@supabase/supabase-js')
-      return createClient(supabaseUrl, serviceRoleKey)
+    // Get user role - lazy load Supabase admin client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
-
-    // Get user role
-    const supabaseAdminPost = await getSupabaseAdmin()
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseAdminPost = createClient(supabaseUrl, serviceRoleKey)
     const { data: profile } = await supabaseAdminPost
       .from('user_profiles')
       .select('role')
@@ -221,19 +216,14 @@ export async function DELETE(request) {
       }, { status: 401 })
     }
 
-    // Lazy initialization to avoid build-time errors
-    const getSupabaseAdmin = async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      if (!supabaseUrl || !serviceRoleKey) {
-        throw new Error('Supabase configuration is missing')
-      }
-      const { createClient } = await import('@supabase/supabase-js')
-      return createClient(supabaseUrl, serviceRoleKey)
+    // Get user role - lazy load Supabase admin client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
-
-    // Get user role
-    const supabaseAdminDelete = await getSupabaseAdmin()
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseAdminDelete = createClient(supabaseUrl, serviceRoleKey)
     const { data: profile } = await supabaseAdminDelete
       .from('user_profiles')
       .select('role')
