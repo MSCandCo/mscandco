@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { apolloThink } from '@/lib/apollo/brain';
+// Enterprise pattern: Dynamic imports to prevent build-time analysis
 import OpenAI from 'openai';
 import { APOLLO_CONFIG } from '@/lib/apollo/client';
 import { APOLLO_TOOLS, executeTool } from '@/lib/apollo/tools';
