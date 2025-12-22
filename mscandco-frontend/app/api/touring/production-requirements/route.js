@@ -49,7 +49,7 @@ export async function GET(request) {
     const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -108,7 +108,7 @@ export async function POST(request) {
     const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -199,7 +199,7 @@ export async function PATCH(request) {
     const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -252,7 +252,7 @@ export async function DELETE(request) {
     const { createServiceRoleClient } = await import('@/lib/supabase/server\');
 
 
-    const supabaseAdmin = await createServiceRoleClient();;
+    const supabaseAdmin = await createServiceRoleClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
