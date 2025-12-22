@@ -9,15 +9,8 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // Lazy initialization to avoid build-time errors
 async function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Supabase configuration is missing')
-  }
-  
-  const { createClient } = await import('@supabase/supabase-js')
-  return createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 }
 export async function GET(request) {
   try {

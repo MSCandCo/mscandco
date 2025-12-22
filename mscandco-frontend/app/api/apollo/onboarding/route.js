@@ -23,13 +23,8 @@ export async function GET(request) {
     const { apolloThink } = await import('@/lib/apollo/brain');
     
     // Lazy load Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -83,13 +78,8 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     // Lazy load Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 
     const { userId, message, currentStage, conversationHistory = [] } = await request.json();
 

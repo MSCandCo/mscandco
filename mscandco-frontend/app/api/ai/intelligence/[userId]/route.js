@@ -21,13 +21,8 @@ export async function GET(request, { params }) {
     }
 
     // Lazy load Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 
     // Get comprehensive learning data with advanced metrics
     const { data: profile } = await supabase

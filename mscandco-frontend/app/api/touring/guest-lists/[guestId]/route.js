@@ -15,13 +15,8 @@ export const runtime = 'nodejs'
 export async function PATCH(request, { params }) {
   try {
     // Lazy load Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 
     const { guestId } = params;
     const body = await request.json();
@@ -75,13 +70,8 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     // Lazy load Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
 
     const { guestId } = params;
     
