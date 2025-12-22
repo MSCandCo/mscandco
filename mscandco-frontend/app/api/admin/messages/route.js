@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * GET /api/admin/messages
@@ -8,7 +10,13 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
  */
 export async function GET(request) {
   try {
-    const supabase = await createServerClient()
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -145,7 +153,13 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    const supabase = await createServerClient()
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -218,7 +232,13 @@ export async function POST(request) {
  */
 export async function PUT(request) {
   try {
-    const supabase = await createServerClient()
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {

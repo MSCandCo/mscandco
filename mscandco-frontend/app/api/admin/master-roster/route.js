@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * GET /api/admin/master-roster
@@ -8,8 +10,14 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin-client'
  */
 export async function GET(request) {
   try {
+    // Lazy load Supabase clients
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    const supabase = await createClient();
+    const supabaseAdmin = await createServiceRoleClient();
+    
     // Authenticate user
-    const supabase = await createServerClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
@@ -20,7 +28,6 @@ export async function GET(request) {
     }
 
     // Get all user profiles with role information
-    const supabaseAdmin = getSupabaseAdmin()
     const { data: profiles, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, email, first_name, last_name, artist_name, role, created_at, updated_at')
