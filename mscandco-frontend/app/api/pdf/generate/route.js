@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { convertHtmlToPdfServer } from '@/lib/html-to-pdf';
+
+// Enterprise pattern: Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 /**
  * POST /api/pdf/generate
@@ -89,6 +94,9 @@ export async function POST(request) {
  */
 export async function GET(request) {
   try {
+    // Enterprise pattern: Dynamic import prevents build-time analysis
+    const { convertHtmlToPdfServer } = await import('@/lib/html-to-pdf');
+    
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
     const format = searchParams.get('format') || 'A4';
