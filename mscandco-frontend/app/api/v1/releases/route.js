@@ -19,6 +19,10 @@ export const runtime = 'nodejs'
 
 export const GET = withAPIAuth(async (request, { userId }) => {
   try {
+    // Lazy load Supabase client
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
+    
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -62,6 +66,10 @@ export const GET = withAPIAuth(async (request, { userId }) => {
 
 export const POST = withAPIAuth(async (request, { userId }) => {
   try {
+    // Lazy load Supabase client
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
+    
     const body = await request.json();
     const { title, release_type, genre, release_date } = body;
 
