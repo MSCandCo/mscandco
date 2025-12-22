@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
 // Force dynamic rendering to avoid build-time evaluation
-export const dynamic = \'force-dynamic\'
-export const runtime = \'nodejs\'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 
 /**
@@ -10,7 +10,7 @@ export const runtime = \'nodejs\'
  * Validate prediction outcome for reinforcement learning
  */
 export async function POST(request) {
-  try {  try {
+  try {
     // Lazy load Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
