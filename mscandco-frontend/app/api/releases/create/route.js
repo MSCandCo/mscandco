@@ -1,5 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { enforceReleaseLimit, trackReleaseCreation } from '@/lib/middleware/tierEnforcement'
+// Enterprise pattern: Dynamic imports to prevent build-time analysis
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 /**
  * Create Release API
