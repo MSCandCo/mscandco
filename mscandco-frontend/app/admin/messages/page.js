@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import MessagesClient from './MessagesClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Admin Messages',
   description: 'Manage platform messages and communications - view and respond to user inquiries',

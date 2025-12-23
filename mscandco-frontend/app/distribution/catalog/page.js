@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Distribution Catalog',
   description: 'Manage your distribution catalog - browse releases, manage content, and organize your music library',

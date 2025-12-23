@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import AnalyticsClient from './AnalyticsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'User Analytics',
   description: 'Monitor user behavior and platform analytics'

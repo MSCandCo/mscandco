@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import ErrorTrackingClient from './ErrorTrackingClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Error Tracking',
   description: 'Monitor and track application errors in real-time'

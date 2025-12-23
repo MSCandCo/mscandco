@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import LabelAdminMessagesClient from './MessagesClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Messages',
   description: 'View and manage your label admin notifications and messages'

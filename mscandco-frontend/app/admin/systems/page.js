@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import SystemsDashboardClient from './SystemsDashboardClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Systems Dashboard',
   description: 'Enterprise infrastructure monitoring and management'

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RequestsClient from './RequestsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Admin Requests',
   description: 'Manage platform requests - review and process user requests, support tickets, and administrative tasks',

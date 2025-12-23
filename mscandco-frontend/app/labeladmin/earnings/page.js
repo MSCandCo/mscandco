@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import EarningsClient from './EarningsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Earnings',
   description: 'Track your label earnings and revenue - view payments, royalties, and income from all label artists',

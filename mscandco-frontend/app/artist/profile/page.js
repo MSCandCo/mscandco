@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import ProfileClient from './ProfileClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Artist Profile',
   description: 'Manage your artist profile - update bio, photos, social links, and public information',

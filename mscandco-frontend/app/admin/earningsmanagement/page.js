@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import EarningsManagementClient from './EarningsManagementClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Earnings Management',
   description: 'Manage platform earnings and financial data - track revenue, payments, and financial transactions',

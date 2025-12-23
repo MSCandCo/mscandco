@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import RosterClient from './RosterClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Roster',
   description: 'Manage your artist roster - view collaborators, featured artists, and manage your music network',

@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RegisterClient from './RegisterClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Register',
   description: 'Create your free account with MSC & Co'

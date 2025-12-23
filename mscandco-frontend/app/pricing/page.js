@@ -8,6 +8,8 @@
 import { createClient } from '@/lib/supabase/server'
 import NewPricingClient from './NewPricingClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Pricing',
   description: 'Simple, fair pricing. Start free. Lower rates as you grow. 20% → 15% → 10% → 2.5%'

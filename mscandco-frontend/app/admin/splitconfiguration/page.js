@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SplitConfigurationClient from './SplitConfigurationClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Split Configuration',
   description: 'Configure revenue splits and royalty distribution - manage split percentages and payment configurations',

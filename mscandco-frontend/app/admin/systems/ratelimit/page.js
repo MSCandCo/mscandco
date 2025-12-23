@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import RateLimitClient from './RateLimitClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Rate Limiting',
   description: 'Configure and monitor API rate limits'

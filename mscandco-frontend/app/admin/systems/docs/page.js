@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import DocsClient from './DocsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Documentation Hub',
   description: 'Access system documentation and API references'

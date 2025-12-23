@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import BillingClient from './BillingClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Billing',
   description: 'Manage your label billing and subscription - invoices, payment methods, and plan management',

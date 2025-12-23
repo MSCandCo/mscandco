@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AssetLibraryClient from './AssetLibraryClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Asset Library',
   description: 'Manage platform asset library - browse and manage music files, artwork, and media assets',

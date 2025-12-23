@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import LabelAdminSustainabilityClient from './SustainabilityClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Sustainability',
   description: 'Track and offset carbon footprint from all your artists\' music streaming',

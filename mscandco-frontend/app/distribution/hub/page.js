@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DistributionHubClient from './DistributionHubClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Distribution Hub',
   description: 'Review and manage submitted releases and revisions'

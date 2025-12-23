@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SettingsClient from './SettingsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Admin Settings',
   description: 'Configure platform settings - system configuration, preferences, and administrative options',

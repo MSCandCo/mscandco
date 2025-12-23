@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SuperadminMessagesClient from './SuperadminMessagesClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Platform Messages',
   description: 'View and manage platform-wide communications'

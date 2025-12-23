@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ReleasesClient from './ReleasesClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'My Releases',
   description: 'Manage your music releases - upload, edit, and distribute your tracks to streaming platforms worldwide',

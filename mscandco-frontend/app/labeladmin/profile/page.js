@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { userHasPermission } from '@/lib/permissions'
 import LabelAdminProfileClient from './ProfileClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Profile',
   description: 'Manage your label profile - update label information, settings, and preferences',

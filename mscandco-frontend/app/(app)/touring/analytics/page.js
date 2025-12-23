@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AnalyticsDashboardClient from './AnalyticsDashboardClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Touring Analytics | Touring Platform'
 };

@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import RevenueReportingClient from './RevenueReportingClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Revenue Reporting',
   description: 'Revenue and analytics reporting for distributed releases'

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PlatformAnalyticsClient from './PlatformAnalyticsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Platform Analytics',
   description: 'View platform-wide analytics and insights - track growth, user engagement, and platform performance',

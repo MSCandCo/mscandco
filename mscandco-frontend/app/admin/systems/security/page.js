@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import SecurityClient from './SecurityClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Security Management',
   description: 'Monitor security events and manage security policies'

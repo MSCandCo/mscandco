@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import AnalyticsClient from './AnalyticsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Analytics',
   description: 'Track your music performance - streams, listeners, revenue, and detailed analytics across all platforms',

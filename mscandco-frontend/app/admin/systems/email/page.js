@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import EmailClient from './EmailClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Email System',
   description: 'Manage email templates and delivery monitoring'

@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import EarningsClient from './EarningsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Earnings',
   description: 'View your music earnings and revenue - track payments, royalties, and income from streaming platforms',

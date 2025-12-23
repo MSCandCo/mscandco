@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Distribution Analytics',
   description: 'Track distribution performance - analytics, metrics, and insights across all platforms',

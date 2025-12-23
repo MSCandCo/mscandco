@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { userHasPermission } from '@/lib/permissions';
 import SkillsAdminClient from './SkillsAdminClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Skills & Learning Management',
   description: 'Manage learning resources, skills tracking, and educational content'

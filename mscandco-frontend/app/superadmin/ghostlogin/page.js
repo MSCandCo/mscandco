@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import GhostLoginClient from './GhostLoginClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Ghost Login',
   description: 'Login as other users for support and troubleshooting purposes',

@@ -10,6 +10,8 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 import WalletManagementClient from './WalletManagementClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Wallet Management',
   description: 'Manage platform wallets and financial transactions - process payments, manage balances, and track transactions',

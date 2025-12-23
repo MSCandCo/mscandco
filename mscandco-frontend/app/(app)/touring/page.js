@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import TouringDashboardClient from './TouringDashboardClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Touring Platform | MSC & Co',
   description: 'AI-powered touring management platform - plan tours, manage venues, crew, and guest lists'

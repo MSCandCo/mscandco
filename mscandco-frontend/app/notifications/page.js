@@ -3,6 +3,8 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import NotificationsClient from './NotificationsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Notifications',
   description: 'View and manage your notifications - stay updated with platform alerts, messages, and important updates',

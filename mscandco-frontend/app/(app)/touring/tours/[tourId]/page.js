@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import TourDetailClient from './TourDetailClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Tour Details | Touring Platform',
   description: 'Manage your tour details, dates, crew, and more'

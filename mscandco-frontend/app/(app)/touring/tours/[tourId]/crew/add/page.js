@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AddCrewMemberClient from './AddCrewMemberClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Add Crew Member | Touring Platform'
 };

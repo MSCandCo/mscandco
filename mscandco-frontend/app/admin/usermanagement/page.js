@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import UserManagementClient from './UserManagementClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'User Management',
   description: 'Manage platform users, roles, and permissions - user administration and access control',

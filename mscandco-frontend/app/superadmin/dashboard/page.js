@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SuperadminDashboardClient from './SuperadminDashboardClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Superadmin Dashboard',
   description: 'Platform administration dashboard - manage users, permissions, and system configuration'

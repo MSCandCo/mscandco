@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './DashboardClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Dashboard',
   description: 'Your music distribution dashboard - manage releases, track earnings, and grow your career'

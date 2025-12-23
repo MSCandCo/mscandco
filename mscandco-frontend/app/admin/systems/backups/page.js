@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import BackupsClient from './BackupsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Backup & Recovery',
   description: 'Manage database backups and recovery operations'

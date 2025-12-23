@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import MasterRosterClient from './MasterRosterClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Master Roster',
   description: 'Manage platform master roster - view all artists, labels, and users across the platform',

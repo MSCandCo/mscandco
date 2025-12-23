@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileClient from './ProfileClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Admin Profile',
   description: 'Manage your admin profile - update account information, preferences, and administrative settings',

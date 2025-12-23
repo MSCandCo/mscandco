@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import PerformanceClient from './PerformanceClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Performance Monitoring',
   description: 'Monitor application performance and resource usage'

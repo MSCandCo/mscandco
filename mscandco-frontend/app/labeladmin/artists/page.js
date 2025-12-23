@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { userHasPermission } from '@/lib/permissions'
 import ArtistsClient from './ArtistsClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Artists',
   description: 'Manage your label artists - roster management, artist profiles, and collaboration tools',

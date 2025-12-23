@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LabelDashboardClient from './LabelDashboardClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Label Dashboard',
   description: 'Your label dashboard - manage artists, releases, and track label performance'

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import CreateTourClient from './CreateTourClient';
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Create Tour | Touring Platform',
   description: 'Create a new tour with AI assistance'

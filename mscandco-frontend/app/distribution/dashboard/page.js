@@ -10,6 +10,8 @@ import { getUserPermissions } from '@/lib/permissions'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Distribution Dashboard',
   description: 'Manage your music distribution - overview, catalog management, and platform metrics',
