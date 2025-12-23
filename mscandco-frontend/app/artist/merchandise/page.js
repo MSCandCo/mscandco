@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 export default function MerchandiseManagement() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

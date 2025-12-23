@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Line, Bar, Funnel } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -29,7 +29,7 @@ ChartJS.register(
 );
 
 export default function PlaylistPitching() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

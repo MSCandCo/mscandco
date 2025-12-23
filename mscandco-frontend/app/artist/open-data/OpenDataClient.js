@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import BrandedModal from '@/components/modals/BrandedModal';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
@@ -33,7 +33,7 @@ ChartJS.register(
 );
 
 export default function OpenDataResearch() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import {
   Leaf, TrendingDown, Award, ShoppingCart, Heart, Globe,
   Target, BarChart3, Zap, Trees, DollarSign, CheckCircle,
@@ -32,7 +32,7 @@ import {
 } from '@/lib/sustainability/offset-marketplace';
 
 export default function SustainabilityEnhancedPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview'); // overview, earthpercent, marketplace, compare, badges

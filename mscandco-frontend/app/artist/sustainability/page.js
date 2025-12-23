@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import CarbonFootprintChart from '@/components/grant-features/CarbonFootprintChart';
 import OffsetPurchaseModal from '@/components/grant-features/OffsetPurchaseModal';
 import SustainabilityBadge from '@/components/grant-features/SustainabilityBadge';
 import CarbonEquivalencies from '@/components/grant-features/CarbonEquivalencies';
 
 export default function SustainabilityPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [profile, setProfile] = useState(null);
   const [releases, setReleases] = useState([]);

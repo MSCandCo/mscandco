@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export default function SkillsAcademyPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [modules, setModules] = useState([]);
   const [enrollments, setEnrollments] = useState([]);

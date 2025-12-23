@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import CopyrightStatusBadge from '@/components/grant-features/CopyrightStatusBadge';
 import ConflictsList from '@/components/grant-features/ConflictsList';
 import ClearanceForm from '@/components/grant-features/ClearanceForm';
@@ -11,7 +11,7 @@ import VerificationHistory from '@/components/grant-features/VerificationHistory
 export default function CopyrightVerificationPage() {
   const params = useParams();
   const releaseId = params.id;
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [release, setRelease] = useState(null);
   const [verification, setVerification] = useState(null);
