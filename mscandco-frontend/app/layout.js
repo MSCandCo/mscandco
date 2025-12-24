@@ -61,6 +61,7 @@ export default function RootLayout({ children }) {
             </PostHogProvider>
           </SupabaseProvider>
         </QueryProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
