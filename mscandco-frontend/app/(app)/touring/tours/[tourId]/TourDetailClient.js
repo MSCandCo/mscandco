@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, MapPin, Users, DollarSign, Plus, Edit, Music, TrendingUp, Route, MoreVertical, Archive, Trash2, Copy, FileText, X } from 'lucide-react';
 import { subscribeToTable, handleRealtimeUpdate } from '@/lib/supabase/realtime';
 import CurrencySelector, { useCurrencySync, formatCurrency, convertCurrency } from '@/components/shared/CurrencySelector';
+import { TOUR_TYPES } from '@/lib/constants';
 
 export default function TourDetailClient({ tourId, userId }) {
   const router = useRouter();
