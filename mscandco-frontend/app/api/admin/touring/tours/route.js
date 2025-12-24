@@ -37,19 +37,41 @@ export async function GET(request) {
       .eq('id', session.user.id)
       .single();
 
-    // Permission-based access: super_admin, company_admin, or users with touring permissions
-    // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
-    const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+    // Permission-based access: Check role first, then check permissions
+    let hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
     
-    // Future: Add permission checking here for custom touring admin roles
-    // const { data: userPermissions } = await supabaseAdmin
-    //   .from('user_permissions')
-    //   .select('permission_key')
-    //   .eq('user_id', session.user.id)
-    //   .eq('is_active', true);
-    // const hasPermission = profile?.role === 'super_admin' || 
-    //                      profile?.role === 'company_admin' ||
-    //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key));
+    // If not super_admin or company_admin, check for touring permissions
+    if (!hasPermission) {
+      // Check role-based permissions
+      const { data: rolePermissions } = await supabaseAdmin
+        .from('role_permissions')
+        .select(`
+          permissions!role_permissions_permission_id_fkey (
+            name
+          )
+        `)
+        .eq('role_id', (await supabaseAdmin.from('roles').select('id').eq('name', profile?.role || '').single()).data?.id);
+      
+      const permissionNames = (rolePermissions || []).map(rp => rp.permissions?.name).filter(Boolean);
+      hasPermission = permissionNames.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p));
+      
+      // Also check user-specific permissions
+      if (!hasPermission) {
+        const { data: userPermissions } = await supabaseAdmin
+          .from('user_permissions')
+          .select(`
+            permissions!user_permissions_permission_id_fkey (
+              name
+            )
+          `)
+          .eq('user_id', session.user.id)
+          .eq('granted', true)
+          .is('revoked_at', null);
+        
+        const userPermissionNames = (userPermissions || []).map(up => up.permissions?.name).filter(Boolean);
+        hasPermission = userPermissionNames.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p));
+      }
+    }
 
     if (!hasPermission) {
       return NextResponse.json(
@@ -108,13 +130,34 @@ export async function GET(request) {
       );
     }
 
-    // Format response
-    const formattedTours = (tours || []).map(tour => ({
-      ...tour,
-      artist_name: tour.user_profiles?.artist_name || tour.user_profiles?.email || 'Unknown',
-      artist_email: tour.user_profiles?.email || null,
-      artist_id: tour.user_profiles?.id || null
-    }));
+    // Fetch user profiles for all unique user_ids
+    const userIds = [...new Set((tours || []).map(tour => tour.user_id).filter(Boolean))];
+    let userProfilesMap = {};
+    
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, artist_name, email, first_name, last_name')
+        .in('id', userIds);
+      
+      if (profiles) {
+        userProfilesMap = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {});
+      }
+    }
+
+    // Format response with user profile data
+    const formattedTours = (tours || []).map(tour => {
+      const userProfile = userProfilesMap[tour.user_id];
+      return {
+        ...tour,
+        artist_name: userProfile?.artist_name || tour.artist_name || userProfile?.email || 'Unknown',
+        artist_email: userProfile?.email || null,
+        artist_id: userProfile?.id || tour.user_id || null
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -163,19 +206,41 @@ export async function POST(request) {
       .eq('id', session.user.id)
       .single();
 
-    // Permission-based access: super_admin, company_admin, or users with touring permissions
-    // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
-    const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+    // Permission-based access: Check role first, then check permissions
+    let hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
     
-    // Future: Add permission checking here for custom touring admin roles
-    // const { data: userPermissions } = await supabaseAdmin
-    //   .from('user_permissions')
-    //   .select('permission_key')
-    //   .eq('user_id', session.user.id)
-    //   .eq('is_active', true);
-    // const hasPermission = profile?.role === 'super_admin' || 
-    //                      profile?.role === 'company_admin' ||
-    //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key));
+    // If not super_admin or company_admin, check for touring permissions
+    if (!hasPermission) {
+      // Check role-based permissions
+      const { data: rolePermissions } = await supabaseAdmin
+        .from('role_permissions')
+        .select(`
+          permissions!role_permissions_permission_id_fkey (
+            name
+          )
+        `)
+        .eq('role_id', (await supabaseAdmin.from('roles').select('id').eq('name', profile?.role || '').single()).data?.id);
+      
+      const permissionNames = (rolePermissions || []).map(rp => rp.permissions?.name).filter(Boolean);
+      hasPermission = permissionNames.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p));
+      
+      // Also check user-specific permissions
+      if (!hasPermission) {
+        const { data: userPermissions } = await supabaseAdmin
+          .from('user_permissions')
+          .select(`
+            permissions!user_permissions_permission_id_fkey (
+              name
+            )
+          `)
+          .eq('user_id', session.user.id)
+          .eq('granted', true)
+          .is('revoked_at', null);
+        
+        const userPermissionNames = (userPermissions || []).map(up => up.permissions?.name).filter(Boolean);
+        hasPermission = userPermissionNames.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p));
+      }
+    }
 
     if (!hasPermission) {
       return NextResponse.json(
