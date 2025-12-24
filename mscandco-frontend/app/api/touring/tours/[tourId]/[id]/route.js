@@ -4,27 +4,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-function getSupabaseAdmin() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return null;
-  }
-
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      },
-      db: {
-        schema: 'public'
-      }
-    }
-  );
-}
 
 /**
  * GET - Fetch a specific tour
@@ -36,7 +15,8 @@ export const runtime = 'nodejs'
 
 export async function GET(request, { params }) {
   try {
-    const serverSupabase = await createServerClient();
+    const { createClient } = await import('@/lib/supabase/server');
+    const serverSupabase = await createClient();
     const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
 
     if (userError || !user) {

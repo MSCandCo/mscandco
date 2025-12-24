@@ -4,7 +4,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
 
 // Force dynamic rendering to avoid build-time evaluation
 export const dynamic = 'force-dynamic'
@@ -38,7 +37,8 @@ export async function GET(request) {
 
     // Check authentication
     try {
-      const serverSupabase = await createServerClient();
+      const { createClient } = await import('@/lib/supabase/server');
+      const serverSupabase = await createClient();
       const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
       
       if (userError) {

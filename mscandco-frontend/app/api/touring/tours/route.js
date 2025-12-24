@@ -5,27 +5,6 @@
 
 import { NextResponse } from 'next/server';
 
-// Helper function to get admin client (initialized fresh each time to avoid stale connections)
-function getSupabaseAdmin() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return null;
-  }
-
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      },
-      db: {
-        schema: 'public'
-      }
-    }
-  );
-}
-
 /**
  * GET - Fetch tours for authenticated user
  */
@@ -53,8 +32,9 @@ export async function GET(request) {
       );
     }
 
-    // Authenticate user first
-    const serverSupabase = await createServerClient();
+    // Authenticate user first - lazy load createClient to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const serverSupabase = await createClient();
     const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
 
     if (userError) {
@@ -177,8 +157,9 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    // Authenticate user first
-    const serverSupabase = await createServerClient();
+    // Authenticate user first - lazy load createClient to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const serverSupabase = await createClient();
     const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
 
     if (userError || !user) {
