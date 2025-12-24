@@ -623,7 +623,8 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
     end_date: tour.end_date || '',
     description: tour.description || '',
     budget: tour.budget ? convertCurrency(parseFloat(tour.budget), 'GBP', selectedCurrency).toFixed(2) : '',
-    tour_type: tour.tour_type || 'headline',
+    tour_type: tour.tour_type && TOUR_TYPES.includes(tour.tour_type) ? tour.tour_type : 'other',
+    tour_type_custom: tour.tour_type && !TOUR_TYPES.includes(tour.tour_type) ? tour.tour_type : '',
     status: tour.status || 'planning'
   });
   
@@ -635,6 +636,11 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
       ? convertCurrency(parseFloat(formData.budget), selectedCurrency, 'GBP')
       : null;
     
+    // Use custom tour type if "other" is selected
+    const tourTypeToSubmit = formData.tour_type === 'other' && formData.tour_type_custom 
+      ? formData.tour_type_custom 
+      : formData.tour_type;
+
     onSave({
       name: formData.name,
       artist_name: formData.artist_name,
@@ -642,7 +648,7 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
       end_date: formData.end_date || null,
       description: formData.description || null,
       budget: budgetInGBP,
-      tour_type: formData.tour_type,
+      tour_type: tourTypeToSubmit,
       status: formData.status
     });
   };
