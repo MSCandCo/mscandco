@@ -28,8 +28,12 @@ export const runtime = 'nodejs'
 
 export async function PUT(request) {
   try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
     // Check authentication using App Router server client
-    const supabase = await createServerClient()
+    const supabase = await createClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
