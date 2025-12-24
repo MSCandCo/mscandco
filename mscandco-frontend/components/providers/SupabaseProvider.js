@@ -17,9 +17,28 @@ export function SupabaseProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState(null)
-  const supabase = createClient()
+  // Lazy initialize Supabase client - only create it in useEffect (browser only)
+  // This prevents build-time evaluation
+  const [supabase, setSupabase] = useState(null)
 
   useEffect(() => {
+    // Initialize Supabase client only in browser (lazy initialization)
+    if (!supabase && typeof window !== 'undefined') {
+      try {
+        const client = createClient()
+        setSupabase(client)
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error)
+        setLoading(false)
+        return
+      }
+    }
+
+    // If client not ready yet, wait
+    if (!supabase) {
+      return
+    }
+
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -46,6 +65,8 @@ export function SupabaseProvider({ children }) {
     getInitialSession()
 
     // Listen for auth changes
+    if (!supabase) return
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         try {
@@ -62,9 +83,10 @@ export function SupabaseProvider({ children }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   const signOut = async () => {
+    if (!supabase) return
     setLoading(true)
     try {
       const { error } = await supabase.auth.signOut()
@@ -77,6 +99,9 @@ export function SupabaseProvider({ children }) {
   }
 
   const signIn = async (email, password) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
     setLoading(true)
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
