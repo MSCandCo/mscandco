@@ -4,6 +4,10 @@
  */
 
 import { NextResponse } from 'next/server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
