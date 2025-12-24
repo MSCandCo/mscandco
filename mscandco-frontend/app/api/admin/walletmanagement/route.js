@@ -34,6 +34,9 @@ export async function GET(request) {
 
     console.log('💼 Fetching user wallets...')
 
+    // Get service role client for admin operations
+    const supabaseAdmin = await createServiceRoleClient()
+    
     // Build query
     let query = supabaseAdmin
       .from('user_profiles')
