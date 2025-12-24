@@ -146,16 +146,16 @@ export default function HomeClient() {
               <div className="relative max-w-sm mx-auto w-full">
                 {activeMyth === 1 ? (
                   // Myth 2 (index 1): Show free tier pricing card
-                  <div className="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-800 w-full flex flex-col" style={{ aspectRatio: '2000/2500' }}>
-                    <div className="text-center flex-shrink-0">
-                      <h3 className="text-lg font-bold text-gray-900 mb-0.5">MSC Free</h3>
+                  <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-gray-800 w-full flex flex-col" style={{ aspectRatio: '2000/2500' }}>
+                    <div className="text-center flex-shrink-0 mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4">MSC Free</h3>
                       <div className="mb-2">
-                        <span className="text-2xl font-bold text-gray-800">£0</span>
-                        <span className="text-gray-600 text-sm">/month</span>
+                        <span className="text-4xl font-bold text-gray-900">£0</span>
+                        <span className="text-gray-600 text-lg ml-2">/month</span>
                       </div>
-                      <p className="text-xs text-gray-600 italic mb-2">New & emerging artists</p>
+                      <p className="text-sm text-gray-600 italic mt-2">New & emerging artists</p>
                     </div>
-                    <div className="space-y-1 text-xs text-gray-700 mb-2 text-left flex-grow overflow-y-auto">
+                    <div className="space-y-3 text-sm text-gray-700 mb-4 text-left flex-grow overflow-y-auto">
                       {[
                         'Keep 80% of royalties',
                         '12 streaming platforms',
@@ -166,25 +166,34 @@ export default function HomeClient() {
                         'Apollo Intelligence: 3 queries/month'
                       ].map((feature, index) => (
                         <div key={index} className="flex items-start">
-                          <Check className="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {feature}
+                          <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                          <span>{feature}</span>
                         </div>
                       ))}
                     </div>
                     <div className="flex-shrink-0">
-                      <div className="mb-2 p-1.5 bg-blue-50 border border-blue-200 rounded text-xs text-gray-600 text-left">
-                        <p className="font-semibold mb-0.5 text-xs">Limitations:</p>
-                        <ul className="list-disc list-inside space-y-0 text-[10px] leading-tight">
-                          <li>Max 3 releases/year</li>
-                          <li>Max 15 tracks/year</li>
-                          <li>Standard delivery: 7-10 days</li>
+                      <div className="mb-4 p-3 bg-yellow-50 rounded-lg text-sm text-gray-700 text-left">
+                        <p className="font-semibold mb-2 text-sm">Tier Limitations:</p>
+                        <ul className="list-none space-y-2 text-sm">
+                          <li className="flex items-start">
+                            <X className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <span>Maximum 3 releases per year</span>
+                          </li>
+                          <li className="flex items-start">
+                            <X className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <span>Maximum 15 tracks per year</span>
+                          </li>
+                          <li className="flex items-start">
+                            <X className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <span>Standard delivery: 7-10 days</span>
+                          </li>
                         </ul>
                       </div>
                       <button
                         onClick={() => window.location.href = '/register'}
-                        className="w-full bg-transparent text-[#1f2937] border border-[#1f2937] rounded-lg py-1.5 px-3 text-xs font-bold shadow transition-all duration-300 hover:bg-[#1f2937] hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
+                        className="w-full bg-[#1f2937] text-white border border-[#1f2937] rounded-lg py-3 px-4 text-base font-bold shadow transition-all duration-300 hover:bg-gray-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1f2937]"
                       >
-                        Get Started Free
+                        Get Started
                       </button>
                     </div>
                   </div>
