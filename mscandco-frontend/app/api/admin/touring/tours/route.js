@@ -69,12 +69,12 @@ export async function GET(request) {
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-    // Build query
+    // Build query - use simpler join approach
     let query = supabaseAdmin
       .from('tours')
       .select(`
         *,
-        user_profiles!tours_user_id_fkey (
+        user_profiles (
           id,
           artist_name,
           email,

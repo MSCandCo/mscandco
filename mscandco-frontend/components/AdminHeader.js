@@ -319,9 +319,7 @@ function AdminHeader({ largeLogo = false }) {
     }
     
     // Touring section - Permission-based access
-    // Currently: super_admin and company_admin have access
-    // Future: Add permission check for touring:admin:read or touring:admin:manage for custom touring admin roles
-    if (showAll) {
+    if (showAll || checkPermission('touring:admin:read') || checkPermission('touring:admin:manage')) {
       items.push({ href: '/admin/touring', label: 'Touring Administration', icon: Music });
     }
     

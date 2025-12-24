@@ -41,7 +41,8 @@ const formatName = (name) => {
     'requests_admin': 'Requests Admin',
     'release_admin': 'Release Admin',
     'roster_admin': 'Roster Admin',
-    'request_admin': 'Request Admin'
+    'request_admin': 'Request Admin',
+    'touring_admin': 'Touring Admin'
   }
 
   // Check if it's a special case
