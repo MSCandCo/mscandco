@@ -150,15 +150,16 @@ function AdminHeader({ largeLogo = false }) {
     ].filter(Boolean).length;
   }, [showAll, checkPermission]);
 
-  // Combined Insights (Analytics + Finance)
+  // Combined Insights (Analytics + Finance + Touring)
   const insightsItems = useMemo(() => {
-    if (showAll) return 5; // 2 analytics + 3 finance
+    if (showAll) return 6; // 2 analytics + 3 finance + 1 touring
     return [
       checkPermission('analytics:analytics_management:read'),
       checkPermission('analytics:platform_analytics:read'),
       checkPermission('finance:earnings_management:read'),
       checkPermission('finance:wallet_management:read'),
-      checkPermission('finance:split_configuration:read')
+      checkPermission('finance:split_configuration:read'),
+      checkPermission('touring:admin:read') || checkPermission('touring:admin:manage')
     ].filter(Boolean).length;
   }, [showAll, checkPermission]);
 
@@ -599,6 +600,20 @@ function AdminHeader({ largeLogo = false }) {
                       <Link href="/admin/splitconfiguration" onClick={() => setOpenNavDropdown(null)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         <PieChart className="w-4 h-4 mr-3" />
                         Split Configuration
+                      </Link>
+                    )}
+                    
+                    {/* Separator if we have finance items and touring */}
+                    {(checkPermission('finance:earnings_management:read') || checkPermission('finance:wallet_management:read') || checkPermission('finance:split_configuration:read')) &&
+                     (showAll || checkPermission('touring:admin:read') || checkPermission('touring:admin:manage')) && (
+                      <div className="border-t border-gray-200 my-1"></div>
+                    )}
+                    
+                    {/* Touring Section */}
+                    {(showAll || checkPermission('touring:admin:read') || checkPermission('touring:admin:manage')) && (
+                      <Link href="/admin/touring" onClick={() => setOpenNavDropdown(null)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <Music className="w-4 h-4 mr-3" />
+                        Touring Administration
                       </Link>
                     )}
                     </div>
