@@ -1,9 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-
-
-// Lazy initialization to avoid build-time errors
-
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -15,8 +10,15 @@ export const runtime = 'nodejs'
  */
 export async function DELETE(request, { params }) {
   try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
     // Authenticate user
-    const supabase = await createServerClient()
+    const supabase = await createClient()
+    
+    // Get service role client for admin operations
+    const supabaseAdmin = await createServiceRoleClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
