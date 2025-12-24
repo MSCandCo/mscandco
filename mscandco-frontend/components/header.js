@@ -1027,7 +1027,64 @@ function Header({ largeLogo = false }) {
                         <DollarSign className="w-5 h-5" />
                         <span>Earnings</span>
                       </Link>
-                      {/* Community features would go here if shown in mobile */}
+                      {/* Community features - Mobile */}
+                      {(() => {
+                        const communityFeatures = [
+                          showAccessibilityLink && {
+                            href: '/artist/accessibility',
+                            icon: Accessibility,
+                            label: 'Accessibility'
+                          },
+                          showSustainabilityLink && {
+                            href: '/artist/sustainability',
+                            icon: Leaf,
+                            label: 'Sustainability'
+                          },
+                          showLyricsLink && {
+                            href: '/artist/lyrics-analysis',
+                            icon: BookOpen,
+                            label: 'Lyrics Analysis'
+                          },
+                          showCopyrightLink && {
+                            href: '/artist/copyright',
+                            icon: Copyright,
+                            label: 'Copyright'
+                          },
+                          showLearningLink && {
+                            href: '/artist/learning',
+                            icon: GraduationCap,
+                            label: 'Learning'
+                          },
+                          showOpenDataLink && {
+                            href: '/artist/open-data',
+                            icon: Database,
+                            label: 'Open Data'
+                          }
+                        ].filter(Boolean);
+
+                        if (communityFeatures.length > 0) {
+                          return (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Community</p>
+                              {communityFeatures.map((feature, idx) => {
+                                const Icon = feature.icon;
+                                return (
+                                  <Link
+                                    key={idx}
+                                    href={feature.href}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900"
+                                  >
+                                    <Icon className="w-5 h-5" />
+                                    <span>{feature.label}</span>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       {/* Roster - Moved to end after Community */}
                       <Link href="/artist/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <Users className="w-5 h-5" />
@@ -1068,7 +1125,64 @@ function Header({ largeLogo = false }) {
                         <DollarSign className="w-5 h-5" />
                         <span>Earnings</span>
                       </Link>
-                      {/* Community features would go here if shown in mobile */}
+                      {/* Community features - Mobile */}
+                      {(() => {
+                        const communityFeatures = [
+                          showAccessibilityLink && {
+                            href: '/labeladmin/accessibility',
+                            icon: Accessibility,
+                            label: 'Accessibility'
+                          },
+                          showSustainabilityLink && {
+                            href: '/labeladmin/sustainability',
+                            icon: Leaf,
+                            label: 'Sustainability'
+                          },
+                          showLyricsLink && {
+                            href: '/labeladmin/lyrics-analysis',
+                            icon: BookOpen,
+                            label: 'Lyrics Analysis'
+                          },
+                          showCopyrightLink && {
+                            href: '/labeladmin/copyright',
+                            icon: Copyright,
+                            label: 'Copyright'
+                          },
+                          showLearningLink && {
+                            href: '/labeladmin/learning',
+                            icon: GraduationCap,
+                            label: 'Learning'
+                          },
+                          showOpenDataLink && {
+                            href: '/labeladmin/open-data',
+                            icon: Database,
+                            label: 'Open Data'
+                          }
+                        ].filter(Boolean);
+
+                        if (communityFeatures.length > 0) {
+                          return (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Community</p>
+                              {communityFeatures.map((feature, idx) => {
+                                const Icon = feature.icon;
+                                return (
+                                  <Link
+                                    key={idx}
+                                    href={feature.href}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center gap-3 py-2 px-2 text-gray-700 hover:text-gray-900"
+                                  >
+                                    <Icon className="w-5 h-5" />
+                                    <span>{feature.label}</span>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       {/* Roster - Moved to end after Community */}
                       <Link href="/labeladmin/roster" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900">
                         <Users className="w-5 h-5" />
