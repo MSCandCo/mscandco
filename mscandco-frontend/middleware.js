@@ -36,22 +36,23 @@ export async function middleware(req) {
   // For authenticated users on protected paths, verify role-based access
   // Skip role checks for /dashboard to prevent redirect loops
   if (session && isProtectedPath && !req.nextUrl.pathname.startsWith('/dashboard')) {
-    // Get user profile for role-based access control
-    // Use admin client to bypass RLS policies for authorization checks
-    const adminClient = createAdminClient();
-    const { data: profile, error: profileError } = await adminClient
-      .from('user_profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
+    try {
+      // Get user profile for role-based access control
+      // Use admin client to bypass RLS policies for authorization checks
+      const adminClient = createAdminClient();
+      const { data: profile, error: profileError } = await adminClient
+        .from('user_profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
 
-    // If profile query fails, redirect to login (session might be corrupted)
-    if (profileError || !profile) {
-      console.error('Profile query failed:', profileError);
-      const redirectUrl = new URL('/login', req.url);
-      redirectUrl.searchParams.set('error', 'profile_not_found');
-      return NextResponse.redirect(redirectUrl);
-    }
+      // If profile query fails, redirect to login (session might be corrupted)
+      if (profileError || !profile) {
+        console.error('Profile query failed:', profileError);
+        const redirectUrl = new URL('/login', req.url);
+        redirectUrl.searchParams.set('error', 'profile_not_found');
+        return NextResponse.redirect(redirectUrl);
+      }
 
     // Get user role (already lowercase with underscores in database)
     const userRole = profile.role?.toLowerCase();

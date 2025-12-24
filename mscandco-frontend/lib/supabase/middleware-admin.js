@@ -16,8 +16,19 @@ export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+  // Gracefully handle missing credentials at build/edge runtime
+  // Return a no-op client that will fail gracefully rather than throwing
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase credentials for admin client')
+    console.warn('⚠️ Missing Supabase credentials for admin client - returning no-op client')
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: async () => ({ data: null, error: { message: 'Missing Supabase credentials' } })
+          })
+        })
+      })
+    }
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
