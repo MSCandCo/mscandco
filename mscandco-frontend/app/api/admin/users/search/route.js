@@ -87,13 +87,6 @@ export async function GET(request) {
       }
     })
 
-    if (!searchTerm || searchTerm.length < 2) {
-      return NextResponse.json({
-        success: true,
-        users: []
-      })
-    }
-
     console.log(`✅ Found ${formattedUsers.length} users`)
 
     return NextResponse.json({
