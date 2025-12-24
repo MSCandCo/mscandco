@@ -125,7 +125,8 @@ export async function PATCH(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const serverSupabase = await createServerClient();
+    const { createClient } = await import('@/lib/supabase/server');
+    const serverSupabase = await createClient();
     const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
 
     if (userError || !user) {
