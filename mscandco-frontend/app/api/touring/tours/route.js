@@ -4,7 +4,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 // Helper function to get admin client (initialized fresh each time to avoid stale connections)
 function getSupabaseAdmin() {

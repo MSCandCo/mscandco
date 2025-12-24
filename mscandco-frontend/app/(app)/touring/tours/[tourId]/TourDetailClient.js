@@ -719,7 +719,7 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
               </label>
               <select
                 value={formData.tour_type}
-                onChange={(e) => setFormData({ ...formData, tour_type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, tour_type: e.target.value, tour_type_custom: e.target.value === 'other' ? formData.tour_type_custom : '' })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
               >
                 {TOUR_TYPES.map((type) => (
@@ -728,6 +728,21 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
                   </option>
                 ))}
               </select>
+              {formData.tour_type === 'other' && (
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Specify Tour Type
+                  </label>
+                  <input
+                    type="text"
+                    required={formData.tour_type === 'other'}
+                    value={formData.tour_type_custom}
+                    onChange={(e) => setFormData({ ...formData, tour_type_custom: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    placeholder="Enter tour type (e.g., Acoustic Tour, Unplugged Session)"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">

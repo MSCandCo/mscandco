@@ -24,7 +24,8 @@ export default function CreateTourClient({ userId }) {
     end_date: '',
     description: '',
     budget: '',
-    tour_type: 'headline'
+    tour_type: 'headline',
+    tour_type_custom: ''
   });
   
   const handleSubmit = async (e) => {
@@ -167,7 +168,7 @@ export default function CreateTourClient({ userId }) {
             </label>
             <select
               value={formData.tour_type}
-              onChange={(e) => setFormData({ ...formData, tour_type: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, tour_type: e.target.value, tour_type_custom: e.target.value === 'other' ? formData.tour_type_custom : '' })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
             >
               {TOUR_TYPES.map((type) => (
@@ -176,6 +177,21 @@ export default function CreateTourClient({ userId }) {
                 </option>
               ))}
             </select>
+            {formData.tour_type === 'other' && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Specify Tour Type
+                </label>
+                <input
+                  type="text"
+                  required={formData.tour_type === 'other'}
+                  value={formData.tour_type_custom}
+                  onChange={(e) => setFormData({ ...formData, tour_type_custom: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="Enter tour type (e.g., Acoustic Tour, Unplugged Session)"
+                />
+              </div>
+            )}
           </div>
           
           {/* Budget */}
