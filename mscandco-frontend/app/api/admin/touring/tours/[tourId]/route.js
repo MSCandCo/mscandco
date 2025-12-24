@@ -38,17 +38,19 @@ export async function GET(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    // Check for touring admin permission
-    const { data: userPermissions } = await supabaseAdmin
-      .from('user_permissions')
-      .select('permission_key')
-      .eq('user_id', session.user.id)
-      .eq('is_active', true);
-
-    const hasPermission = profile?.role === 'super_admin' || 
-                         profile?.role === 'company_admin' ||
-                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
-                                                      p.permission_key === 'touring:admin:manage');
+    // Permission-based access: super_admin, company_admin, or users with touring permissions
+    // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
+    const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+    
+    // Future: Add permission checking here for custom touring admin roles
+    // const { data: userPermissions } = await supabaseAdmin
+    //   .from('user_permissions')
+    //   .select('permission_key')
+    //   .eq('user_id', session.user.id)
+    //   .eq('is_active', true);
+    // const hasPermission = profile?.role === 'super_admin' || 
+    //                      profile?.role === 'company_admin' ||
+    //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key));
 
     if (!hasPermission) {
       return NextResponse.json(
@@ -149,17 +151,19 @@ export async function PUT(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    // Check for touring admin permission
-    const { data: userPermissions } = await supabaseAdmin
-      .from('user_permissions')
-      .select('permission_key')
-      .eq('user_id', session.user.id)
-      .eq('is_active', true);
-
-    const hasPermission = profile?.role === 'super_admin' || 
-                         profile?.role === 'company_admin' ||
-                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
-                                                      p.permission_key === 'touring:admin:manage');
+    // Permission-based access: super_admin, company_admin, or users with touring permissions
+    // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
+    const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+    
+    // Future: Add permission checking here for custom touring admin roles
+    // const { data: userPermissions } = await supabaseAdmin
+    //   .from('user_permissions')
+    //   .select('permission_key')
+    //   .eq('user_id', session.user.id)
+    //   .eq('is_active', true);
+    // const hasPermission = profile?.role === 'super_admin' || 
+    //                      profile?.role === 'company_admin' ||
+    //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key));
 
     if (!hasPermission) {
       return NextResponse.json(
@@ -242,17 +246,19 @@ export async function DELETE(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    // Check for touring admin permission
-    const { data: userPermissions } = await supabaseAdmin
-      .from('user_permissions')
-      .select('permission_key')
-      .eq('user_id', session.user.id)
-      .eq('is_active', true);
-
-    const hasPermission = profile?.role === 'super_admin' || 
-                         profile?.role === 'company_admin' ||
-                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
-                                                      p.permission_key === 'touring:admin:manage');
+    // Permission-based access: super_admin, company_admin, or users with touring permissions
+    // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
+    const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+    
+    // Future: Add permission checking here for custom touring admin roles
+    // const { data: userPermissions } = await supabaseAdmin
+    //   .from('user_permissions')
+    //   .select('permission_key')
+    //   .eq('user_id', session.user.id)
+    //   .eq('is_active', true);
+    // const hasPermission = profile?.role === 'super_admin' || 
+    //                      profile?.role === 'company_admin' ||
+    //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key));
 
     if (!hasPermission) {
       return NextResponse.json(
