@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import PostHogProvider from '@/components/providers/PostHogProvider'
