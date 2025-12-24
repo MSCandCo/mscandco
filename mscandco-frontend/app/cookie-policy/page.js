@@ -1,5 +1,7 @@
 import { Cookie } from 'lucide-react'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Cookie Policy',
   description: 'Learn about how MSC & Co uses cookies and similar technologies.'

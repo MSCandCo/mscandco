@@ -1,5 +1,7 @@
 import DMCAPolicyClient from './DMCAPolicyClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'DMCA Policy',
   description: 'MSC & Co DMCA Copyright Policy - learn how to file copyright infringement notices and protect your intellectual property',

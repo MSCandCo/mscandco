@@ -1,5 +1,7 @@
 import TermsOfUseClient from './TermsOfUseClient'
 
+
+export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Terms of Use',
   description: 'Read MSC & Co Terms of Use - understand our service terms, user agreements, pricing tiers, commission rates, and platform policies',
