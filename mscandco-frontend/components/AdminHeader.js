@@ -319,6 +319,8 @@ function AdminHeader({ largeLogo = false }) {
     }
     
     // Touring section - Permission-based access
+    // For super_admin and company_admin, showAll is true, so they'll see it
+    // For custom roles with touring permissions, they'll see it via permission check
     if (showAll || checkPermission('touring:admin:read') || checkPermission('touring:admin:manage')) {
       items.push({ href: '/admin/touring', label: 'Touring Administration', icon: Music });
     }
