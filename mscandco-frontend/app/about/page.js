@@ -1,5 +1,8 @@
 import AboutClient from './AboutClient'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'About',
   description: 'Learn about MSC & Co - the world\'s most advanced AI-native, blockchain-verified, carbon-neutral music distribution platform. Discover our mission, values, and innovative features.',
