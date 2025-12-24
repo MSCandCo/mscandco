@@ -292,7 +292,7 @@ function AdminHeader({ largeLogo = false }) {
     return items;
   }, [showAll, checkPermission, isArtistOrLabelAdmin, showAccessibilityFeatures, userRole]);
 
-  // Combined Insights items (Analytics + Finance)
+  // Combined Insights items (Analytics + Finance + Touring)
   const getAllInsightsItems = useMemo(() => {
     const items = [];
     
@@ -316,6 +316,11 @@ function AdminHeader({ largeLogo = false }) {
     }
     if (showAll || checkPermission('finance:split_configuration:read')) {
       items.push({ href: '/admin/splitconfiguration', label: 'Split Configuration', icon: PieChart });
+    }
+    
+    // Touring section (super_admin and company_admin only)
+    if (showAll) {
+      items.push({ href: '/admin/touring', label: 'Touring Administration', icon: Music });
     }
     
     return items;
