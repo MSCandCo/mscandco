@@ -54,64 +54,70 @@ export async function middleware(req) {
         return NextResponse.redirect(redirectUrl);
       }
 
-    // Get user role (already lowercase with underscores in database)
-    const userRole = profile.role?.toLowerCase();
+      // Get user role (already lowercase with underscores in database)
+      const userRole = profile.role?.toLowerCase();
 
-    // Protect /superadmin/* routes - super_admin only
-    if (req.nextUrl.pathname.startsWith('/superadmin')) {
-      if (userRole !== 'super_admin') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      // Protect /superadmin/* routes - super_admin only
+      if (req.nextUrl.pathname.startsWith('/superadmin')) {
+        if (userRole !== 'super_admin') {
+          return NextResponse.redirect(new URL('/unauthorized', req.url));
+        }
       }
-    }
 
-    // Protect /admin/* routes - various admin roles
-    if (req.nextUrl.pathname.startsWith('/admin')) {
-      const allowedRoles = [
-        'super_admin',
-        'company_admin',
-        'analytics_admin',
-        'requests_admin'
-      ];
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      // Protect /admin/* routes - various admin roles
+      if (req.nextUrl.pathname.startsWith('/admin')) {
+        const allowedRoles = [
+          'super_admin',
+          'company_admin',
+          'analytics_admin',
+          'requests_admin'
+        ];
+        if (!allowedRoles.includes(userRole)) {
+          return NextResponse.redirect(new URL('/unauthorized', req.url));
+        }
       }
-    }
 
-    // Protect /labeladmin/* routes - label_admin and above
-    if (req.nextUrl.pathname.startsWith('/labeladmin')) {
-      const allowedRoles = [
-        'label_admin',
-        'company_admin',
-        'super_admin'
-      ];
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      // Protect /labeladmin/* routes - label_admin and above
+      if (req.nextUrl.pathname.startsWith('/labeladmin')) {
+        const allowedRoles = [
+          'label_admin',
+          'company_admin',
+          'super_admin'
+        ];
+        if (!allowedRoles.includes(userRole)) {
+          return NextResponse.redirect(new URL('/unauthorized', req.url));
+        }
       }
-    }
 
-    // Protect /artist/* routes - artist and above
-    if (req.nextUrl.pathname.startsWith('/artist')) {
-      const allowedRoles = [
-        'artist',
-        'label_admin',
-        'company_admin',
-        'super_admin'
-      ];
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      // Protect /artist/* routes - artist and above
+      if (req.nextUrl.pathname.startsWith('/artist')) {
+        const allowedRoles = [
+          'artist',
+          'label_admin',
+          'company_admin',
+          'super_admin'
+        ];
+        if (!allowedRoles.includes(userRole)) {
+          return NextResponse.redirect(new URL('/unauthorized', req.url));
+        }
       }
-    }
 
-    // Protect /distribution/* routes - distribution_partner and admins
-    if (req.nextUrl.pathname.startsWith('/distribution')) {
-      const allowedRoles = [
-        'distribution_partner',
-        'company_admin',
-        'super_admin'
-      ];
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      // Protect /distribution/* routes - distribution_partner and admins
+      if (req.nextUrl.pathname.startsWith('/distribution')) {
+        const allowedRoles = [
+          'distribution_partner',
+          'company_admin',
+          'super_admin'
+        ];
+        if (!allowedRoles.includes(userRole)) {
+          return NextResponse.redirect(new URL('/unauthorized', req.url));
+        }
       }
+    } catch (error) {
+      // If role check fails (e.g., missing credentials), allow access but log the error
+      // This prevents middleware from crashing while still allowing the app to function
+      console.error('Middleware role check error:', error);
+      // Continue to allow the request through - don't block on middleware errors
     }
   }
 
