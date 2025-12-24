@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import CurrencySelector, { useCurrencySync, convertCurrency } from '@/components/shared/CurrencySelector';
+import { TOUR_TYPES } from '@/lib/constants';
 
 export default function CreateTourClient({ userId }) {
   const router = useRouter();
@@ -77,7 +78,12 @@ export default function CreateTourClient({ userId }) {
             </Link>
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900">Create New Tour</h1>
-              <p className="text-gray-600 mt-1">Set up your tour with AI assistance</p>
+              <Link 
+                href="/ai/chat" 
+                className="text-gray-600 mt-1 hover:text-gray-900 hover:underline transition-colors inline-flex items-center gap-1 cursor-pointer"
+              >
+                Set up your tour with AI assistance
+              </Link>
             </div>
             <CurrencySelector
               selectedCurrency={selectedCurrency}
@@ -164,11 +170,11 @@ export default function CreateTourClient({ userId }) {
               onChange={(e) => setFormData({ ...formData, tour_type: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
             >
-              <option value="headline">Headline</option>
-              <option value="support">Support</option>
-              <option value="festival">Festival</option>
-              <option value="club">Club</option>
-              <option value="residency">Residency</option>
+              {TOUR_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')}
+                </option>
+              ))}
             </select>
           </div>
           

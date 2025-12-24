@@ -721,11 +721,11 @@ function EditTourModal({ tour, selectedCurrency, updateCurrency, onSave, onClose
                 onChange={(e) => setFormData({ ...formData, tour_type: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900"
               >
-                <option value="headline">Headline</option>
-                <option value="support">Support</option>
-                <option value="festival">Festival</option>
-                <option value="club">Club</option>
-                <option value="residency">Residency</option>
+                {TOUR_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
