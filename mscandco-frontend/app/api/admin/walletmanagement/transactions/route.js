@@ -4,10 +4,60 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-// Lazy initialization to avoid build-time errors
+export async function GET(request) {
+  try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    // Check authentication
+    const supabase = await createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        message: 'No authorization token provided'
+      }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const user_id = searchParams.get('user_id')
+    const type = searchParams.get('type') || 'all'
+    const page = parseInt(searchParams.get('page') || '1')
+    const per_page = parseInt(searchParams.get('per_page') || '50')
+
+    console.log('💳 Fetching wallet transactions...')
+
+    // Build query - note: wallet_transactions might not have FK, so we'll handle manually
+    let query = supabaseAdmin
+      .from('wallet_transactions')
+      .select('*', { count: 'exact' })
+
+    // Filter by user if specified
+    if (user_id) {
+      query = query.eq('user_id', user_id)
+    }
+
+    // Filter by transaction type
+    if (type !== 'all') {
+      if (type === 'credit') {
+        query = query.in('type', ['credit', 'topup', 'earning', 'refund'])
+      } else if (type === 'debit') {
+        query = query.in('type', ['debit', 'subscription_payment', 'payout', 'fee'])
+      } else if (type === 'subscription') {
+        query = query.eq('type', 'subscription_payment')
+      } else if (type === 'topup') {
+        query = query.eq('type', 'topup')
+      } else if (type === 'earning') {
+        query = query.eq('type', 'earning')
+      }
+    }
 
     // Pagination
     const offset = (page - 1) * per_page
