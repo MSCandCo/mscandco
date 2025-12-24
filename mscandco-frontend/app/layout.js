@@ -5,6 +5,9 @@
  * Provides global styles, providers, and metadata
  */
 
+// Force dynamic rendering for all pages to prevent Supabase build-time errors
+export const dynamic = 'force-dynamic'
+
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider'
