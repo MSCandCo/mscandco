@@ -94,19 +94,6 @@ export async function GET(request) {
       })
     }
 
-    const formattedUsers = users.map(user => {
-      const name = user.first_name && user.last_name 
-        ? `${user.first_name} ${user.last_name}` 
-        : user.first_name || user.last_name
-      
-      return {
-        id: user.id,
-        email: user.email,
-        name: name || user.email,
-        role: user.role
-      }
-    })
-
     console.log(`✅ Found ${formattedUsers.length} users`)
 
     return NextResponse.json({

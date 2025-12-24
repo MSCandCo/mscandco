@@ -4,10 +4,119 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-// Lazy initialization to avoid build-time errors
+export async function GET(request) {
+  try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    // Check authentication
+    const supabase = await createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        message: 'No authorization token provided'
+      }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const role = searchParams.get('role') || 'all'
+    const search = searchParams.get('search') || ''
+    const page = parseInt(searchParams.get('page') || '1')
+    const per_page = parseInt(searchParams.get('per_page') || '20')
+
+    console.log('💼 Fetching user wallets...')
+
+    // Build query
+    let query = supabaseAdmin
+      .from('user_profiles')
+      .select(`
+        id,
+        email,
+        first_name,
+        last_name,
+        artist_name,
+        display_name,
+        label_name,
+        role,
+        wallet_balance,
+        wallet_currency,
+        created_at
+      `, { count: 'exact' })
+
+    // Filter by role
+    if (role === 'artist') {
+      query = query.eq('role', 'artist')
+    } else if (role === 'label_admin') {
+      query = query.eq('role', 'label_admin')
+    } else {
+      // All external users (artists and label admins)
+      query = query.in('role', ['artist', 'label_admin'])
+    }
+
+    // Search by name or email
+    if (search) {
+      query = query.or(`email.ilike.%${search}%,artist_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,display_name.ilike.%${search}%,label_name.ilike.%${search}%`)
+    }
+
+    // Order by created_at descending (we'll sort by balance after calculating from earnings_log)
+    query = query.order('created_at', { ascending: false })
+
+    // Pagination
+    const offset = (page - 1) * per_page
+    query = query.range(offset, offset + per_page - 1)
+
+    const { data: wallets, error, count } = await query
+
+    if (error) {
+      console.error('❌ Error fetching wallets:', error)
+      return NextResponse.json({
+        error: 'Failed to fetch wallets',
+        details: error.message
+      }, { status: 500 })
+    }
+
+    // Get transaction counts for each wallet
+    const walletIds = wallets.map(w => w.id)
+    
+    // Calculate balances from earnings_log (single source of truth)
+    let earningsData = []
+    let earningsError = null
+    
+    if (walletIds.length > 0) {
+      const earningsResult = await supabaseAdmin
+        .from('earnings_log')
+        .select('artist_id, amount, status, currency')
+        .in('artist_id', walletIds)
+        .neq('status', 'cancelled')
+      
+      earningsData = earningsResult.data || []
+      earningsError = earningsResult.error
+    }
+
+    if (earningsError) {
+      console.error('❌ Error fetching earnings:', earningsError)
+    }
+
+    // Calculate balance per user from earnings_log
+    const balanceMap = {}
+    earningsData?.forEach(earning => {
+      const userId = earning.artist_id
+      if (!balanceMap[userId]) {
+        balanceMap[userId] = {
+          total: 0,
+          paid: 0,
+          pending: 0,
+          currency: earning.currency || 'GBP'
+        }
+      }
       const amount = parseFloat(earning.amount) || 0
       balanceMap[userId].total += amount
       if (earning.status === 'paid') {
