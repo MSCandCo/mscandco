@@ -119,6 +119,9 @@ export function SupabaseProvider({ children }) {
   }
 
   const verifyMfaChallenge = async (factorId, code) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
     try {
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({
         factorId,
