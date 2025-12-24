@@ -35,11 +35,20 @@ function LoginPageContent() {
   const [mfaLoading, setMfaLoading] = useState(false)
 
   // Create Supabase client once per component instance
-  const supabase = useMemo(() => {
-    console.log('🔧 Creating Supabase client...')
-    const client = createClient()
-    console.log('🔧 Supabase client created successfully')
-    return client
+  // Use useState and useEffect to ensure it's created in browser only
+  const [supabase, setSupabase] = useState(null)
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !supabase) {
+      try {
+        console.log('🔧 Creating Supabase client in browser...')
+        const client = createClient()
+        console.log('🔧 Supabase client created successfully')
+        setSupabase(client)
+      } catch (error) {
+        console.error('❌ Failed to create Supabase client:', error)
+      }
+    }
   }, [])
   
   const router = useRouter()
@@ -177,11 +186,34 @@ function LoginPageContent() {
       setLoading(false)
     }, 60000) // 60 second timeout
 
+    // Wait for Supabase client to be ready
+    if (!supabase) {
+      clearTimeout(timeoutId)
+      console.error('❌ Supabase client not ready')
+      setError('Initializing authentication. Please try again in a moment.')
+      setLoading(false)
+      return
+    }
+
     try {
       console.log('🔐 Attempting login for:', email)
       console.log('🔧 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configured' : 'Missing')
       console.log('🔧 Environment:', process.env.NODE_ENV || 'unknown')
       console.log('🔧 Supabase client exists:', !!supabase)
+      console.log('🔧 Supabase client type:', typeof supabase)
+      console.log('🔧 Supabase auth exists:', !!supabase?.auth)
+      
+      // Check if we got the no-op client (Build-time client)
+      if (supabase?.auth?.signInWithPassword && typeof supabase.auth.signInWithPassword === 'function') {
+        const testResult = await supabase.auth.signInWithPassword({ email: 'test', password: 'test' })
+        if (testResult?.error?.message === 'Build-time client') {
+          clearTimeout(timeoutId)
+          console.error('❌ Got build-time client instead of real client')
+          setError('Authentication not ready. Please refresh the page and try again.')
+          setLoading(false)
+          return
+        }
+      }
       
       console.log('⏳ Calling Supabase signInWithPassword...')
       
