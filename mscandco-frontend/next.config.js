@@ -49,6 +49,19 @@ const nextConfig = {
     minimumCacheTTL: 60,
   },
 
+  // Webpack configuration to handle Supabase client build-time issues
+  webpack: (config, { isServer }) => {
+    // Externalize @supabase/ssr for client-side to prevent build-time evaluation
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // Prevent webpack from bundling @supabase/ssr at build time
+        '@supabase/ssr': false,
+      }
+    }
+    return config
+  },
+
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: [
