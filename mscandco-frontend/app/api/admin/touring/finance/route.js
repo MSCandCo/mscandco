@@ -74,7 +74,7 @@ export async function GET(request) {
         start_date,
         end_date,
         created_at,
-        user_profiles!tours_user_id_fkey (
+        user_profiles (
           id,
           artist_name,
           email

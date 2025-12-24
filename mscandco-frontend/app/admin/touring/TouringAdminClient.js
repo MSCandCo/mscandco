@@ -97,10 +97,13 @@ export default function TouringAdminClient({ user }) {
       const data = await response.json()
       if (data.success) {
         setTours(data.tours || [])
+      } else {
+        throw new Error(data.error || 'Failed to load tours')
       }
     } catch (err) {
       console.error('Error loading tours:', err)
-      setError(err.message)
+      const errorMessage = err.message || 'Failed to load tours. Please check your connection and try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

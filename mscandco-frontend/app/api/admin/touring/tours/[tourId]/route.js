@@ -62,11 +62,12 @@ export async function GET(request, { params }) {
     const { tourId } = await params;
 
     // Get tour with user profile
+    // Note: Foreign key relationship may vary - try multiple formats
     const { data: tour, error } = await supabaseAdmin
       .from('tours')
       .select(`
         *,
-        user_profiles!tours_user_id_fkey (
+        user_profiles (
           id,
           artist_name,
           email,
