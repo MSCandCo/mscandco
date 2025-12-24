@@ -8,10 +8,72 @@ import { NextResponse } from 'next/server'
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
+export async function GET(request) {
+  try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    // Check if user is authenticated using Supabase server client
+    const supabase = await createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-// Lazy initialization to avoid build-time errors
+    if (sessionError || !session) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        message: 'No authorization token provided'
+      }, { status: 401 })
+    }
+
+    // Get service role client for admin operations
+    const supabaseAdmin = await createServiceRoleClient()
+    
+    // Fetch all roles with permission counts
+    const { data: roles, error: rolesError } = await supabaseAdmin
+      .from('roles')
+      .select(`
+        id,
+        name,
+        description,
+        created_at
+      `)
+      .order('name')
+
+    if (rolesError) {
+      console.error('Error fetching roles:', rolesError)
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch roles',
+        hint: rolesError.hint
+      }, { status: 500 })
+    }
+
+    // Get permission counts for each role
+    // Try role_permission_assignments first, then role_permissions
+    const rolesWithCounts = await Promise.all(
+      (roles || []).map(async (role) => {
+        let count = 0
+        
+        // Try role_permission_assignments table first
+        const { count: count1, error: countError1 } = await supabaseAdmin
+          .from('role_permission_assignments')
+          .select('*', { count: 'exact', head: true })
+          .eq('role_id', role.id)
+
+        if (!countError1 && count1 !== null) {
+          count = count1
+        } else {
+          // Fallback to role_permissions table
+          const { count: count2, error: countError2 } = await supabaseAdmin
+            .from('role_permissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('role_id', role.id)
+
+          if (!countError2 && count2 !== null) {
+            count = count2
+          }
+        }
 
         return {
           ...role,

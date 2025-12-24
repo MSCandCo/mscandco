@@ -6,14 +6,193 @@
  */
 
 import { NextResponse } from 'next/server'
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
 // Lazy initialization to avoid build-time errors
+async function getSupabaseAdmin() {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
+}
+export async function POST(request, { params }) {
+  try {
+    // Check if user is authenticated using Supabase server client
+    const supabase = await createServerClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        message: 'No authorization token provided'
+      }, { status: 401 })
+    }
+
+    const { userId } = await params
+    
+    // Parse request body with error handling
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      return NextResponse.json({
+        error: 'Invalid request body',
+        message: 'Request body must be valid JSON',
+        details: process.env.NODE_ENV === 'development' ? parseError.message : undefined
+      }, { status: 400 })
+    }
+    
+    const { status } = body
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    }
+
+    if (!status || !['active', 'inactive', 'pending', 'suspended'].includes(status)) {
+      return NextResponse.json({ 
+        error: 'Invalid status',
+        message: 'Status must be one of: active, inactive, pending, suspended'
+      }, { status: 400 })
+    }
+
+    // Check if user exists
+    const { data: existingUser, error: checkError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, email')
+      .eq('id', userId)
+      .single()
+
+    if (checkError || !existingUser) {
+      return NextResponse.json({
+        error: 'User not found',
+        details: process.env.NODE_ENV === 'development' ? checkError?.message : undefined
+      }, { status: 404 })
+    }
+
+    // Get current auth user to check current status
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId)
+    
+    if (authError) {
+      console.error('Error fetching auth user:', authError)
+      return NextResponse.json({
+        error: 'Failed to fetch user',
+        details: process.env.NODE_ENV === 'development' ? authError.message : undefined
+      }, { status: 500 })
+    }
+
+    // Prepare update based on status
+    // Status is determined by: isActive = email_confirmed_at && !banned_until
+    // So: active = confirmed && not banned, inactive/pending = not confirmed or banned
+    let updatedAuthUser = null
+    let updateError = null
+
+    switch (status) {
+      case 'active':
+        // Activate: unban user and confirm email
+        try {
+          // Prepare update object
+          const activeUpdate = {}
+          
+          // Unban if banned (set ban_duration to 'none' or remove ban)
+          if (authUser.user.banned_until) {
+            // Try ban_duration: 'none' first, if that doesn't work, we'll try removing it
+            activeUpdate.ban_duration = 'none'
+          }
+          
+          // Confirm email if not already confirmed
+          if (!authUser.user.email_confirmed_at) {
+            activeUpdate.email_confirm = true
+          }
+          
+          // Apply updates if any
+          if (Object.keys(activeUpdate).length > 0) {
+            const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, activeUpdate)
+            if (error) {
+              // If ban_duration: 'none' fails, try alternative approach
+              if (error.message?.includes('ban_duration') && authUser.user.banned_until) {
+                console.log('ban_duration: none failed, trying alternative unban method')
+                // Try updating with email_confirm only, then get user to check ban status
+                const { data: emailData, error: emailError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+                  email_confirm: true
+                })
+                if (emailError) {
+                  updatedAuthUser = emailData
+                  updateError = emailError
+                } else {
+                  // Get updated user - ban might still be there but email is confirmed
+                  const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId)
+                  updatedAuthUser = userData
+                }
+              } else {
+                updatedAuthUser = data
+                updateError = error
+              }
+            } else {
+              updatedAuthUser = data
+            }
+          } else {
+            // No updates needed, just get current user
+            const { data } = await supabaseAdmin.auth.admin.getUserById(userId)
+            updatedAuthUser = data
+          }
+        } catch (err) {
+          console.error('Exception in active case:', err)
+          updateError = err
+        }
+        break
+      case 'inactive':
+        // Deactivate: Ban user for 1 hour to prevent login
+        console.log('🔄 Deactivating user:', userId, existingUser.email)
+        
+        // Try the simplest approach first - ban_duration as string
+        const { data: inactiveData, error: inactiveError } = await supabaseAdmin.auth.admin.updateUserById(
+          userId,
+          { ban_duration: '1h' }
+        )
+        
+        console.log('📋 Deactivate result:', { 
+          success: !inactiveError, 
+          error: inactiveError?.message,
+          user: inactiveData?.user?.email,
+          banned_until: inactiveData?.user?.banned_until
+        })
+        
+        updatedAuthUser = inactiveData
+        updateError = inactiveError
+        
+        // If that fails, log the error for debugging
+        if (inactiveError) {
+          console.error('❌ Failed to deactivate user:', inactiveError)
+          console.error('Error details:', JSON.stringify(inactiveError, null, 2))
+        }
+        break
+      case 'suspended':
+        // Suspend: ban user (30 days)
+        const suspendUntil = new Date()
+        suspendUntil.setDate(suspendUntil.getDate() + 30)
+        
+        try {
+          const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            ban_duration: '30d'
+          })
+          if (error && error.message?.includes('ban_duration')) {
+            throw new Error('ban_duration not supported')
+          }
+          updatedAuthUser = data
+          updateError = error
+        } catch (err) {
+          const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            app_metadata: {
+              ...(authUser.user.app_metadata || {}),
+              banned_until: suspendUntil.toISOString()
+            }
+          })
+          updatedAuthUser = data
+          updateError = error
+          if (!error) {
+            const { data: verifyData } = await supabaseAdmin.auth.admin.getUserById(userId)
+            updatedAuthUser = verifyData
+          }
+        }
         break
       case 'pending':
         // Pending: same as inactive - ban for 1 hour

@@ -5,10 +5,48 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-// Lazy initialization to avoid build-time errors
+export async function GET(request) {
+  try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
+    // Check authentication using App Router server client
+    const supabase = await createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        message: 'No authorization token provided'
+      }, { status: 401 })
+    }
+
+    console.log('📋 Admin viewing profile change requests:', { adminUserId: session.user.id })
+
+    // Get service role client for admin operations
+    const supabaseAdmin = await createServiceRoleClient()
+    
+    // Use service role to fetch all requests
+    const { data: requests, error } = await supabaseAdmin
+      .from('profile_change_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('❌ Error fetching profile change requests:', error)
+      return NextResponse.json({ 
+        success: false,
+        error: 'Failed to fetch requests', 
+        message: error.message,
+        details: error 
+      }, { status: 500 })
+    }
 
     return NextResponse.json({
       success: true,
@@ -20,11 +58,6 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
 
 export async function PUT(request) {
   try {
@@ -53,6 +86,9 @@ export async function PUT(request) {
 
     const status = action === 'approve' ? 'approved' : 'rejected'
 
+    // Get service role client for admin operations
+    const supabaseAdmin = await createServiceRoleClient()
+    
     const { data, error } = await supabaseAdmin
       .from('profile_change_requests')
       .update({
