@@ -39,12 +39,18 @@ export default function CreateTourClient({ userId }) {
         ? convertCurrency(parseFloat(formData.budget), selectedCurrency, 'GBP')
         : null;
 
+      // Use custom tour type if "other" is selected
+      const tourTypeToSubmit = formData.tour_type === 'other' && formData.tour_type_custom 
+        ? formData.tour_type_custom 
+        : formData.tour_type;
+
       const response = await fetch('/api/touring/tours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
           ...formData,
+          tour_type: tourTypeToSubmit,
           budget: budgetInGBP,
           currency: 'GBP' // Always store in GBP
         })
