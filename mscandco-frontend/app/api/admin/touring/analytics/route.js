@@ -62,24 +62,7 @@ export async function GET(request) {
     // Get comprehensive tour analytics
     const { data: allTours, error: toursError } = await supabaseAdmin
       .from('tours')
-      .select(`
-        id,
-        name,
-        user_id,
-        tour_type,
-        status,
-        budget,
-        currency,
-        start_date,
-        end_date,
-        created_at,
-        updated_at,
-        user_profiles (
-          id,
-          artist_name,
-          email
-        )
-      `)
+      .select('id, name, user_id, tour_type, status, budget, currency, start_date, end_date, created_at, updated_at')
       .gte('created_at', startDate);
 
     if (toursError) {
@@ -88,6 +71,24 @@ export async function GET(request) {
         { error: 'Failed to fetch tours', details: toursError.message },
         { status: 500 }
       );
+    }
+
+    // Fetch user profiles separately
+    const userIds = [...new Set((allTours || []).map(tour => tour.user_id).filter(Boolean))];
+    let userProfilesMap = {};
+    
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, artist_name, email')
+        .in('id', userIds);
+      
+      if (profiles) {
+        userProfilesMap = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {});
+      }
     }
 
     // Calculate analytics metrics
@@ -120,10 +121,11 @@ export async function GET(request) {
     const userActivity = {};
     allTours?.forEach(tour => {
       const userId = tour.user_id;
+      const userProfile = userProfilesMap[userId];
       if (!userActivity[userId]) {
         userActivity[userId] = {
           userId,
-          artistName: tour.user_profiles?.artist_name || tour.user_profiles?.email || 'Unknown',
+          artistName: userProfile?.artist_name || userProfile?.email || 'Unknown',
           tourCount: 0,
           totalBudget: 0,
           lastTourDate: null

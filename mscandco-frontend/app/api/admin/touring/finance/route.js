@@ -64,22 +64,7 @@ export async function GET(request) {
     // Get all tours for financial analysis
     let toursQuery = supabaseAdmin
       .from('tours')
-      .select(`
-        id,
-        name,
-        user_id,
-        budget,
-        currency,
-        status,
-        start_date,
-        end_date,
-        created_at,
-        user_profiles (
-          id,
-          artist_name,
-          email
-        )
-      `);
+      .select('id, name, user_id, budget, currency, status, start_date, end_date, created_at');
 
     if (userId) {
       toursQuery = toursQuery.eq('user_id', userId);
@@ -102,6 +87,24 @@ export async function GET(request) {
         { error: 'Failed to fetch tours', details: toursError.message },
         { status: 500 }
       );
+    }
+
+    // Fetch user profiles separately
+    const userIds = [...new Set((tours || []).map(tour => tour.user_id).filter(Boolean))];
+    let userProfilesMap = {};
+    
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, artist_name, email')
+        .in('id', userIds);
+      
+      if (profiles) {
+        userProfilesMap = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {});
+      }
     }
 
     // Calculate financial metrics
@@ -177,10 +180,10 @@ export async function GET(request) {
           byStatus: budgetsByStatus,
           byCurrency: budgetsByCurrency,
           byUser: Object.entries(budgetsByUser).map(([userId, budget]) => {
-            const tour = tours?.find(t => t.user_id === userId);
+            const userProfile = userProfilesMap[userId];
             return {
               userId,
-              artistName: tour?.user_profiles?.artist_name || tour?.user_profiles?.email || 'Unknown',
+              artistName: userProfile?.artist_name || userProfile?.email || 'Unknown',
               totalBudget: budget,
               tourCount: tours?.filter(t => t.user_id === userId).length || 0
             };
@@ -191,16 +194,19 @@ export async function GET(request) {
             tourCount: data.count
           })).sort((a, b) => a.month.localeCompare(b.month))
         },
-        tours: (tours || []).map(tour => ({
-          id: tour.id,
-          name: tour.name,
-          artistName: tour.user_profiles?.artist_name || tour.user_profiles?.email || 'Unknown',
-          budget: parseFloat(tour.budget) || 0,
-          currency: tour.currency || 'GBP',
-          status: tour.status,
-          startDate: tour.start_date,
-          endDate: tour.end_date
-        }))
+        tours: (tours || []).map(tour => {
+          const userProfile = userProfilesMap[tour.user_id];
+          return {
+            id: tour.id,
+            name: tour.name,
+            artistName: userProfile?.artist_name || tour.artist_name || userProfile?.email || 'Unknown',
+            budget: parseFloat(tour.budget) || 0,
+            currency: tour.currency || 'GBP',
+            status: tour.status,
+            startDate: tour.start_date,
+            endDate: tour.end_date
+          };
+        })
       }
     });
 

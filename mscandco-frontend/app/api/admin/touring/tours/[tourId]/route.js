@@ -61,21 +61,10 @@ export async function GET(request, { params }) {
 
     const { tourId } = await params;
 
-    // Get tour with user profile
-    // Note: Foreign key relationship may vary - try multiple formats
+    // Get tour first
     const { data: tour, error } = await supabaseAdmin
       .from('tours')
-      .select(`
-        *,
-        user_profiles (
-          id,
-          artist_name,
-          email,
-          first_name,
-          last_name,
-          role
-        )
-      `)
+      .select('*')
       .eq('id', tourId)
       .single();
 
@@ -91,6 +80,17 @@ export async function GET(request, { params }) {
         { error: 'Failed to fetch tour', details: error.message },
         { status: 500 }
       );
+    }
+
+    // Fetch user profile separately
+    let userProfile = null;
+    if (tour?.user_id) {
+      const { data: profile } = await supabaseAdmin
+        .from('user_profiles')
+        .select('id, artist_name, email, first_name, last_name, role')
+        .eq('id', tour.user_id)
+        .single();
+      userProfile = profile;
     }
 
     // Get tour dates if table exists
@@ -110,8 +110,8 @@ export async function GET(request, { params }) {
       success: true,
       tour: {
         ...tour,
-        artist_name: tour.user_profiles?.artist_name || tour.user_profiles?.email || 'Unknown',
-        artist_email: tour.user_profiles?.email || null,
+        artist_name: userProfile?.artist_name || tour.artist_name || userProfile?.email || 'Unknown',
+        artist_email: userProfile?.email || null,
         dates
       }
     });
