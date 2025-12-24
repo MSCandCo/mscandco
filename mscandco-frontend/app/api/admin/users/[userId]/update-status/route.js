@@ -6,18 +6,19 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-// Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
-export async function POST(request, { params }) {
+export async function PUT(request, { params }) {
   try {
+    // Lazy load Supabase clients to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    
     // Check if user is authenticated using Supabase server client
-    const supabase = await createServerClient()
+    const supabase = await createClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session) {
