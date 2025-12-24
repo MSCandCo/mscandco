@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 
-// Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * GET /api/admin/permissions/list
@@ -14,8 +12,11 @@ async function getSupabaseAdmin() {
  */
 export async function GET() {
   try {
+    // Lazy load Supabase client to avoid build-time errors
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = await createServiceRoleClient();
+    
     // Fetch all permissions directly using service role
-    const supabase = await getSupabaseAdmin()
     const { data: permissions, error } = await supabase
       .from('permissions')
       .select('*')

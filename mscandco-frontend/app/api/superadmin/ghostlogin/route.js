@@ -3,69 +3,11 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
 // Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
-/**
- * GET /api/superadmin/ghostlogin
- * Get active ghost login sessions
- */
-export async function GET(request) {
-  try {
-    const supabase = await createServerClient()
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (sessionError || !session) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'No authorization token provided' },
-        { status: 401 }
-      )
-    }
 
-    // Check if user is superadmin
-    const { data: profile } = await supabaseAdmin
-      .from('user_profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!profile || profile.role !== 'super_admin') {
-      return NextResponse.json(
-        { error: 'Forbidden', message: 'Superadmin access required' },
-        { status: 403 }
-      )
-    }
-
-    // Get active ghost sessions from ghost_sessions table
-    const { data: sessions, error } = await supabaseAdmin
-      .from('ghost_sessions')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching ghost sessions:', error)
-      // Return empty array if table doesn't exist
-      return NextResponse.json({
-        success: true,
-        sessions: []
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      sessions: sessions || []
-    })
-
-  } catch (error) {
-    console.error('Error in ghostlogin GET:', error)
-    return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
-      { status: 500 }
-    )
-  }
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * POST /api/superadmin/ghostlogin

@@ -3,52 +3,11 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
 // Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
-/**
- * GET /api/artist/roster
- * Fetch artist roster (contributors)
- */
-export async function GET(request) {
-  try {
-    const supabase = await createServerClient()
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (sessionError || !session) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'No authorization token provided' },
-        { status: 401 }
-      )
-    }
 
-    const artistId = session.user.id
-    console.log('👥 Fetching roster for artist:', artistId)
-
-    // Fetch contributors from roster table
-    const { data: roster, error } = await supabaseAdmin
-      .from('roster')
-      .select('*')
-      .eq('artist_id', artistId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching roster:', error)
-      // Return empty array if table doesn't exist or has no data
-      return NextResponse.json([])
-    }
-
-    return NextResponse.json(roster || [])
-
-  } catch (error) {
-    console.error('Error in roster GET:', error)
-    return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
-      { status: 500 }
-    )
-  }
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * POST /api/artist/roster

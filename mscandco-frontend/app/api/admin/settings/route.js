@@ -3,54 +3,11 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
 // Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
-/**
- * GET /api/admin/settings
- * Get admin user settings
- */
-export async function GET(request) {
-  try {
-    const supabase = await createServerClient()
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (sessionError || !session) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'No authorization token provided' },
-        { status: 401 }
-      )
-    }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('user_profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-
-    if (profileError) {
-      console.error('Error fetching profile:', profileError)
-      return NextResponse.json(
-        { error: 'Failed to fetch settings', message: profileError.message },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      ...profile
-    })
-
-  } catch (error) {
-    console.error('Error in settings GET:', error)
-    return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
-      { status: 500 }
-    )
-  }
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * PUT /api/admin/settings

@@ -9,54 +9,6 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 
 // Lazy initialization to avoid build-time errors
-async function getSupabaseAdmin() {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
-}
-export async function GET(request) {
-  try {
-    // Check authentication using App Router server client
-    const supabase = await createServerClient()
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-    if (sessionError || !session) {
-      return NextResponse.json({
-        error: 'Unauthorized',
-        message: 'No authorization token provided'
-      }, { status: 401 })
-    }
-
-    console.log('📋 Admin viewing profile change requests:', { adminUserId: session.user.id })
-
-    // Get all profile change requests (without join since FK doesn't exist)
-    const { data: requests, error } = await supabaseAdmin
-      .from('profile_change_requests')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('❌ Error fetching profile change requests:', error)
-      return NextResponse.json({ error: 'Failed to fetch change requests' }, { status: 500 })
-    }
-
-    console.log(`✅ Found ${requests?.length || 0} profile change requests`)
-
-    // Manually fetch user profiles for each request
-    if (requests && requests.length > 0) {
-      const userIds = [...new Set(requests.map(r => r.user_id).filter(Boolean))]
-
-      const { data: profiles, error: profileError } = await supabaseAdmin
-        .from('user_profiles')
-        .select('id, email, first_name, last_name, artist_name')
-        .in('id', userIds)
-
-      if (!profileError && profiles) {
-        // Attach user profiles to requests
-        requests.forEach(request => {
-          request.user_profiles = profiles.find(p => p.id === request.user_id)
-        })
-      }
-    }
 
     return NextResponse.json({
       success: true,
@@ -68,6 +20,11 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function PUT(request) {
   try {
