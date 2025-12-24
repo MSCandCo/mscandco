@@ -515,35 +515,37 @@ function Header({ largeLogo = false }) {
                         </Link>
                       )}
 
-                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 2+ features */}
+                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 1+ features */}
                       {(() => {
+                        // Community features are controlled by user settings toggles
+                        // Only check feature toggles, not permissions (permissions are for access control, toggles are for visibility)
                         const communityFeatures = [
-                          hasAccessibilityPermission && showAccessibilityLink && {
+                          showAccessibilityLink && {
                             href: '/artist/accessibility',
                             icon: Accessibility,
                             label: 'Accessibility'
                           },
-                          hasSustainabilityPermission && showSustainabilityLink && {
+                          showSustainabilityLink && {
                             href: '/artist/sustainability',
                             icon: Leaf,
                             label: 'Sustainability'
                           },
-                          hasLyricsPermission && showLyricsLink && {
+                          showLyricsLink && {
                             href: '/artist/lyrics-analysis',
                             icon: BookOpen,
                             label: 'Lyrics Analysis'
                           },
-                          hasCopyrightPermission && showCopyrightLink && {
+                          showCopyrightLink && {
                             href: '/artist/copyright',
                             icon: Copyright,
                             label: 'Copyright'
                           },
-                          hasLearningPermission && showLearningLink && {
+                          showLearningLink && {
                             href: '/artist/learning',
                             icon: GraduationCap,
                             label: 'Learning'
                           },
-                          hasOpenDataPermission && showOpenDataLink && {
+                          showOpenDataLink && {
                             href: '/artist/open-data',
                             icon: Database,
                             label: 'Open Data'
@@ -658,35 +660,37 @@ function Header({ largeLogo = false }) {
                         </div>
                       </div>
 
-                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 2+ features */}
+                      {/* 🌍 COMMUNITY FEATURES - Grouped in dropdown if 1+ features */}
                       {(() => {
+                        // Community features are controlled by user settings toggles
+                        // Only check feature toggles, not permissions (permissions are for access control, toggles are for visibility)
                         const communityFeatures = [
-                          hasAccessibilityPermission && showAccessibilityLink && {
+                          showAccessibilityLink && {
                             href: '/labeladmin/accessibility',
                             icon: Accessibility,
                             label: 'Accessibility'
                           },
-                          hasSustainabilityPermission && showSustainabilityLink && {
+                          showSustainabilityLink && {
                             href: '/labeladmin/sustainability',
                             icon: Leaf,
                             label: 'Sustainability'
                           },
-                          hasLyricsPermission && showLyricsLink && {
+                          showLyricsLink && {
                             href: '/labeladmin/lyrics-analysis',
                             icon: BookOpen,
                             label: 'Lyrics Analysis'
                           },
-                          hasCopyrightPermission && showCopyrightLink && {
+                          showCopyrightLink && {
                             href: '/labeladmin/copyright',
                             icon: Copyright,
                             label: 'Copyright'
                           },
-                          hasLearningPermission && showLearningLink && {
+                          showLearningLink && {
                             href: '/labeladmin/learning',
                             icon: GraduationCap,
                             label: 'Learning'
                           },
-                          hasOpenDataPermission && showOpenDataLink && {
+                          showOpenDataLink && {
                             href: '/labeladmin/open-data',
                             icon: Database,
                             label: 'Open Data'
