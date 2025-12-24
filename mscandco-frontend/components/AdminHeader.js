@@ -318,7 +318,9 @@ function AdminHeader({ largeLogo = false }) {
       items.push({ href: '/admin/splitconfiguration', label: 'Split Configuration', icon: PieChart });
     }
     
-    // Touring section (super_admin and company_admin only)
+    // Touring section - Permission-based access
+    // Currently: super_admin and company_admin have access
+    // Future: Add permission check for touring:admin:read or touring:admin:manage for custom touring admin roles
     if (showAll) {
       items.push({ href: '/admin/touring', label: 'Touring Administration', icon: Music });
     }

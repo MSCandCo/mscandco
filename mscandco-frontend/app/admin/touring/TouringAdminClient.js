@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import {
-  Music, Search, TrendingUp, Calendar, DollarSign, Users, 
+  Music, Search, TrendingUp, TrendingDown, Calendar, DollarSign, Users, 
   MapPin, Clock, CheckCircle, XCircle, Edit2, Trash2, Eye,
   RefreshCw, AlertTriangle, Filter, Download, Plus, BarChart3,
   Globe, Building2, Activity, Target, Award, Zap
@@ -29,7 +29,11 @@ export default function TouringAdminClient({ user }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState('created_at')
   const [sortOrder, setSortOrder] = useState('desc')
-  const [viewMode, setViewMode] = useState('dashboard') // dashboard, tours, users, analytics
+  const [viewMode, setViewMode] = useState('dashboard') // dashboard, tours, users, analytics, finance
+  const [financeData, setFinanceData] = useState(null)
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [financeLoading, setFinanceLoading] = useState(false)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
 
   const limit = 50
 
@@ -38,10 +42,14 @@ export default function TouringAdminClient({ user }) {
     loadStats()
   }, [])
 
-  // Load tours when filters change
+  // Load data when view mode changes
   useEffect(() => {
     if (viewMode === 'tours' || viewMode === 'dashboard') {
       loadTours()
+    } else if (viewMode === 'finance') {
+      loadFinanceData()
+    } else if (viewMode === 'analytics') {
+      loadAnalyticsData()
     }
   }, [viewMode, currentPage, statusFilter, tourTypeFilter, searchTerm, sortBy, sortOrder])
 
@@ -95,6 +103,48 @@ export default function TouringAdminClient({ user }) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadFinanceData = async () => {
+    setFinanceLoading(true)
+    try {
+      const response = await fetch('/api/admin/touring/finance', {
+        credentials: 'include'
+      })
+      
+      if (!response.ok) throw new Error('Failed to load finance data')
+      
+      const data = await response.json()
+      if (data.success) {
+        setFinanceData(data.finance)
+      }
+    } catch (err) {
+      console.error('Error loading finance data:', err)
+      setError(err.message)
+    } finally {
+      setFinanceLoading(false)
+    }
+  }
+
+  const loadAnalyticsData = async () => {
+    setAnalyticsLoading(true)
+    try {
+      const response = await fetch('/api/admin/touring/analytics', {
+        credentials: 'include'
+      })
+      
+      if (!response.ok) throw new Error('Failed to load analytics data')
+      
+      const data = await response.json()
+      if (data.success) {
+        setAnalyticsData(data.analytics)
+      }
+    } catch (err) {
+      console.error('Error loading analytics data:', err)
+      setError(err.message)
+    } finally {
+      setAnalyticsLoading(false)
     }
   }
 
@@ -199,8 +249,9 @@ export default function TouringAdminClient({ user }) {
           {[
             { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
             { id: 'tours', label: 'All Tours', icon: Music },
-            { id: 'users', label: 'User Activity', icon: Users },
-            { id: 'analytics', label: 'Analytics', icon: TrendingUp }
+            { id: 'finance', label: 'Finance', icon: DollarSign },
+            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { id: 'users', label: 'User Activity', icon: Users }
           ].map(tab => {
             const Icon = tab.icon
             return (
@@ -374,19 +425,267 @@ export default function TouringAdminClient({ user }) {
           </div>
         )}
 
-        {/* Users View */}
-        {viewMode === 'users' && (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">User Activity</h3>
-            <p className="text-gray-600">User activity view coming soon...</p>
+        {/* Finance View */}
+        {viewMode === 'finance' && (
+          <div className="space-y-6">
+            {financeLoading ? (
+              <div className="text-center py-12">
+                <div className="w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading finance data...</p>
+              </div>
+            ) : financeData ? (
+              <>
+                {/* Financial Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <MetricCard
+                    icon={DollarSign}
+                    title="Total Budget"
+                    value={formatCurrency(financeData.overview.totalBudget)}
+                    subtitle={`${financeData.overview.totalTours} tours`}
+                    color="blue"
+                  />
+                  <MetricCard
+                    icon={TrendingDown}
+                    title="Total Expenses"
+                    value={formatCurrency(financeData.overview.totalExpenses)}
+                    color="red"
+                  />
+                  <MetricCard
+                    icon={TrendingUp}
+                    title="Total Revenue"
+                    value={formatCurrency(financeData.overview.totalRevenue)}
+                    color="green"
+                  />
+                  <MetricCard
+                    icon={BarChart3}
+                    title="Net Profit"
+                    value={formatCurrency(financeData.overview.netProfit)}
+                    subtitle={`Avg: ${formatCurrency(financeData.overview.averageBudgetPerTour)}/tour`}
+                    color={financeData.overview.netProfit >= 0 ? 'green' : 'red'}
+                  />
+                </div>
+
+                {/* Breakdown Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-blue-600" />
+                      Budget by Status
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(financeData.breakdown.byStatus || {}).map(([status, amount]) => (
+                        <div key={status} className="flex items-center justify-between">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(status)}`}>
+                            {status}
+                          </span>
+                          <span className="font-semibold text-gray-900">{formatCurrency(amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-green-600" />
+                      Budget by Currency
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(financeData.breakdown.byCurrency || {}).map(([currency, amount]) => (
+                        <div key={currency} className="flex items-center justify-between">
+                          <span className="text-gray-700 font-medium">{currency}</span>
+                          <span className="font-semibold text-gray-900">{formatCurrency(amount, currency)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Users by Budget */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-600" />
+                    Top Users by Budget
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Artist</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tour Count</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Budget</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {financeData.breakdown.byUser?.slice(0, 10).map((user, idx) => (
+                          <tr key={user.userId} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {user.artistName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {user.tourCount}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                              {formatCurrency(user.totalBudget)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No finance data available</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Analytics View */}
         {viewMode === 'analytics' && (
+          <div className="space-y-6">
+            {analyticsLoading ? (
+              <div className="text-center py-12">
+                <div className="w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading analytics data...</p>
+              </div>
+            ) : analyticsData ? (
+              <>
+                {/* Analytics Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <MetricCard
+                    icon={Music}
+                    title="Total Tours"
+                    value={analyticsData.overview.totalTours}
+                    subtitle={`${analyticsData.overview.uniqueUsers} unique users`}
+                    color="blue"
+                  />
+                  <MetricCard
+                    icon={Activity}
+                    title="Active Tours"
+                    value={analyticsData.overview.activeTours}
+                    subtitle={`${analyticsData.overview.planningTours} planning`}
+                    color="green"
+                  />
+                  <MetricCard
+                    icon={CheckCircle}
+                    title="Completion Rate"
+                    value={`${analyticsData.overview.completionRate}%`}
+                    subtitle={`${analyticsData.overview.completedTours} completed`}
+                    color="purple"
+                  />
+                  <MetricCard
+                    icon={Users}
+                    title="Avg Tours/User"
+                    value={analyticsData.overview.averageToursPerUser.toFixed(1)}
+                    subtitle={`${analyticsData.overview.totalDates} total dates`}
+                    color="amber"
+                  />
+                </div>
+
+                {/* Breakdown Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-blue-600" />
+                      Tours by Type
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(analyticsData.breakdown.byType || {}).map(([type, count]) => (
+                        <div key={type} className="flex items-center justify-between">
+                          <span className="text-gray-700 capitalize">{type.replace(/_/g, ' ')}</span>
+                          <span className="font-semibold text-gray-900">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                      Trends
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700">Most Popular Type</span>
+                        <span className="font-semibold text-gray-900 capitalize">
+                          {analyticsData.trends.mostPopularType.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700">Total Dates</span>
+                        <span className="font-semibold text-gray-900">{analyticsData.overview.totalDates}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700">Upcoming Dates</span>
+                        <span className="font-semibold text-green-600">{analyticsData.overview.upcomingDates}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700">Past Dates</span>
+                        <span className="font-semibold text-gray-600">{analyticsData.overview.pastDates}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Performers */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-yellow-600" />
+                    Top Performers
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Artist</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tour Count</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Budget</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Tour</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analyticsData.topPerformers?.map((performer, idx) => (
+                          <tr key={performer.userId} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              #{idx + 1}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {performer.artistName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {performer.tourCount}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                              {formatCurrency(performer.totalBudget)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(performer.lastTourDate)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No analytics data available</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Users View */}
+        {viewMode === 'users' && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">Analytics & Reports</h3>
-            <p className="text-gray-600">Advanced analytics coming soon...</p>
+            <h3 className="text-lg font-semibold mb-4">User Activity</h3>
+            <p className="text-gray-600">User activity view coming soon...</p>
           </div>
         )}
       </div>

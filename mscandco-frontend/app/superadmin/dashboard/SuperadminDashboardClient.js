@@ -106,6 +106,12 @@ export default function SuperadminDashboardClient({ user }) {
       ]
     },
     {
+      label: 'Touring',
+      items: [
+        { label: 'Touring Administration', href: '/admin/touring' }
+      ]
+    },
+    {
       label: 'Distribution',
       items: [
         { label: 'Distribution Queue', href: '/distribution/queue' },

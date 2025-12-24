@@ -18,7 +18,7 @@ export default async function TouringAdminPage() {
     redirect('/login?redirectedFrom=/admin/touring')
   }
 
-  // Check admin permissions
+  // Check admin permissions - permission-based access
   const { createServiceRoleClient } = await import('@/lib/supabase/server')
   const supabaseAdmin = await createServiceRoleClient()
   const { data: profile } = await supabaseAdmin
@@ -27,7 +27,21 @@ export default async function TouringAdminPage() {
     .eq('id', session.user.id)
     .single()
 
-  if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+  // Permission-based access: super_admin, company_admin, or users with touring permissions
+  // In the future, touring admins can be granted touring:admin:read or touring:admin:manage permissions
+  const hasPermission = profile?.role === 'super_admin' || profile?.role === 'company_admin';
+  
+  // Future: Add permission checking here for custom touring admin roles
+  // const { data: userPermissions } = await supabaseAdmin
+  //   .from('user_permissions')
+  //   .select('permission_key')
+  //   .eq('user_id', session.user.id)
+  //   .eq('is_active', true)
+  // const hasPermission = profile?.role === 'super_admin' || 
+  //                      profile?.role === 'company_admin' ||
+  //                      userPermissions?.some(p => ['touring:admin:read', 'touring:admin:manage'].includes(p.permission_key))
+
+  if (!hasPermission) {
     redirect('/unauthorized')
   }
 

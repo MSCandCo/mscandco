@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Check admin permissions
+    // Check admin permissions - permission-based access
     const supabaseAdmin = await createServiceRoleClient();
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
@@ -38,9 +38,21 @@ export async function GET(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    // Check for touring admin permission
+    const { data: userPermissions } = await supabaseAdmin
+      .from('user_permissions')
+      .select('permission_key')
+      .eq('user_id', session.user.id)
+      .eq('is_active', true);
+
+    const hasPermission = profile?.role === 'super_admin' || 
+                         profile?.role === 'company_admin' ||
+                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
+                                                      p.permission_key === 'touring:admin:manage');
+
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: 'Forbidden', message: 'Admin access required' },
+        { error: 'Forbidden', message: 'Touring admin access required' },
         { status: 403 }
       );
     }
@@ -129,7 +141,7 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Check admin permissions
+    // Check admin permissions - permission-based access
     const supabaseAdmin = await createServiceRoleClient();
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
@@ -137,9 +149,21 @@ export async function PUT(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    // Check for touring admin permission
+    const { data: userPermissions } = await supabaseAdmin
+      .from('user_permissions')
+      .select('permission_key')
+      .eq('user_id', session.user.id)
+      .eq('is_active', true);
+
+    const hasPermission = profile?.role === 'super_admin' || 
+                         profile?.role === 'company_admin' ||
+                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
+                                                      p.permission_key === 'touring:admin:manage');
+
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: 'Forbidden', message: 'Admin access required' },
+        { error: 'Forbidden', message: 'Touring admin access required' },
         { status: 403 }
       );
     }
@@ -210,7 +234,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Check admin permissions
+    // Check admin permissions - permission-based access
     const supabaseAdmin = await createServiceRoleClient();
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
@@ -218,9 +242,21 @@ export async function DELETE(request, { params }) {
       .eq('id', session.user.id)
       .single();
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    // Check for touring admin permission
+    const { data: userPermissions } = await supabaseAdmin
+      .from('user_permissions')
+      .select('permission_key')
+      .eq('user_id', session.user.id)
+      .eq('is_active', true);
+
+    const hasPermission = profile?.role === 'super_admin' || 
+                         profile?.role === 'company_admin' ||
+                         userPermissions?.some(p => p.permission_key === 'touring:admin:read' || 
+                                                      p.permission_key === 'touring:admin:manage');
+
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: 'Forbidden', message: 'Admin access required' },
+        { error: 'Forbidden', message: 'Touring admin access required' },
         { status: 403 }
       );
     }
