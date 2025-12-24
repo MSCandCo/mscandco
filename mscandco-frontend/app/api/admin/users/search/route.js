@@ -26,26 +26,66 @@ export async function GET(request) {
       }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get('q') || ''
+    const role = searchParams.get('role') || '' // Optional role filter: 'artist' or 'label_admin'
+
+    if (query.length < 2) {
+      return NextResponse.json({
+        success: true,
+        users: []
+      })
+    }
+
+    console.log('🔍 Searching users with query:', query, role ? `(role: ${role})` : '')
+
     // Get service role client for admin operations
     const supabaseAdmin = await createServiceRoleClient()
     
-    // Use service role to search users
-    const { data: users, error } = await supabaseAdmin
+    // Build query
+    let userQuery = supabaseAdmin
       .from('user_profiles')
-      .select('id, email, first_name, last_name, role')
-      .or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
-      .limit(50)
+      .select('id, email, first_name, last_name, artist_name, label_name, display_name, role')
+      .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%,artist_name.ilike.%${query}%,label_name.ilike.%${query}%,display_name.ilike.%${query}%`)
+
+    // Filter by role if specified
+    if (role === 'artist') {
+      userQuery = userQuery.eq('role', 'artist')
+    } else if (role === 'label_admin') {
+      userQuery = userQuery.eq('role', 'label_admin')
+    }
+
+    const { data: users, error } = await userQuery.limit(50)
 
     if (error) {
-      console.error('❌ User search error:', error)
+      console.error('❌ Error searching users:', error)
       return NextResponse.json({
-        error: 'Internal server error',
+        error: 'Failed to search users',
         details: error.message
       }, { status: 500 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const searchTerm = searchParams.get('q') || ''
+    // Format results
+    const formattedUsers = (users || []).map(user => {
+      let name = user.display_name
+
+      if (!name) {
+        if (user.artist_name) {
+          name = user.artist_name
+        } else if (user.label_name) {
+          name = user.label_name
+        } else {
+          name = `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        }
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: name || user.email,
+        role: user.role
+      }
+    })
 
     if (!searchTerm || searchTerm.length < 2) {
       return NextResponse.json({
