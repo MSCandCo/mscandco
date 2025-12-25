@@ -18,8 +18,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
+# Note: Python's lib/ is ignored above (line 21 removed)
+# Next.js lib/ directory should be tracked
 parts/
 sdist/
 var/
@@ -129,7 +130,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Note: 'public' removed - Next.js needs public/ directory for static assets
 
 # Storybook build outputs
 .out

@@ -20,6 +20,10 @@ export async function GET(request, { params }) {
 
     const { dateId } = params;
     
+    // Lazy load Supabase client
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabaseAdmin = await createServiceRoleClient();
+    
     const { data: revenue, error } = await supabaseAdmin
       .from('tour_revenue')
       .select('*')
@@ -59,7 +63,7 @@ export async function POST(request, { params }) {
   try {
     // Lazy load Supabase client
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
+    const supabaseAdmin = await createServiceRoleClient();
 
     const { dateId } = params;
     const body = await request.json();
@@ -73,6 +77,40 @@ export async function POST(request, { params }) {
       );
     }
     
+    // Get tour date info to find the tour and artist
+    const { data: tourDate, error: dateError } = await supabaseAdmin
+      .from('tour_dates')
+      .select(`
+        id,
+        tour_id,
+        date,
+        tours (
+          id,
+          user_id,
+          name
+        )
+      `)
+      .eq('id', dateId)
+      .single();
+    
+    if (dateError || !tourDate) {
+      return NextResponse.json(
+        { error: 'Tour date not found', details: dateError?.message },
+        { status: 404 }
+      );
+    }
+    
+    const tour = tourDate.tours;
+    const artistId = tour?.user_id;
+    
+    if (!artistId) {
+      return NextResponse.json(
+        { error: 'Could not determine artist for this tour' },
+        { status: 400 }
+      );
+    }
+    
+    // Create revenue entry in tour_revenue table
     const { data: revenueItem, error } = await supabaseAdmin
       .from('tour_revenue')
       .insert({
@@ -91,9 +129,36 @@ export async function POST(request, { params }) {
     
     if (error) throw error;
     
+    // Also create an entry in earnings_log so it appears on the earnings page
+    const { data: earningsEntry, error: earningsError } = await supabaseAdmin
+      .from('earnings_log')
+      .insert({
+        artist_id: artistId,
+        amount: parseFloat(amount),
+        currency: 'GBP',
+        earning_type: 'touring', // Categorized as touring earnings
+        platform: `Tour: ${tour?.name || 'Unknown'}`,
+        territory: 'Live Performance',
+        status: 'pending', // Tour revenue starts as pending until confirmed
+        notes: description || `Tour revenue: ${source}${tourDate.date ? ` (${new Date(tourDate.date).toLocaleDateString()})` : ''}`,
+        created_at: new Date().toISOString(),
+        created_by: recorded_by
+      })
+      .select()
+      .single();
+    
+    if (earningsError) {
+      console.error('⚠️ Warning: Failed to create earnings_log entry for touring revenue:', earningsError);
+      // Don't fail the request, but log the error
+      // The revenue is still recorded in tour_revenue
+    } else {
+      console.log('✅ Created earnings_log entry for touring revenue:', earningsEntry.id);
+    }
+    
     return NextResponse.json({
       success: true,
-      revenue: revenueItem
+      revenue: revenueItem,
+      earnings_entry_id: earningsEntry?.id || null
     }, { status: 201 });
     
   } catch (error) {
