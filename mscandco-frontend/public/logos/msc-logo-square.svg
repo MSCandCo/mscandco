@@ -1,0 +1,9 @@
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" fill="#1f2937"/>
+  <text x="50" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle">
+    MSC
+  </text>
+  <text x="50" y="70" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">
+    & Co
+  </text>
+</svg>
