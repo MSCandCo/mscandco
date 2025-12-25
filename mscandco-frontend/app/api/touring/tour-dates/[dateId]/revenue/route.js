@@ -16,13 +16,9 @@ export async function GET(request, { params }) {
   try {
     // Lazy load Supabase client
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = await createServiceRoleClient();
+    const supabaseAdmin = await createServiceRoleClient();
 
     const { dateId } = params;
-    
-    // Lazy load Supabase client
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabaseAdmin = await createServiceRoleClient();
     
     const { data: revenue, error } = await supabaseAdmin
       .from('tour_revenue')
