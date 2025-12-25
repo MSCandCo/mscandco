@@ -336,14 +336,17 @@ function LoginPageContent() {
 
       console.log(`🚀 Redirecting ${userRole || 'user'} to: ${redirectTo}`)
       clearTimeout(timeoutId)
-      setLoading(false) // Clear loading state before redirect
 
+      // Keep loading state active during redirect
       // Small delay to ensure SupabaseProvider updates state
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Use window.location.href for reliable redirect (forces full page reload with fresh session)
       console.log('🔄 Performing redirect to:', redirectTo)
       window.location.href = redirectTo
+
+      // Don't set loading to false - let the redirect happen
+      // The page will unload and navigate away
     } catch (err) {
       clearTimeout(timeoutId)
       console.error('❌ Login exception:', err)
@@ -411,12 +414,15 @@ function LoginPageContent() {
         }
         
         console.log(`✅ Redirecting ${userRole || 'user'} to: ${redirectTo}`)
-        
-        // Small delay to ensure SupabaseProvider updates state
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
+
+        // Keep loading state active during redirect
+        // Delay to ensure SupabaseProvider updates state
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         // Use window.location.href for full page reload with fresh session
         window.location.href = redirectTo
+
+        // Don't set loading to false - let the redirect happen
       }
     } catch (err) {
       console.error('MFA verification error:', err)
