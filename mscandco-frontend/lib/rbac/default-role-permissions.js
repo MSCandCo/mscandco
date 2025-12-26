@@ -95,6 +95,11 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'label:roster:manage:own',
     'artist:invite:label',
     'artist:manage:label',
+    // Legacy labeladmin-specific page permissions (still used in codebase - from refactor_permission_system_v2.sql)
+    // These are role-specific permissions that some pages still check for
+    'labeladmin:profile:access',
+    'labeladmin:my_artists:access',
+    'labeladmin:messages:access',
   ],
 
   distribution_partner: [
