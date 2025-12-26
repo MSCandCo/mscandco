@@ -179,20 +179,14 @@ export default function PermissionsRolesClient() {
       }
 
       const data = await response.json()
-      // Use assigned_permissions if available, otherwise transform from permissions array
-      if (data.assigned_permissions) {
-        setRolePermissions(data.assigned_permissions)
-      } else {
-        // Fallback: transform permissions to match expected format
-        const assignedPermissions = (data.permissions || [])
-          .filter(p => p.assigned)
-          .map(p => ({
-            permission_name: p.name,
-            permission_id: p.id,
-            ...p
-          }))
-        setRolePermissions(assignedPermissions)
-      }
+      // Transform permissions to match expected format
+      // All permissions returned from the API are assigned (they're in role_permissions table)
+      const assignedPermissions = (data.permissions || []).map(p => ({
+        permission_name: p.name,
+        permission_id: p.id,
+        ...p
+      }))
+      setRolePermissions(assignedPermissions)
 
       // Collapse all groups by default
       setExpandedGroups({})
