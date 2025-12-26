@@ -56,11 +56,12 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'platform:access',
     'messages:access',
     'settings:access',
-    // Message Tabs
+    // Message Tabs (from create_rbac_system.sql and create_consolidated_permissions.sql)
     'messages:invitation_responses:view',
     'messages:earnings:view',
     'messages:payouts:view',
     'messages:invitations:view',
+    'messages:system:view',
     // Settings Tabs
     'settings:preferences:edit',
     'settings:security:edit',
@@ -86,6 +87,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'user:update:own',
     'notification:read:own',
     'message:read:own',
+    // Label-Specific permissions (from create_rbac_system.sql and add-missing-label-admin-permissions.sql)
+    'label:read:own',
+    'label:update:own',
+    'label:roster:read:own',
+    'label:roster:manage:own',
+    'artist:invite:label',
+    'artist:manage:label',
   ],
 
   distribution_partner: [
