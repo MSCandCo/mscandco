@@ -47,6 +47,16 @@ export default function RegisterClient() {
     setLoading(true)
 
     try {
+      // Check if registration is enabled
+      const statusResponse = await fetch('/api/public/registration-status')
+      const statusData = await statusResponse.json()
+      
+      if (!statusData.registration_enabled) {
+        // Redirect to registration closed page
+        window.location.href = '/registration-closed'
+        return
+      }
+
       console.log('🔄 Starting registration for:', email, 'Role:', role)
       
       const { data, error } = await supabase.auth.signUp({

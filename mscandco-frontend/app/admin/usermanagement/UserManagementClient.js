@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Users, Search, XCircle, RefreshCw, AlertTriangle, UserCircle,
   Mail, Calendar, CheckCircle, Clock, UserCheck, UserX, ArrowUpDown,
-  ArrowUp, ArrowDown, Edit2, Trash2, Plus
+  ArrowUp, ArrowDown, Edit2, Trash2, Plus, List, Power, Bell
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,14 @@ export default function UserManagementClient({ user }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortColumn, setSortColumn] = useState('created_at')
   const [sortDirection, setSortDirection] = useState('desc')
+  
+  // Registration & Waitlist State
+  const [activeTab, setActiveTab] = useState('users') // 'users' or 'waitlist'
+  const [registrationEnabled, setRegistrationEnabled] = useState(true)
+  const [loadingRegistration, setLoadingRegistration] = useState(true)
+  const [waitlist, setWaitlist] = useState([])
+  const [loadingWaitlist, setLoadingWaitlist] = useState(false)
+  const [waitlistNotifiedFilter, setWaitlistNotifiedFilter] = useState('all') // 'all', 'notified', 'not_notified'
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -44,8 +52,16 @@ export default function UserManagementClient({ user }) {
   useEffect(() => {
     if (user) {
       loadData()
+      loadRegistrationStatus()
     }
   }, [user])
+
+  // Load waitlist when tab is active
+  useEffect(() => {
+    if (user && activeTab === 'waitlist') {
+      loadWaitlist()
+    }
+  }, [user, activeTab])
 
   // REMOVED: Realtime subscriptions for admin pages
   // Admin pages have high change frequency - polling is more efficient
@@ -110,6 +126,139 @@ export default function UserManagementClient({ user }) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadRegistrationStatus = async () => {
+    try {
+      setLoadingRegistration(true)
+      const response = await fetch('/api/admin/settings/registration', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setRegistrationEnabled(data.registration_enabled || false)
+      }
+    } catch (err) {
+      console.error('Error loading registration status:', err)
+    } finally {
+      setLoadingRegistration(false)
+    }
+  }
+
+  const toggleRegistration = async () => {
+    try {
+      setSaving(true)
+      setError(null)
+
+      const newStatus = !registrationEnabled
+
+      const response = await fetch('/api/admin/settings/registration', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          registration_enabled: newStatus
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update registration status')
+      }
+
+      setRegistrationEnabled(newStatus)
+
+      // If enabling registration, offer to notify waitlist
+      if (newStatus && waitlist.filter(w => !w.notified).length > 0) {
+        const shouldNotify = confirm(
+          `Registration is now enabled. Would you like to notify ${waitlist.filter(w => !w.notified).length} waitlist users?`
+        )
+        if (shouldNotify) {
+          await notifyWaitlist()
+        }
+      }
+
+    } catch (err) {
+      console.error('Error toggling registration:', err)
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const loadWaitlist = async () => {
+    try {
+      setLoadingWaitlist(true)
+      const url = waitlistNotifiedFilter === 'all'
+        ? '/api/waitlist'
+        : `/api/waitlist?notified=${waitlistNotifiedFilter === 'notified'}`
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setWaitlist(data.waitlist || [])
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load waitlist')
+      }
+    } catch (err) {
+      console.error('Error loading waitlist:', err)
+      setError(err.message)
+    } finally {
+      setLoadingWaitlist(false)
+    }
+  }
+
+  // Reload waitlist when filter changes (only if waitlist tab is active)
+  useEffect(() => {
+    if (activeTab === 'waitlist' && user) {
+      loadWaitlist()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waitlistNotifiedFilter, activeTab])
+
+  const notifyWaitlist = async () => {
+    try {
+      setSaving(true)
+      setError(null)
+
+      const response = await fetch('/api/waitlist/notify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to notify waitlist')
+      }
+
+      const data = await response.json()
+      alert(`Successfully notified ${data.notified_count} users`)
+      
+      // Reload waitlist to reflect changes
+      await loadWaitlist()
+
+    } catch (err) {
+      console.error('Error notifying waitlist:', err)
+      setError(err.message)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -380,35 +529,93 @@ export default function UserManagementClient({ user }) {
         </div>
         <div className="flex space-x-2">
           <Button
-            onClick={loadData}
+            onClick={activeTab === 'users' ? loadData : loadWaitlist}
             variant="outline"
-            disabled={loading}
+            disabled={loading || loadingWaitlist}
             className="flex items-center"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${(loading || loadingWaitlist) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create User
-          </Button>
+          {activeTab === 'users' && (
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create User
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Action Legend */}
-      <div className="flex items-center gap-6 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-        <span className="font-medium text-gray-700">Actions:</span>
-        <div className="flex items-center gap-2">
-          <UserCheck className="h-4 w-4 text-blue-600" />
-          <span>Activate User</span>
+      {/* Registration Toggle */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center">
+              <Power className="h-5 w-5 text-gray-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Registration Control</h3>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">
+              {registrationEnabled 
+                ? 'New users can register for accounts' 
+                : 'Registration is currently disabled. New users will see a waitlist page.'}
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className={`text-sm font-medium ${registrationEnabled ? 'text-green-600' : 'text-gray-500'}`}>
+              {registrationEnabled ? 'Enabled' : 'Disabled'}
+            </span>
+            <button
+              type="button"
+              onClick={toggleRegistration}
+              disabled={saving || loadingRegistration}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${
+                registrationEnabled ? 'bg-gray-900' : 'bg-gray-200'
+              } ${saving || loadingRegistration ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  registrationEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <UserX className="h-4 w-4 text-red-600" />
-          <span>Deactivate User</span>
-        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`${
+              activeTab === 'users'
+                ? 'border-gray-900 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center`}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Users
+          </button>
+          <button
+            onClick={() => setActiveTab('waitlist')}
+            className={`${
+              activeTab === 'waitlist'
+                ? 'border-gray-900 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center`}
+          >
+            <List className="h-4 w-4 mr-2" />
+            Waitlist
+            {waitlist.filter(w => !w.notified).length > 0 && (
+              <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                {waitlist.filter(w => !w.notified).length}
+              </span>
+            )}
+          </button>
+        </nav>
       </div>
 
       {/* Error Display */}
@@ -421,52 +628,68 @@ export default function UserManagementClient({ user }) {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+      {/* Tab Content */}
+      {activeTab === 'users' ? (
+        <>
+          {/* Action Legend */}
+          <div className="flex items-center gap-6 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+            <span className="font-medium text-gray-700">Actions:</span>
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-blue-600" />
+              <span>Activate User</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <UserX className="h-4 w-4 text-red-600" />
+              <span>Deactivate User</span>
+            </div>
           </div>
 
-          {/* Role Filter */}
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              {uniqueRoles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {formatRoleName(role)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Filters */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+              {/* Role Filter */}
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {uniqueRoles.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {formatRoleName(role)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-      {/* Users Table */}
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Users Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -617,16 +840,147 @@ export default function UserManagementClient({ user }) {
         )}
       </div>
 
-      {/* Stats Footer */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg px-6 py-4">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
-            Showing <strong className="text-gray-900">{filteredUsers.length}</strong> of{' '}
-            <strong className="text-gray-900">{users.length}</strong> users
-          </span>
-          <span>Last updated: {new Date().toLocaleTimeString()}</span>
-        </div>
-      </div>
+          {/* Stats Footer */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-6 py-4">
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>
+                Showing <strong className="text-gray-900">{filteredUsers.length}</strong> of{' '}
+                <strong className="text-gray-900">{users.length}</strong> users
+              </span>
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Waitlist Tab */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Registration Waitlist</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {waitlist.length} total entries
+                  {waitlist.filter(w => !w.notified).length > 0 && (
+                    <span className="ml-2 text-blue-600 font-medium">
+                      ({waitlist.filter(w => !w.notified).length} not yet notified)
+                    </span>
+                  )}
+                </p>
+              </div>
+              {waitlist.filter(w => !w.notified).length > 0 && (
+                <Button
+                  onClick={notifyWaitlist}
+                  disabled={saving}
+                  className="flex items-center"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Notify All ({waitlist.filter(w => !w.notified).length})
+                </Button>
+              )}
+            </div>
+
+            {/* Waitlist Filter */}
+            <div className="mb-4">
+              <Select value={waitlistNotifiedFilter} onValueChange={(value) => {
+                setWaitlistNotifiedFilter(value)
+              }}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Entries</SelectItem>
+                  <SelectItem value="not_notified">Not Notified</SelectItem>
+                  <SelectItem value="notified">Notified</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Waitlist Table */}
+            {loadingWaitlist ? (
+              <div className="text-center py-12">
+                <div className="w-8 h-8 border-b-2 rounded-full animate-spin mx-auto mb-4" style={{borderColor: '#1f2937'}}></div>
+                <p className="text-gray-600">Loading waitlist...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Joined
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {waitlist.map((entry) => (
+                      <tr key={entry.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 text-gray-400 mr-2" />
+                            <span className="text-sm font-medium text-gray-900">{entry.email}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {entry.name || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-800">
+                            {entry.role || 'artist'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            {new Date(entry.joined_at || entry.created_at).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {entry.notified ? (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800 flex items-center">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Notified
+                            </span>
+                          ) : (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800 flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loadingWaitlist && waitlist.length === 0 && (
+              <div className="text-center py-12">
+                <List className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No waitlist entries</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {waitlistNotifiedFilter === 'all'
+                    ? 'The waitlist is empty'
+                    : 'No entries match the selected filter'}
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Deleted Users Section */}
       <div className="mt-12 pt-12 border-t-2 border-gray-200">

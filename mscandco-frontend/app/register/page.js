@@ -26,6 +26,27 @@ export default async function RegisterPage() {
     redirect('/dashboard')
   }
 
+  // Check if registration is enabled
+  try {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabaseAdmin = await createServiceRoleClient();
+
+    const { data: setting } = await supabaseAdmin
+      .from('platform_settings')
+      .select('value')
+      .eq('key', 'registration_enabled')
+      .single();
+
+    const registrationEnabled = setting?.value === true || setting?.value === 'true' || !setting;
+
+    if (!registrationEnabled) {
+      redirect('/registration-closed')
+    }
+  } catch (error) {
+    console.error('Error checking registration status:', error);
+    // Continue to registration page on error (fail open)
+  }
+
   // Show registration page
   return <RegisterClient />
 }
