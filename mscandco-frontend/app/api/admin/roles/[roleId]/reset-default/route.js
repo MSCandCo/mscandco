@@ -53,8 +53,26 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Check if it's a system role - only system roles can be reset
-    if (!role.is_system_role) {
+    // Define system roles that can be reset (all roles defined in default-role-permissions.js)
+    const SYSTEM_ROLES = [
+      'artist',
+      'labeladmin',
+      'distribution_partner',
+      'financial_admin',
+      'analytics_admin',
+      'support_admin',
+      'marketing_admin',
+      'requests_admin',
+      'roster_admin',
+      'content_moderator',
+      'company_admin',
+      'custom_admin',
+      'test_admin',
+      'super_admin' // Protected below, but included in system roles list
+    ]
+
+    // Check if it's a known system role - only system roles can be reset
+    if (!SYSTEM_ROLES.includes(role.name)) {
       return NextResponse.json(
         { error: 'Can only reset system roles to default permissions' },
         { status: 400 }
@@ -72,14 +90,40 @@ export async function POST(request, { params }) {
     // Get default permission names for this role from config
     const defaultPermissionNames = getDefaultPermissionsForRole(role.name)
 
-    if (!defaultPermissionNames || defaultPermissionNames.length === 0) {
-      return NextResponse.json(
-        { error: `No default permissions defined for role: ${role.name}` },
-        { status: 400 }
-      )
+    // Allow empty defaults for custom_admin and test_admin (they intentionally have no defaults)
+    if (role.name !== 'custom_admin' && role.name !== 'test_admin') {
+      if (!defaultPermissionNames || defaultPermissionNames.length === 0) {
+        return NextResponse.json(
+          { error: `No default permissions defined for role: ${role.name}` },
+          { status: 400 }
+        )
+      }
     }
 
-    console.log(`🔄 Resetting role ${role.name} to default permissions (${defaultPermissionNames.length} permissions)`)
+    console.log(`🔄 Resetting role ${role.name} to default permissions (${defaultPermissionNames?.length || 0} permissions)`)
+
+    // Handle empty defaults for custom_admin and test_admin
+    if (!defaultPermissionNames || defaultPermissionNames.length === 0) {
+      // Delete all existing permissions for this role (reset to empty)
+      const { error: deleteError } = await supabaseAdmin
+        .from('role_permissions')
+        .delete()
+        .eq('role_id', roleId)
+
+      if (deleteError) {
+        console.error('Error deleting existing permissions:', deleteError)
+        return NextResponse.json(
+          { error: 'Failed to reset permissions', details: deleteError.message },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Role "${role.name}" has been reset to default permissions (no permissions assigned)`,
+        restoredCount: 0
+      })
+    }
 
     // Get permission IDs for the default permission names
     const { data: permissions, error: permissionsError } = await supabaseAdmin
