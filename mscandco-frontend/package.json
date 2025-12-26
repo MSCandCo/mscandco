@@ -97,6 +97,7 @@
     "@playwright/test": "^1.55.1",
     "@tanstack/react-query-devtools": "^5.90.2",
     "autoprefixer": "^10.4.14",
+    "docx": "^9.5.1",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
     "pg": "^8.16.3",
