@@ -37,6 +37,101 @@ export async function POST(request) {
     // Get request URL for staging detection
     const requestUrl = request.headers.get('referer') || request.headers.get('host') || '';
     console.log('🌐 Request URL:', requestUrl);
+    
+    // Fetch user context (role, permissions) for intelligent context-aware responses
+    let userContext = null;
+    try {
+      const { createServiceRoleClient } = await import('@/lib/supabase/server');
+      const supabaseAdmin = await createServiceRoleClient();
+      
+      // Get user profile
+      const { data: profile } = await supabaseAdmin
+        .from('user_profiles')
+        .select('role, email, first_name, artist_name')
+        .eq('id', userId)
+        .single();
+      
+      const role = profile?.role || 'artist';
+      const email = profile?.email || '';
+      const normalizedEmail = email?.toLowerCase() || '';
+      
+      // Enhanced admin detection
+      const isSuperAdmin = role === 'super_admin' || 
+                          normalizedEmail.includes('superadmin') || 
+                          normalizedEmail === 'superadmin@mscandco.com';
+      const isCompanyAdmin = role === 'company_admin' || 
+                            normalizedEmail.includes('companyadmin') || 
+                            normalizedEmail === 'companyadmin@mscandco.com';
+      const isDistributionPartner = role === 'distribution_partner' || 
+                                   normalizedEmail === 'codegroup@mscandco.com' ||
+                                   normalizedEmail.includes('codegroup') ||
+                                   normalizedEmail.includes('code-group');
+      const isAnyAdmin = role === 'admin' || isSuperAdmin || isCompanyAdmin || isDistributionPartner;
+      
+      // Fetch permissions
+      let permissions = [];
+      if (isAnyAdmin) {
+        // Get role permissions
+        if (role) {
+          const { data: roleData } = await supabaseAdmin
+            .from('roles')
+            .select('id')
+            .eq('name', role)
+            .single();
+          
+          if (roleData) {
+            const { data: rolePermissions } = await supabaseAdmin
+              .from('role_permissions')
+              .select(`
+                permissions!role_permissions_permission_id_fkey (
+                  name
+                )
+              `)
+              .eq('role_id', roleData.id);
+            
+            if (rolePermissions) {
+              permissions = rolePermissions.map(rp => rp.permissions?.name).filter(Boolean);
+            }
+          }
+        }
+        
+        // Get user-specific permissions
+        const { data: userPermissions } = await supabaseAdmin
+          .from('user_permissions')
+          .select(`
+            permissions!user_permissions_permission_id_fkey (
+              name
+            )
+          `)
+          .eq('user_id', userId)
+          .eq('is_active', true);
+        
+        if (userPermissions) {
+          const userPermNames = userPermissions.map(up => up.permissions?.name).filter(Boolean);
+          permissions = [...new Set([...permissions, ...userPermNames])];
+        }
+      }
+      
+      userContext = {
+        role,
+        email,
+        isSuperAdmin,
+        isCompanyAdmin,
+        isDistributionPartner,
+        isAnyAdmin,
+        permissions,
+        name: profile?.artist_name || profile?.first_name || 'there',
+      };
+      
+      console.log('👤 User context loaded:', {
+        role: userContext.role,
+        isAdmin: userContext.isAnyAdmin,
+        permissionCount: userContext.permissions.length,
+      });
+    } catch (contextError) {
+      console.error('⚠️ Error loading user context:', contextError);
+      // Continue without context - Apollo will work without it
+    }
 
     // TEMPORARY: Force bypass for all users until we fix the issue
     const FORCE_BYPASS_ALL = true;
@@ -149,7 +244,7 @@ Now lets move on to a release strategy, I can help you position your release for
           conversationHistoryLength: conversationHistory.length
         });
         
-        result = await apolloThink(latestMessage.content, userId, conversationHistory);
+        result = await apolloThink(latestMessage.content, userId, conversationHistory, userContext);
 
         console.log('✅ Apollo Brain response:', {
           hasResponse: !!result?.response,
