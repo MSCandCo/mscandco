@@ -7,73 +7,107 @@
 
 export const DEFAULT_ROLE_PERMISSIONS = {
   artist: [
+    // Page Access (from create_consolidated_permissions.sql)
     'dashboard:access',
-    'profile:read',
-    'profile:update',
-    'releases:access',
     'analytics:access',
-    'analytics:basic:view',
     'earnings:access',
+    'releases:access',
     'roster:access',
+    'profile:access',
+    'platform:access',
     'messages:access',
-    'messages:releases:view',
+    'settings:access',
+    // Message Tabs
+    'messages:invitations:view',
     'messages:earnings:view',
     'messages:payouts:view',
-    'messages:invitations:view',
-    'artist:messages:access',
-    'settings:access',
-    'artist:settings:access',
-    'settings:read',
+    // Settings Tabs
     'settings:preferences:edit',
-    'settings:notifications:edit',
     'settings:security:edit',
+    'settings:notifications:edit',
+    'settings:billing:view',
+    'settings:billing:edit',
+    'settings:api_keys:view',
+    'settings:api_keys:manage',
+    // Analytics Tabs
+    'analytics:basic:view',
+    'analytics:advanced:view',
+    // Touring permissions (from add_touring_admin_permissions.sql)
+    'touring:access',
+    'touring:create',
+    'touring:read:own',
+    'touring:update:own',
+    'touring:delete:own',
+    // Own user permissions (standard for all users)
+    'user:read:own',
+    'user:update:own',
+    'notification:read:own',
+    'message:read:own',
   ],
 
   labeladmin: [
+    // Page Access (from create_consolidated_permissions.sql)
     'dashboard:access',
-    'profile:read',
-    'profile:update',
-    'labeladmin:artists:access',
-    'labeladmin:my_artists:access',
-    'releases:access',
     'analytics:access',
-    'analytics:basic:view',
-    'analytics:advanced:view',
     'earnings:access',
+    'releases:access',
     'roster:access',
+    'profile:access',
+    'platform:access',
     'messages:access',
-    'messages:releases:view',
+    'settings:access',
+    // Message Tabs
+    'messages:invitation_responses:view',
     'messages:earnings:view',
     'messages:payouts:view',
-    'messages:invitation_responses:view',
     'messages:invitations:view',
-    'labeladmin:messages:access',
-    'settings:access',
-    'labeladmin:settings:access',
-    'settings:read',
+    // Settings Tabs
     'settings:preferences:edit',
-    'settings:notifications:edit',
     'settings:security:edit',
+    'settings:notifications:edit',
     'settings:billing:view',
     'settings:billing:edit',
+    'settings:api_keys:view',
+    'settings:api_keys:manage',
+    // Analytics Tabs
+    'analytics:basic:view',
+    'analytics:advanced:view',
+    // Touring permissions (from add_touring_admin_permissions.sql)
+    'touring:access',
+    'touring:create',
+    'touring:read:own',
+    'touring:update:own',
+    'touring:delete:own',
+    'touring:read:label',
+    'touring:update:label',
+    'touring:delete:label',
+    // Own user permissions (standard for all users)
+    'user:read:own',
+    'user:update:own',
+    'notification:read:own',
+    'message:read:own',
   ],
 
   distribution_partner: [
-    // Core Distribution Access (MAIN FEATURES)
+    // Core Distribution Access (MAIN FEATURES - from create_rbac_system.sql)
     'distribution:read:any',
     'distribution:manage:any',
     'revenue:read',
     'revenue:create',
     'revenue:update',
-    // Distribution Access Permissions (page-level)
+    // Distribution Access Permissions (page-level - from add_distribution_access_permissions.sql)
     'distribution:distribution_hub:access',
+    'distribution:distribution_hub:read',
+    'distribution:distribution_hub:create',
+    'distribution:distribution_hub:update',
+    'distribution:distribution_hub:delete',
     'distribution:revenue_reporting:access',
+    'distribution:revenue_reporting:read',
     'distribution:releases:access',
     'distribution:settings:access',
-    // Basic User Access (ESSENTIAL)
+    // Basic User Access (ESSENTIAL - from create_rbac_system.sql)
     'dashboard:access',
-    'profile:read',
-    'profile:update',
+    'profile:access',
     'messages:access',
     'settings:access',
     // Message Tabs
@@ -105,8 +139,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'finance:split_configuration:update',
     'finance:split_configuration:delete',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -133,8 +165,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'analytics:requests:read',
     'analytics:requests:update',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -160,8 +190,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'messages:all:view',
     'messages:system:view',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -182,8 +210,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'platform_messages:update',
     'platform_messages:delete',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -205,8 +231,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'analytics:requests:read',
     'analytics:requests:update',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -230,8 +254,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'users_access:master_roster:update',
     'users_access:master_roster:delete',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -260,8 +282,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'messages:all:view',
     'platform_messages:read',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
@@ -317,8 +337,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'platform_messages:update',
     'platform_messages:delete',
     // Basic admin permissions (profile and settings for own account)
-    'profile:read',
-    'profile:update',
     'settings:access',
     'settings:read',
     'settings:preferences:edit',
