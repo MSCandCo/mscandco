@@ -12,6 +12,9 @@ export const runtime = 'nodejs'
 
 export async function GET(request) {
   try {
+    // Lazy load Supabase client to avoid build-time errors
+    const { createClient } = await import('@/lib/supabase/server');
+    
     // Authenticate user
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
