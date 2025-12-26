@@ -203,6 +203,17 @@ export default function PermissionsRolesClient() {
       return
     }
 
+    // Validate inputs
+    if (!selectedRole || !selectedRole.id) {
+      setError('No role selected')
+      return
+    }
+
+    if (!permission || !permission.id) {
+      setError('Invalid permission: missing ID')
+      return
+    }
+
     try {
       setSaving(true)
       setError(null)
@@ -210,9 +221,15 @@ export default function PermissionsRolesClient() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
+      if (!token) {
+        throw new Error('No authentication token')
+      }
+
       const hasPermission = rolePermissions.some(p => p.permission_name === permission.name)
       const method = hasPermission ? 'DELETE' : 'POST'
       const endpoint = `/api/admin/roles/${selectedRole.id}/permissions/${permission.id}`
+
+      console.log(`🔄 Toggling permission: ${permission.name} (${method})`, { permissionId: permission.id, roleId: selectedRole.id })
 
       const response = await fetch(endpoint, {
         method,
@@ -235,10 +252,20 @@ export default function PermissionsRolesClient() {
 
       if (permResponse.ok) {
         const data = await permResponse.json()
-        setRolePermissions(data.permissions || [])
+        // Transform permissions to match expected format (same as selectRole)
+        const assignedPermissions = (data.permissions || []).map(p => ({
+          permission_name: p.name,
+          permission_id: p.id,
+          ...p
+        }))
+        setRolePermissions(assignedPermissions)
+        console.log(`✅ Permission ${hasPermission ? 'removed' : 'added'} successfully. New count: ${assignedPermissions.length}`)
+      } else {
+        console.error('Failed to reload permissions after toggle:', permResponse.status)
       }
 
     } catch (err) {
+      console.error('Error toggling permission:', err)
       setError(err.message)
     } finally {
       setSaving(false)
