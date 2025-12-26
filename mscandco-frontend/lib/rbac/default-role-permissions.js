@@ -97,9 +97,18 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'artist:manage:label',
     // Legacy labeladmin-specific page permissions (still used in codebase - from refactor_permission_system_v2.sql)
     // These are role-specific permissions that some pages still check for
+    // Note: The standardization migration converts label_admin:* to labeladmin:*
     'labeladmin:profile:access',
     'labeladmin:my_artists:access',
     'labeladmin:messages:access',
+    'labeladmin:artists:access', // Used by dashboard (alias for my_artists)
+    'labeladmin:releases:access', // Used by dashboard
+    'labeladmin:analytics:access', // Used by dashboard
+    'labeladmin:earnings:access', // Used by dashboard
+    'labeladmin:roster:access', // Used by dashboard
+    'labeladmin:settings:access', // Used by dashboard
+    'labeladmin:dashboard:access', // Used by dashboard
+    'labeladmin:platform:access', // Used by dashboard
   ],
 
   distribution_partner: [
