@@ -56,11 +56,12 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'platform:access',
     'messages:access',
     'settings:access',
-    // Message Tabs (from create_rbac_system.sql and create_consolidated_permissions.sql)
-    'messages:invitation_responses:view',
+    // Message Tabs (from create_rbac_system.sql - label_admin uses messages:invitations:view, not invitation_responses)
+    // Note: create_consolidated_permissions.sql uses labeladmin with invitation_responses, but create_rbac_system.sql uses label_admin with invitations
+    // We use invitations:view to match create_rbac_system.sql and add-missing-label-admin-permissions.sql
+    'messages:invitations:view',
     'messages:earnings:view',
     'messages:payouts:view',
-    'messages:invitations:view',
     'messages:system:view',
     // Settings Tabs
     'settings:preferences:edit',
