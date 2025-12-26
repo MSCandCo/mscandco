@@ -59,30 +59,34 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   ],
 
   distribution_partner: [
+    // Core Distribution Access (MAIN FEATURES)
+    'distribution:read:any',
+    'distribution:manage:any',
+    'revenue:read',
+    'revenue:create',
+    'revenue:update',
+    // Distribution Access Permissions (page-level)
+    'distribution:distribution_hub:access',
+    'distribution:revenue_reporting:access',
+    'distribution:releases:access',
+    'distribution:settings:access',
+    // Basic User Access (ESSENTIAL)
     'dashboard:access',
     'profile:read',
     'profile:update',
-    'distribution:distribution_hub:access',
-    'distribution:distribution_hub:read',
-    'distribution:distribution_hub:create',
-    'distribution:distribution_hub:update',
-    'distribution:distribution_hub:delete',
-    'distribution:revenue_reporting:access',
-    'distribution:revenue_reporting:read',
-    'distribution:releases:access',
-    'analytics:access',
-    'analytics:platform_analytics:read',
     'messages:access',
-    'messages:releases:view',
-    'messages:system:view',
     'settings:access',
-    'distribution:settings:access',
-    'settings:read',
+    // Message Tabs
+    'messages:system:view',
+    // Settings Tabs
     'settings:preferences:edit',
-    'settings:notifications:edit',
     'settings:security:edit',
-    'settings:api_keys:view',
-    'settings:api_keys:manage',
+    'settings:notifications:edit',
+    // Own User Permissions
+    'user:read:own',
+    'user:update:own',
+    'notification:read:own',
+    'message:read:own',
   ],
 
   financial_admin: [
