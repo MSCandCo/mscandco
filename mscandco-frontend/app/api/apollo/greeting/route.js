@@ -38,10 +38,90 @@ export async function POST(request) {
     const role = profile?.role || 'artist';
     const email = profile?.email || '';
     
-    // Check if super admin
-    const isSuperAdmin = role === 'super_admin' || email?.includes('superadmin') || email?.includes('admin@mscandco');
+    // Enhanced admin detection - check role and email patterns
+    const normalizedEmail = email?.toLowerCase() || '';
+    const isSuperAdmin = role === 'super_admin' || 
+                        normalizedEmail.includes('superadmin') || 
+                        normalizedEmail === 'superadmin@mscandco.com';
+    const isCompanyAdmin = role === 'company_admin' || 
+                          normalizedEmail.includes('companyadmin') || 
+                          normalizedEmail === 'companyadmin@mscandco.com';
+    const isDistributionPartner = role === 'distribution_partner' || 
+                                 normalizedEmail === 'codegroup@mscandco.com' ||
+                                 normalizedEmail.includes('codegroup') ||
+                                 normalizedEmail.includes('code-group');
+    const isAnyAdmin = role === 'admin' || isSuperAdmin || isCompanyAdmin || isDistributionPartner;
     
-    // Context-aware greeting based on role
+    // Fetch user permissions for context-aware greetings
+    let permissions = [];
+    let permissionContext = '';
+    
+    if (isAnyAdmin) {
+      try {
+        // Get role permissions
+        if (role) {
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('id')
+            .eq('name', role)
+            .single();
+          
+          if (roleData) {
+            const { data: rolePermissions } = await supabase
+              .from('role_permissions')
+              .select(`
+                permissions!role_permissions_permission_id_fkey (
+                  name
+                )
+              `)
+              .eq('role_id', roleData.id);
+            
+            if (rolePermissions) {
+              permissions = rolePermissions.map(rp => rp.permissions?.name).filter(Boolean);
+            }
+          }
+        }
+        
+        // Get user-specific permissions
+        const { data: userPermissions } = await supabase
+          .from('user_permissions')
+          .select(`
+            permissions!user_permissions_permission_id_fkey (
+              name
+            )
+          `)
+          .eq('user_id', userId)
+          .eq('is_active', true);
+        
+        if (userPermissions) {
+          const userPermNames = userPermissions.map(up => up.permissions?.name).filter(Boolean);
+          permissions = [...new Set([...permissions, ...userPermNames])];
+        }
+        
+        // Build permission context for personalized greeting
+        const hasTouringAccess = permissions.some(p => p?.startsWith('touring:'));
+        const hasFinanceAccess = permissions.some(p => p?.startsWith('finance:'));
+        const hasAnalyticsAccess = permissions.some(p => p?.startsWith('analytics:'));
+        const hasUsersAccess = permissions.some(p => p?.startsWith('admin:') || p?.startsWith('users_access:'));
+        const hasPlatformAccess = permissions.some(p => p?.startsWith('platform:'));
+        
+        const contextParts = [];
+        if (hasTouringAccess) contextParts.push('touring');
+        if (hasFinanceAccess) contextParts.push('finance');
+        if (hasAnalyticsAccess) contextParts.push('analytics');
+        if (hasUsersAccess) contextParts.push('user management');
+        if (hasPlatformAccess) contextParts.push('platform operations');
+        
+        if (contextParts.length > 0) {
+          permissionContext = contextParts.join(', ');
+        }
+      } catch (permError) {
+        console.error('Error fetching permissions:', permError);
+        // Continue with role-based greeting if permission fetch fails
+      }
+    }
+    
+    // Context-aware greeting based on role and permissions
     let greeting;
     
     if (isSuperAdmin) {
@@ -53,12 +133,31 @@ export async function POST(request) {
         `Hey ${name}! 🎯 I'm Apollo, your administrative assistant. I can help you manage the platform, review user activity, check system status, or handle any admin tasks. What do you need?`,
       ];
       greeting = superAdminGreetings[Math.floor(Math.random() * superAdminGreetings.length)];
-    } else if (role === 'admin' || role === 'company_admin') {
-      // Admin greetings - company/team management focused
+    } else if (isCompanyAdmin) {
+      // Company Admin greetings - with permission context
+      const contextHint = permissionContext ? ` I see you have access to ${permissionContext}.` : '';
       const adminGreetings = [
-        `Hey ${name}! 👋 I'm Apollo, your administrative assistant. I can help you manage your team, review releases, check analytics, or handle administrative tasks. What can I help with?`,
-        `Hi ${name}! 🎵 I'm Apollo, here to help with team management, content review, analytics, or any admin needs. What's on your mind?`,
-        `Welcome back, ${name}! 💼 I'm Apollo, ready to assist with administrative tasks. Need help with team members, releases, or analytics?`,
+        `Hey ${name}! 👋 I'm Apollo, your administrative assistant.${contextHint} I can help you manage your team, review releases, check analytics, or handle administrative tasks. What can I help with?`,
+        `Hi ${name}! 💼 I'm Apollo, here to help with team management, content review, analytics, or any admin needs.${contextHint} What's on your mind?`,
+        `Welcome back, ${name}! 🎯 I'm Apollo, ready to assist with administrative tasks.${contextHint} Need help with team members, releases, or analytics?`,
+      ];
+      greeting = adminGreetings[Math.floor(Math.random() * adminGreetings.length)];
+    } else if (isDistributionPartner) {
+      // Distribution Partner greetings - administrative focus, NOT music distribution
+      const contextHint = permissionContext ? ` I see you have access to ${permissionContext}.` : '';
+      const distPartnerGreetings = [
+        `Hey ${name}! 👋 I'm Apollo, your administrative assistant.${contextHint} I'm here to help with platform management, user administration, system operations, or any administrative tasks. What would you like to work on?`,
+        `Hi ${name}! 💼 I'm Apollo, ready to assist with administrative operations.${contextHint} Need help with user management, analytics, platform settings, or anything else?`,
+        `Welcome back, ${name}! 🎯 I'm Apollo, your administrative assistant.${contextHint} I can help you manage the platform, review system metrics, handle administrative tasks, or check on user activity. What's on your agenda?`,
+      ];
+      greeting = distPartnerGreetings[Math.floor(Math.random() * distPartnerGreetings.length)];
+    } else if (role === 'admin') {
+      // Generic Admin greetings - with permission context
+      const contextHint = permissionContext ? ` I see you have access to ${permissionContext}.` : '';
+      const adminGreetings = [
+        `Hey ${name}! 👋 I'm Apollo, your administrative assistant.${contextHint} I can help you manage your team, review releases, check analytics, or handle administrative tasks. What can I help with?`,
+        `Hi ${name}! 🎵 I'm Apollo, here to help with team management, content review, analytics, or any admin needs.${contextHint} What's on your mind?`,
+        `Welcome back, ${name}! 💼 I'm Apollo, ready to assist with administrative tasks.${contextHint} Need help with team members, releases, or analytics?`,
       ];
       greeting = adminGreetings[Math.floor(Math.random() * adminGreetings.length)];
     } else if (role === 'label_admin') {
@@ -143,12 +242,22 @@ export async function POST(request) {
       greeting = contextGreeting;
     }
     
-    console.log('✅ Context-aware greeting generated successfully:', { role, isSuperAdmin, recentPage });
+    console.log('✅ Context-aware greeting generated successfully:', { 
+      role, 
+      isSuperAdmin, 
+      isCompanyAdmin,
+      isDistributionPartner,
+      isAnyAdmin,
+      permissionContext,
+      recentPage 
+    });
     
     return NextResponse.json({
       greeting,
       user_name: name,
       role,
+      isAdmin: isAnyAdmin,
+      permissions: permissions.length > 0 ? permissions : undefined,
     });
     
   } catch (error) {
