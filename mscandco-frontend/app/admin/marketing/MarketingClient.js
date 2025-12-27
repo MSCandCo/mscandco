@@ -332,6 +332,30 @@ export default function MarketingClient() {
     )
   })
 
+  const handleCloneCampaign = async (campaignId) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `${campaigns.find(c => c.id === campaignId)?.name} (Copy)` })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to clone campaign')
+      }
+
+      await loadCampaigns()
+      alert('Campaign cloned successfully!')
+      setShowCampaignModal(false)
+    } catch (err) {
+      alert(`Error cloning campaign: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       {/* Header */}
@@ -593,30 +617,6 @@ export default function MarketingClient() {
       )}
     </div>
   )
-
-  const handleCloneCampaign = async (campaignId) => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/admin/marketing/campaigns/${campaignId}/clone`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: `${campaigns.find(c => c.id === campaignId)?.name} (Copy)` })
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to clone campaign')
-      }
-
-      await loadCampaigns()
-      alert('Campaign cloned successfully!')
-      setShowCampaignModal(false)
-    } catch (err) {
-      alert(`Error cloning campaign: ${err.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
 }
 
 // Campaign Modal Component - Full Featured
