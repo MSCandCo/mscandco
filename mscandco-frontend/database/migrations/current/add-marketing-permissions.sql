@@ -9,41 +9,41 @@
 -- 1. INSERT MARKETING PERMISSIONS
 -- ===========================================
 
-INSERT INTO permissions (name, description, category, scope)
+INSERT INTO permissions (name, description, resource, action, scope)
 VALUES 
   -- Campaign Management
-  ('marketing:campaigns:read', 'View marketing email campaigns', 'marketing', 'campaigns'),
-  ('marketing:campaigns:create', 'Create new marketing email campaigns', 'marketing', 'campaigns'),
-  ('marketing:campaigns:update', 'Edit existing marketing email campaigns', 'marketing', 'campaigns'),
-  ('marketing:campaigns:delete', 'Delete marketing email campaigns', 'marketing', 'campaigns'),
-  ('marketing:campaigns:send', 'Send marketing email campaigns', 'marketing', 'campaigns'),
-  ('marketing:campaigns:manage', 'Full management of marketing email campaigns (includes all campaign permissions)', 'marketing', 'campaigns'),
+  ('marketing:campaigns:read', 'View marketing email campaigns', 'marketing', 'read', 'campaigns'),
+  ('marketing:campaigns:create', 'Create new marketing email campaigns', 'marketing', 'create', 'campaigns'),
+  ('marketing:campaigns:update', 'Edit existing marketing email campaigns', 'marketing', 'update', 'campaigns'),
+  ('marketing:campaigns:delete', 'Delete marketing email campaigns', 'marketing', 'delete', 'campaigns'),
+  ('marketing:campaigns:send', 'Send marketing email campaigns', 'marketing', 'send', 'campaigns'),
+  ('marketing:campaigns:manage', 'Full management of marketing email campaigns (includes all campaign permissions)', 'marketing', 'manage', 'campaigns'),
   
   -- Template Management
-  ('marketing:templates:read', 'View marketing email templates', 'marketing', 'templates'),
-  ('marketing:templates:create', 'Create new marketing email templates', 'marketing', 'templates'),
-  ('marketing:templates:update', 'Edit existing marketing email templates', 'marketing', 'templates'),
-  ('marketing:templates:delete', 'Delete marketing email templates', 'marketing', 'templates'),
-  ('marketing:templates:manage', 'Full management of marketing email templates (includes all template permissions)', 'marketing', 'templates'),
+  ('marketing:templates:read', 'View marketing email templates', 'marketing', 'read', 'templates'),
+  ('marketing:templates:create', 'Create new marketing email templates', 'marketing', 'create', 'templates'),
+  ('marketing:templates:update', 'Edit existing marketing email templates', 'marketing', 'update', 'templates'),
+  ('marketing:templates:delete', 'Delete marketing email templates', 'marketing', 'delete', 'templates'),
+  ('marketing:templates:manage', 'Full management of marketing email templates (includes all template permissions)', 'marketing', 'manage', 'templates'),
   
   -- Audience Segments
-  ('marketing:segments:read', 'View saved audience segments', 'marketing', 'segments'),
-  ('marketing:segments:create', 'Create new audience segments', 'marketing', 'segments'),
-  ('marketing:segments:update', 'Edit existing audience segments', 'marketing', 'segments'),
-  ('marketing:segments:delete', 'Delete audience segments', 'marketing', 'segments'),
-  ('marketing:segments:manage', 'Full management of audience segments (includes all segment permissions)', 'marketing', 'segments'),
+  ('marketing:segments:read', 'View saved audience segments', 'marketing', 'read', 'segments'),
+  ('marketing:segments:create', 'Create new audience segments', 'marketing', 'create', 'segments'),
+  ('marketing:segments:update', 'Edit existing audience segments', 'marketing', 'update', 'segments'),
+  ('marketing:segments:delete', 'Delete audience segments', 'marketing', 'delete', 'segments'),
+  ('marketing:segments:manage', 'Full management of audience segments (includes all segment permissions)', 'marketing', 'manage', 'segments'),
   
   -- Analytics
-  ('marketing:analytics:read', 'View marketing campaign analytics and reports', 'marketing', 'analytics'),
+  ('marketing:analytics:read', 'View marketing campaign analytics and reports', 'marketing', 'read', 'analytics'),
   
   -- A/B Testing
-  ('marketing:ab_testing:manage', 'Create and manage A/B tests for campaigns', 'marketing', 'campaigns'),
+  ('marketing:ab_testing:manage', 'Create and manage A/B tests for campaigns', 'marketing', 'manage', 'ab_testing'),
   
   -- Automation
-  ('marketing:automation:manage', 'Create and manage campaign automation workflows', 'marketing', 'automation'),
+  ('marketing:automation:manage', 'Create and manage campaign automation workflows', 'marketing', 'manage', 'automation'),
   
   -- Full Marketing Access (wildcard-like permission for marketing admin)
-  ('marketing:*:*', 'Full access to all marketing features', 'marketing', 'all')
+  ('marketing:*:*', 'Full access to all marketing features', 'marketing', '*', '*')
 ON CONFLICT (name) DO NOTHING;
 
 -- ===========================================
