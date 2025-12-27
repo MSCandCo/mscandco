@@ -31,7 +31,17 @@ export default async function MarketingPage() {
     .eq('id', session.user.id)
     .single()
 
-  if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+  // Check for marketing permissions (super_admin, company_admin, or marketing_admin with permissions)
+  const { getUserPermissions } = await import('@/lib/permissions-utils')
+  const permissions = await getUserPermissions(session.user.id, true)
+  
+  const hasMarketingAccess = 
+    ['super_admin', 'company_admin'].includes(profile.role) ||
+    permissions.includes('marketing:campaigns:read') ||
+    permissions.includes('marketing:campaigns:manage') ||
+    permissions.includes('marketing:*:*')
+
+  if (!hasMarketingAccess) {
     redirect('/dashboard')
   }
 

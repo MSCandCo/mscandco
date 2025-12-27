@@ -512,6 +512,12 @@ function AdminHeader({ largeLogo = false }) {
                         Master Roster
                       </Link>
                     )}
+                    {(checkPermission('marketing:campaigns:read') || checkPermission('marketing:campaigns:manage')) && (
+                      <Link href="/admin/marketing" onClick={() => setOpenNavDropdown(null)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <Mail className="w-4 h-4 mr-3" />
+                        Marketing Campaigns
+                      </Link>
+                    )}
                     </div>
                   </div>
                 )}
