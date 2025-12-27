@@ -227,7 +227,32 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   marketing_admin: [
     'dashboard:access',
-    // Marketing-specific permissions
+    // Marketing Campaign Permissions
+    'marketing:campaigns:manage', // Full campaign management (includes read, create, update, delete, send)
+    'marketing:campaigns:read',
+    'marketing:campaigns:create',
+    'marketing:campaigns:update',
+    'marketing:campaigns:delete',
+    'marketing:campaigns:send',
+    // Marketing Template Permissions
+    'marketing:templates:manage', // Full template management
+    'marketing:templates:read',
+    'marketing:templates:create',
+    'marketing:templates:update',
+    'marketing:templates:delete',
+    // Audience Segment Permissions
+    'marketing:segments:manage', // Full segment management
+    'marketing:segments:read',
+    'marketing:segments:create',
+    'marketing:segments:update',
+    'marketing:segments:delete',
+    // Marketing Analytics
+    'marketing:analytics:read',
+    // A/B Testing
+    'marketing:ab_testing:manage',
+    // Automation
+    'marketing:automation:manage',
+    // Marketing Platform Messages (for campaign notifications)
     'platform_messages:read',
     'platform_messages:create',
     'platform_messages:update',

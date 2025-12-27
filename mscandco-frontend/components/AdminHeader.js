@@ -140,13 +140,14 @@ function AdminHeader({ largeLogo = false }) {
 
   // Count visible items in each dropdown - memoized for performance
   const userAccessItems = useMemo(() => {
-    if (showAll) return 5; // All items visible for superadmin
+    if (showAll) return 6; // All items visible for superadmin (including marketing)
     return [
       checkPermission('analytics:requests:read'),
       checkPermission('users_access:user_management:read'),
       checkPermission('users_access:permissions_roles:read'),
       checkPermission('user:impersonate'),
-      checkPermission('users_access:master_roster:read')
+      checkPermission('users_access:master_roster:read'),
+      checkPermission('marketing:campaigns:read') || checkPermission('marketing:campaigns:manage')
     ].filter(Boolean).length;
   }, [showAll, checkPermission]);
 
@@ -243,7 +244,8 @@ function AdminHeader({ largeLogo = false }) {
         { href: '/admin/usermanagement', label: 'User Management', icon: Users },
         { href: '/superadmin/permissionsroles', label: 'Permissions & Roles', icon: Shield },
         { href: '/superadmin/ghostlogin', label: 'Ghost Mode', icon: Eye },
-        { href: '/admin/masterroster', label: 'Master Roster', icon: Music }
+        { href: '/admin/masterroster', label: 'Master Roster', icon: Music },
+        { href: '/admin/marketing', label: 'Marketing Campaigns', icon: Mail }
       ];
     }
     const items = [];
@@ -252,6 +254,7 @@ function AdminHeader({ largeLogo = false }) {
     if (checkPermission('users_access:permissions_roles:read')) items.push({ href: '/superadmin/permissionsroles', label: 'Permissions & Roles', icon: Shield });
     if (checkPermission('user:impersonate')) items.push({ href: '/superadmin/ghostlogin', label: 'Ghost Mode', icon: Eye });
     if (checkPermission('users_access:master_roster:read')) items.push({ href: '/admin/masterroster', label: 'Master Roster', icon: Music });
+    if (checkPermission('marketing:campaigns:read') || checkPermission('marketing:campaigns:manage')) items.push({ href: '/admin/marketing', label: 'Marketing Campaigns', icon: Mail });
     return items;
   }, [showAll, checkPermission]);
 
