@@ -23,7 +23,7 @@ export function SessionValidator() {
 
   useEffect(() => {
     // Don't validate on public pages
-    const publicPaths = ['/login', '/register', '/reset-password', '/', '/pricing', '/about', '/support', '/faq']
+    const publicPaths = ['/login', '/register', '/registration-closed', '/reset-password', '/', '/pricing', '/about', '/support', '/faq']
     if (publicPaths.includes(pathname)) {
       return
     }
