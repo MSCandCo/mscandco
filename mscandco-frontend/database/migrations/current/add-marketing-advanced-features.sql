@@ -4,9 +4,139 @@
 -- Date: 2025-01-26
 -- Purpose: Add A/B testing, saved segments, automation, and advanced analytics
 -- ===========================================
+-- NOTE: This migration requires the base email_campaigns table from create-marketing-email-campaigns.sql
+-- ===========================================
 
 -- ===========================================
--- 1. ADD A/B TESTING COLUMNS TO CAMPAIGNS
+-- 1. ENSURE BASE TABLES EXIST (from create-marketing-email-campaigns.sql)
+-- ===========================================
+
+-- Create email_campaigns table if it doesn't exist
+CREATE TABLE IF NOT EXISTS email_campaigns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  subject VARCHAR(500) NOT NULL,
+  body_html TEXT NOT NULL,
+  body_text TEXT,
+  
+  -- Filter criteria (stored as JSONB for flexibility)
+  filters JSONB NOT NULL DEFAULT '{}'::jsonb,
+  
+  -- Campaign status
+  status VARCHAR(50) DEFAULT 'draft', -- draft, scheduled, sending, sent, cancelled
+  
+  -- Scheduling
+  scheduled_for TIMESTAMPTZ,
+  sent_at TIMESTAMPTZ,
+  
+  -- Recipient info
+  total_recipients INTEGER DEFAULT 0,
+  emails_sent INTEGER DEFAULT 0,
+  emails_delivered INTEGER DEFAULT 0,
+  emails_opened INTEGER DEFAULT 0,
+  emails_clicked INTEGER DEFAULT 0,
+  emails_bounced INTEGER DEFAULT 0,
+  emails_failed INTEGER DEFAULT 0,
+  
+  -- Metadata
+  created_by UUID REFERENCES user_profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Optional: Template reference
+  template_id UUID
+);
+
+-- Create indexes for email_campaigns if they don't exist
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_created_at ON email_campaigns(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_scheduled_for ON email_campaigns(scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_created_by ON email_campaigns(created_by);
+
+-- Create email_campaign_recipients table if it doesn't exist
+CREATE TABLE IF NOT EXISTS email_campaign_recipients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  campaign_id UUID NOT NULL REFERENCES email_campaigns(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  
+  -- Delivery tracking
+  status VARCHAR(50) DEFAULT 'pending', -- pending, sent, delivered, opened, clicked, bounced, failed
+  sent_at TIMESTAMPTZ,
+  delivered_at TIMESTAMPTZ,
+  opened_at TIMESTAMPTZ,
+  clicked_at TIMESTAMPTZ,
+  bounced_at TIMESTAMPTZ,
+  failed_at TIMESTAMPTZ,
+  
+  -- Error tracking
+  error_message TEXT,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(campaign_id, user_id)
+);
+
+-- Create indexes for email_campaign_recipients if they don't exist
+CREATE INDEX IF NOT EXISTS idx_campaign_recipients_campaign_id ON email_campaign_recipients(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_recipients_user_id ON email_campaign_recipients(user_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_recipients_status ON email_campaign_recipients(status);
+CREATE INDEX IF NOT EXISTS idx_campaign_recipients_email ON email_campaign_recipients(email);
+
+-- Create marketing_email_templates table if it doesn't exist
+CREATE TABLE IF NOT EXISTS marketing_email_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  subject_template TEXT NOT NULL,
+  body_html_template TEXT NOT NULL,
+  body_text_template TEXT,
+  
+  -- Template variables (JSON array of variable names)
+  variables JSONB DEFAULT '[]'::jsonb,
+  
+  -- Category
+  category VARCHAR(100),
+  
+  -- Preview image URL (optional)
+  preview_image_url TEXT,
+  
+  -- Metadata
+  created_by UUID REFERENCES user_profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT true
+);
+
+-- Create indexes for marketing_email_templates if they don't exist
+CREATE INDEX IF NOT EXISTS idx_marketing_templates_category ON marketing_email_templates(category);
+CREATE INDEX IF NOT EXISTS idx_marketing_templates_is_active ON marketing_email_templates(is_active);
+
+-- Create function to update updated_at if it doesn't exist
+CREATE OR REPLACE FUNCTION update_campaigns_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers if they don't exist
+DROP TRIGGER IF EXISTS update_email_campaigns_timestamp ON email_campaigns;
+CREATE TRIGGER update_email_campaigns_timestamp
+  BEFORE UPDATE ON email_campaigns
+  FOR EACH ROW
+  EXECUTE FUNCTION update_campaigns_updated_at();
+
+DROP TRIGGER IF EXISTS update_marketing_templates_timestamp ON marketing_email_templates;
+CREATE TRIGGER update_marketing_templates_timestamp
+  BEFORE UPDATE ON marketing_email_templates
+  FOR EACH ROW
+  EXECUTE FUNCTION update_campaigns_updated_at();
+
+-- ===========================================
+-- 2. ADD A/B TESTING COLUMNS TO CAMPAIGNS
 -- ===========================================
 
 ALTER TABLE email_campaigns
