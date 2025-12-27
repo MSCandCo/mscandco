@@ -30,7 +30,20 @@ export async function GET(request) {
     }
 
     // Default to enabled if setting doesn't exist
-    const registrationEnabled = setting?.value === true || setting?.value === 'true' || !setting;
+    if (!setting) {
+      return NextResponse.json({
+        registration_enabled: true
+      });
+    }
+
+    // Check value - handle both boolean and string representations
+    // JSONB values might be stored as boolean true/false or as string "true"/"false"
+    const value = setting.value;
+    const registrationEnabled = value === true || 
+                               value === 'true' || 
+                               String(value).toLowerCase() === 'true';
+
+    console.log('Registration status check:', { value, registrationEnabled, type: typeof value });
 
     return NextResponse.json({
       registration_enabled: registrationEnabled

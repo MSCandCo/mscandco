@@ -29,12 +29,24 @@ export async function GET(request) {
     }
 
     // Default to enabled if setting doesn't exist
-    const registrationEnabled = setting?.value === true || setting?.value === 'true' || !setting;
+    if (!setting) {
+      return NextResponse.json({
+        success: true,
+        registration_enabled: true,
+        updated_at: null
+      });
+    }
+
+    // Check value - handle both boolean and string representations
+    const value = setting.value;
+    const registrationEnabled = value === true || 
+                               value === 'true' || 
+                               String(value).toLowerCase() === 'true';
 
     return NextResponse.json({
       success: true,
       registration_enabled: registrationEnabled,
-      updated_at: setting?.updated_at || null
+      updated_at: setting.updated_at
     });
 
   } catch (error) {
@@ -91,12 +103,12 @@ export async function POST(request) {
       );
     }
 
-    // Upsert the setting
+    // Upsert the setting - ensure boolean is stored correctly as JSONB
     const { data, error } = await supabaseAdmin
       .from('platform_settings')
       .upsert({
         key: 'registration_enabled',
-        value: registration_enabled,
+        value: registration_enabled, // Store as boolean in JSONB
         description: 'Controls whether new user registration is enabled',
         updated_by: session.user.id,
         updated_at: new Date().toISOString()

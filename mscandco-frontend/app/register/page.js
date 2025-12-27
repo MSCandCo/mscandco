@@ -31,20 +31,39 @@ export default async function RegisterPage() {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const supabaseAdmin = await createServiceRoleClient();
 
-    const { data: setting } = await supabaseAdmin
+    const { data: setting, error: settingError } = await supabaseAdmin
       .from('platform_settings')
       .select('value')
       .eq('key', 'registration_enabled')
       .single();
 
-    const registrationEnabled = setting?.value === true || setting?.value === 'true' || !setting;
+    if (settingError && settingError.code !== 'PGRST116') {
+      console.error('Error checking registration status:', settingError);
+      // Fail open on error - allow registration
+      return <RegisterClient />
+    }
+
+    // Default to enabled if setting doesn't exist
+    if (!setting) {
+      return <RegisterClient />
+    }
+
+    // Check value - handle both boolean and string representations
+    // JSONB values might be stored as boolean true/false or as string "true"/"false"
+    const value = setting.value;
+    const registrationEnabled = value === true || 
+                               value === 'true' || 
+                               String(value).toLowerCase() === 'true';
+
+    console.log('Registration check:', { value, registrationEnabled, type: typeof value });
 
     if (!registrationEnabled) {
+      console.log('Registration disabled, redirecting to /registration-closed');
       redirect('/registration-closed')
     }
   } catch (error) {
     console.error('Error checking registration status:', error);
-    // Continue to registration page on error (fail open)
+    // Fail open on error - allow registration
   }
 
   // Show registration page
