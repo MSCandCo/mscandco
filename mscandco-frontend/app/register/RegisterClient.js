@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -13,9 +13,43 @@ export default function RegisterClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [checkingRegistration, setCheckingRegistration] = useState(true)
 
   const supabase = createClient()
   const router = useRouter()
+
+  // Check registration status on mount (client-side fallback)
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      try {
+        const statusResponse = await fetch('/api/public/registration-status')
+        const statusData = await statusResponse.json()
+        
+        // Normalize the value to boolean
+        const registrationEnabled = statusData.registration_enabled === true || 
+                                   statusData.registration_enabled === 'true' ||
+                                   String(statusData.registration_enabled).toLowerCase() === 'true'
+        
+        console.log('Registration status check on mount:', {
+          response: statusData,
+          registrationEnabled
+        })
+        
+        if (!registrationEnabled) {
+          console.log('Registration disabled (client-side check on mount), redirecting to /registration-closed')
+          window.location.href = '/registration-closed'
+          return
+        }
+      } catch (err) {
+        console.error('Error checking registration status on mount:', err)
+        // Allow registration if check fails (fail open)
+      } finally {
+        setCheckingRegistration(false)
+      }
+    }
+
+    checkRegistrationStatus()
+  }, [])
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
@@ -154,6 +188,18 @@ export default function RegisterClient() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading while checking registration status
+  if (checkingRegistration) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking registration status...</p>
         </div>
       </div>
     )

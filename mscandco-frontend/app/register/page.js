@@ -37,14 +37,21 @@ export default async function RegisterPage() {
       .eq('key', 'registration_enabled')
       .single();
 
-    if (settingError && settingError.code !== 'PGRST116') {
-      console.error('Error checking registration status:', settingError);
-      // Fail open on error - allow registration
-      return <RegisterClient />
+    if (settingError) {
+      if (settingError.code === 'PGRST116') {
+        // No setting found - default to enabled
+        console.log('No registration setting found, defaulting to enabled');
+        return <RegisterClient />
+      } else {
+        console.error('Error checking registration status:', settingError);
+        // Fail open on error - allow registration but log it
+        return <RegisterClient />
+      }
     }
 
     // Default to enabled if setting doesn't exist
-    if (!setting) {
+    if (!setting || !setting.value) {
+      console.log('No registration setting value found, defaulting to enabled');
       return <RegisterClient />
     }
 
@@ -52,12 +59,16 @@ export default async function RegisterPage() {
     const value = setting.value;
     let registrationEnabled = false;
     
+    // Check for explicit true values
     if (value === true || value === 'true') {
       registrationEnabled = true;
-    } else if (value === false || value === 'false') {
+    } 
+    // Check for explicit false values
+    else if (value === false || value === 'false') {
       registrationEnabled = false;
-    } else {
-      // Handle string representations
+    } 
+    // Handle string representations
+    else {
       const strValue = String(value).toLowerCase().trim();
       registrationEnabled = strValue === 'true' || strValue === '1';
     }
@@ -65,16 +76,20 @@ export default async function RegisterPage() {
     console.log('Registration check (server):', {
       rawValue: value,
       valueType: typeof value,
-      normalized: registrationEnabled
+      normalized: registrationEnabled,
+      settingExists: !!setting
     });
 
     if (!registrationEnabled) {
       console.log('Registration disabled, redirecting to /registration-closed');
       redirect('/registration-closed')
+    } else {
+      console.log('Registration enabled, showing registration form');
     }
   } catch (error) {
     console.error('Error checking registration status:', error);
     // Fail open on error - allow registration
+    console.log('Failing open due to error, allowing registration');
   }
 
   // Show registration page
