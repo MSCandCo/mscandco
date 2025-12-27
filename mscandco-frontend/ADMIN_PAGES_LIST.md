@@ -54,6 +54,9 @@ Admin pages are accessible based on role and permissions.
 - `/admin/systems/security` - Security
 - `/admin/systems/uptime` - Uptime Monitoring
 
+### Marketing
+- `/admin/marketing` - Marketing Email Campaigns
+
 ### Feature Management
 - `/admin/artwork-generator` - AI Artwork (Admin)
 - `/admin/playlist-pitching` - Playlist Campaigns
