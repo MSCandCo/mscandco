@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Users, Search, XCircle, RefreshCw, AlertTriangle, UserCircle,
   Mail, Calendar, CheckCircle, Clock, UserCheck, UserX, ArrowUpDown,
-  ArrowUp, ArrowDown, Edit2, Trash2, Plus, List, Power, Bell
+  ArrowUp, ArrowDown, Edit2, Trash2, Plus, List, Power, Bell,
+  Monitor, MapPin, LogIn
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -690,8 +691,8 @@ export default function UserManagementClient({ user }) {
           </div>
 
           {/* Users Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -735,6 +736,28 @@ export default function UserManagementClient({ user }) {
                     {getSortIcon('created_at')}
                   </div>
                 </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('last_login_at')}
+                >
+                  <div className="flex items-center">
+                    Last Login
+                    {getSortIcon('last_login_at')}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Device
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Location
+                </th>
                 <th scope="col" className="relative px-6 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -772,6 +795,47 @@ export default function UserManagementClient({ user }) {
                       <Calendar className="h-4 w-4 mr-2" />
                       {new Date(user.created_at).toLocaleDateString()}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.last_login_at ? (
+                      <div className="flex items-center">
+                        <LogIn className="h-4 w-4 mr-2 text-gray-400" />
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {new Date(user.last_login_at).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(user.last_login_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">Never</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.last_login_device ? (
+                      <div className="flex items-center">
+                        <Monitor className="h-4 w-4 mr-2 text-gray-400" />
+                        <span className="max-w-[200px] truncate" title={user.last_login_device}>
+                          {user.last_login_device}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.last_login_location ? (
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                        <span className="max-w-[200px] truncate" title={user.last_login_location}>
+                          {user.last_login_location}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex space-x-2 justify-end">

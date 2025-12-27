@@ -130,9 +130,33 @@ export async function GET(request) {
       profileMap[profile.id] = profile;
     });
 
+    // Get latest login history for each user
+    const userIds = authUsers.map(u => u.id);
+    const { data: loginHistory, error: loginHistoryError } = await supabaseAdmin
+      .from('login_history')
+      .select('user_id, device_info, ip_address, location, user_agent, created_at, success')
+      .in('user_id', userIds)
+      .eq('success', true)
+      .order('created_at', { ascending: false });
+
+    if (loginHistoryError) {
+      console.warn('⚠️ Error fetching login history (continuing without it):', loginHistoryError);
+    }
+
+    // Create a map of latest login per user
+    const latestLoginMap = {};
+    if (loginHistory) {
+      loginHistory.forEach(login => {
+        if (!latestLoginMap[login.user_id]) {
+          latestLoginMap[login.user_id] = login;
+        }
+      });
+    }
+
     // Combine auth users with their profiles
     const combinedUsers = authUsers.map(authUser => {
       const profile = profileMap[authUser.id];
+      const latestLogin = latestLoginMap[authUser.id];
       
       // Determine role - prioritize profile role, fallback to metadata
       let userRole = profile?.role || authUser.user_metadata?.role || authUser.app_metadata?.role;
@@ -168,6 +192,9 @@ export async function GET(request) {
       // Determine status - check if user is confirmed
       const status = authUser.email_confirmed_at ? 'active' : 'pending';
 
+      // Use latest login from login_history, fallback to auth.last_sign_in_at
+      const lastLoginAt = latestLogin?.created_at || authUser.last_sign_in_at;
+
       return {
         id: authUser.id,
         email: authUser.email,
@@ -181,6 +208,10 @@ export async function GET(request) {
         created_at: profile?.created_at || authUser.created_at,
         updated_at: profile?.updated_at || authUser.updated_at,
         last_sign_in_at: authUser.last_sign_in_at,
+        last_login_at: lastLoginAt,
+        last_login_device: latestLogin?.device_info || null,
+        last_login_location: latestLogin?.location || null,
+        last_login_ip: latestLogin?.ip_address || null,
         email_confirmed_at: authUser.email_confirmed_at,
       };
     });
