@@ -37,11 +37,25 @@ export async function GET(request) {
       });
     }
 
-    // Check value - handle both boolean and string representations
+    // Normalize JSONB value to boolean - handle all possible formats
     const value = setting.value;
-    const registrationEnabled = value === true || 
-                               value === 'true' || 
-                               String(value).toLowerCase() === 'true';
+    let registrationEnabled = false;
+    
+    if (value === true || value === 'true') {
+      registrationEnabled = true;
+    } else if (value === false || value === 'false') {
+      registrationEnabled = false;
+    } else {
+      // Handle string representations
+      const strValue = String(value).toLowerCase().trim();
+      registrationEnabled = strValue === 'true' || strValue === '1';
+    }
+
+    console.log('Registration status GET:', {
+      rawValue: value,
+      valueType: typeof value,
+      normalized: registrationEnabled
+    });
 
     return NextResponse.json({
       success: true,
@@ -103,12 +117,15 @@ export async function POST(request) {
       );
     }
 
-    // Upsert the setting - ensure boolean is stored correctly as JSONB
+    // Upsert the setting - Supabase should handle boolean JSONB correctly
+    // But we'll explicitly ensure it's a boolean
+    const booleanValue = registration_enabled === true;
+    
     const { data, error } = await supabaseAdmin
       .from('platform_settings')
       .upsert({
         key: 'registration_enabled',
-        value: registration_enabled, // Store as boolean in JSONB
+        value: booleanValue, // Explicitly ensure boolean
         description: 'Controls whether new user registration is enabled',
         updated_by: session.user.id,
         updated_at: new Date().toISOString()
@@ -126,11 +143,20 @@ export async function POST(request) {
       );
     }
 
-    console.log(`✅ Registration ${registration_enabled ? 'enabled' : 'disabled'} by ${session.user.id}`);
+    // Verify the stored value
+    const storedValue = data.value;
+    console.log('Registration setting updated:', {
+      requested: booleanValue,
+      stored: storedValue,
+      storedType: typeof storedValue,
+      storedString: String(storedValue)
+    });
+
+    console.log(`✅ Registration ${booleanValue ? 'enabled' : 'disabled'} by ${session.user.id}`);
 
     return NextResponse.json({
       success: true,
-      registration_enabled: registration_enabled,
+      registration_enabled: booleanValue,
       updated_at: data.updated_at
     });
 

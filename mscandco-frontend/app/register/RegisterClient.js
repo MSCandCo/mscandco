@@ -51,7 +51,13 @@ export default function RegisterClient() {
       const statusResponse = await fetch('/api/public/registration-status')
       const statusData = await statusResponse.json()
       
-      if (!statusData.registration_enabled) {
+      // Normalize the value to boolean
+      const registrationEnabled = statusData.registration_enabled === true || 
+                                 statusData.registration_enabled === 'true' ||
+                                 String(statusData.registration_enabled).toLowerCase() === 'true'
+      
+      if (!registrationEnabled) {
+        console.log('Registration disabled (client check), redirecting to /registration-closed')
         // Redirect to registration closed page
         window.location.href = '/registration-closed'
         return

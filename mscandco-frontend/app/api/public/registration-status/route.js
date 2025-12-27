@@ -36,14 +36,25 @@ export async function GET(request) {
       });
     }
 
-    // Check value - handle both boolean and string representations
-    // JSONB values might be stored as boolean true/false or as string "true"/"false"
+    // Normalize JSONB value to boolean - handle all possible formats
     const value = setting.value;
-    const registrationEnabled = value === true || 
-                               value === 'true' || 
-                               String(value).toLowerCase() === 'true';
+    let registrationEnabled = false;
+    
+    if (value === true || value === 'true') {
+      registrationEnabled = true;
+    } else if (value === false || value === 'false') {
+      registrationEnabled = false;
+    } else {
+      // Handle string representations
+      const strValue = String(value).toLowerCase().trim();
+      registrationEnabled = strValue === 'true' || strValue === '1';
+    }
 
-    console.log('Registration status check:', { value, registrationEnabled, type: typeof value });
+    console.log('Registration status check (public):', {
+      rawValue: value,
+      valueType: typeof value,
+      normalized: registrationEnabled
+    });
 
     return NextResponse.json({
       registration_enabled: registrationEnabled
