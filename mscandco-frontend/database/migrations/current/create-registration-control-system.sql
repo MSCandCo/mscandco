@@ -23,11 +23,11 @@ CREATE TABLE IF NOT EXISTS platform_settings (
 CREATE INDEX IF NOT EXISTS idx_platform_settings_key ON platform_settings(key);
 
 -- Insert default registration setting (enabled by default)
--- Store as boolean true in JSONB, not string
+-- Store as boolean true in JSONB using to_jsonb()
 INSERT INTO platform_settings (key, value, description)
 VALUES (
   'registration_enabled',
-  true::jsonb,
+  to_jsonb(true),
   'Controls whether new user registration is enabled'
 )
 ON CONFLICT (key) DO NOTHING;
