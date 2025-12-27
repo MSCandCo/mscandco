@@ -5,12 +5,12 @@
 -- Purpose: Ensure registration_enabled is stored as boolean true/false, not string
 -- ===========================================
 
--- Update the value to boolean true if it exists as string 'true'
+-- Update the value to boolean true
 -- Use to_jsonb() to properly convert boolean to JSONB
+-- This will update it regardless of current value (to ensure it's boolean)
 UPDATE platform_settings
 SET value = to_jsonb(true)
-WHERE key = 'registration_enabled' 
-  AND (value::text = '"true"' OR value::text = '''true''' OR value::text != 'true');
+WHERE key = 'registration_enabled';
 
 -- If no setting exists, create it with boolean true
 INSERT INTO platform_settings (key, value, description)
