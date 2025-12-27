@@ -51,6 +51,14 @@ export default async function RegisterPage() {
     // Check value - handle both boolean and string representations
     // JSONB values might be stored as boolean true/false or as string "true"/"false"
     const value = setting.value;
+    
+    // Explicitly check for false values first
+    if (value === false || value === 'false' || String(value).toLowerCase() === 'false') {
+      console.log('Registration disabled, redirecting to /registration-closed');
+      redirect('/registration-closed')
+    }
+    
+    // Then check for true values
     const registrationEnabled = value === true || 
                                value === 'true' || 
                                String(value).toLowerCase() === 'true';
@@ -58,7 +66,7 @@ export default async function RegisterPage() {
     console.log('Registration check:', { value, registrationEnabled, type: typeof value });
 
     if (!registrationEnabled) {
-      console.log('Registration disabled, redirecting to /registration-closed');
+      console.log('Registration disabled (default case), redirecting to /registration-closed');
       redirect('/registration-closed')
     }
   } catch (error) {
