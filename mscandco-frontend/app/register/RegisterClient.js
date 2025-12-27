@@ -19,10 +19,23 @@ export default function RegisterClient() {
   const router = useRouter()
 
   // Check registration status on mount (client-side fallback)
+  // This runs immediately on mount, before render, to prevent flash
   useEffect(() => {
+    let cancelled = false
+
     const checkRegistrationStatus = async () => {
       try {
-        const statusResponse = await fetch('/api/public/registration-status')
+        const statusResponse = await fetch('/api/public/registration-status', {
+          cache: 'no-store', // Prevent caching
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
+        
+        if (cancelled) return
+        
         const statusData = await statusResponse.json()
         
         // Normalize the value to boolean
@@ -30,25 +43,31 @@ export default function RegisterClient() {
                                    statusData.registration_enabled === 'true' ||
                                    String(statusData.registration_enabled).toLowerCase() === 'true'
         
-        console.log('Registration status check on mount:', {
-          response: statusData,
-          registrationEnabled
-        })
-        
-        if (!registrationEnabled) {
+        if (!registrationEnabled && !cancelled) {
           console.log('Registration disabled (client-side check on mount), redirecting to /registration-closed')
-          window.location.href = '/registration-closed'
+          // Use replace to avoid adding to history
+          window.location.replace('/registration-closed')
           return
+        }
+
+        if (!cancelled) {
+          setCheckingRegistration(false)
         }
       } catch (err) {
         console.error('Error checking registration status on mount:', err)
         // Allow registration if check fails (fail open)
-      } finally {
-        setCheckingRegistration(false)
+        if (!cancelled) {
+          setCheckingRegistration(false)
+        }
       }
     }
 
+    // Run check immediately
     checkRegistrationStatus()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const validateForm = () => {
