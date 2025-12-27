@@ -8,10 +8,15 @@ import {
   ChevronDown, ChevronUp, X, Save, Play, Pause, ExternalLink,
   Download, Upload, Image as ImageIcon, Link as LinkIcon, Type,
   Layout, Palette, Code, EyeOff, Globe, UserCheck, MapPin,
-  Building2, Music, Tag, DollarSign, Calendar as CalendarIcon
+  Building2, Music, Tag, DollarSign, Calendar as CalendarIcon,
+  MousePointer
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts'
 
 // Status badge component
 function StatusBadge({ status }) {
@@ -110,7 +115,10 @@ export default function MarketingClient() {
     loadCampaigns()
     loadTemplates()
     loadStats()
-  }, [statusFilter])
+    if (activeTab === 'segments') {
+      loadSegments()
+    }
+  }, [statusFilter, activeTab])
 
   const loadCampaigns = async () => {
     try {
@@ -162,6 +170,21 @@ export default function MarketingClient() {
       })
     } catch (err) {
       console.error('Failed to load stats:', err)
+    }
+  }
+
+  const loadSegments = async () => {
+    try {
+      setLoadingSegments(true)
+      const response = await fetch('/api/admin/marketing/segments?activeOnly=true')
+      if (response.ok) {
+        const data = await response.json()
+        setSegments(data.segments || [])
+      }
+    } catch (err) {
+      console.error('Failed to load segments:', err)
+    } finally {
+      setLoadingSegments(false)
     }
   }
 
@@ -528,23 +551,72 @@ export default function MarketingClient() {
         </div>
       )}
 
-      {/* Campaign Modal - This will be expanded in next part */}
+      {/* Segments Tab */}
+      {activeTab === 'segments' && (
+        <SavedSegmentsTab
+          segments={segments}
+          loading={loadingSegments}
+          onLoadSegments={loadSegments}
+          onSelectSegment={(segment) => {
+            setCampaignForm(prev => ({ ...prev, filters: segment.filters }))
+            setActiveTab('campaigns')
+            handleCreateCampaign()
+          }}
+        />
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <CampaignAnalyticsTab campaigns={campaigns} />
+      )}
+
+      {/* Campaign Modal */}
       {showCampaignModal && (
         <CampaignModal
           campaign={editingCampaign}
           form={campaignForm}
           setForm={setCampaignForm}
           templates={templates}
+          segments={segments}
           onSave={handleSaveCampaign}
           onClose={() => setShowCampaignModal(false)}
           onPreviewRecipients={handlePreviewRecipients}
           recipientCount={recipientCount}
           previewRecipients={previewRecipients}
           loading={loading}
+          onClone={() => {
+            if (editingCampaign) {
+              handleCloneCampaign(editingCampaign.id)
+            }
+          }}
         />
       )}
     </div>
   )
+
+  const handleCloneCampaign = async (campaignId) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `${campaigns.find(c => c.id === campaignId)?.name} (Copy)` })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to clone campaign')
+      }
+
+      await loadCampaigns()
+      alert('Campaign cloned successfully!')
+      setShowCampaignModal(false)
+    } catch (err) {
+      alert(`Error cloning campaign: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
 }
 
 // Campaign Modal Component - Full Featured
@@ -914,8 +986,9 @@ function CampaignContentStep({ form, setForm }) {
 }
 
 // Campaign Filters Step - Advanced Filter Builder
-function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCount, onPreviewRecipients, previewRecipients }) {
+function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCount, onPreviewRecipients, previewRecipients, segments, onSaveSegment }) {
   const [showPreview, setShowPreview] = useState(false)
+  const [showSaveSegmentModal, setShowSaveSegmentModal] = useState(false)
 
   const roles = availableRoles.map(r => ({ value: r.name, label: r.display_name || r.name }))
   const subscriptionTiers = [
@@ -938,13 +1011,52 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
             Define who will receive this campaign using the filters below
           </p>
         </div>
-        <button
-          onClick={() => onPreviewRecipients(form.filters)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-          Preview Recipients
-        </button>
+        <div className="flex items-center gap-2">
+          {segments && segments.length > 0 && (
+            <Select
+              value=""
+              onValueChange={(segmentId) => {
+                const segment = segments.find(s => s.id === segmentId)
+                if (segment) {
+                  updateFilters('roles', segment.filters.roles || [])
+                  updateFilters('cities', segment.filters.cities || [])
+                  updateFilters('countries', segment.filters.countries || [])
+                  updateFilters('subscriptionTiers', segment.filters.subscriptionTiers || [])
+                  updateFilters('lastLoginDays', segment.filters.lastLoginDays || null)
+                  // Update all filters from segment
+                  Object.keys(segment.filters).forEach(key => {
+                    updateFilters(key, segment.filters[key])
+                  })
+                }
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Load saved segment" />
+              </SelectTrigger>
+              <SelectContent>
+                {segments.map((segment) => (
+                  <SelectItem key={segment.id} value={segment.id}>
+                    {segment.name} (~{segment.estimated_count || 0} users)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <button
+            onClick={() => setShowSaveSegmentModal(true)}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+          >
+            <Save className="w-4 h-4" />
+            Save Segment
+          </button>
+          <button
+            onClick={() => onPreviewRecipients(form.filters)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            Preview Recipients
+          </button>
+        </div>
       </div>
 
       {recipientCount > 0 && (
@@ -1188,6 +1300,310 @@ function CampaignPreviewStep({ form, recipientCount }) {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Saved Segments Tab Component
+function SavedSegmentsTab({ segments, loading, onLoadSegments, onSelectSegment }) {
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [segmentName, setSegmentName] = useState('')
+  const [segmentDescription, setSegmentDescription] = useState('')
+
+  const handleSaveSegment = async () => {
+    // This would be called from the filter builder
+    // For now, just show the modal structure
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Saved Audience Segments</h2>
+          <p className="text-gray-600 mt-1">Reusable filter combinations for quick campaign targeting</p>
+        </div>
+        <button
+          onClick={() => setShowSaveModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+        >
+          <Plus className="w-5 h-5" />
+          New Segment
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <RefreshCw className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Loading segments...</p>
+        </div>
+      ) : segments.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No saved segments</h3>
+          <p className="text-gray-500 mb-6">Create reusable audience segments for your campaigns</p>
+          <button
+            onClick={() => setShowSaveModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+          >
+            <Plus className="w-5 h-5" />
+            Create Segment
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {segments.map((segment) => (
+            <div key={segment.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">{segment.name}</h3>
+                  {segment.description && (
+                    <p className="text-sm text-gray-500 mt-1">{segment.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="mb-4">
+                <div className="text-sm text-gray-600">
+                  <Users className="w-4 h-4 inline mr-1" />
+                  ~{segment.estimated_count?.toLocaleString() || 0} users
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onSelectSegment(segment)}
+                  className="flex-1 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium"
+                >
+                  Use in Campaign
+                </button>
+                <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+                  <Eye className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Campaign Analytics Tab Component
+function CampaignAnalyticsTab({ campaigns }) {
+  const [selectedCampaign, setSelectedCampaign] = useState(null)
+  const [analytics, setAnalytics] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const sentCampaigns = campaigns.filter(c => c.status === 'sent')
+
+  useEffect(() => {
+    if (selectedCampaign) {
+      loadCampaignAnalytics(selectedCampaign)
+    }
+  }, [selectedCampaign])
+
+  const loadCampaignAnalytics = async (campaignId) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignId}/analytics?timeSeries=true`)
+      if (response.ok) {
+        const data = await response.json()
+        setAnalytics(data.analytics)
+      }
+    } catch (err) {
+      console.error('Failed to load analytics:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Aggregate stats for all campaigns
+  const aggregateStats = {
+    totalSent: sentCampaigns.length,
+    totalRecipients: sentCampaigns.reduce((sum, c) => sum + (c.total_recipients || 0), 0),
+    totalOpened: sentCampaigns.reduce((sum, c) => sum + (c.emails_opened || 0), 0),
+    totalClicked: sentCampaigns.reduce((sum, c) => sum + (c.emails_clicked || 0), 0),
+    totalBounced: sentCampaigns.reduce((sum, c) => sum + (c.emails_bounced || 0), 0)
+  }
+
+  const overallOpenRate = aggregateStats.totalRecipients > 0
+    ? ((aggregateStats.totalOpened / aggregateStats.totalRecipients) * 100).toFixed(2)
+    : 0
+  const overallClickRate = aggregateStats.totalRecipients > 0
+    ? ((aggregateStats.totalClicked / aggregateStats.totalRecipients) * 100).toFixed(2)
+    : 0
+
+  const chartData = sentCampaigns.map(c => ({
+    name: c.name.substring(0, 20) + (c.name.length > 20 ? '...' : ''),
+    recipients: c.total_recipients || 0,
+    opened: c.emails_opened || 0,
+    clicked: c.emails_clicked || 0,
+    openRate: c.total_recipients > 0 ? ((c.emails_opened / c.total_recipients) * 100) : 0,
+    clickRate: c.total_recipients > 0 ? ((c.emails_clicked / c.total_recipients) * 100) : 0
+  }))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Campaign Analytics</h2>
+        <p className="text-gray-600">Comprehensive analytics and insights for your email campaigns</p>
+      </div>
+
+      {/* Overall Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <MetricCard icon={Send} label="Campaigns Sent" value={aggregateStats.totalSent} />
+        <MetricCard icon={Users} label="Total Recipients" value={aggregateStats.totalRecipients.toLocaleString()} />
+        <MetricCard icon={TrendingUp} label="Avg Open Rate" value={`${overallOpenRate}%`} />
+        <MetricCard icon={MousePointer} label="Avg Click Rate" value={`${overallClickRate}%`} />
+      </div>
+
+      {/* Campaign Performance Chart */}
+      {chartData.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Campaign Performance</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" stroke="#6b7280" angle={-45} textAnchor="end" height={100} />
+              <YAxis stroke="#6b7280" />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="recipients" fill="#9ca3af" name="Recipients" />
+              <Bar dataKey="opened" fill="#3b82f6" name="Opened" />
+              <Bar dataKey="clicked" fill="#10b981" name="Clicked" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Campaign Selector for Detailed Analytics */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Campaign Analytics</h3>
+        <Select value={selectedCampaign || ''} onValueChange={setSelectedCampaign}>
+          <SelectTrigger className="w-full max-w-md">
+            <SelectValue placeholder="Select a campaign to view detailed analytics" />
+          </SelectTrigger>
+          <SelectContent>
+            {sentCampaigns.map((campaign) => (
+              <SelectItem key={campaign.id} value={campaign.id}>
+                {campaign.name} ({new Date(campaign.sent_at).toLocaleDateString()})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {selectedCampaign && analytics && (
+          <DetailedCampaignAnalytics analytics={analytics} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Detailed Campaign Analytics Component
+function DetailedCampaignAnalytics({ analytics }) {
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+
+  const deviceData = Object.entries(analytics.deviceBreakdown || {}).map(([device, count]) => ({
+    name: device.charAt(0).toUpperCase() + device.slice(1),
+    value: count
+  }))
+
+  const clientData = Object.entries(analytics.clientBreakdown || {}).slice(0, 5).map(([client, count]) => ({
+    name: client,
+    value: count
+  }))
+
+  return (
+    <div className="mt-6 space-y-6">
+      {/* Overview Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="text-2xl font-bold text-gray-900">{analytics.overview.deliveryRate}%</div>
+          <div className="text-sm text-gray-600">Delivery Rate</div>
+        </div>
+        <div className="bg-blue-50 rounded-lg p-4">
+          <div className="text-2xl font-bold text-blue-900">{analytics.overview.openRate}%</div>
+          <div className="text-sm text-blue-600">Open Rate</div>
+        </div>
+        <div className="bg-green-50 rounded-lg p-4">
+          <div className="text-2xl font-bold text-green-900">{analytics.overview.clickRate}%</div>
+          <div className="text-sm text-green-600">Click Rate</div>
+        </div>
+        <div className="bg-purple-50 rounded-lg p-4">
+          <div className="text-2xl font-bold text-purple-900">{analytics.overview.clickToOpenRate}%</div>
+          <div className="text-sm text-purple-600">Click-to-Open Rate</div>
+        </div>
+      </div>
+
+      {/* Engagement Timeline */}
+      {analytics.engagementTimeline && analytics.engagementTimeline.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Engagement Over Time</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={analytics.engagementTimeline}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="hour" stroke="#6b7280" label={{ value: 'Hours After Send', position: 'insideBottom', offset: -5 }} />
+              <YAxis stroke="#6b7280" />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="cumulativeOpened" stroke="#3b82f6" strokeWidth={2} name="Cumulative Opens" />
+              <Line type="monotone" dataKey="cumulativeClicked" stroke="#10b981" strokeWidth={2} name="Cumulative Clicks" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Device & Client Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {deviceData.length > 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h4 className="text-md font-semibold text-gray-900 mb-4">Device Breakdown</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={deviceData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {deviceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {clientData.length > 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h4 className="text-md font-semibold text-gray-900 mb-4">Email Client Breakdown</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={clientData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {clientData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </div>
   )
