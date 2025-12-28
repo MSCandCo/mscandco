@@ -653,7 +653,23 @@ export default function MarketingClient() {
 
       {/* Templates Tab */}
       {activeTab === 'templates' && (
-        <TemplatesTab templates={templates} loading={loading} onLoadTemplates={loadTemplates} />
+        <TemplatesTab 
+          templates={templates} 
+          loading={loading} 
+          onLoadTemplates={loadTemplates}
+          onUseTemplate={(template) => {
+            // When user clicks "Use Template", populate form and open campaign modal
+            setCampaignForm(prev => ({
+              ...prev,
+              template_id: template.id,
+              subject: template.subject_template,
+              body_html: template.body_html_template,
+              body_text: template.body_text_template || ''
+            }))
+            setActiveTab('campaigns')
+            setShowCampaignModal(true)
+          }}
+        />
       )}
 
       {/* Analytics Tab */}
@@ -859,6 +875,7 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
             <CampaignPreviewStep
               form={form}
               recipientCount={recipientCount}
+              templates={templates}
             />
           )}
         </div>
@@ -969,7 +986,18 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Template (Optional)</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Email Template (Optional)</h3>
+          <button
+            onClick={() => {
+              // Switch to templates tab (this will be handled by parent)
+              window.dispatchEvent(new CustomEvent('switchToTemplatesTab'))
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Browse Templates →
+          </button>
+        </div>
         <Select
           value={form.template_id ? form.template_id.toString() : 'none'}
           onValueChange={onTemplateSelect}
@@ -987,10 +1015,15 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
           </SelectContent>
         </Select>
         {form.template_id && (
-          <p className="text-sm text-gray-500 mt-2">
-            Template selected. Edit the content in the Content tab.
-          </p>
+          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900">
+              <strong>Template selected.</strong> The subject and content have been populated. You can edit them in the Content tab.
+            </p>
+          </div>
         )}
+        <p className="text-xs text-gray-500 mt-2">
+          Select a pre-built template to get started, or start from scratch. Templates can be customized after selection.
+        </p>
       </div>
 
       <div>
@@ -1634,7 +1667,43 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
 }
 
 // Campaign Preview Step
-function CampaignPreviewStep({ form, recipientCount }) {
+function CampaignPreviewStep({ form, recipientCount, templates }) {
+  // Sample data for merge tag replacement in preview
+  const sampleData = {
+    user_name: 'John Doe',
+    user_email: 'john.doe@example.com',
+    platform_name: 'MSC & Co',
+    dashboard_url: 'https://staging.mscandco.com/dashboard',
+    login_url: 'https://staging.mscandco.com/login',
+    unsubscribe_url: 'https://staging.mscandco.com/unsubscribe',
+    release_title: 'My New Album',
+    analytics_url: 'https://staging.mscandco.com/analytics',
+    promo_url: 'https://staging.mscandco.com/promotions',
+    promo_code: 'SAVE20',
+    discount_percent: '20',
+    year_animal: 'Dragon',
+    // Add more common template variables
+  }
+
+  // Replace merge tags with sample data for preview
+  const replaceMergeTags = (text) => {
+    if (!text) return ''
+    let result = text
+    Object.entries(sampleData).forEach(([key, value]) => {
+      const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g')
+      result = result.replace(regex, value)
+    })
+    // Replace any remaining merge tags with placeholder
+    result = result.replace(/{{[^}]+}}/g, '[Sample Data]')
+    return result
+  }
+
+  const previewSubject = replaceMergeTags(form.subject)
+  const previewHtml = replaceMergeTags(form.body_html)
+
+  // Get template info if template is used
+  const usedTemplate = form.template_id ? templates?.find(t => t.id.toString() === form.template_id.toString()) : null
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
@@ -1659,22 +1728,62 @@ function CampaignPreviewStep({ form, recipientCount }) {
               <dt className="text-gray-500">Status</dt>
               <dd className="font-medium text-gray-900">Draft</dd>
             </div>
+            {usedTemplate && (
+              <div className="col-span-2">
+                <dt className="text-gray-500">Template</dt>
+                <dd className="font-medium text-gray-900">{usedTemplate.name} ({usedTemplate.category})</dd>
+              </div>
+            )}
           </dl>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="font-semibold text-gray-900 mb-4">Email Preview</h4>
-          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <div className="mb-2 text-sm text-gray-600">
-              <strong>Subject:</strong> {form.subject}
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-gray-900">Email Preview</h4>
+            <span className="text-xs text-gray-500 bg-yellow-50 px-2 py-1 rounded">
+              Merge tags replaced with sample data
+            </span>
+          </div>
+          
+          {/* Email Client Preview */}
+          <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg bg-white">
+            {/* Email Header Simulation */}
+            <div className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex items-center gap-2 text-xs text-gray-600">
+              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+              <span className="ml-2">Email Client Preview</span>
             </div>
-            <div className="border-t border-gray-200 pt-4">
-              <div 
-                dangerouslySetInnerHTML={{ __html: form.body_html }}
-                className="prose prose-sm max-w-none"
-              />
+            
+            {/* Email Content */}
+            <div className="p-4">
+              <div className="mb-4 pb-4 border-b border-gray-200">
+                <div className="text-xs text-gray-500 mb-1">From: MSC & Co &lt;noreply@mscandco.com&gt;</div>
+                <div className="text-xs text-gray-500 mb-1">To: {sampleData.user_email}</div>
+                <div className="text-sm font-semibold text-gray-900">
+                  Subject: {previewSubject}
+                </div>
+              </div>
+              
+              <div className="email-preview-content">
+                <div 
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  className="prose prose-sm max-w-none"
+                  style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                />
+              </div>
             </div>
           </div>
+
+          {/* Plain Text Preview */}
+          {form.body_text && (
+            <div className="mt-6 bg-white border border-gray-200 rounded-lg p-6">
+              <h4 className="font-semibold text-gray-900 mb-4">Plain Text Version</h4>
+              <div className="bg-gray-50 border border-gray-200 rounded p-4 font-mono text-sm whitespace-pre-wrap">
+                {replaceMergeTags(form.body_text)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1682,7 +1791,7 @@ function CampaignPreviewStep({ form, recipientCount }) {
 }
 
 // Templates Tab Component
-function TemplatesTab({ templates, loading, onLoadTemplates }) {
+function TemplatesTab({ templates, loading, onLoadTemplates, onUseTemplate }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -1774,11 +1883,15 @@ function TemplatesTab({ templates, loading, onLoadTemplates }) {
                 {categoryTemplates.map((template) => (
                   <div
                     key={template.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setSelectedTemplate(template)}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-base font-medium text-gray-900 flex-1">{template.name}</h4>
+                      <h4 
+                        className="text-base font-medium text-gray-900 flex-1 cursor-pointer hover:text-gray-600"
+                        onClick={() => setSelectedTemplate(template)}
+                      >
+                        {template.name}
+                      </h4>
                       {template.is_active ? (
                         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 ml-2">
                           Active
@@ -1792,10 +1905,22 @@ function TemplatesTab({ templates, loading, onLoadTemplates }) {
                     {template.description && (
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{template.description}</p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full capitalize">
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full capitalize text-xs">
                         {template.category}
                       </span>
+                      {onUseTemplate && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onUseTemplate(template)
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Use Template
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
