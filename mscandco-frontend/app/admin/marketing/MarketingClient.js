@@ -633,16 +633,30 @@ function CampaignModal({ campaign, form, setForm, templates, onSave, onClose, on
   const loadFilterOptions = async () => {
     try {
       // Load roles
-      const rolesResponse = await fetch('/api/admin/roles/list')
+      const rolesResponse = await fetch('/api/admin/roles')
       if (rolesResponse.ok) {
         const rolesData = await rolesResponse.json()
         setAvailableRoles(rolesData.roles || [])
+      } else {
+        console.warn('Failed to load roles, using default roles')
+        // Set default roles as fallback
+        setAvailableRoles([
+          { id: '1', name: 'artist', display_name: 'Artist' },
+          { id: '2', name: 'labeladmin', display_name: 'Label Admin' },
+          { id: '3', name: 'distribution_partner', display_name: 'Distribution Partner' }
+        ])
       }
 
       // Load cities and countries from users (would need an API endpoint)
       // For now, we'll use placeholder arrays
     } catch (err) {
       console.error('Failed to load filter options:', err)
+      // Set default roles as fallback on error
+      setAvailableRoles([
+        { id: '1', name: 'artist', display_name: 'Artist' },
+        { id: '2', name: 'labeladmin', display_name: 'Label Admin' },
+        { id: '3', name: 'distribution_partner', display_name: 'Distribution Partner' }
+      ])
     }
   }
 
