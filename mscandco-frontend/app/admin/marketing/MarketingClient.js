@@ -184,7 +184,11 @@ export default function MarketingClient() {
       const response = await fetch('/api/admin/marketing/templates?activeOnly=true')
       if (response.ok) {
         const data = await response.json()
+        console.log('Templates API response:', data)
         setTemplates(data.templates || [])
+      } else {
+        const errorData = await response.json()
+        console.error('Templates API error:', response.status, errorData)
       }
     } catch (err) {
       console.error('Failed to load templates:', err)
