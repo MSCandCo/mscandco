@@ -1836,11 +1836,23 @@ function TemplatesTab({ templates, loading, onLoadTemplates }) {
                   <div>
                     <label className="text-sm font-medium text-gray-700">Available Variables</label>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {JSON.parse(selectedTemplate.variables || '[]').map((variable) => (
-                        <span key={variable} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">
-                          {`{{${variable}}}`}
-                        </span>
-                      ))}
+                      {(() => {
+                        try {
+                          const vars = Array.isArray(selectedTemplate.variables) 
+                            ? selectedTemplate.variables 
+                            : typeof selectedTemplate.variables === 'string'
+                            ? JSON.parse(selectedTemplate.variables || '[]')
+                            : []
+                          return vars.map((variable) => (
+                            <span key={variable} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">
+                              {`{{${variable}}}`}
+                            </span>
+                          ))
+                        } catch (e) {
+                          console.error('Error parsing template variables:', e)
+                          return <span className="text-sm text-gray-500">Error loading variables</span>
+                        }
+                      })()}
                     </div>
                   </div>
                 )}
