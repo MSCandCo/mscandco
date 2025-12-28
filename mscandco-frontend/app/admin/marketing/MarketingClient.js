@@ -625,7 +625,7 @@ export default function MarketingClient() {
 }
 
 // Campaign Modal Component - Full Featured
-function CampaignModal({ campaign, form, setForm, templates, onSave, onClose, onPreviewRecipients, recipientCount, previewRecipients, loading }) {
+function CampaignModal({ campaign, form, setForm, templates, segments, onSave, onClose, onPreviewRecipients, recipientCount, previewRecipients, loading, onClone }) {
   const [activeStep, setActiveStep] = useState('details') // details, content, filters, preview
   const [availableRoles, setAvailableRoles] = useState([])
   const [availableCities, setAvailableCities] = useState([])
@@ -759,6 +759,24 @@ function CampaignModal({ campaign, form, setForm, templates, onSave, onClose, on
               recipientCount={recipientCount}
               onPreviewRecipients={onPreviewRecipients}
               previewRecipients={previewRecipients}
+              segments={segments || []}
+              onSaveSegment={async (segmentData) => {
+                try {
+                  const response = await fetch('/api/admin/marketing/segments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(segmentData)
+                  })
+                  if (response.ok) {
+                    // Segment saved successfully, could reload segments if needed
+                    return true
+                  }
+                  return false
+                } catch (err) {
+                  console.error('Failed to save segment:', err)
+                  return false
+                }
+              }}
             />
           )}
 
