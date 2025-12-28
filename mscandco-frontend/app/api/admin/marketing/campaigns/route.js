@@ -115,15 +115,29 @@ export async function POST(request) {
       body_text,
       filters,
       template_id,
-      scheduled_for
+      scheduled_for,
+      status
     } = body
 
-    // Validate required fields
-    if (!name || !subject || !body_html || !filters) {
-      return NextResponse.json(
-        { error: 'Missing required fields', message: 'name, subject, body_html, and filters are required' },
-        { status: 400 }
-      )
+    // For drafts, allow minimal validation (just name is required)
+    const isDraft = status === 'draft' || (!scheduled_for && !status)
+    
+    if (!isDraft) {
+      // Validate required fields for non-drafts
+      if (!name || !subject || !body_html || !filters) {
+        return NextResponse.json(
+          { error: 'Missing required fields', message: 'name, subject, body_html, and filters are required' },
+          { status: 400 }
+        )
+      }
+    } else {
+      // For drafts, only name is required
+      if (!name) {
+        return NextResponse.json(
+          { error: 'Missing required fields', message: 'Campaign name is required' },
+          { status: 400 }
+        )
+      }
     }
 
     // Create campaign
@@ -131,14 +145,14 @@ export async function POST(request) {
       .from('email_campaigns')
       .insert({
         name,
-        description,
-        subject,
-        body_html,
-        body_text,
-        filters,
-        template_id,
+        description: description || null,
+        subject: subject || null,
+        body_html: body_html || null,
+        body_text: body_text || null,
+        filters: filters || {},
+        template_id: template_id || null,
         scheduled_for: scheduled_for || null,
-        status: scheduled_for ? 'scheduled' : 'draft',
+        status: status || (scheduled_for ? 'scheduled' : 'draft'),
         created_by: session.user.id
       })
       .select()

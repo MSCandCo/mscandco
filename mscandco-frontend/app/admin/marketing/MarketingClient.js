@@ -277,7 +277,7 @@ export default function MarketingClient() {
     setShowCampaignModal(true)
   }
 
-  const handleSaveCampaign = async () => {
+  const handleSaveCampaign = async (saveAsDraft = true) => {
     try {
       setLoading(true)
       setError(null)
@@ -288,10 +288,16 @@ export default function MarketingClient() {
 
       const method = editingCampaign ? 'PUT' : 'POST'
 
+      // Prepare campaign data with status
+      const campaignData = {
+        ...campaignForm,
+        status: saveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
+      }
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(campaignForm)
+        body: JSON.stringify(campaignData)
       })
 
       if (!response.ok) {
@@ -300,9 +306,16 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
-      setShowCampaignModal(false)
+      
+      if (saveAsDraft) {
+        // Don't close modal if saving as draft - allow user to continue editing
+        alert('Draft saved successfully! You can continue editing or close this window.')
+      } else {
+        setShowCampaignModal(false)
+      }
     } catch (err) {
       setError(err.message)
+      alert(`Error: ${err.message}`)
     } finally {
       setLoading(false)
     }
@@ -652,7 +665,7 @@ export default function MarketingClient() {
           setForm={setCampaignForm}
           templates={templates}
           segments={segments}
-          onSave={handleSaveCampaign}
+          onSave={(saveAsDraft) => handleSaveCampaign(saveAsDraft)}
           onClose={() => setShowCampaignModal(false)}
           onPreviewRecipients={handlePreviewRecipients}
           recipientCount={recipientCount}
