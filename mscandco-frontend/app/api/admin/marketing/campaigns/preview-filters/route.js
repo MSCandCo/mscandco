@@ -29,7 +29,7 @@ export async function POST(request) {
       .eq('id', session.user.id)
       .single()
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    if (!profile || !['super_admin', 'company_admin', 'marketing_admin'].includes(profile.role)) {
       return NextResponse.json(
         { error: 'Forbidden', message: 'Admin access required' },
         { status: 403 }
@@ -121,6 +121,46 @@ async function buildRecipientQuery(supabaseAdmin, filters, limit = 100) {
   if (filters.createdBefore) {
     query = query.lte('created_at', filters.createdBefore)
   }
+
+  // Filter by account age (days)
+  if (filters.accountAgeMin || filters.accountAgeMax) {
+    const now = new Date()
+    if (filters.accountAgeMin) {
+      const minDate = new Date(now)
+      minDate.setDate(minDate.getDate() - filters.accountAgeMin)
+      query = query.lte('created_at', minDate.toISOString())
+    }
+    if (filters.accountAgeMax) {
+      const maxDate = new Date(now)
+      maxDate.setDate(maxDate.getDate() - filters.accountAgeMax)
+      query = query.gte('created_at', maxDate.toISOString())
+    }
+  }
+
+  // Filter by subscription status (if available in user_profiles)
+  if (filters.subscriptionStatus && filters.subscriptionStatus.length > 0) {
+    // Note: This assumes subscription_status column exists. Adjust based on your schema.
+    query = query.in('subscription_status', filters.subscriptionStatus)
+  }
+
+  // Filter by account status (if available)
+  if (filters.accountStatus && filters.accountStatus.length > 0) {
+    query = query.in('account_status', filters.accountStatus)
+  }
+
+  // Filter by verification status
+  if (filters.isVerified !== null && filters.isVerified !== undefined) {
+    query = query.eq('is_verified', filters.isVerified)
+  }
+
+  // Filter by onboarding completion
+  if (filters.hasCompletedOnboarding !== null && filters.hasCompletedOnboarding !== undefined) {
+    query = query.eq('onboarding_completed', filters.hasCompletedOnboarding)
+  }
+
+  // Note: Additional filters like totalEarnings, releasesCount, emailEngagement, etc.
+  // would require joins with other tables (earnings, releases, email_campaign_recipients)
+  // These can be implemented as needed based on your specific schema
 
   if (limit) {
     query = query.limit(limit)
