@@ -22,12 +22,30 @@ export async function GET(request) {
     }
 
     // Check admin permissions
-    const supabaseAdmin = await createServiceRoleClient()
-    const { data: profile } = await supabaseAdmin
+    let supabaseAdmin
+    try {
+      supabaseAdmin = await createServiceRoleClient()
+    } catch (clientError) {
+      console.error('Failed to create service role client:', clientError)
+      return NextResponse.json(
+        { error: 'Server configuration error', details: clientError.message },
+        { status: 500 }
+      )
+    }
+
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
       .single()
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError)
+      return NextResponse.json(
+        { error: 'Failed to verify permissions', details: profileError.message },
+        { status: 500 }
+      )
+    }
 
     if (!profile || !['super_admin', 'company_admin', 'marketing_admin'].includes(profile.role)) {
       return NextResponse.json(
