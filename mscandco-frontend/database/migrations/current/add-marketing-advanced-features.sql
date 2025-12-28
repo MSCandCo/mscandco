@@ -391,6 +391,7 @@ GRANT SELECT ON campaign_template_variables TO authenticated;
 -- ===========================================
 
 ALTER TABLE audience_segments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage segments" ON audience_segments;
 CREATE POLICY "Service role can manage segments"
   ON audience_segments
   FOR ALL
@@ -398,6 +399,7 @@ CREATE POLICY "Service role can manage segments"
   USING (true);
 
 ALTER TABLE campaign_automations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage automations" ON campaign_automations;
 CREATE POLICY "Service role can manage automations"
   ON campaign_automations
   FOR ALL
@@ -405,6 +407,7 @@ CREATE POLICY "Service role can manage automations"
   USING (true);
 
 ALTER TABLE email_client_previews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage previews" ON email_client_previews;
 CREATE POLICY "Service role can manage previews"
   ON email_client_previews
   FOR ALL
@@ -412,6 +415,7 @@ CREATE POLICY "Service role can manage previews"
   USING (true);
 
 ALTER TABLE email_campaign_links ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage links" ON email_campaign_links;
 CREATE POLICY "Service role can manage links"
   ON email_campaign_links
   FOR ALL
@@ -419,6 +423,7 @@ CREATE POLICY "Service role can manage links"
   USING (true);
 
 ALTER TABLE email_link_clicks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage link clicks" ON email_link_clicks;
 CREATE POLICY "Service role can manage link clicks"
   ON email_link_clicks
   FOR ALL
@@ -426,6 +431,7 @@ CREATE POLICY "Service role can manage link clicks"
   USING (true);
 
 ALTER TABLE campaign_analytics_snapshots ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage analytics snapshots" ON campaign_analytics_snapshots;
 CREATE POLICY "Service role can manage analytics snapshots"
   ON campaign_analytics_snapshots
   FOR ALL
@@ -433,6 +439,7 @@ CREATE POLICY "Service role can manage analytics snapshots"
   USING (true);
 
 ALTER TABLE campaign_template_variables ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role can manage template variables" ON campaign_template_variables;
 CREATE POLICY "Service role can manage template variables"
   ON campaign_template_variables
   FOR ALL
