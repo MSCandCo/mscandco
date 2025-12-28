@@ -54,14 +54,15 @@ export async function GET(request) {
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category')
-    const activeOnly = searchParams.get('activeOnly') === 'true'
+    // Get query parameters
+    const url = new URL(request.url)
+    const category = url.searchParams.get('category')
+    const activeOnly = url.searchParams.get('activeOnly') === 'true'
 
+    // Build query
     let query = supabaseAdmin
       .from('marketing_email_templates')
       .select('*')
-      .order('name', { ascending: true })
 
     if (category) {
       query = query.eq('category', category)
@@ -71,13 +72,23 @@ export async function GET(request) {
       query = query.eq('is_active', true)
     }
 
+    query = query.order('name', { ascending: true })
+
+    // Execute query
     const { data: templates, error } = await query
 
     if (error) {
       console.error('Error fetching templates:', error)
       console.error('Error details:', JSON.stringify(error, null, 2))
+      // Return error with details in development
       return NextResponse.json(
-        { error: 'Failed to fetch templates', details: error.message, code: error.code },
+        { 
+          error: 'Failed to fetch templates', 
+          details: error.message, 
+          code: error.code,
+          hint: error.hint,
+          details_full: process.env.NODE_ENV === 'development' ? error : undefined
+        },
         { status: 500 }
       )
     }
