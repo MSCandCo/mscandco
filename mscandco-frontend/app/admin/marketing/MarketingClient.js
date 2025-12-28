@@ -5,7 +5,7 @@ import {
   Mail, Plus, Send, Edit2, Trash2, Eye, Filter, Users, TrendingUp,
   Clock, CheckCircle, XCircle, AlertCircle, BarChart3, FileText,
   Calendar, Target, Zap, Settings, Copy, RefreshCw, Search,
-  ChevronDown, ChevronUp, X, Save, Play, Pause, ExternalLink,
+  ChevronDown, ChevronUp, ChevronRight, X, Save, Play, Pause, ExternalLink,
   Download, Upload, Image as ImageIcon, Link as LinkIcon, Type,
   Layout, Palette, Code, EyeOff, Globe, UserCheck, MapPin,
   Building2, Music, Tag, DollarSign, Calendar as CalendarIcon,
@@ -67,6 +67,8 @@ export default function MarketingClient() {
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [validationErrors, setValidationErrors] = useState([])
+  const [showErrorModal, setShowErrorModal] = useState(false)
 
   // View state
   const [activeTab, setActiveTab] = useState('campaigns') // campaigns, templates, analytics, segments
@@ -281,10 +283,43 @@ export default function MarketingClient() {
     setShowCampaignModal(true)
   }
 
+  // Validate campaign form
+  const validateCampaignForm = () => {
+    const errors = []
+    const missingFields = []
+
+    if (!campaignForm.name || campaignForm.name.trim() === '') {
+      missingFields.push('Campaign Name')
+      errors.push({ field: 'name', message: 'Campaign name is required' })
+    }
+
+    if (!campaignForm.subject || campaignForm.subject.trim() === '') {
+      missingFields.push('Email Subject')
+      errors.push({ field: 'subject', message: 'Email subject is required' })
+    }
+
+    if (!campaignForm.body_html || campaignForm.body_html.trim() === '') {
+      missingFields.push('Email Content (HTML)')
+      errors.push({ field: 'body_html', message: 'Email HTML content is required' })
+    }
+
+    return { isValid: errors.length === 0, errors, missingFields }
+  }
+
   const handleSaveCampaign = async (saveAsDraft = true) => {
     try {
       setLoading(true)
       setError(null)
+      setValidationErrors([])
+
+      // Validate form before saving
+      const validation = validateCampaignForm()
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors)
+        setShowErrorModal(true)
+        setLoading(false)
+        return
+      }
 
       const url = editingCampaign
         ? `/api/admin/marketing/campaigns/${editingCampaign.id}`
@@ -319,7 +354,8 @@ export default function MarketingClient() {
       }
     } catch (err) {
       setError(err.message)
-      alert(`Error: ${err.message}`)
+      setValidationErrors([{ field: 'general', message: err.message }])
+      setShowErrorModal(true)
     } finally {
       setLoading(false)
     }
@@ -702,8 +738,87 @@ export default function MarketingClient() {
   )
 }
 
+// Validation Error Modal Component
+function ValidationErrorModal({ errors, onClose, onGoToField }) {
+  const fieldLabels = {
+    name: 'Campaign Name',
+    subject: 'Email Subject',
+    body_html: 'Email Content (HTML)'
+  }
+
+  const fieldSteps = {
+    name: 'details',
+    subject: 'details',
+    body_html: 'content'
+  }
+
+  if (!errors || errors.length === 0) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-lg max-w-md w-full shadow-xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header with branding */}
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 rounded-t-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Missing Required Fields</h3>
+              <p className="text-sm text-gray-300">Please complete the following fields to continue</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Error List */}
+        <div className="p-6">
+          <div className="space-y-3">
+            {errors.map((error, index) => (
+              <div 
+                key={index}
+                className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+                onClick={() => {
+                  if (fieldSteps[error.field] && onGoToField) {
+                    onGoToField(error.field)
+                  }
+                }}
+              >
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {fieldLabels[error.field] || error.field}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">{error.message}</p>
+                </div>
+                {fieldSteps[error.field] && (
+                  <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Campaign Modal Component - Full Featured
-function CampaignModal({ campaign, form, setForm, templates, segments, onSave, onClose, onPreviewRecipients, recipientCount, previewRecipients, loading, onClone }) {
+function CampaignModal({ campaign, form, setForm, templates, segments, onSave, onClose, onPreviewRecipients, recipientCount, previewRecipients, loading, onClone, validationErrors = [] }) {
   const [activeStep, setActiveStep] = useState('details') // details, content, filters, preview
   const [availableRoles, setAvailableRoles] = useState([])
   const [availableCities, setAvailableCities] = useState([])
@@ -832,6 +947,7 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
               setForm={setForm}
               templates={templates}
               onTemplateSelect={handleTemplateSelect}
+              validationErrors={validationErrors}
             />
           )}
 
@@ -936,7 +1052,10 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
 }
 
 // Campaign Details Step
-function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
+function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect, validationErrors = [] }) {
+  const hasNameError = validationErrors.some(e => e.field === 'name')
+  const hasSubjectError = validationErrors.some(e => e.field === 'subject')
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
@@ -944,15 +1063,22 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${hasNameError ? 'text-red-600' : 'text-gray-700'}`}>
               Campaign Name <span className="text-red-500">*</span>
+              {hasNameError && <span className="ml-2 text-xs text-red-600">(Required)</span>}
             </label>
             <Input
               value={form.name}
               onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
               placeholder="e.g., Welcome Email for New Artists"
-              className="w-full"
+              className={`w-full ${hasNameError ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
             />
+            {hasNameError && (
+              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Campaign name is required
+              </p>
+            )}
           </div>
 
           <div>
@@ -969,15 +1095,22 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${hasSubjectError ? 'text-red-600' : 'text-gray-700'}`}>
               Email Subject <span className="text-red-500">*</span>
+              {hasSubjectError && <span className="ml-2 text-xs text-red-600">(Required)</span>}
             </label>
             <Input
               value={form.subject}
               onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))}
               placeholder="e.g., Welcome to MSC & Co!"
-              className="w-full"
+              className={`w-full ${hasSubjectError ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
             />
+            {hasSubjectError && (
+              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Email subject is required
+              </p>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               Use merge tags like {'{{user_name}}'} for personalization
             </p>
@@ -1051,7 +1184,9 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
 }
 
 // Campaign Content Step
-function CampaignContentStep({ form, setForm }) {
+function CampaignContentStep({ form, setForm, validationErrors = [] }) {
+  const hasBodyHtmlError = validationErrors.some(e => e.field === 'body_html')
+  
   const mergeTags = [
     { tag: '{{user_name}}', label: 'User Name' },
     { tag: '{{user_email}}', label: 'User Email' },
@@ -1100,8 +1235,9 @@ function CampaignContentStep({ form, setForm }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className={`block text-sm font-medium mb-2 ${hasBodyHtmlError ? 'text-red-600' : 'text-gray-700'}`}>
           HTML Content <span className="text-red-500">*</span>
+          {hasBodyHtmlError && <span className="ml-2 text-xs text-red-600">(Required)</span>}
         </label>
         <textarea
           id="body_html_textarea"
@@ -1109,8 +1245,18 @@ function CampaignContentStep({ form, setForm }) {
           onChange={(e) => setForm(prev => ({ ...prev, body_html: e.target.value }))}
           placeholder="<html>...</html> or plain HTML content"
           rows={20}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 font-mono text-sm"
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 font-mono text-sm ${
+            hasBodyHtmlError 
+              ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+              : 'border-gray-300 focus:ring-gray-900'
+          }`}
         />
+        {hasBodyHtmlError && (
+          <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            Email HTML content is required
+          </p>
+        )}
         <p className="text-xs text-gray-500 mt-1">
           Enter HTML content for your email. Use merge tags for personalization.
         </p>
