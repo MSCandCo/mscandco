@@ -57,8 +57,9 @@ export async function GET(request) {
 
     if (error) {
       console.error('Error fetching templates:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
       return NextResponse.json(
-        { error: 'Failed to fetch templates', details: error.message },
+        { error: 'Failed to fetch templates', details: error.message, code: error.code },
         { status: 500 }
       )
     }
@@ -70,8 +71,9 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('Error in GET /api/admin/marketing/templates:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined },
       { status: 500 }
     )
   }
