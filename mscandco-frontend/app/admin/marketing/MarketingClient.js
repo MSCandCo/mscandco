@@ -69,9 +69,13 @@ export default function MarketingClient() {
   const [error, setError] = useState(null)
 
   // View state
-  const [activeTab, setActiveTab] = useState('campaigns') // campaigns, templates, analytics
+  const [activeTab, setActiveTab] = useState('campaigns') // campaigns, templates, analytics, segments
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Saved segments
+  const [segments, setSegments] = useState([])
+  const [loadingSegments, setLoadingSegments] = useState(false)
 
   // Campaign modal state
   const [showCampaignModal, setShowCampaignModal] = useState(false)
@@ -109,6 +113,22 @@ export default function MarketingClient() {
     avgOpenRate: 0,
     avgClickRate: 0
   })
+
+  // Load segments function
+  const loadSegments = async () => {
+    try {
+      setLoadingSegments(true)
+      const response = await fetch('/api/admin/marketing/segments?activeOnly=true')
+      if (response.ok) {
+        const data = await response.json()
+        setSegments(data.segments || [])
+      }
+    } catch (err) {
+      console.error('Failed to load segments:', err)
+    } finally {
+      setLoadingSegments(false)
+    }
+  }
 
   // Load data
   useEffect(() => {
@@ -170,21 +190,6 @@ export default function MarketingClient() {
       })
     } catch (err) {
       console.error('Failed to load stats:', err)
-    }
-  }
-
-  const loadSegments = async () => {
-    try {
-      setLoadingSegments(true)
-      const response = await fetch('/api/admin/marketing/segments?activeOnly=true')
-      if (response.ok) {
-        const data = await response.json()
-        setSegments(data.segments || [])
-      }
-    } catch (err) {
-      console.error('Failed to load segments:', err)
-    } finally {
-      setLoadingSegments(false)
     }
   }
 
