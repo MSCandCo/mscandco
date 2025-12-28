@@ -108,9 +108,20 @@ export async function PUT(request, { params }) {
     const { campaignId } = params
     const body = await request.json()
 
+    // Ensure status is preserved or set appropriately
+    const updateData = {
+      ...body,
+      updated_at: new Date().toISOString()
+    }
+
+    // If saving as draft, ensure status is draft
+    if (body.status === 'draft' || (!body.status && !body.scheduled_for)) {
+      updateData.status = 'draft'
+    }
+
     const { data: campaign, error } = await supabaseAdmin
       .from('email_campaigns')
-      .update(body)
+      .update(updateData)
       .eq('id', campaignId)
       .select()
       .single()
