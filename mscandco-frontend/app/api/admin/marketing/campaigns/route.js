@@ -29,7 +29,7 @@ export async function GET(request) {
       .eq('id', session.user.id)
       .single()
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    if (!profile || !['super_admin', 'company_admin', 'marketing_admin'].includes(profile.role)) {
       return NextResponse.json(
         { error: 'Forbidden', message: 'Admin access required' },
         { status: 403 }
@@ -99,7 +99,7 @@ export async function POST(request) {
       .eq('id', session.user.id)
       .single()
 
-    if (!profile || !['super_admin', 'company_admin'].includes(profile.role)) {
+    if (!profile || !['super_admin', 'company_admin', 'marketing_admin'].includes(profile.role)) {
       return NextResponse.json(
         { error: 'Forbidden', message: 'Admin access required' },
         { status: 403 }

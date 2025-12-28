@@ -637,30 +637,36 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
 
   const loadFilterOptions = async () => {
     try {
-      // Load roles
-      const rolesResponse = await fetch('/api/admin/roles')
+      // Load roles from the correct endpoint
+      const rolesResponse = await fetch('/api/admin/roles/list')
       if (rolesResponse.ok) {
         const rolesData = await rolesResponse.json()
-        setAvailableRoles(rolesData.roles || [])
+        // Handle response format: { success: true, roles: [...] }
+        const roles = rolesData.roles || rolesData.data || []
+        if (Array.isArray(roles) && roles.length > 0) {
+          // Map roles to include display_name (use name if display_name not available)
+          const formattedRoles = roles.map(role => ({
+            id: role.id,
+            name: role.name,
+            display_name: role.display_name || role.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          }))
+          setAvailableRoles(formattedRoles)
+        } else {
+          throw new Error('No roles returned')
+        }
       } else {
-        console.warn('Failed to load roles, using default roles')
-        // Set default roles as fallback
-        setAvailableRoles([
-          { id: '1', name: 'artist', display_name: 'Artist' },
-          { id: '2', name: 'labeladmin', display_name: 'Label Admin' },
-          { id: '3', name: 'distribution_partner', display_name: 'Distribution Partner' }
-        ])
+        throw new Error('Failed to fetch roles')
       }
-
-      // Load cities and countries from users (would need an API endpoint)
-      // For now, we'll use placeholder arrays
     } catch (err) {
-      console.error('Failed to load filter options:', err)
-      // Set default roles as fallback on error
+      console.warn('Failed to load roles, using default roles:', err)
+      // Set default roles as fallback
       setAvailableRoles([
         { id: '1', name: 'artist', display_name: 'Artist' },
         { id: '2', name: 'labeladmin', display_name: 'Label Admin' },
-        { id: '3', name: 'distribution_partner', display_name: 'Distribution Partner' }
+        { id: '3', name: 'distribution_partner', display_name: 'Distribution Partner' },
+        { id: '4', name: 'super_admin', display_name: 'Super Admin' },
+        { id: '5', name: 'company_admin', display_name: 'Company Admin' },
+        { id: '6', name: 'marketing_admin', display_name: 'Marketing Admin' }
       ])
     }
   }
@@ -1051,9 +1057,8 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
         <div className="flex items-center gap-2">
           {segments && segments.length > 0 && (
             <Select
-              value=""
               onValueChange={(segmentId) => {
-                const segment = segments.find(s => s.id === segmentId)
+                const segment = segments.find(s => s.id.toString() === segmentId)
                 if (segment) {
                   updateFilters('roles', segment.filters.roles || [])
                   updateFilters('cities', segment.filters.cities || [])
@@ -1072,7 +1077,7 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
               </SelectTrigger>
               <SelectContent>
                 {segments.map((segment) => (
-                  <SelectItem key={segment.id} value={segment.id}>
+                  <SelectItem key={segment.id} value={segment.id.toString()}>
                     {segment.name} (~{segment.estimated_count || 0} users)
                   </SelectItem>
                 ))}
