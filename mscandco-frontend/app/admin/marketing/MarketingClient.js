@@ -96,11 +96,31 @@ export default function MarketingClient() {
       cities: [],
       countries: [],
       subscriptionTiers: [],
+      subscriptionStatus: [], // active, cancelled, expired, trial, past_due
       genres: [],
       labels: [],
       lastLoginDays: null,
+      loginFrequency: null, // frequent, occasional, inactive
       createdAfter: null,
-      createdBefore: null
+      createdBefore: null,
+      accountAgeMin: null, // days
+      accountAgeMax: null, // days
+      totalEarningsMin: null,
+      totalEarningsMax: null,
+      releasesCountMin: null,
+      releasesCountMax: null,
+      accountStatus: [], // active, suspended, archived, pending_verification
+      isVerified: null, // true, false, null (all)
+      timezone: [],
+      hasCompletedOnboarding: null, // true, false, null (all)
+      emailEngagement: [], // opened_recently, clicked_recently, never_engaged
+      supportTicketCount: null, // min count
+      lastActivityDays: null, // days since last activity
+      labelSize: [], // solo, small, medium, large, enterprise
+      paymentMethod: null, // card, bank_transfer, etc
+      hasActiveSubscription: null, // true, false, null (all)
+      subscriptionRenewalDateFrom: null,
+      subscriptionRenewalDateTo: null
     },
     scheduled_for: null
   })
@@ -1234,6 +1254,169 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
         </div>
       </div>
 
+      {/* Subscription Status Filter */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <CheckCircle className="w-4 h-4 inline mr-2" />
+          Subscription Status
+        </label>
+        <p className="text-sm text-gray-500 mb-4">Filter by subscription status</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { value: 'active', label: 'Active' },
+            { value: 'cancelled', label: 'Cancelled' },
+            { value: 'expired', label: 'Expired' },
+            { value: 'trial', label: 'Trial' },
+            { value: 'past_due', label: 'Past Due' }
+          ].map((status) => (
+            <label key={status.value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.filters.subscriptionStatus?.includes(status.value) || false}
+                onChange={(e) => {
+                  const current = form.filters.subscriptionStatus || []
+                  const updated = e.target.checked
+                    ? [...current, status.value]
+                    : current.filter(s => s !== status.value)
+                  updateFilters('subscriptionStatus', updated)
+                }}
+                className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+              />
+              <span className="text-sm text-gray-700">{status.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Account Status Filter */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <UserCheck className="w-4 h-4 inline mr-2" />
+          Account Status
+        </label>
+        <p className="text-sm text-gray-500 mb-4">Filter by account status</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { value: 'active', label: 'Active' },
+            { value: 'suspended', label: 'Suspended' },
+            { value: 'archived', label: 'Archived' },
+            { value: 'pending_verification', label: 'Pending Verification' }
+          ].map((status) => (
+            <label key={status.value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.filters.accountStatus?.includes(status.value) || false}
+                onChange={(e) => {
+                  const current = form.filters.accountStatus || []
+                  const updated = e.target.checked
+                    ? [...current, status.value]
+                    : current.filter(s => s !== status.value)
+                  updateFilters('accountStatus', updated)
+                }}
+                className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+              />
+              <span className="text-sm text-gray-700">{status.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Financial Filters */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <DollarSign className="w-4 h-4 inline mr-2" />
+          Financial Filters
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Total Earnings (£)
+            </label>
+            <Input
+              type="number"
+              value={form.filters.totalEarningsMin || ''}
+              onChange={(e) => updateFilters('totalEarningsMin', e.target.value ? parseFloat(e.target.value) : null)}
+              placeholder="e.g., 100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Total Earnings (£)
+            </label>
+            <Input
+              type="number"
+              value={form.filters.totalEarningsMax || ''}
+              onChange={(e) => updateFilters('totalEarningsMax', e.target.value ? parseFloat(e.target.value) : null)}
+              placeholder="e.g., 10000"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Release Count Filter */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <Music className="w-4 h-4 inline mr-2" />
+          Release Count
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Releases
+            </label>
+            <Input
+              type="number"
+              value={form.filters.releasesCountMin || ''}
+              onChange={(e) => updateFilters('releasesCountMin', e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="e.g., 1"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Releases
+            </label>
+            <Input
+              type="number"
+              value={form.filters.releasesCountMax || ''}
+              onChange={(e) => updateFilters('releasesCountMax', e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="e.g., 50"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Account Age Filter */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <CalendarIcon className="w-4 h-4 inline mr-2" />
+          Account Age (Days)
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Age (days)
+            </label>
+            <Input
+              type="number"
+              value={form.filters.accountAgeMin || ''}
+              onChange={(e) => updateFilters('accountAgeMin', e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="e.g., 30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Age (days)
+            </label>
+            <Input
+              type="number"
+              value={form.filters.accountAgeMax || ''}
+              onChange={(e) => updateFilters('accountAgeMax', e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="e.g., 365"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Date Range Filters */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <label className="block text-sm font-semibold text-gray-900 mb-3">
@@ -1261,6 +1444,92 @@ function CampaignFiltersStep({ form, updateFilters, availableRoles, recipientCou
               onChange={(e) => updateFilters('createdBefore', e.target.value || null)}
             />
           </div>
+        </div>
+      </div>
+
+      {/* Verification Status */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <CheckCircle className="w-4 h-4 inline mr-2" />
+          Account Verification
+        </label>
+        <div className="flex items-center gap-4">
+          <Select
+            value={form.filters.isVerified === null ? 'all' : form.filters.isVerified ? 'verified' : 'unverified'}
+            onValueChange={(value) => {
+              if (value === 'all') updateFilters('isVerified', null)
+              else if (value === 'verified') updateFilters('isVerified', true)
+              else updateFilters('isVerified', false)
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Accounts</SelectItem>
+              <SelectItem value="verified">Verified Only</SelectItem>
+              <SelectItem value="unverified">Unverified Only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Onboarding Status */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <CheckCircle className="w-4 h-4 inline mr-2" />
+          Onboarding Status
+        </label>
+        <div className="flex items-center gap-4">
+          <Select
+            value={form.filters.hasCompletedOnboarding === null ? 'all' : form.filters.hasCompletedOnboarding ? 'completed' : 'incomplete'}
+            onValueChange={(value) => {
+              if (value === 'all') updateFilters('hasCompletedOnboarding', null)
+              else if (value === 'completed') updateFilters('hasCompletedOnboarding', true)
+              else updateFilters('hasCompletedOnboarding', false)
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Users</SelectItem>
+              <SelectItem value="completed">Completed Onboarding</SelectItem>
+              <SelectItem value="incomplete">Incomplete Onboarding</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Email Engagement */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <Mail className="w-4 h-4 inline mr-2" />
+          Email Engagement
+        </label>
+        <p className="text-sm text-gray-500 mb-4">Filter by previous email campaign engagement</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { value: 'opened_recently', label: 'Opened Recently' },
+            { value: 'clicked_recently', label: 'Clicked Recently' },
+            { value: 'never_engaged', label: 'Never Engaged' }
+          ].map((engagement) => (
+            <label key={engagement.value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.filters.emailEngagement?.includes(engagement.value) || false}
+                onChange={(e) => {
+                  const current = form.filters.emailEngagement || []
+                  const updated = e.target.checked
+                    ? [...current, engagement.value]
+                    : current.filter(e => e !== engagement.value)
+                  updateFilters('emailEngagement', updated)
+                }}
+                className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+              />
+              <span className="text-sm text-gray-700">{engagement.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 
