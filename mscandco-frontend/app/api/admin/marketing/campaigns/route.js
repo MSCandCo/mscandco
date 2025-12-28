@@ -43,7 +43,7 @@ export async function GET(request) {
       .from('email_campaigns')
       .select(`
         *,
-        creator:user_profiles!email_campaigns_created_by_fkey(id, email, display_name, first_name, last_name)
+        creator:user_profiles(id, email, display_name, first_name, last_name)
       `)
       .order('created_at', { ascending: false })
 
