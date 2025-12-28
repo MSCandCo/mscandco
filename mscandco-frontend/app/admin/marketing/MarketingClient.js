@@ -820,6 +820,14 @@ function ValidationErrorModal({ errors, onClose, onGoToField }) {
 // Campaign Modal Component - Full Featured
 function CampaignModal({ campaign, form, setForm, templates, segments, onSave, onClose, onPreviewRecipients, recipientCount, previewRecipients, loading, onClone, validationErrors = [] }) {
   const [activeStep, setActiveStep] = useState('details') // details, content, filters, preview
+  const [showErrorModal, setShowErrorModal] = useState(false)
+
+  // Show error modal when validation errors are present
+  useEffect(() => {
+    if (validationErrors && validationErrors.length > 0) {
+      setShowErrorModal(true)
+    }
+  }, [validationErrors])
   const [availableRoles, setAvailableRoles] = useState([])
   const [availableCities, setAvailableCities] = useState([])
   const [availableCountries, setAvailableCountries] = useState([])
