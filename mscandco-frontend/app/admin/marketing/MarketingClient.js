@@ -866,6 +866,11 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
               <span className="font-medium text-gray-900">{recipientCount.toLocaleString()}</span>
             )}{' '}
             {recipientCount === 1 ? 'recipient' : 'recipients'} will receive this campaign
+            {campaign && campaign.status === 'draft' && (
+              <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-200 text-gray-800">
+                Draft
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -874,10 +879,21 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
             >
               Cancel
             </button>
+            {/* Save Draft Button - Always visible */}
+            <button
+              onClick={() => {
+                onSave(true) // Save as draft
+              }}
+              disabled={loading}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Save Draft
+            </button>
             <button
               onClick={() => {
                 if (activeStep === 'preview') {
-                  onSave()
+                  onSave(false) // Save and close (ready to send)
                 } else {
                   const steps = ['details', 'content', 'filters', 'preview']
                   const currentIndex = steps.indexOf(activeStep)
@@ -889,7 +905,7 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
               disabled={loading}
               className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Saving...' : activeStep === 'preview' ? 'Save Campaign' : 'Next'}
+              {loading ? 'Saving...' : activeStep === 'preview' ? 'Save & Close' : 'Next'}
             </button>
           </div>
         </div>
