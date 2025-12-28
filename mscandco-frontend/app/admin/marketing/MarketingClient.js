@@ -9,7 +9,7 @@ import {
   Download, Upload, Image as ImageIcon, Link as LinkIcon, Type,
   Layout, Palette, Code, EyeOff, Globe, UserCheck, MapPin,
   Building2, Music, Tag, DollarSign, Calendar as CalendarIcon,
-  MousePointer
+  MousePointer, Shield, Award, Activity, CreditCard
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -227,11 +227,31 @@ export default function MarketingClient() {
         cities: [],
         countries: [],
         subscriptionTiers: [],
+        subscriptionStatus: [],
         genres: [],
         labels: [],
         lastLoginDays: null,
+        loginFrequency: null,
         createdAfter: null,
-        createdBefore: null
+        createdBefore: null,
+        accountAgeMin: null,
+        accountAgeMax: null,
+        totalEarningsMin: null,
+        totalEarningsMax: null,
+        releasesCountMin: null,
+        releasesCountMax: null,
+        accountStatus: [],
+        isVerified: null,
+        timezone: [],
+        hasCompletedOnboarding: null,
+        emailEngagement: [],
+        supportTicketCount: null,
+        lastActivityDays: null,
+        labelSize: [],
+        paymentMethod: null,
+        hasActiveSubscription: null,
+        subscriptionRenewalDateFrom: null,
+        subscriptionRenewalDateTo: null
       },
       scheduled_for: null
     })
