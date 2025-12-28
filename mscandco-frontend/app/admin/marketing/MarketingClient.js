@@ -682,15 +682,22 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
   }
 
   const handleTemplateSelect = (templateId) => {
-    const template = templates.find(t => t.id === templateId)
-    if (template) {
+    if (templateId === 'none') {
       setForm(prev => ({
         ...prev,
-        template_id: templateId,
-        subject: template.subject_template,
-        body_html: template.body_html_template,
-        body_text: template.body_text_template || ''
+        template_id: null
       }))
+    } else {
+      const template = templates.find(t => t.id.toString() === templateId)
+      if (template) {
+        setForm(prev => ({
+          ...prev,
+          template_id: templateId,
+          subject: template.subject_template,
+          body_html: template.body_html_template,
+          body_text: template.body_text_template || ''
+        }))
+      }
     }
   }
 
@@ -886,16 +893,16 @@ function CampaignDetailsStep({ form, setForm, templates, onTemplateSelect }) {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Template (Optional)</h3>
         <Select
-          value={form.template_id || ''}
+          value={form.template_id ? form.template_id.toString() : 'none'}
           onValueChange={onTemplateSelect}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a template (optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No template (Start from scratch)</SelectItem>
+            <SelectItem value="none">No template (Start from scratch)</SelectItem>
             {templates.map((template) => (
-              <SelectItem key={template.id} value={template.id}>
+              <SelectItem key={template.id} value={template.id.toString()}>
                 {template.name} {template.category && `(${template.category})`}
               </SelectItem>
             ))}
