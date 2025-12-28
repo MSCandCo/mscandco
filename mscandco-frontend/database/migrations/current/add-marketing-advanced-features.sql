@@ -354,11 +354,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_audience_segments_timestamp ON audience_segments;
 CREATE TRIGGER update_audience_segments_timestamp
   BEFORE UPDATE ON audience_segments
   FOR EACH ROW
   EXECUTE FUNCTION update_audience_segments_updated_at();
 
+DROP TRIGGER IF EXISTS update_campaign_automations_timestamp ON campaign_automations;
 CREATE TRIGGER update_campaign_automations_timestamp
   BEFORE UPDATE ON campaign_automations
   FOR EACH ROW
