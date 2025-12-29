@@ -41,7 +41,6 @@ export default async function RegisterPage() {
     if (settingError) {
       if (settingError.code === 'PGRST116') {
         // No setting found - default to enabled
-        console.log('No registration setting found, defaulting to enabled');
       } else {
         console.error('Error checking registration status:', settingError);
         // Fail open on error - allow registration but log it
@@ -65,25 +64,17 @@ export default async function RegisterPage() {
         registrationEnabled = strValue === 'true' || strValue === '1';
       }
 
-      console.log('Registration check (server):', {
-        rawValue: value,
-        valueType: typeof value,
-        normalized: registrationEnabled,
-        settingExists: !!setting
-      });
+      // Registration status checked
 
       // Redirect BEFORE rendering if disabled
       if (!registrationEnabled) {
-        console.log('Registration disabled, redirecting to /registration-closed');
         redirect('/registration-closed')
-      } else {
-        console.log('Registration enabled, showing registration form');
       }
     }
   } catch (error) {
     console.error('Error checking registration status:', error);
     // Fail open on error - allow registration
-    console.log('Failing open due to error, allowing registration');
+    // Failing open due to error, allowing registration
   }
 
   // Show registration page only if we get here (registration enabled)

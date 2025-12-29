@@ -717,17 +717,8 @@ export default function ReleasesClient({ user: userProp }) {
     return <PageLoading message="Loading your releases..." />;
   }
 
-  // Role check temporarily disabled - TODO: Fix role system
-  if (false && (!user || userRole !== 'artist')) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-xl font-semibold text-gray-900">Access Denied</h1>
-          <p className="text-gray-600">You must be logged in as an artist to view this page.</p>
-        </div>
-      </div>
-    );
-  }
+  // Authorization is handled by server-side page.js component using userHasPermission
+  // No need for client-side role check as server already validates access
 
   return (
     <SubscriptionGate

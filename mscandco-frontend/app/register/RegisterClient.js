@@ -44,7 +44,6 @@ export default function RegisterClient() {
                                    String(statusData.registration_enabled).toLowerCase() === 'true'
         
         if (!registrationEnabled && !cancelled) {
-          console.log('Registration disabled (client-side check on mount), redirecting to /registration-closed')
           // Use replace to avoid adding to history
           window.location.replace('/registration-closed')
           return
@@ -110,13 +109,11 @@ export default function RegisterClient() {
                                  String(statusData.registration_enabled).toLowerCase() === 'true'
       
       if (!registrationEnabled) {
-        console.log('Registration disabled (client check), redirecting to /registration-closed')
         // Redirect to registration closed page
         window.location.href = '/registration-closed'
         return
       }
 
-      console.log('🔄 Starting registration for:', email, 'Role:', role)
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -129,7 +126,6 @@ export default function RegisterClient() {
         },
       })
 
-      console.log('📊 Registration response:', { data, error })
 
       if (error) {
         console.error('❌ Registration error:', error)
@@ -139,7 +135,6 @@ export default function RegisterClient() {
       }
 
       if (data.user) {
-        console.log('✅ User created successfully:', data.user.id)
         
         // Wait a moment for the trigger to complete
         await new Promise(resolve => setTimeout(resolve, 1000))
@@ -155,7 +150,6 @@ export default function RegisterClient() {
           console.error('⚠️ Profile verification failed:', profileError)
           // Don't fail registration, just log it
         } else {
-          console.log('✅ Profile verified:', profile)
         }
         
         // Show success message

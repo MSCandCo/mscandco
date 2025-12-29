@@ -186,7 +186,6 @@ export default function MarketingClient() {
       const response = await fetch('/api/admin/marketing/templates?activeOnly=true')
       if (response.ok) {
         const data = await response.json()
-        console.log('Templates API response:', data)
         setTemplates(data.templates || [])
       } else {
         const errorData = await response.json()
@@ -722,11 +721,16 @@ export default function MarketingClient() {
           templates={templates}
           segments={segments}
           onSave={(saveAsDraft) => handleSaveCampaign(saveAsDraft)}
-          onClose={() => setShowCampaignModal(false)}
+          onClose={() => {
+            setShowCampaignModal(false)
+            setValidationErrors([])
+            setShowErrorModal(false)
+          }}
           onPreviewRecipients={handlePreviewRecipients}
           recipientCount={recipientCount}
           previewRecipients={previewRecipients}
           loading={loading}
+          validationErrors={validationErrors}
           onClone={() => {
             if (editingCampaign) {
               handleCloneCampaign(editingCampaign.id)
@@ -963,6 +967,7 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
             <CampaignContentStep
               form={form}
               setForm={setForm}
+              validationErrors={validationErrors}
             />
           )}
 
@@ -1055,6 +1060,25 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
           </div>
         </div>
       </div>
+
+      {/* Validation Error Modal inside Campaign Modal */}
+      {showErrorModal && validationErrors.length > 0 && (
+        <ValidationErrorModal
+          errors={validationErrors}
+          onClose={() => {
+            setShowErrorModal(false)
+          }}
+          onGoToField={(fieldName) => {
+            setShowErrorModal(false)
+            // Navigate to appropriate step
+            if (fieldName === 'name' || fieldName === 'subject') {
+              setActiveStep('details')
+            } else if (fieldName === 'body_html') {
+              setActiveStep('content')
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -1827,6 +1851,7 @@ function CampaignPreviewStep({ form, recipientCount, templates }) {
     user_name: 'John Doe',
     user_email: 'john.doe@example.com',
     platform_name: 'MSC & Co',
+    base_url: typeof window !== 'undefined' ? window.location.origin : 'https://staging.mscandco.com',
     dashboard_url: 'https://staging.mscandco.com/dashboard',
     login_url: 'https://staging.mscandco.com/login',
     unsubscribe_url: 'https://staging.mscandco.com/unsubscribe',
