@@ -357,6 +357,19 @@ export default function MarketingClient() {
         status: actualSaveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
       }
 
+      // Debug log to see what we're sending
+      console.log('Saving campaign:', {
+        saveAsDraft,
+        actualSaveAsDraft,
+        status: campaignData.status,
+        hasName: !!campaignData.name,
+        hasSubject: !!campaignData.subject,
+        hasBodyHtml: !!campaignData.body_html,
+        hasFilters: !!campaignData.filters,
+        method,
+        url
+      })
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
