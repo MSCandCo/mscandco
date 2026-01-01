@@ -11,6 +11,7 @@ import {
   Building2, Music, Tag, DollarSign, Calendar as CalendarIcon,
   MousePointer, Shield, Award, Activity, CreditCard
 } from 'lucide-react'
+import ConfirmationModal from '@/components/shared/ConfirmationModal'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -84,6 +85,12 @@ export default function MarketingClient() {
   const [editingCampaign, setEditingCampaign] = useState(null)
   const [previewRecipients, setPreviewRecipients] = useState(null)
   const [recipientCount, setRecipientCount] = useState(0)
+  
+  // Confirmation modals state
+  const [showSendConfirm, setShowSendConfirm] = useState(false)
+  const [campaignToSend, setCampaignToSend] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [campaignToDelete, setCampaignToDelete] = useState(null)
 
   // Campaign form state
   const [campaignForm, setCampaignForm] = useState({
@@ -438,14 +445,19 @@ export default function MarketingClient() {
     }
   }
 
-  const handleSendCampaign = async (campaignId) => {
-    if (!confirm('Are you sure you want to send this campaign? This action cannot be undone.')) {
-      return
-    }
+  const handleSendCampaign = (campaignId) => {
+    setCampaignToSend(campaignId)
+    setShowSendConfirm(true)
+  }
+
+  const confirmSendCampaign = async () => {
+    if (!campaignToSend) return
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/admin/marketing/campaigns/${campaignId}/send`, {
+      setShowSendConfirm(false)
+      
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignToSend}/send`, {
         method: 'POST'
       })
 
@@ -455,11 +467,47 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
-      alert('Campaign sent successfully!')
+      setCampaignToSend(null)
     } catch (err) {
-      alert(`Error sending campaign: ${err.message}`)
+      setError(err.message)
+      setValidationErrors([{ field: 'general', message: err.message }])
+      setShowErrorModal(true)
     } finally {
       setLoading(false)
+      setCampaignToSend(null)
+    }
+  }
+
+  const handleDeleteCampaign = (campaignId) => {
+    setCampaignToDelete(campaignId)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDeleteCampaign = async () => {
+    if (!campaignToDelete) return
+
+    try {
+      setLoading(true)
+      setShowDeleteConfirm(false)
+      
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignToDelete}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete campaign')
+      }
+
+      await loadCampaigns()
+      setCampaignToDelete(null)
+    } catch (err) {
+      setError(err.message)
+      setValidationErrors([{ field: 'general', message: err.message }])
+      setShowErrorModal(true)
+    } finally {
+      setLoading(false)
+      setCampaignToDelete(null)
     }
   }
 
@@ -722,12 +770,14 @@ export default function MarketingClient() {
                               <button
                                 onClick={() => handleEditCampaign(campaign)}
                                 className="text-blue-600 hover:text-blue-900"
+                                title="Edit"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleSendCampaign(campaign.id)}
                                 className="text-green-600 hover:text-green-900"
+                                title="Send Campaign"
                               >
                                 <Send className="w-4 h-4" />
                               </button>
@@ -736,8 +786,16 @@ export default function MarketingClient() {
                           <button
                             onClick={() => handleEditCampaign(campaign)}
                             className="text-gray-600 hover:text-gray-900"
+                            title="View"
                           >
                             <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCampaign(campaign.id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete Campaign"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -816,6 +874,38 @@ export default function MarketingClient() {
           }}
         />
       )}
+
+      {/* Send Campaign Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showSendConfirm}
+        onClose={() => {
+          setShowSendConfirm(false)
+          setCampaignToSend(null)
+        }}
+        onConfirm={confirmSendCampaign}
+        title="Send Campaign"
+        message="Are you sure you want to send this campaign? This action cannot be undone."
+        confirmText="Send Campaign"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={loading}
+      />
+
+      {/* Delete Campaign Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false)
+          setCampaignToDelete(null)
+        }}
+        onConfirm={confirmDeleteCampaign}
+        title="Delete Campaign"
+        message="Are you sure you want to delete this campaign? This action cannot be undone and all campaign data will be permanently removed."
+        confirmText="Delete Campaign"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={loading}
+      />
     </div>
   )
 }
