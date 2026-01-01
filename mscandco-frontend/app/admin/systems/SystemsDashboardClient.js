@@ -45,22 +45,25 @@ export default function SystemsDashboardClient() {
       if (result.status === 'fulfilled' && result.value.ok) {
         const data = await result.value.json()
         // If configured is explicitly false, it's not configured (not an error)
-        // If configured is true or undefined but there's an error field, it's an actual error
+        // Only set error: true if configured is true/undefined AND there's an error field
         setServices(prev => ({ 
           ...prev, 
           [serviceKey]: { 
             loading: false, 
             ...data,
-            // Only set error: true if there's an actual error (not just not configured)
-            error: data.error && data.configured !== false ? true : false
+            // Clear error flag if configured is false (not configured, not an error)
+            error: data.configured === false ? false : (data.error ? true : false)
           } 
         }))
       } else if (result.status === 'fulfilled' && !result.value.ok) {
         // HTTP error - try to parse response to see if it's "not configured" or actual error
         try {
           const errorData = await result.value.json()
-          // If the response says "not configured", it's not an error
-          if (errorData.configured === false || errorData.message?.toLowerCase().includes('not configured')) {
+          // If the response says "not configured" OR configured: false, it's not an error
+          const isNotConfigured = errorData.configured === false || 
+                                 errorData.message?.toLowerCase().includes('not configured')
+          
+          if (isNotConfigured) {
             setServices(prev => ({ 
               ...prev, 
               [serviceKey]: { 
@@ -71,26 +74,32 @@ export default function SystemsDashboardClient() {
               } 
             }))
           } else {
-            // Actual error
+            // Actual error (401, 403, 500, etc.)
             setServices(prev => ({ 
               ...prev, 
               [serviceKey]: { 
                 loading: false, 
                 configured: false, 
                 error: true,
-                message: errorData.message || 'Service error'
+                message: errorData.error || errorData.message || `HTTP ${result.value.status} error`
               } 
             }))
           }
         } catch {
-          // Can't parse error - treat as actual error
+          // Can't parse error - check status code
+          // 401/403 are permission errors (real errors), others might be config issues
+          const status = result.value.status
+          const isPermissionError = status === 401 || status === 403
+          
           setServices(prev => ({ 
             ...prev, 
             [serviceKey]: { 
               loading: false, 
               configured: false, 
-              error: true,
-              message: `HTTP ${result.value.status} error`
+              error: isPermissionError, // Permission errors are real errors
+              message: isPermissionError 
+                ? `Permission denied (HTTP ${status})`
+                : `HTTP ${status} error`
             } 
           }))
         }
