@@ -141,25 +141,40 @@ export async function POST(request) {
     }
 
     // Create campaign
+    // Debug: Log what we're about to insert
+    const insertData = {
+      name,
+      description: description || null,
+      subject: subject || null,
+      body_html: body_html || null,
+      body_text: body_text || null,
+      filters: filters || {},
+      template_id: template_id || null,
+      scheduled_for: scheduled_for || null,
+      status: status || (scheduled_for ? 'scheduled' : 'draft'),
+      created_by: session.user.id
+    }
+    
+    console.log('Attempting to create campaign with service role client:', {
+      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      insertDataKeys: Object.keys(insertData),
+      status: insertData.status
+    })
+    
     const { data: campaign, error } = await supabaseAdmin
       .from('email_campaigns')
-      .insert({
-        name,
-        description: description || null,
-        subject: subject || null,
-        body_html: body_html || null,
-        body_text: body_text || null,
-        filters: filters || {},
-        template_id: template_id || null,
-        scheduled_for: scheduled_for || null,
-        status: status || (scheduled_for ? 'scheduled' : 'draft'),
-        created_by: session.user.id
-      })
+      .insert(insertData)
       .select()
       .single()
 
     if (error) {
-      console.error('Error creating campaign:', error)
+      console.error('Error creating campaign:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+      })
       return NextResponse.json(
         { error: 'Failed to create campaign', details: error.message },
         { status: 500 }
