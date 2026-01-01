@@ -40,45 +40,80 @@ export default function SystemsDashboardClient() {
       fetch('/api/admin/systems/realtime-stats'),
     ])
 
-    // Process Sentry
-    if (sentryRes.status === 'fulfilled' && sentryRes.value.ok) {
-      const data = await sentryRes.value.json()
-      setServices(prev => ({ ...prev, sentry: { loading: false, ...data } }))
-    } else {
-      setServices(prev => ({ ...prev, sentry: { loading: false, configured: false, error: true } }))
+    // Helper function to process service response
+    const processServiceResponse = async (result, serviceKey) => {
+      if (result.status === 'fulfilled' && result.value.ok) {
+        const data = await result.value.json()
+        // If configured is explicitly false, it's not configured (not an error)
+        // If configured is true or undefined but there's an error field, it's an actual error
+        setServices(prev => ({ 
+          ...prev, 
+          [serviceKey]: { 
+            loading: false, 
+            ...data,
+            // Only set error: true if there's an actual error (not just not configured)
+            error: data.error && data.configured !== false ? true : false
+          } 
+        }))
+      } else if (result.status === 'fulfilled' && !result.value.ok) {
+        // HTTP error - try to parse response to see if it's "not configured" or actual error
+        try {
+          const errorData = await result.value.json()
+          // If the response says "not configured", it's not an error
+          if (errorData.configured === false || errorData.message?.toLowerCase().includes('not configured')) {
+            setServices(prev => ({ 
+              ...prev, 
+              [serviceKey]: { 
+                loading: false, 
+                configured: false, 
+                error: false,
+                message: errorData.message || 'Service not configured'
+              } 
+            }))
+          } else {
+            // Actual error
+            setServices(prev => ({ 
+              ...prev, 
+              [serviceKey]: { 
+                loading: false, 
+                configured: false, 
+                error: true,
+                message: errorData.message || 'Service error'
+              } 
+            }))
+          }
+        } catch {
+          // Can't parse error - treat as actual error
+          setServices(prev => ({ 
+            ...prev, 
+            [serviceKey]: { 
+              loading: false, 
+              configured: false, 
+              error: true,
+              message: `HTTP ${result.value.status} error`
+            } 
+          }))
+        }
+      } else {
+        // Network error or promise rejection - actual error
+        setServices(prev => ({ 
+          ...prev, 
+          [serviceKey]: { 
+            loading: false, 
+            configured: false, 
+            error: true,
+            message: 'Connection error'
+          } 
+        }))
+      }
     }
 
-    // Process Redis
-    if (redisRes.status === 'fulfilled' && redisRes.value.ok) {
-      const data = await redisRes.value.json()
-      setServices(prev => ({ ...prev, redis: { loading: false, ...data } }))
-    } else {
-      setServices(prev => ({ ...prev, redis: { loading: false, configured: false, error: true } }))
-    }
-
-    // Process PostHog
-    if (posthogRes.status === 'fulfilled' && posthogRes.value.ok) {
-      const data = await posthogRes.value.json()
-      setServices(prev => ({ ...prev, posthog: { loading: false, ...data } }))
-    } else {
-      setServices(prev => ({ ...prev, posthog: { loading: false, configured: false, error: true } }))
-    }
-
-    // Process Inngest
-    if (inngestRes.status === 'fulfilled' && inngestRes.value.ok) {
-      const data = await inngestRes.value.json()
-      setServices(prev => ({ ...prev, inngest: { loading: false, ...data } }))
-    } else {
-      setServices(prev => ({ ...prev, inngest: { loading: false, configured: false, error: true } }))
-    }
-
-    // Process Realtime
-    if (realtimeRes.status === 'fulfilled' && realtimeRes.value.ok) {
-      const data = await realtimeRes.value.json()
-      setServices(prev => ({ ...prev, realtime: { loading: false, ...data } }))
-    } else {
-      setServices(prev => ({ ...prev, realtime: { loading: false, configured: false, error: true } }))
-    }
+    // Process all services
+    await processServiceResponse(sentryRes, 'sentry')
+    await processServiceResponse(redisRes, 'redis')
+    await processServiceResponse(posthogRes, 'posthog')
+    await processServiceResponse(inngestRes, 'inngest')
+    await processServiceResponse(realtimeRes, 'realtime')
 
     setLoading(false)
   }
@@ -234,7 +269,10 @@ export default function SystemsDashboardClient() {
 
               {!service.configured && !service.loading && (
                 <div className="text-xs text-gray-600 mb-4">
-                  {service.message || 'Service not configured'}
+                  {service.error 
+                    ? (service.message || 'Service error occurred')
+                    : (service.message || 'Service not configured')
+                  }
                 </div>
               )}
 
