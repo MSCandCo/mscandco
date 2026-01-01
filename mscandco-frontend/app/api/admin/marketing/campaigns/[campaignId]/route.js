@@ -150,7 +150,7 @@ export async function PUT(request, { params }) {
 
 /**
  * DELETE /api/admin/marketing/campaigns/[campaignId]
- * Delete a campaign
+ * Archive a campaign (soft delete)
  */
 export async function DELETE(request, { params }) {
   try {
@@ -181,22 +181,30 @@ export async function DELETE(request, { params }) {
 
     const { campaignId } = params
 
-    const { error } = await supabaseAdmin
+    // Archive the campaign instead of deleting
+    const { data: campaign, error } = await supabaseAdmin
       .from('email_campaigns')
-      .delete()
+      .update({
+        is_archived: true,
+        archived_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', campaignId)
+      .select()
+      .single()
 
     if (error) {
-      console.error('Error deleting campaign:', error)
+      console.error('Error archiving campaign:', error)
       return NextResponse.json(
-        { error: 'Failed to delete campaign', details: error.message },
+        { error: 'Failed to archive campaign', details: error.message },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Campaign deleted successfully'
+      message: 'Campaign archived successfully',
+      campaign
     })
 
   } catch (error) {

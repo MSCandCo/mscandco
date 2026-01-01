@@ -38,6 +38,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const archived = searchParams.get('archived') // 'true' to show archived, 'false' or undefined to show active
 
     let query = supabaseAdmin
       .from('email_campaigns')
@@ -46,6 +47,14 @@ export async function GET(request) {
         creator:user_profiles(id, email, display_name, first_name, last_name)
       `)
       .order('created_at', { ascending: false })
+
+    // Filter by archived status
+    if (archived === 'true') {
+      query = query.eq('is_archived', true)
+    } else {
+      // Default: show only non-archived campaigns
+      query = query.eq('is_archived', false)
+    }
 
     if (status && status !== 'all') {
       query = query.eq('status', status)

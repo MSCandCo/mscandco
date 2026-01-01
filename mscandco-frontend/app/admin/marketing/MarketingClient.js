@@ -72,9 +72,10 @@ export default function MarketingClient() {
   const [showErrorModal, setShowErrorModal] = useState(false)
 
   // View state
-  const [activeTab, setActiveTab] = useState('campaigns') // campaigns, templates, analytics, segments
+  const [activeTab, setActiveTab] = useState('campaigns') // campaigns, archived, templates, analytics, segments
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
 
   // Saved segments
   const [segments, setSegments] = useState([])
@@ -167,13 +168,15 @@ export default function MarketingClient() {
     if (activeTab === 'segments') {
       loadSegments()
     }
-  }, [statusFilter, activeTab])
+  }, [statusFilter, activeTab, showArchived])
 
   const loadCampaigns = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.append('status', statusFilter)
+      // Add archived parameter based on active tab
+      params.append('archived', showArchived ? 'true' : 'false')
 
       const response = await fetch(`/api/admin/marketing/campaigns?${params}`)
       if (response.ok) {
@@ -478,12 +481,12 @@ export default function MarketingClient() {
     }
   }
 
-  const handleDeleteCampaign = (campaignId) => {
+  const handleArchiveCampaign = (campaignId) => {
     setCampaignToDelete(campaignId)
     setShowDeleteConfirm(true)
   }
 
-  const confirmDeleteCampaign = async () => {
+  const confirmArchiveCampaign = async () => {
     if (!campaignToDelete) return
 
     try {
@@ -496,7 +499,7 @@ export default function MarketingClient() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to delete campaign')
+        throw new Error(data.error || 'Failed to archive campaign')
       }
 
       await loadCampaigns()
@@ -624,9 +627,12 @@ export default function MarketingClient() {
         {/* Tabs */}
         <div className="flex items-center gap-4 border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('campaigns')}
+            onClick={() => {
+              setActiveTab('campaigns')
+              setShowArchived(false)
+            }}
             className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-              activeTab === 'campaigns'
+              activeTab === 'campaigns' && !showArchived
                 ? 'border-gray-900 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
@@ -634,7 +640,23 @@ export default function MarketingClient() {
             Campaigns
           </button>
           <button
-            onClick={() => setActiveTab('templates')}
+            onClick={() => {
+              setActiveTab('campaigns')
+              setShowArchived(true)
+            }}
+            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+              activeTab === 'campaigns' && showArchived
+                ? 'border-gray-900 text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Archived
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('templates')
+              setShowArchived(false)
+            }}
             className={`px-4 py-2 font-medium border-b-2 transition-colors ${
               activeTab === 'templates'
                 ? 'border-gray-900 text-gray-900'
@@ -644,7 +666,10 @@ export default function MarketingClient() {
             Templates
           </button>
           <button
-            onClick={() => setActiveTab('analytics')}
+            onClick={() => {
+              setActiveTab('analytics')
+              setShowArchived(false)
+            }}
             className={`px-4 py-2 font-medium border-b-2 transition-colors ${
               activeTab === 'analytics'
                 ? 'border-gray-900 text-gray-900'
@@ -696,8 +721,14 @@ export default function MarketingClient() {
           ) : filteredCampaigns.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
               <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
-              <p className="text-gray-500 mb-6">Get started by creating your first email campaign</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {showArchived ? 'No archived campaigns' : 'No campaigns found'}
+              </h3>
+              <p className="text-gray-500 mb-6">
+                {showArchived 
+                  ? 'Archived campaigns will appear here when you archive them from the main campaigns list.'
+                  : 'Get started by creating your first email campaign'}
+              </p>
               <button
                 onClick={handleCreateCampaign}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
@@ -790,13 +821,15 @@ export default function MarketingClient() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleDeleteCampaign(campaign.id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete Campaign"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {!showArchived && (
+                            <button
+                              onClick={() => handleArchiveCampaign(campaign.id)}
+                              className="text-orange-600 hover:text-orange-900"
+                              title="Archive Campaign"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -891,17 +924,17 @@ export default function MarketingClient() {
         isLoading={loading}
       />
 
-      {/* Delete Campaign Confirmation Modal */}
+      {/* Archive Campaign Confirmation Modal */}
       <ConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={() => {
           setShowDeleteConfirm(false)
           setCampaignToDelete(null)
         }}
-        onConfirm={confirmDeleteCampaign}
-        title="Delete Campaign"
-        message="Are you sure you want to delete this campaign? This action cannot be undone and all campaign data will be permanently removed."
-        confirmText="Delete Campaign"
+        onConfirm={confirmArchiveCampaign}
+        title="Archive Campaign"
+        message="Are you sure you want to archive this campaign? It will be moved to the Archived tab and can be viewed later. Campaign data will be preserved."
+        confirmText="Archive Campaign"
         cancelText="Cancel"
         type="danger"
         isLoading={loading}
