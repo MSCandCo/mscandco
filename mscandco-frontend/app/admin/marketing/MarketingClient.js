@@ -349,12 +349,35 @@ export default function MarketingClient() {
 
       const method = editingCampaign ? 'PUT' : 'POST'
 
+      // Calculate recipient count before saving (even for drafts)
+      let calculatedRecipientCount = recipientCount
+      if (campaignForm.filters) {
+        try {
+          const countResponse = await fetch('/api/admin/marketing/campaigns/preview-filters', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filters: campaignForm.filters,
+              limit: 1 // We only need the count
+            })
+          })
+          if (countResponse.ok) {
+            const countData = await countResponse.json()
+            calculatedRecipientCount = countData.totalCount || 0
+          }
+        } catch (err) {
+          console.warn('Failed to calculate recipient count, using existing count:', err)
+          // Use existing recipientCount if calculation fails
+        }
+      }
+
       // Prepare campaign data with status
       // Ensure filters is always an object (required by API)
       const campaignData = {
         ...campaignForm,
         filters: campaignForm.filters || {},
-        status: actualSaveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
+        status: actualSaveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft'),
+        total_recipients: calculatedRecipientCount
       }
 
       // Debug log to see what we're sending
@@ -366,6 +389,7 @@ export default function MarketingClient() {
         hasSubject: !!campaignData.subject,
         hasBodyHtml: !!campaignData.body_html,
         hasFilters: !!campaignData.filters,
+        total_recipients: calculatedRecipientCount,
         method,
         url
       })
@@ -818,15 +842,40 @@ function ValidationErrorModal({ errors, onClose, onGoToField }) {
         className="bg-white rounded-lg max-w-md w-full shadow-xl" 
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with branding */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 rounded-t-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+        {/* Branded Header */}
+        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-6 py-4 rounded-t-lg relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+              backgroundSize: '24px 24px'
+            }}></div>
+          </div>
+          
+          <div className="flex items-center gap-3 relative z-10">
+            {/* MSC & Co Logo */}
+            <div className="flex-shrink-0 relative">
+              <img
+                src="/logos/MSCandCoLogoV2.svg"
+                alt="MSC & Co"
+                className="h-8 w-8 object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+              {/* Fallback icon if logo fails */}
+              <div className="absolute inset-0 flex items-center justify-center h-8 w-8 rounded-full bg-white/20" style={{ display: 'none' }}>
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
             </div>
-            <div>
+            
+            <div className="flex-1">
               <h3 className="text-lg font-semibold text-white">Missing Required Fields</h3>
-              <p className="text-sm text-gray-300">Please complete the following fields to continue</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                <p className="text-xs font-medium text-gray-300">Please complete the following fields to continue</p>
+              </div>
             </div>
           </div>
         </div>
@@ -963,18 +1012,51 @@ function CampaignModal({ campaign, form, setForm, templates, segments, onSave, o
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {campaign ? 'Edit Campaign' : 'Create Campaign'}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {campaign ? `Last updated: ${new Date(campaign.updated_at).toLocaleString()}` : 'Create a new email campaign'}
-            </p>
+        {/* Branded Header */}
+        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-6 py-5 flex items-center justify-between relative overflow-hidden flex-shrink-0">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+              backgroundSize: '24px 24px'
+            }}></div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="w-6 h-6" />
+          
+          <div className="flex items-center gap-4 relative z-10 flex-1">
+            {/* MSC & Co Logo */}
+            <div className="flex-shrink-0 relative">
+              <img
+                src="/logos/MSCandCoLogoV2.svg"
+                alt="MSC & Co"
+                className="h-10 w-10 object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+            
+            <div className="flex-1">
+              <h2 className="text-xl leading-6 font-bold text-white mb-1">
+                {campaign ? 'Edit Campaign' : 'Create Campaign'}
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                <p className="text-xs font-medium text-gray-300">
+                  {campaign ? `Last updated: ${new Date(campaign.updated_at).toLocaleString()}` : 'Create a new email campaign'}
+                </p>
+                <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                <p className="text-xs font-medium text-gray-300">MSC & Co Platform</p>
+              </div>
+            </div>
+          </div>
+          
+          <button 
+            onClick={onClose} 
+            className="text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10 relative z-10"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 

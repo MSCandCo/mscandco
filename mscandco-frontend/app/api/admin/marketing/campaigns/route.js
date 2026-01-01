@@ -116,7 +116,8 @@ export async function POST(request) {
       filters,
       template_id,
       scheduled_for,
-      status
+      status,
+      total_recipients
     } = body
 
     // For drafts, allow minimal validation (just name is required)
@@ -152,6 +153,7 @@ export async function POST(request) {
       template_id: template_id || null,
       scheduled_for: scheduled_for || null,
       status: status || (scheduled_for ? 'scheduled' : 'draft'),
+      total_recipients: total_recipients || 0,
       created_by: session.user.id
     }
     
