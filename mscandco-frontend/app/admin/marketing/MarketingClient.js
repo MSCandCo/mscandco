@@ -9,7 +9,7 @@ import {
   Download, Upload, Image as ImageIcon, Link as LinkIcon, Type,
   Layout, Palette, Code, EyeOff, Globe, UserCheck, MapPin,
   Building2, Music, Tag, DollarSign, Calendar as CalendarIcon,
-  MousePointer, Shield, Award, Activity, CreditCard
+  MousePointer, Shield, Award, Activity, CreditCard, TestTube
 } from 'lucide-react'
 import ConfirmationModal from '@/components/shared/ConfirmationModal'
 import { Input } from '@/components/ui/input'
@@ -91,6 +91,9 @@ export default function MarketingClient() {
   // Confirmation modals state
   const [showSendConfirm, setShowSendConfirm] = useState(false)
   const [campaignToSend, setCampaignToSend] = useState(null)
+  const [showTestSendModal, setShowTestSendModal] = useState(false)
+  const [campaignToTestSend, setCampaignToTestSend] = useState(null)
+  const [testEmailAddresses, setTestEmailAddresses] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [campaignToDelete, setCampaignToDelete] = useState(null)
 
@@ -486,6 +489,68 @@ export default function MarketingClient() {
     setShowSendConfirm(true)
   }
 
+  const handleTestSendCampaign = (campaignId) => {
+    setCampaignToTestSend(campaignId)
+    setTestEmailAddresses('')
+    setShowTestSendModal(true)
+  }
+
+  const confirmTestSendCampaign = async () => {
+    if (!campaignToTestSend || !testEmailAddresses.trim()) {
+      setError('Please enter at least one test email address')
+      setValidationErrors([{ field: 'testEmails', message: 'Test email address is required' }])
+      setShowErrorModal(true)
+      return
+    }
+
+    try {
+      setLoading(true)
+      setShowTestSendModal(false)
+      
+      // Parse email addresses (comma or newline separated)
+      const emails = testEmailAddresses
+        .split(/[,\n]/)
+        .map(email => email.trim())
+        .filter(email => email.length > 0)
+
+      if (emails.length === 0) {
+        throw new Error('Please enter at least one valid email address')
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const invalidEmails = emails.filter(email => !emailRegex.test(email))
+      if (invalidEmails.length > 0) {
+        throw new Error(`Invalid email addresses: ${invalidEmails.join(', ')}`)
+      }
+
+      const response = await fetch(`/api/admin/marketing/campaigns/${campaignToTestSend}/send-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ testEmails: emails })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to send test email')
+      }
+
+      const data = await response.json()
+      alert(`Test email sent successfully to ${data.sentCount} recipient(s)!`)
+      setCampaignToTestSend(null)
+      setTestEmailAddresses('')
+    } catch (err) {
+      setError(err.message)
+      setValidationErrors([{ field: 'general', message: err.message }])
+      setShowErrorModal(true)
+    } finally {
+      setLoading(false)
+      setCampaignToTestSend(null)
+    }
+  }
+
   const confirmSendCampaign = async () => {
     if (!campaignToSend) return
 
@@ -842,6 +907,13 @@ export default function MarketingClient() {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
+                                onClick={() => handleTestSendCampaign(campaign.id)}
+                                className="text-purple-600 hover:text-purple-900"
+                                title="Send Test Email"
+                              >
+                                <TestTube className="w-4 h-4" />
+                              </button>
+                              <button
                                 onClick={() => handleSendCampaign(campaign.id)}
                                 className="text-green-600 hover:text-green-900"
                                 title="Send Campaign"
@@ -849,6 +921,15 @@ export default function MarketingClient() {
                                 <Send className="w-4 h-4" />
                               </button>
                             </>
+                          )}
+                          {(campaign.status === 'scheduled' || campaign.status === 'sent') && (
+                            <button
+                              onClick={() => handleTestSendCampaign(campaign.id)}
+                              className="text-purple-600 hover:text-purple-900"
+                              title="Send Test Email"
+                            >
+                              <TestTube className="w-4 h-4" />
+                            </button>
                           )}
                           <button
                             onClick={() => handleEditCampaign(campaign)}
@@ -942,6 +1023,68 @@ export default function MarketingClient() {
             }
           }}
         />
+      )}
+
+      {/* Send Test Email Modal */}
+      {showTestSendModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Send Test Email</h2>
+              <button
+                onClick={() => {
+                  setShowTestSendModal(false)
+                  setCampaignToTestSend(null)
+                  setTestEmailAddresses('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-4">
+                Enter email addresses to send a test version of this campaign. Separate multiple addresses with commas or new lines.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Test Email Addresses
+                </label>
+                <textarea
+                  value={testEmailAddresses}
+                  onChange={(e) => setTestEmailAddresses(e.target.value)}
+                  placeholder="test@example.com, another@example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                  disabled={loading}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  You can enter multiple email addresses separated by commas or new lines
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowTestSendModal(false)
+                  setCampaignToTestSend(null)
+                  setTestEmailAddresses('')
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmTestSendCampaign}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !testEmailAddresses.trim()}
+              >
+                {loading ? 'Sending...' : 'Send Test Email'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Send Campaign Confirmation Modal */}
