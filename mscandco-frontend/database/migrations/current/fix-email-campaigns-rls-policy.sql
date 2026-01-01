@@ -7,7 +7,7 @@
 
 -- Drop existing policies to recreate them properly
 DROP POLICY IF EXISTS "Service role can manage campaigns" ON email_campaigns;
-DROP POLICY IF EXISTS "Service role can manage recipients" ON email_campaigns_recipients;
+DROP POLICY IF EXISTS "Service role can manage recipients" ON email_campaign_recipients;
 DROP POLICY IF EXISTS "Service role can manage templates" ON marketing_email_templates;
 
 -- Recreate policies: Service role has full access (bypasses RLS)
