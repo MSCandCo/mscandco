@@ -64,7 +64,8 @@ function MetricCard({ icon: Icon, label, value, change, trend }) {
 
 export default function MarketingClient() {
   // Core state
-  const [campaigns, setCampaigns] = useState([])
+  const [campaigns, setCampaigns] = useState([]) // Filtered campaigns for display
+  const [allCampaigns, setAllCampaigns] = useState([]) // All campaigns for stats (single source of truth)
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -160,15 +161,27 @@ export default function MarketingClient() {
     }
   }
 
+  // Load all campaigns for stats on mount and when campaigns change
+  useEffect(() => {
+    loadAllCampaignsForStats()
+  }, []) // Only run once on mount
+
   // Load data
   useEffect(() => {
     loadCampaigns()
     loadTemplates()
-    loadStats()
     if (activeTab === 'segments') {
       loadSegments()
     }
   }, [statusFilter, activeTab, showArchived])
+
+  // Update stats whenever allCampaigns changes
+  useEffect(() => {
+    if (allCampaigns.length > 0 || campaigns.length > 0) {
+      loadStats()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allCampaigns, campaigns])
 
   const loadCampaigns = async () => {
     try {
@@ -206,11 +219,30 @@ export default function MarketingClient() {
     }
   }
 
+  // Load all campaigns for stats (single source of truth)
+  const loadAllCampaignsForStats = async () => {
+    try {
+      // Load all campaigns (both archived and non-archived) for stats
+      const response = await fetch('/api/admin/marketing/campaigns?archived=all')
+      if (response.ok) {
+        const data = await response.json()
+        setAllCampaigns(data.campaigns || [])
+      }
+    } catch (err) {
+      console.error('Failed to load all campaigns for stats:', err)
+    }
+  }
+
   const loadStats = async () => {
     try {
-      // Calculate stats from campaigns
-      const totalCampaigns = campaigns.length
-      const sentCampaigns = campaigns.filter(c => c.status === 'sent')
+      // Calculate stats from ALL campaigns (not filtered) - single source of truth
+      // Use allCampaigns if available, otherwise fall back to campaigns
+      const campaignsForStats = allCampaigns.length > 0 ? allCampaigns : campaigns
+      
+      // Only count non-archived campaigns for stats
+      const activeCampaigns = campaignsForStats.filter(c => !c.is_archived)
+      const totalCampaigns = activeCampaigns.length
+      const sentCampaigns = activeCampaigns.filter(c => c.status === 'sent')
       const totalSent = sentCampaigns.length
       const totalRecipients = sentCampaigns.reduce((sum, c) => sum + (c.total_recipients || 0), 0)
       const totalOpened = sentCampaigns.reduce((sum, c) => sum + (c.emails_opened || 0), 0)
@@ -426,6 +458,7 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
+      await loadAllCampaignsForStats() // Reload all campaigns for stats
       
       if (actualSaveAsDraft) {
         // If this was a fallback from "Save & Close", show message and close
@@ -470,6 +503,7 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
+      await loadAllCampaignsForStats() // Reload all campaigns for stats
       setCampaignToSend(null)
     } catch (err) {
       setError(err.message)
@@ -503,6 +537,7 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
+      await loadAllCampaignsForStats() // Reload all campaigns for stats
       setCampaignToDelete(null)
     } catch (err) {
       setError(err.message)
@@ -573,6 +608,7 @@ export default function MarketingClient() {
       }
 
       await loadCampaigns()
+      await loadAllCampaignsForStats() // Reload all campaigns for stats
       alert('Campaign cloned successfully!')
       setShowCampaignModal(false)
     } catch (err) {
@@ -878,7 +914,7 @@ export default function MarketingClient() {
 
       {/* Analytics Tab */}
       {activeTab === 'analytics' && (
-        <CampaignAnalyticsTab campaigns={campaigns} />
+        <CampaignAnalyticsTab campaigns={allCampaigns.filter(c => !c.is_archived)} />
       )}
 
       {/* Campaign Modal */}

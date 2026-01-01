@@ -38,7 +38,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
-    const archived = searchParams.get('archived') // 'true' to show archived, 'false' or undefined to show active
+    const archived = searchParams.get('archived') // 'true' to show archived, 'false' or undefined to show active, 'all' to show all
 
     let query = supabaseAdmin
       .from('email_campaigns')
@@ -51,6 +51,9 @@ export async function GET(request) {
     // Filter by archived status
     if (archived === 'true') {
       query = query.eq('is_archived', true)
+    } else if (archived === 'all') {
+      // Show all campaigns (both archived and non-archived) - for stats
+      // Don't filter by is_archived
     } else {
       // Default: show only non-archived campaigns
       query = query.eq('is_archived', false)
