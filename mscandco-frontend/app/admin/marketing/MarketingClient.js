@@ -311,9 +311,32 @@ export default function MarketingClient() {
       setError(null)
       setValidationErrors([])
 
-      // Validate form before saving
-      const validation = validateCampaignForm()
-      if (!validation.isValid) {
+      // For drafts, only validate that name exists (minimum requirement)
+      // For non-drafts (sending/scheduling), validate all required fields
+      let validation = { isValid: true, errors: [] }
+      let actualSaveAsDraft = saveAsDraft
+      
+      if (saveAsDraft) {
+        // Draft validation: only name is required
+        if (!campaignForm.name || campaignForm.name.trim() === '') {
+          validation = {
+            isValid: false,
+            errors: [{ field: 'name', message: 'Campaign name is required' }]
+          }
+        }
+      } else {
+        // Full validation for non-drafts (ready to send/schedule)
+        validation = validateCampaignForm()
+        
+        // If validation fails and we're trying to save as non-draft,
+        // automatically save as draft instead (graceful fallback)
+        if (!validation.isValid) {
+          actualSaveAsDraft = true
+        }
+      }
+
+      // If validation fails and we're saving as draft, show error and return
+      if (!validation.isValid && actualSaveAsDraft && saveAsDraft) {
         setValidationErrors(validation.errors)
         setShowErrorModal(true)
         setLoading(false)
@@ -329,7 +352,7 @@ export default function MarketingClient() {
       // Prepare campaign data with status
       const campaignData = {
         ...campaignForm,
-        status: saveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
+        status: actualSaveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
       }
 
       const response = await fetch(url, {
@@ -345,9 +368,15 @@ export default function MarketingClient() {
 
       await loadCampaigns()
       
-      if (saveAsDraft) {
-        // Don't close modal if saving as draft - allow user to continue editing
-        alert('Draft saved successfully! You can continue editing or close this window.')
+      if (actualSaveAsDraft) {
+        // If this was a fallback from "Save & Close", show message and close
+        if (!saveAsDraft && !validation.isValid) {
+          alert('Campaign saved as draft. Please complete all required fields before sending.')
+          setShowCampaignModal(false)
+        } else {
+          // Regular draft save - don't close modal, allow user to continue editing
+          alert('Draft saved successfully! You can continue editing or close this window.')
+        }
       } else {
         setShowCampaignModal(false)
       }
