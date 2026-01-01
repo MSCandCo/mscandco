@@ -350,8 +350,10 @@ export default function MarketingClient() {
       const method = editingCampaign ? 'PUT' : 'POST'
 
       // Prepare campaign data with status
+      // Ensure filters is always an object (required by API)
       const campaignData = {
         ...campaignForm,
+        filters: campaignForm.filters || {},
         status: actualSaveAsDraft ? 'draft' : (campaignForm.scheduled_for ? 'scheduled' : 'draft')
       }
 
@@ -363,7 +365,17 @@ export default function MarketingClient() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to save campaign')
+        // Log the full error for debugging
+        console.error('Campaign save error:', {
+          status: response.status,
+          data,
+          campaignData: { ...campaignData, filters: 'object' } // Don't log full filters
+        })
+        // Include details in error message for better debugging
+        const errorMessage = data.details 
+          ? `${data.error || 'Failed to save campaign'}: ${data.details}`
+          : (data.error || 'Failed to save campaign')
+        throw new Error(errorMessage)
       }
 
       await loadCampaigns()
