@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FaSearch } from 'react-icons/fa'
 import { Eye, CheckCircle, XCircle, Send, Edit, X, Inbox, RefreshCw } from 'lucide-react'
-import { PageLoading } from '@/components/ui/LoadingSpinner';
+import { PageLoading } from '@/components/ui/LoadingSpinner'
+import ViewReleaseDetailsModal from '@/components/releases/ViewReleaseDetailsModal'
 
 const RELEASE_STATUSES = {
   draft: 'Draft',
@@ -41,6 +42,8 @@ export default function DistributionHubClient({ user }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [editingRelease, setEditingRelease] = useState(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedRelease, setSelectedRelease] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -407,6 +410,10 @@ export default function DistributionHubClient({ user }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">
                         <button
+                          onClick={() => {
+                            setSelectedRelease(release)
+                            setIsViewModalOpen(true)
+                          }}
                           className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
                           title="View Details"
                         >
