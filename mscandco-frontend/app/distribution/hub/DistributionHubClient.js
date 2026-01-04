@@ -180,15 +180,24 @@ export default function DistributionHubClient({ user }) {
 
   const handleEditMetadata = async (releaseId, updates) => {
     try {
-      const { error } = await supabase
-        .from('releases')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', releaseId)
+      const response = await fetch(`/api/distribution/releases/${releaseId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updates)
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update release')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update release')
+      }
 
       loadAllData()
       setIsEditModalOpen(false)
@@ -196,7 +205,7 @@ export default function DistributionHubClient({ user }) {
       showNotification('Release metadata updated successfully', 'success')
     } catch (error) {
       console.error('Error updating metadata:', error)
-      showNotification('Failed to update metadata', 'error')
+      showNotification(error.message || 'Failed to update metadata', 'error')
     }
   }
 
@@ -554,55 +563,185 @@ export default function DistributionHubClient({ user }) {
       {/* Edit Metadata Modal */}
       {isEditModalOpen && editingRelease && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Edit Release Metadata</h3>
-              <button
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Branded Header */}
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-6 py-5 flex items-center justify-between relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                  backgroundSize: '24px 24px'
+                }}></div>
+              </div>
+              
+              <div className="flex items-center gap-4 relative z-10 flex-1">
+                {/* MSC & Co Logo */}
+                <div className="flex-shrink-0 relative">
+                  <img
+                    src="/logos/MSCandCoLogoV2.svg"
+                    alt="MSC & Co"
+                    className="h-10 w-10 object-contain"
+                    style={{ filter: 'brightness(0) invert(1)' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                
+                <div className="flex-1">
+                  <h3 className="text-xl leading-6 font-bold text-white mb-1">Edit Release Metadata</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                    <p className="text-xs font-medium text-gray-300">Distribution Admin - Full Metadata Edit</p>
+                  </div>
+                </div>
+              </div>
+              
+              <button 
                 onClick={() => {
                   setIsEditModalOpen(false)
                   setEditingRelease(null)
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10 relative z-10"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6">
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Basic Information Section */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={editingRelease.title}
-                    onChange={(e) => setEditingRelease({...editingRelease, title: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Release Title *</label>
+                      <input
+                        type="text"
+                        value={editingRelease.title || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, title: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Primary Artist</label>
+                      <input
+                        type="text"
+                        value={editingRelease.artist_name || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, artist_name: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Release Type</label>
+                      <select
+                        value={editingRelease.release_type || 'single'}
+                        onChange={(e) => setEditingRelease({...editingRelease, release_type: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="single">Single</option>
+                        <option value="ep">EP</option>
+                        <option value="album">Album</option>
+                        <option value="lp">LP</option>
+                        <option value="compilation">Compilation</option>
+                        <option value="mixtape">Mixtape</option>
+                        <option value="remix">Remix</option>
+                        <option value="live">Live</option>
+                        <option value="soundtrack">Soundtrack</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
+                      <input
+                        type="date"
+                        value={editingRelease.release_date || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, release_date: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Primary Genre</label>
+                      <input
+                        type="text"
+                        value={editingRelease.genre || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, genre: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Pop, Hip-Hop, R&B"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Genre</label>
+                      <input
+                        type="text"
+                        value={editingRelease.subgenre || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, subgenre: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Optional secondary genre"
+                      />
+                    </div>
+                  </div>
                 </div>
 
+                {/* Technical Details Section */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
-                  <input
-                    type="text"
-                    value={editingRelease.genre || ''}
-                    onChange={(e) => setEditingRelease({...editingRelease, genre: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Technical Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">UPC (Universal Product Code)</label>
+                      <input
+                        type="text"
+                        value={editingRelease.upc || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, upc: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="12-digit UPC code"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ISRC (International Standard Recording Code)</label>
+                      <input
+                        type="text"
+                        value={editingRelease.isrc || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, isrc: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="ISRC code"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Catalog Number</label>
+                      <input
+                        type="text"
+                        value={editingRelease.catalog_number || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, catalog_number: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Catalog number"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Copyright Holder</label>
+                      <input
+                        type="text"
+                        value={editingRelease.copyright_holder || ''}
+                        onChange={(e) => setEditingRelease({...editingRelease, copyright_holder: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Copyright holder name"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
-                  <input
-                    type="date"
-                    value={editingRelease.release_date}
-                    onChange={(e) => setEditingRelease({...editingRelease, release_date: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-
+                {/* Note */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> You cannot edit artwork or audio files. If these need changes, push the release back to draft.
+                    <strong>Note:</strong> You cannot edit artwork or audio files through this interface. If these need changes, the release should be moved back to draft status.
                   </p>
                 </div>
               </div>
@@ -614,17 +753,24 @@ export default function DistributionHubClient({ user }) {
                   setIsEditModalOpen(false)
                   setEditingRelease(null)
                 }}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleEditMetadata(editingRelease.id, {
                   title: editingRelease.title,
+                  artist_name: editingRelease.artist_name,
+                  release_type: editingRelease.release_type,
                   genre: editingRelease.genre,
-                  release_date: editingRelease.release_date
+                  subgenre: editingRelease.subgenre,
+                  release_date: editingRelease.release_date,
+                  upc: editingRelease.upc,
+                  isrc: editingRelease.isrc,
+                  catalog_number: editingRelease.catalog_number,
+                  copyright_holder: editingRelease.copyright_holder
                 })}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save Changes
               </button>
