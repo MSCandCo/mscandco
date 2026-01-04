@@ -632,6 +632,18 @@ export default function DistributionHubClient({ user }) {
           </div>
         </div>
       )}
+
+      {/* View Release Details Modal */}
+      {isViewModalOpen && selectedRelease && (
+        <ViewReleaseDetailsModal
+          isOpen={isViewModalOpen}
+          onClose={() => {
+            setIsViewModalOpen(false)
+            setSelectedRelease(null)
+          }}
+          release={selectedRelease}
+        />
+      )}
     </div>
   )
 }
