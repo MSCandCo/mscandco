@@ -199,6 +199,30 @@ const ALL_COUNTRIES = [
   { code: 'ZW', name: 'Zimbabwe' }
 ];
 
+// Common DSPs (Digital Service Providers) for distribution
+const COMMON_DSPS = [
+  'Spotify',
+  'Apple Music',
+  'Amazon Music',
+  'YouTube Music',
+  'Tidal',
+  'Deezer',
+  'Pandora',
+  'SoundCloud',
+  'Bandcamp',
+  'iHeartRadio',
+  'Qobuz',
+  'Napster',
+  'Audiomack',
+  'Anghami',
+  'Boomplay',
+  'JioSaavn',
+  'KKBox',
+  'TikTok',
+  'Instagram',
+  'Facebook'
+];
+
 export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRelease = null }) {
   // Artist profile for pre-filling
   const [artistProfile, setArtistProfile] = useState(null);
@@ -230,6 +254,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     sellWorldwide: true,
     territoryRestrictionType: 'exclude',
     territoryRestrictions: [],
+    excludeDSPs: false,
+    excludedDSPs: [],
     
     // Distribution Details  
     digitalAssetsFolder: '',
@@ -438,6 +464,8 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         sellWorldwide: savedFormData.sellWorldwide !== undefined ? savedFormData.sellWorldwide : (editingRelease.sellWorldwide !== false),
         territoryRestrictionType: savedFormData.territoryRestrictionType || editingRelease.territoryRestrictionType || 'exclude',
         territoryRestrictions: savedFormData.territoryRestrictions || editingRelease.territoryRestrictions || [],
+        excludeDSPs: savedFormData.excludeDSPs !== undefined ? savedFormData.excludeDSPs : (editingRelease.excludeDSPs || false),
+        excludedDSPs: savedFormData.excludedDSPs || editingRelease.excludedDSPs || [],
         
         // Distribution Details  
         digitalAssetsFolder: editingRelease.digitalAssetsFolder || '',
@@ -462,7 +490,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
         assets: editingRelease.assets || [{
           songTitle: editingRelease.songTitle || '',
           anyOtherFeaturingArtists: '',
-          duration: '',
+          duration: editingRelease.assets?.[0]?.duration || '',
           explicit: false,
           version: '',
           bpm: '',
@@ -570,6 +598,44 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     }));
   };
 
+  // Copy metadata from first asset to all other assets (for multi-asset releases)
+  const copyMetadataToOtherAssets = () => {
+    if (formData.assets.length <= 1) {
+      return; // No other assets to copy to
+    }
+    
+    const firstAsset = formData.assets[0];
+    setFormData(prev => ({
+      ...prev,
+      assets: prev.assets.map((asset, index) => 
+        index === 0 ? asset : {
+          ...asset,
+          anyOtherFeaturingArtists: firstAsset.anyOtherFeaturingArtists,
+          explicit: firstAsset.explicit,
+          version: firstAsset.version,
+          bpm: firstAsset.bpm,
+          songKey: firstAsset.songKey,
+          moodDescription: firstAsset.moodDescription,
+          tags: firstAsset.tags,
+          language: firstAsset.language,
+          customLanguageDetails: firstAsset.customLanguageDetails,
+          vocalType: firstAsset.vocalType,
+          catalogueNo: firstAsset.catalogueNo,
+          format: firstAsset.format,
+          productType: firstAsset.productType,
+          barcode: firstAsset.barcode,
+          tunecode: firstAsset.tunecode,
+          iceWorkKey: firstAsset.iceWorkKey,
+          iswc: firstAsset.iswc,
+          bowiPreviouslyReleased: firstAsset.bowiPreviouslyReleased,
+          previousReleaseDate: firstAsset.previousReleaseDate,
+          recordingCountry: firstAsset.recordingCountry,
+          contributors: [...firstAsset.contributors]
+        }
+      )
+    }));
+  };
+
 
   // Save to draft function
   const saveToDraft = async () => {
@@ -630,7 +696,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
           version: formData.assets[0].version,
           bpm: formData.assets[0].bpm,
           language: formData.assets[0].language,
-          isrc: formData.assets[0].isrc,
+          isrc: formData.assets[0].isrc || '',
           contributors: formData.assets[0].contributors || [],
           audioFileUrl: formData.assets[0].audioFileUrl,
           audioFilename: formData.assets[0].audioFilename,
@@ -796,8 +862,9 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
     if (!formData.releaseDate) validationErrors.push('Release date is required');
     if (!formData.artworkUrl) validationErrors.push('Cover artwork is required');
     if (!formData.assets[0]?.songTitle) validationErrors.push('Song title is required');
-    if (!formData.assets[0]?.duration) validationErrors.push('Track duration is required');
     if (!formData.assets[0]?.audioFileUrl) validationErrors.push('Audio file is required');
+    // Duration is auto-filled from audio, but validate it exists
+    if (!formData.assets[0]?.duration) validationErrors.push('Track duration is required (will be auto-filled from audio file)');
 
     if (validationErrors.length > 0) {
       setErrors({ submit: `Please complete required fields:\n${validationErrors.join('\n')}` });
@@ -1341,21 +1408,6 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Duration *</label>
-                  <input
-                    type="text"
-                    value={formData.assets[0].duration}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      assets: [{ ...prev.assets[0], duration: e.target.value }]
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="3:45"
-                    required
-                  />
-                </div>
-                
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Explicit</label>
                   <div className="flex items-center space-x-4">
                     <label className="flex items-center">
@@ -1453,6 +1505,22 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                  <input
+                    type="text"
+                    value={formData.assets[0].duration}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      assets: [{ ...prev.assets[0], duration: e.target.value }]
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                    placeholder="Auto-filled from audio"
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Automatically detected from uploaded audio file</p>
+                </div>
+                
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">ISRC</label>
                   <input
                     type="text"
@@ -1461,7 +1529,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                       ...prev,
                       assets: [{ ...prev.assets[0], isrc: e.target.value }]
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                     placeholder="Enter ISRC code"
                   />
                   <p className="text-xs text-gray-500 mt-1">If you have one, please enter it above. Otherwise, we will generate one for you.</p>
@@ -1474,9 +1542,29 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                 <FileUploader
                   type="audio"
                   required={true}
+                  restrictToWAV={true}
                   currentFile={formData.assets[0]?.audioFileUrl}
                   onUpload={(url, filename) => {
                     console.log('🎵 Audio onUpload callback triggered with:', { url, filename });
+                    
+                    // Auto-detect duration from audio file
+                    const audio = new Audio(url);
+                    audio.addEventListener('loadedmetadata', () => {
+                      const duration = audio.duration;
+                      const minutes = Math.floor(duration / 60);
+                      const seconds = Math.floor(duration % 60);
+                      const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                        assets: [{
+                          ...prev.assets[0],
+                          duration: formattedDuration
+                        }]
+                      }));
+                    });
+                    
+                    // Set URL immediately
                     setFormData(prev => {
                       console.log('🎵 Setting audioFileUrl in form data:', url);
                       return {
@@ -1490,14 +1578,6 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                     });
                   }}
                 />
-                <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <p className="text-sm text-purple-800">
-                    <strong>Required:</strong> WAV format only for professional distribution
-                  </p>
-                  <p className="text-xs text-purple-600 mt-1">
-                    Minimum quality: 16-bit/44.1kHz or higher. 24-bit/48kHz recommended for best results.
-                  </p>
-                </div>
               </div>
 
               {/* Apple Lossless (Optional) */}
@@ -1716,7 +1796,7 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                   type="text"
                   value={formData.upc}
                   onChange={(e) => setFormData(prev => ({ ...prev, upc: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                   placeholder="Enter UPC code"
                 />
                 <p className="text-xs text-gray-500 mt-1">If you have one, please enter it above. Otherwise, we will generate one for you.</p>
@@ -1796,6 +1876,73 @@ export default function FinalReleaseForm({ isOpen, onClose, onSuccess, editingRe
                       <p className="text-xs text-gray-500 mt-1">Hold Ctrl (PC) or Cmd (Mac) to select multiple countries</p>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* DSP Exclusion */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Exclude DSPs from distribution?</label>
+              <div className="flex items-center space-x-4 mb-3">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="excludeDSPs"
+                    checked={formData.excludeDSPs === false}
+                    onChange={() => setFormData(prev => ({ ...prev, excludeDSPs: false, excludedDSPs: [] }))}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="excludeDSPs"
+                    checked={formData.excludeDSPs === true}
+                    onChange={() => setFormData(prev => ({ ...prev, excludeDSPs: true }))}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+              </div>
+              
+              {formData.excludeDSPs === true && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800 mb-3">
+                    Select DSPs to exclude from distribution:
+                  </p>
+                  <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto bg-white">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {COMMON_DSPS.map(dsp => (
+                        <label key={dsp} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                          <input
+                            type="checkbox"
+                            checked={formData.excludedDSPs.includes(dsp)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  excludedDSPs: [...prev.excludedDSPs, dsp]
+                                }));
+                              } else {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  excludedDSPs: prev.excludedDSPs.filter(excluded => excluded !== dsp)
+                                }));
+                              }
+                            }}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{dsp}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {formData.excludedDSPs.length > 0 && (
+                    <p className="text-xs text-orange-600 mt-2">
+                      {formData.excludedDSPs.length} DSP{formData.excludedDSPs.length > 1 ? 's' : ''} excluded: {formData.excludedDSPs.join(', ')}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
